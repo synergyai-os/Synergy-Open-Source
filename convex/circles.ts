@@ -4,6 +4,7 @@ import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
+import { captureCreate, captureUpdate, captureArchive, captureRestore } from './orgVersionHistory';
 
 /**
  * Circles represent work workspace units (not people grouping)
@@ -60,11 +61,13 @@ async function ensureWorkspaceMembership(
 
 /**
  * List all circles in an workspace
+ * By default, excludes archived circles. Set includeArchived=true to include them.
  */
 export const list = query({
 	args: {
 		sessionId: v.string(),
-		workspaceId: v.id('workspaces')
+		workspaceId: v.id('workspaces'),
+		includeArchived: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -72,25 +75,47 @@ export const list = query({
 		// Verify user has access to this workspace
 		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
-		// Get all circles (including archived)
-		const circles = await ctx.db
-			.query('circles')
-			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
-			.collect();
+		// Get circles - exclude archived by default
+		const circles = args.includeArchived
+			? await ctx.db
+					.query('circles')
+					.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+					.collect()
+			: await ctx.db
+					.query('circles')
+					.withIndex('by_workspace_archived', (q) =>
+						q.eq('workspaceId', args.workspaceId).eq('archivedAt', undefined)
+					)
+					.collect();
 
 		// Get member counts and roles for each circle
 		const results = await Promise.all(
 			circles.map(async (circle) => {
-				const members = await ctx.db
-					.query('circleMembers')
-					.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
-					.collect();
+				// Get active members only (unless includeArchived is true)
+				const members = args.includeArchived
+					? await ctx.db
+							.query('circleMembers')
+							.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
+							.collect()
+					: await ctx.db
+							.query('circleMembers')
+							.withIndex('by_circle_archived', (q) =>
+								q.eq('circleId', circle._id).eq('archivedAt', undefined)
+							)
+							.collect();
 
-				// Get roles for this circle
-				const roles = await ctx.db
-					.query('circleRoles')
-					.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
-					.collect();
+				// Get active roles only (unless includeArchived is true)
+				const roles = args.includeArchived
+					? await ctx.db
+							.query('circleRoles')
+							.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
+							.collect()
+					: await ctx.db
+							.query('circleRoles')
+							.withIndex('by_circle_archived', (q) =>
+								q.eq('circleId', circle._id).eq('archivedAt', undefined)
+							)
+							.collect();
 
 				// Get parent circle name if it exists
 				let parentName: string | null = null;
@@ -143,10 +168,12 @@ export const get = query({
 		// Verify user has access to this workspace
 		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
-		// Get member count
+		// Get active member count only
 		const members = await ctx.db
 			.query('circleMembers')
-			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
+			.withIndex('by_circle_archived', (q) =>
+				q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+			)
 			.collect();
 
 		// Get parent circle name if it exists
@@ -174,11 +201,13 @@ export const get = query({
 
 /**
  * Get members of a circle
+ * By default, excludes archived members. Set includeArchived=true to include them.
  */
 export const getMembers = query({
 	args: {
 		sessionId: v.string(),
-		circleId: v.id('circles')
+		circleId: v.id('circles'),
+		includeArchived: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -191,10 +220,18 @@ export const getMembers = query({
 		// Verify user has access to this workspace
 		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
-		const memberships = await ctx.db
-			.query('circleMembers')
-			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
-			.collect();
+		// Get members - exclude archived by default
+		const memberships = args.includeArchived
+			? await ctx.db
+					.query('circleMembers')
+					.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
+					.collect()
+			: await ctx.db
+					.query('circleMembers')
+					.withIndex('by_circle_archived', (q) =>
+						q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+					)
+					.collect();
 
 		const members = await Promise.all(
 			memberships.map(async (membership) => {
@@ -239,6 +276,21 @@ export const create = mutation({
 			throw new Error('Circle name is required');
 		}
 
+		// If creating a root circle (parentCircleId === undefined), validate only one exists
+		if (args.parentCircleId === undefined) {
+			const allCircles = await ctx.db
+				.query('circles')
+				.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+				.collect();
+
+			// Check if any circle has parentCircleId === undefined (root circle)
+			const existingRoot = allCircles.find((circle) => circle.parentCircleId === undefined);
+
+			if (existingRoot) {
+				throw new Error('ERR_ROOT_EXISTS: Workspace already has a root circle');
+			}
+		}
+
 		// If parent circle is specified, validate it exists and belongs to same org
 		if (args.parentCircleId) {
 			const parentCircle = await ctx.db.get(args.parentCircleId);
@@ -264,6 +316,12 @@ export const create = mutation({
 			updatedAt: now,
 			updatedBy: userId
 		});
+
+		// Capture version history
+		const newCircle = await ctx.db.get(circleId);
+		if (newCircle) {
+			await captureCreate(ctx, 'circle', newCircle);
+		}
 
 		return {
 			circleId,
@@ -337,12 +395,20 @@ export const update = mutation({
 
 		await ctx.db.patch(args.circleId, updates);
 
+		// Capture version history
+		const updatedCircle = await ctx.db.get(args.circleId);
+		if (updatedCircle) {
+			await captureUpdate(ctx, 'circle', circle, updatedCircle);
+		}
+
 		return { success: true };
 	}
 });
 
 /**
  * Archive a circle (soft delete)
+ * CASCADE: When a circle is archived, all roles in that circle are also archived.
+ * NOTE: Members are NOT cascaded - they can belong to multiple circles.
  */
 export const archive = mutation({
 	args: {
@@ -360,15 +426,135 @@ export const archive = mutation({
 			throw new Error('Circle not found');
 		}
 
+		// Protect root circle: cannot be archived
+		// Root circle is identified by parentCircleId === undefined
+		if (circle.parentCircleId === undefined) {
+			throw new Error('ERR_ROOT_CIRCLE_PROTECTED: Root circle cannot be archived');
+		}
+
 		// Verify user has access to this workspace
 		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
+		const now = Date.now();
+
+		// 1. Archive the circle
 		await ctx.db.patch(args.circleId, {
-			archivedAt: Date.now(),
+			archivedAt: now,
 			archivedBy: userId,
-			updatedAt: Date.now(),
+			updatedAt: now,
 			updatedBy: userId
 		});
+
+		// Capture version history for circle archive
+		const archivedCircle = await ctx.db.get(args.circleId);
+		if (archivedCircle) {
+			await captureArchive(ctx, 'circle', circle, archivedCircle);
+		}
+
+		// 2. CASCADE: Archive all roles in this circle
+		// Note: When cascading from circle archive, we bypass Circle Lead protection
+		// (required roles can be archived when their parent circle is archived)
+		const roles = await ctx.db
+			.query('circleRoles')
+			.withIndex('by_circle_archived', (q) =>
+				q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+			)
+			.collect();
+
+		for (const role of roles) {
+			// Archive the role (bypassing Circle Lead protection for cascade)
+			await ctx.db.patch(role._id, {
+				archivedAt: now,
+				archivedBy: userId,
+				updatedAt: now,
+				updatedBy: userId
+			});
+
+			// CASCADE: Archive all user assignments to this role
+			const assignments = await ctx.db
+				.query('userCircleRoles')
+				.withIndex('by_role_archived', (q) =>
+					q.eq('circleRoleId', role._id).eq('archivedAt', undefined)
+				)
+				.collect();
+
+			for (const assignment of assignments) {
+				await ctx.db.patch(assignment._id, {
+					archivedAt: now,
+					archivedBy: userId,
+					updatedAt: now,
+					updatedBy: userId
+				});
+			}
+		}
+
+		// Note: Members are NOT cascaded - they can belong to multiple circles
+
+		return { success: true };
+	}
+});
+
+/**
+ * Restore a circle (un-archive)
+ * Validates that parent circle is not archived before restoring.
+ * NOTE: Does NOT auto-restore child roles - user should restore individually.
+ */
+export const restore = mutation({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// Check if circle is archived
+		if (!circle.archivedAt) {
+			throw new Error('Circle is not archived');
+		}
+
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+
+		// Validation: Check parent circle (if not root)
+		if (circle.parentCircleId) {
+			const parent = await ctx.db.get(circle.parentCircleId);
+			if (!parent) {
+				throw new Error('ERR_PARENT_DELETED: Parent circle no longer exists');
+			}
+			if (parent.archivedAt) {
+				throw new Error(
+					'ERR_PARENT_ARCHIVED: Cannot restore circle while parent circle is archived'
+				);
+			}
+		}
+		// Note: Root circles cannot be archived, so this check is not needed for root circles
+
+		const now = Date.now();
+		const oldCircle = { ...circle };
+
+		// Restore the circle
+		await ctx.db.patch(args.circleId, {
+			archivedAt: undefined,
+			archivedBy: undefined,
+			updatedAt: now,
+			updatedBy: userId
+		});
+
+		// Capture version history for circle restore
+		const restoredCircle = await ctx.db.get(args.circleId);
+		if (restoredCircle) {
+			await captureRestore(ctx, 'circle', oldCircle, restoredCircle);
+		}
+
+		// Note: Do NOT auto-restore child roles - user should restore individually
 
 		return { success: true };
 	}

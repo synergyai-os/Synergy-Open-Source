@@ -25,4 +25,3 @@ export const panelDetailHeaderRecipe = cva(
 );
 
 export type PanelDetailHeaderVariantProps = VariantProps<typeof panelDetailHeaderRecipe>;
-

@@ -4,6 +4,7 @@ import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
+import { captureCreate, captureUpdate, captureArchive, captureRestore } from './orgVersionHistory';
 
 /**
  * Circle Roles represent organizational accountabilities within circles
@@ -42,11 +43,13 @@ async function ensureCircleExists(
 
 /**
  * List all roles in a circle
+ * By default, excludes archived roles. Set includeArchived=true to include them.
  */
 export const listByCircle = query({
 	args: {
 		sessionId: v.string(),
-		circleId: v.id('circles')
+		circleId: v.id('circles'),
+		includeArchived: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -54,24 +57,58 @@ export const listByCircle = query({
 		const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
 		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
-		const roles = await ctx.db
-			.query('circleRoles')
-			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
-			.collect();
+		// Get roles - exclude archived by default
+		const roles = args.includeArchived
+			? await ctx.db
+					.query('circleRoles')
+					.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
+					.collect()
+			: await ctx.db
+					.query('circleRoles')
+					.withIndex('by_circle_archived', (q) =>
+						q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+					)
+					.collect();
 
-		// Get filler count for each role
+		// Get filler count and scope for each role (active assignments only)
 		const rolesWithFillers = await Promise.all(
 			roles.map(async (role) => {
-				const assignments = await ctx.db
-					.query('userCircleRoles')
-					.withIndex('by_role', (q) => q.eq('circleRoleId', role._id))
-					.collect();
+				const assignments = args.includeArchived
+					? await ctx.db
+							.query('userCircleRoles')
+							.withIndex('by_role', (q) => q.eq('circleRoleId', role._id))
+							.collect()
+					: await ctx.db
+							.query('userCircleRoles')
+							.withIndex('by_role_archived', (q) =>
+								q.eq('circleRoleId', role._id).eq('archivedAt', undefined)
+							)
+							.collect();
+
+				// Extract scope from assignments
+				// If single filler, use their scope; if multiple, aggregate or show first
+				const scopes = assignments
+					.map((assignment) => assignment.scope)
+					.filter(
+						(scope): scope is string => scope !== undefined && scope !== null && scope !== ''
+					);
+
+				let scope: string | undefined;
+				if (scopes.length === 1) {
+					// Single filler with scope - show it
+					scope = scopes[0];
+				} else if (scopes.length > 1) {
+					// Multiple fillers with scopes - show first (or could aggregate)
+					scope = scopes[0];
+				}
+				// If no scopes, scope remains undefined
 
 				return {
 					roleId: role._id,
 					circleId: role.circleId,
 					name: role.name,
 					purpose: role.purpose,
+					scope,
 					fillerCount: assignments.length,
 					createdAt: role.createdAt
 				};
@@ -107,10 +144,12 @@ export const get = query({
 			throw new Error('Circle not found');
 		}
 
-		// Get filler count
+		// Get active filler count only
 		const assignments = await ctx.db
 			.query('userCircleRoles')
-			.withIndex('by_role', (q) => q.eq('circleRoleId', args.roleId))
+			.withIndex('by_role_archived', (q) =>
+				q.eq('circleRoleId', args.roleId).eq('archivedAt', undefined)
+			)
 			.collect();
 
 		return {
@@ -128,21 +167,30 @@ export const get = query({
 
 /**
  * Get all roles assigned to a user
+ * By default, excludes archived assignments. Set includeArchived=true to include them.
  */
 export const getUserRoles = query({
 	args: {
 		sessionId: v.string(),
 		userId: v.id('users'),
-		circleId: v.optional(v.id('circles')) // Optional: filter by circle
+		circleId: v.optional(v.id('circles')), // Optional: filter by circle
+		includeArchived: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get user's role assignments
-		const assignments = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
-			.collect();
+		// Get user's role assignments - exclude archived by default
+		const assignments = args.includeArchived
+			? await ctx.db
+					.query('userCircleRoles')
+					.withIndex('by_user', (q) => q.eq('userId', args.userId))
+					.collect()
+			: await ctx.db
+					.query('userCircleRoles')
+					.withIndex('by_user_archived', (q) =>
+						q.eq('userId', args.userId).eq('archivedAt', undefined)
+					)
+					.collect();
 
 		// Get role details and verify access
 		const roles = await Promise.all(
@@ -183,11 +231,13 @@ export const getUserRoles = query({
 
 /**
  * Get all users who fill a specific role
+ * By default, excludes archived assignments. Set includeArchived=true to include them.
  */
 export const getRoleFillers = query({
 	args: {
 		sessionId: v.string(),
-		circleRoleId: v.id('circleRoles')
+		circleRoleId: v.id('circleRoles'),
+		includeArchived: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -200,10 +250,18 @@ export const getRoleFillers = query({
 		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
 		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
-		const assignments = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_role', (q) => q.eq('circleRoleId', args.circleRoleId))
-			.collect();
+		// Get assignments - exclude archived by default
+		const assignments = args.includeArchived
+			? await ctx.db
+					.query('userCircleRoles')
+					.withIndex('by_role', (q) => q.eq('circleRoleId', args.circleRoleId))
+					.collect()
+			: await ctx.db
+					.query('userCircleRoles')
+					.withIndex('by_role_archived', (q) =>
+						q.eq('circleRoleId', args.circleRoleId).eq('archivedAt', undefined)
+					)
+					.collect();
 
 		const fillers = await Promise.all(
 			assignments.map(async (assignment) => {
@@ -266,8 +324,16 @@ export const create = mutation({
 			circleId: args.circleId,
 			name: trimmedName,
 			purpose: args.purpose,
-			createdAt: Date.now()
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+			updatedBy: userId
 		});
+
+		// Capture version history
+		const newRole = await ctx.db.get(roleId);
+		if (newRole) {
+			await captureCreate(ctx, 'circleRole', newRole);
+		}
 
 		return { roleId };
 	}
@@ -326,14 +392,113 @@ export const update = mutation({
 			updates.purpose = args.purpose;
 		}
 
+		updates.updatedAt = Date.now();
+		updates.updatedBy = userId;
+
 		await ctx.db.patch(args.circleRoleId, updates);
+
+		// Capture version history
+		const updatedRole = await ctx.db.get(args.circleRoleId);
+		if (updatedRole) {
+			await captureUpdate(ctx, 'circleRole', role, updatedRole);
+		}
 
 		return { success: true };
 	}
 });
 
 /**
- * Delete a role (and remove all user assignments)
+ * Helper function to archive a role and cascade to assignments
+ * Used internally by archiveRole mutation and circles.archive cascade
+ */
+async function archiveRoleHelper(
+	ctx: MutationCtx,
+	roleId: Id<'circleRoles'>,
+	userId: Id<'users'>,
+	reason: 'direct' | 'cascade' = 'direct'
+): Promise<void> {
+	const role = await ctx.db.get(roleId);
+	if (!role) {
+		throw new Error('Role not found');
+	}
+
+	// Check if role is already archived
+	if (role.archivedAt !== undefined) {
+		return; // Already archived, skip
+	}
+
+	// Circle Lead Protection: Block archiving required roles (unless cascading from circle archive)
+	if (reason === 'direct' && role.templateId) {
+		const template = await ctx.db.get(role.templateId);
+		if (template?.isRequired) {
+			throw new Error('ERR_CIRCLE_LEAD_REQUIRED: Cannot archive required role (Circle Lead)');
+		}
+	}
+
+	const now = Date.now();
+
+	// 1. Archive the role
+	await ctx.db.patch(roleId, {
+		archivedAt: now,
+		archivedBy: userId,
+		updatedAt: now,
+		updatedBy: userId
+	});
+
+	// Capture version history for role archive
+	const archivedRole = await ctx.db.get(roleId);
+	if (archivedRole) {
+		await captureArchive(ctx, 'circleRole', role, archivedRole);
+	}
+
+	// 2. CASCADE: Archive all user assignments to this role
+	const assignments = await ctx.db
+		.query('userCircleRoles')
+		.withIndex('by_role_archived', (q) => q.eq('circleRoleId', roleId).eq('archivedAt', undefined))
+		.collect();
+
+	for (const assignment of assignments) {
+		await ctx.db.patch(assignment._id, {
+			archivedAt: now,
+			archivedBy: userId,
+			updatedAt: now,
+			updatedBy: userId
+		});
+	}
+}
+
+/**
+ * Archive a role (soft delete)
+ * CASCADE: When a role is archived, all user assignments to that role are also archived.
+ */
+export const archiveRole = mutation({
+	args: {
+		sessionId: v.string(),
+		circleRoleId: v.id('circleRoles')
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const role = await ctx.db.get(args.circleRoleId);
+		if (!role) {
+			throw new Error('Role not found');
+		}
+
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
+
+		await archiveRoleHelper(ctx, args.circleRoleId, userId, 'direct');
+
+		return { success: true };
+	}
+});
+
+/**
+ * Delete a role (soft delete via archive)
+ * DEPRECATED: Use archiveRole instead. This function now calls archiveRole for consistency.
  */
 export const deleteRole = mutation({
 	args: {
@@ -354,18 +519,8 @@ export const deleteRole = mutation({
 		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
 		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
-		// Remove all user assignments first
-		const assignments = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_role', (q) => q.eq('circleRoleId', args.circleRoleId))
-			.collect();
-
-		for (const assignment of assignments) {
-			await ctx.db.delete(assignment._id);
-		}
-
-		// Delete the role
-		await ctx.db.delete(args.circleRoleId);
+		// Use archiveRole instead of hard delete
+		await archiveRoleHelper(ctx, args.circleRoleId, userId, 'direct');
 
 		return { success: true };
 	}
@@ -423,7 +578,7 @@ export const assignUser = mutation({
 });
 
 /**
- * Remove a user from a role
+ * Remove a user from a role (soft delete via archive)
  */
 export const removeUser = mutation({
 	args: {
@@ -445,19 +600,187 @@ export const removeUser = mutation({
 		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
 		await ensureWorkspaceMembership(ctx, workspaceId, actingUserId);
 
-		// Find assignment
+		// Find assignment (only active assignments)
 		const assignment = await ctx.db
 			.query('userCircleRoles')
 			.withIndex('by_user_role', (q) =>
 				q.eq('userId', args.userId).eq('circleRoleId', args.circleRoleId)
 			)
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
 			.first();
 
 		if (!assignment) {
 			throw new Error('User is not assigned to this role');
 		}
 
-		await ctx.db.delete(assignment._id);
+		// Archive the assignment (soft delete)
+		const now = Date.now();
+		await ctx.db.patch(assignment._id, {
+			archivedAt: now,
+			archivedBy: actingUserId,
+			updatedAt: now,
+			updatedBy: actingUserId
+		});
+
+		return { success: true };
+	}
+});
+
+/**
+ * Restore a role (un-archive)
+ * Validates that circle is not archived before restoring.
+ * Clears templateId reference if template no longer exists.
+ */
+export const restoreRole = mutation({
+	args: {
+		sessionId: v.string(),
+		roleId: v.id('circleRoles')
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const role = await ctx.db.get(args.roleId);
+		if (!role) {
+			throw new Error('Role not found');
+		}
+
+		// Check if role is archived
+		if (!role.archivedAt) {
+			throw new Error('Role is not archived');
+		}
+
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
+
+		// Validation: Check circle
+		const circle = await ctx.db.get(role.circleId);
+		if (!circle) {
+			throw new Error('ERR_CIRCLE_DELETED: Circle no longer exists');
+		}
+		if (circle.archivedAt) {
+			throw new Error(
+				'ERR_CIRCLE_ARCHIVED: Cannot restore role while circle is archived. Restore circle first.'
+			);
+		}
+
+		const now = Date.now();
+		const oldRole = { ...role };
+
+		// Clear templateId if template no longer exists
+		let templateId = role.templateId;
+		if (templateId) {
+			const template = await ctx.db.get(templateId);
+			if (!template || template.archivedAt) {
+				templateId = undefined;
+			}
+		}
+
+		// Restore the role
+		await ctx.db.patch(args.roleId, {
+			archivedAt: undefined,
+			archivedBy: undefined,
+			templateId,
+			updatedAt: now,
+			updatedBy: userId
+		});
+
+		// Capture version history for role restore
+		const restoredRole = await ctx.db.get(args.roleId);
+		if (restoredRole) {
+			await captureRestore(ctx, 'circleRole', oldRole, restoredRole);
+		}
+
+		return { success: true };
+	}
+});
+
+/**
+ * Restore a user-role assignment (un-archive)
+ * Validates that role is not archived, user is still in workspace, and no duplicate assignment exists.
+ */
+export const restoreAssignment = mutation({
+	args: {
+		sessionId: v.string(),
+		assignmentId: v.id('userCircleRoles')
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const assignment = await ctx.db.get(args.assignmentId);
+		if (!assignment) {
+			throw new Error('Assignment not found');
+		}
+
+		// Check if assignment is archived
+		if (!assignment.archivedAt) {
+			throw new Error('Assignment is not archived');
+		}
+
+		// Validation: Check role
+		const role = await ctx.db.get(assignment.circleRoleId);
+		if (!role) {
+			throw new Error('ERR_ROLE_DELETED: Role no longer exists');
+		}
+		if (role.archivedAt) {
+			throw new Error('ERR_ROLE_ARCHIVED: Cannot restore assignment while role is archived');
+		}
+
+		// Get workspaceId from circle
+		const circle = await ctx.db.get(role.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// Verify acting user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+
+		// Validation: Check user still in workspace
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', circle.workspaceId).eq('userId', assignment.userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('ERR_USER_NOT_MEMBER: User is no longer a workspace member');
+		}
+
+		// Validation: Check user doesn't already have this role (active assignment)
+		const existingActive = await ctx.db
+			.query('userCircleRoles')
+			.withIndex('by_user_role', (q) =>
+				q.eq('userId', assignment.userId).eq('circleRoleId', assignment.circleRoleId)
+			)
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.first();
+
+		if (existingActive) {
+			throw new Error('ERR_ALREADY_ASSIGNED: User already has this role assigned');
+		}
+
+		const now = Date.now();
+		const oldAssignment = { ...assignment };
+
+		// Restore the assignment
+		await ctx.db.patch(args.assignmentId, {
+			archivedAt: undefined,
+			archivedBy: undefined,
+			updatedAt: now,
+			updatedBy: userId
+		});
+
+		// Capture version history for assignment restore
+		const restoredAssignment = await ctx.db.get(args.assignmentId);
+		if (restoredAssignment) {
+			await captureRestore(ctx, 'userCircleRole', oldAssignment, restoredAssignment);
+		}
 
 		return { success: true };
 	}

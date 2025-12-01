@@ -54,7 +54,8 @@ export const getUserOrganizationIdsQuery = internalQuery({
 
 /**
  * Get user's accessible circle IDs
- * Query circleMembers table
+ * Query circleMembers table - excludes archived memberships
+ * Note: Uses by_user index + filter since by_user_archived index doesn't exist yet
  */
 export async function getUserCircleIds(
 	ctx: QueryCtx | MutationCtx,
@@ -62,9 +63,12 @@ export async function getUserCircleIds(
 ): Promise<string[]> {
 	const normalizedUserId = userId as Id<'users'>;
 
+	// Only get active memberships (exclude archived)
+	// TODO: Add by_user_archived index to schema for better performance
 	const memberships = await ctx.db
 		.query('circleMembers')
 		.withIndex('by_user', (q) => q.eq('userId', normalizedUserId))
+		.filter((q) => q.eq(q.field('archivedAt'), undefined))
 		.collect();
 
 	return memberships.map((membership) => membership.circleId);

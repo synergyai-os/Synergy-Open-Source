@@ -131,122 +131,167 @@ Verify these common queries have efficient index paths:
 
 ```typescript
 defineTable(
-  v.union(
-    // Circle change
-    v.object({
-      entityType: v.literal('circle'),
-      workspaceId: v.id('workspaces'),
-      entityId: v.id('circles'),
-      changeType: v.union(v.literal('create'), v.literal('update'), v.literal('archive'), v.literal('restore')),
-      changedBy: v.id('users'),
-      changedAt: v.number(),
-      changeDescription: v.optional(v.string()),
-      before: v.optional(v.object({
-        name: v.string(),
-        slug: v.string(),
-        purpose: v.optional(v.string()),
-        parentCircleId: v.optional(v.id('circles')), // undefined = root circle
-        archivedAt: v.optional(v.number())
-      })),
-      after: v.optional(v.object({
-        name: v.string(),
-        slug: v.string(),
-        purpose: v.optional(v.string()),
-        parentCircleId: v.optional(v.id('circles')), // undefined = root circle
-        archivedAt: v.optional(v.number())
-      }))
-    }),
-    // Circle Role change
-    v.object({
-      entityType: v.literal('circleRole'),
-      workspaceId: v.id('workspaces'),
-      entityId: v.id('circleRoles'),
-      changeType: v.union(v.literal('create'), v.literal('update'), v.literal('archive'), v.literal('restore')),
-      changedBy: v.id('users'),
-      changedAt: v.number(),
-      changeDescription: v.optional(v.string()),
-      before: v.optional(v.object({
-        circleId: v.id('circles'),
-        name: v.string(),
-        purpose: v.optional(v.string()),
-        templateId: v.optional(v.id('roleTemplates')),
-        archivedAt: v.optional(v.number())
-      })),
-      after: v.optional(v.object({
-        circleId: v.id('circles'),
-        name: v.string(),
-        purpose: v.optional(v.string()),
-        templateId: v.optional(v.id('roleTemplates')),
-        archivedAt: v.optional(v.number())
-      }))
-    }),
-    // User Circle Role (assignment) change
-    v.object({
-      entityType: v.literal('userCircleRole'),
-      workspaceId: v.id('workspaces'),
-      entityId: v.id('userCircleRoles'),
-      changeType: v.union(v.literal('create'), v.literal('update'), v.literal('archive'), v.literal('restore')),
-      changedBy: v.id('users'),
-      changedAt: v.number(),
-      changeDescription: v.optional(v.string()),
-      before: v.optional(v.object({
-        userId: v.id('users'),
-        circleRoleId: v.id('circleRoles'),
-        scope: v.optional(v.string()),
-        archivedAt: v.optional(v.number())
-      })),
-      after: v.optional(v.object({
-        userId: v.id('users'),
-        circleRoleId: v.id('circleRoles'),
-        scope: v.optional(v.string()),
-        archivedAt: v.optional(v.number())
-      }))
-    }),
-    // Circle Member change
-    v.object({
-      entityType: v.literal('circleMember'),
-      workspaceId: v.id('workspaces'),
-      entityId: v.id('circleMembers'),
-      changeType: v.union(v.literal('create'), v.literal('update'), v.literal('archive'), v.literal('restore')),
-      changedBy: v.id('users'),
-      changedAt: v.number(),
-      changeDescription: v.optional(v.string()),
-      before: v.optional(v.object({
-        circleId: v.id('circles'),
-        userId: v.id('users'),
-        archivedAt: v.optional(v.number())
-      })),
-      after: v.optional(v.object({
-        circleId: v.id('circles'),
-        userId: v.id('users'),
-        archivedAt: v.optional(v.number())
-      }))
-    }),
-    // Circle Item change
-    v.object({
-      entityType: v.literal('circleItem'),
-      workspaceId: v.id('workspaces'),
-      entityId: v.id('circleItems'),
-      changeType: v.union(v.literal('create'), v.literal('update'), v.literal('archive'), v.literal('restore')),
-      changedBy: v.id('users'),
-      changedAt: v.number(),
-      changeDescription: v.optional(v.string()),
-      before: v.optional(v.object({
-        categoryId: v.id('circleItemCategories'),
-        content: v.string(),
-        order: v.number()
-      })),
-      after: v.optional(v.object({
-        categoryId: v.id('circleItemCategories'),
-        content: v.string(),
-        order: v.number()
-      }))
-    })
-  )
+	v.union(
+		// Circle change
+		v.object({
+			entityType: v.literal('circle'),
+			workspaceId: v.id('workspaces'),
+			entityId: v.id('circles'),
+			changeType: v.union(
+				v.literal('create'),
+				v.literal('update'),
+				v.literal('archive'),
+				v.literal('restore')
+			),
+			changedBy: v.id('users'),
+			changedAt: v.number(),
+			changeDescription: v.optional(v.string()),
+			before: v.optional(
+				v.object({
+					name: v.string(),
+					slug: v.string(),
+					purpose: v.optional(v.string()),
+					parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+					archivedAt: v.optional(v.number())
+				})
+			),
+			after: v.optional(
+				v.object({
+					name: v.string(),
+					slug: v.string(),
+					purpose: v.optional(v.string()),
+					parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+					archivedAt: v.optional(v.number())
+				})
+			)
+		}),
+		// Circle Role change
+		v.object({
+			entityType: v.literal('circleRole'),
+			workspaceId: v.id('workspaces'),
+			entityId: v.id('circleRoles'),
+			changeType: v.union(
+				v.literal('create'),
+				v.literal('update'),
+				v.literal('archive'),
+				v.literal('restore')
+			),
+			changedBy: v.id('users'),
+			changedAt: v.number(),
+			changeDescription: v.optional(v.string()),
+			before: v.optional(
+				v.object({
+					circleId: v.id('circles'),
+					name: v.string(),
+					purpose: v.optional(v.string()),
+					templateId: v.optional(v.id('roleTemplates')),
+					archivedAt: v.optional(v.number())
+				})
+			),
+			after: v.optional(
+				v.object({
+					circleId: v.id('circles'),
+					name: v.string(),
+					purpose: v.optional(v.string()),
+					templateId: v.optional(v.id('roleTemplates')),
+					archivedAt: v.optional(v.number())
+				})
+			)
+		}),
+		// User Circle Role (assignment) change
+		v.object({
+			entityType: v.literal('userCircleRole'),
+			workspaceId: v.id('workspaces'),
+			entityId: v.id('userCircleRoles'),
+			changeType: v.union(
+				v.literal('create'),
+				v.literal('update'),
+				v.literal('archive'),
+				v.literal('restore')
+			),
+			changedBy: v.id('users'),
+			changedAt: v.number(),
+			changeDescription: v.optional(v.string()),
+			before: v.optional(
+				v.object({
+					userId: v.id('users'),
+					circleRoleId: v.id('circleRoles'),
+					scope: v.optional(v.string()),
+					archivedAt: v.optional(v.number())
+				})
+			),
+			after: v.optional(
+				v.object({
+					userId: v.id('users'),
+					circleRoleId: v.id('circleRoles'),
+					scope: v.optional(v.string()),
+					archivedAt: v.optional(v.number())
+				})
+			)
+		}),
+		// Circle Member change
+		v.object({
+			entityType: v.literal('circleMember'),
+			workspaceId: v.id('workspaces'),
+			entityId: v.id('circleMembers'),
+			changeType: v.union(
+				v.literal('create'),
+				v.literal('update'),
+				v.literal('archive'),
+				v.literal('restore')
+			),
+			changedBy: v.id('users'),
+			changedAt: v.number(),
+			changeDescription: v.optional(v.string()),
+			before: v.optional(
+				v.object({
+					circleId: v.id('circles'),
+					userId: v.id('users'),
+					archivedAt: v.optional(v.number())
+				})
+			),
+			after: v.optional(
+				v.object({
+					circleId: v.id('circles'),
+					userId: v.id('users'),
+					archivedAt: v.optional(v.number())
+				})
+			)
+		}),
+		// Circle Item change
+		v.object({
+			entityType: v.literal('circleItem'),
+			workspaceId: v.id('workspaces'),
+			entityId: v.id('circleItems'),
+			changeType: v.union(
+				v.literal('create'),
+				v.literal('update'),
+				v.literal('archive'),
+				v.literal('restore')
+			),
+			changedBy: v.id('users'),
+			changedAt: v.number(),
+			changeDescription: v.optional(v.string()),
+			before: v.optional(
+				v.object({
+					categoryId: v.id('circleItemCategories'),
+					content: v.string(),
+					order: v.number()
+				})
+			),
+			after: v.optional(
+				v.object({
+					categoryId: v.id('circleItemCategories'),
+					content: v.string(),
+					order: v.number()
+				})
+			)
+		})
+	)
 )
-  .index('by_entity', ['entityType', 'entityId'])
-  .index('by_workspace', ['workspaceId', 'changedAt'])
-  .index('by_user', ['changedBy', 'changedAt'])
+	.index('by_entity', ['entityType', 'entityId'])
+	.index('by_workspace', ['workspaceId', 'changedAt'])
+	.index('by_user', ['changedBy', 'changedAt']);
 ```
 
 **Why discriminated unions?** TypeScript knows exactly what shape `before`/`after` have based on `entityType`. No `v.any()` needed.
@@ -505,11 +550,11 @@ import { Triggers } from 'convex-helpers/server/triggers';
 const triggers = new Triggers();
 
 triggers.register('circles', async (ctx, change) => {
-  await captureVersionHistory(ctx, 'circle', change);
+	await captureVersionHistory(ctx, 'circle', change);
 });
 
 triggers.register('circleRoles', async (ctx, change) => {
-  await captureVersionHistory(ctx, 'circleRole', change);
+	await captureVersionHistory(ctx, 'circleRole', change);
 });
 
 // ... similar for other tables
@@ -838,11 +883,12 @@ All key decisions have been made:
 | Schema    | [SYOS-615](https://linear.app/younghumanclub/issue/SYOS-615) | Version History Table               | M        | ✅ Done |
 | Schema    | [SYOS-616](https://linear.app/younghumanclub/issue/SYOS-616) | Role Templates + Workspace Settings | S        | ✅ Done |
 | Schema    | [SYOS-617](https://linear.app/younghumanclub/issue/SYOS-617) | Circle Item Categories + Items      | S        | ✅ Done |
-| Business  | [SYOS-618](https://linear.app/younghumanclub/issue/SYOS-618) | Root Circle Creation & Protection   | M        | Todo    |
-| Business  | [SYOS-619](https://linear.app/younghumanclub/issue/SYOS-619) | Soft Delete Cascade                 | M        | Todo    |
-| Business  | [SYOS-620](https://linear.app/younghumanclub/issue/SYOS-620) | Version History Capture             | L        | Todo    |
-| API       | [SYOS-621](https://linear.app/younghumanclub/issue/SYOS-621) | Query Updates (Exclude Archived)    | S        | Todo    |
-| API       | [SYOS-622](https://linear.app/younghumanclub/issue/SYOS-622) | Restore Mutations with Validation   | M        | Todo    |
-| Migration | [SYOS-623](https://linear.app/younghumanclub/issue/SYOS-623) | Backfill Existing Data              | L        | Todo    |
+| Business  | [SYOS-618](https://linear.app/younghumanclub/issue/SYOS-618) | Root Circle Creation & Protection   | M        | ✅ Done |
+| Business  | [SYOS-619](https://linear.app/younghumanclub/issue/SYOS-619) | Soft Delete Cascade                 | M        | ✅ Done |
+| Business  | [SYOS-620](https://linear.app/younghumanclub/issue/SYOS-620) | Version History Capture             | L        | ✅ Done |
+| API       | [SYOS-621](https://linear.app/younghumanclub/issue/SYOS-621) | Query Updates (Exclude Archived)    | S        | ✅ Done |
+| API       | [SYOS-622](https://linear.app/younghumanclub/issue/SYOS-622) | Restore Mutations with Validation   | M        | ✅ Done |
+| Migration | [SYOS-623](https://linear.app/younghumanclub/issue/SYOS-623) | Backfill Existing Data              | L        | ✅ Done |
+| Business  | [SYOS-624](https://linear.app/younghumanclub/issue/SYOS-624) | Core Role Auto-Creation on Circle   | S        | Todo    |
 
-**Blockers**: None - all questions resolved, validation complete
+**Blockers**: SYOS-624 needed before core roles work automatically

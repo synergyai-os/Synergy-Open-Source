@@ -12,10 +12,10 @@
 
 The org chart visualization uses a **container vs entity** pattern:
 
-| Type | Purpose | Visual Treatment |
-|------|---------|------------------|
-| **Circles** | Containers (teams, departments) | Light, subtle, background-like |
-| **Roles** | Entities (positions, people) | Solid, prominent, foreground-like |
+| Type        | Purpose                         | Visual Treatment                  |
+| ----------- | ------------------------------- | --------------------------------- |
+| **Circles** | Containers (teams, departments) | Light, subtle, background-like    |
+| **Roles**   | Entities (positions, people)    | Solid, prominent, foreground-like |
 
 This creates immediate visual distinction between "what holds things" and "what you interact with".
 
@@ -28,15 +28,16 @@ This creates immediate visual distinction between "what holds things" and "what 
 ```typescript
 // ❌ OLD: Different color per depth
 const colors = [
-  'var(--color-brand-primary)',    // Level 0
-  'var(--color-brand-secondary)',  // Level 1
-  'var(--color-status-success)',   // Level 2 - WRONG: semantic misuse
-  'var(--color-status-info)',      // Level 3
-  'var(--color-status-warning)'    // Level 4+ - WRONG: semantic misuse
+	'var(--color-brand-primary)', // Level 0
+	'var(--color-brand-secondary)', // Level 1
+	'var(--color-status-success)', // Level 2 - WRONG: semantic misuse
+	'var(--color-status-info)', // Level 3
+	'var(--color-status-warning)' // Level 4+ - WRONG: semantic misuse
 ];
 ```
 
 **Problems:**
+
 1. **Limited to 5 levels** - what happens at depth 10?
 2. **Semantic confusion** - success/warning colors don't mean "level"
 3. **Visual noise** - rainbow effect creates cognitive load
@@ -47,11 +48,12 @@ const colors = [
 ```typescript
 // ✅ NEW: Single color for all depths (uses semantic tokens for dark mode)
 export function getCircleColor(): string {
-  return 'var(--color-component-orgChart-circle-fill)';
+	return 'var(--color-component-orgChart-circle-fill)';
 }
 ```
 
 **Benefits:**
+
 1. **Unlimited depth** - scales to any hierarchy level
 2. **No semantic confusion** - colors don't imply meaning they shouldn't have
 3. **Visual clarity** - hierarchy shown through nesting/size/stroke
@@ -93,21 +95,21 @@ Light/dark mode variants reference base tokens with dark mode overrides.
 
 ### Circles (Containers)
 
-| State | Fill | Stroke | Stroke Style |
-|-------|------|--------|--------------|
-| **Default** | Light teal (70-85% opacity) | Medium teal | Solid, 1.5px |
-| **Hover** | Light teal (70-85% opacity) | Darker teal | **Dashed**, 2px |
-| **Active/Selected** | Light teal (70-85% opacity) | **Brand primary** | **Solid**, 3px |
-| **Focus** | Same as active | + Focus ring | Solid |
+| State               | Fill                        | Stroke            | Stroke Style    |
+| ------------------- | --------------------------- | ----------------- | --------------- |
+| **Default**         | Light teal (70-85% opacity) | Medium teal       | Solid, 1.5px    |
+| **Hover**           | Light teal (70-85% opacity) | Darker teal       | **Dashed**, 2px |
+| **Active/Selected** | Light teal (70-85% opacity) | **Brand primary** | **Solid**, 3px  |
+| **Focus**           | Same as active              | + Focus ring      | Solid           |
 
 ### Roles (Entities)
 
-| State | Fill | Text | Stroke |
-|-------|------|------|--------|
-| **Default** | Brand primary | White | White (30% opacity) |
-| **Hover** | Brand primary light | White | White (50% opacity) |
-| **Active/Selected** | Brand primary | White | White (100% opacity, 2.5px) |
-| **Focus** | Same as active | + Focus ring | White |
+| State               | Fill                | Text         | Stroke                      |
+| ------------------- | ------------------- | ------------ | --------------------------- |
+| **Default**         | Brand primary       | White        | White (30% opacity)         |
+| **Hover**           | Brand primary light | White        | White (50% opacity)         |
+| **Active/Selected** | Brand primary       | White        | White (100% opacity, 2.5px) |
+| **Focus**           | Same as active      | + Focus ring | White                       |
 
 ---
 
@@ -139,17 +141,17 @@ getCircleLabelStrokeColor()         // Light stroke for readability
 ```svelte
 {@const circleFill = getCircleColor()}
 {@const circleStroke = isActive
-  ? getCircleStrokeColor('active')
-  : isHovered
-    ? getCircleStrokeColor('hover')
-    : getCircleStrokeColor('default')}
+	? getCircleStrokeColor('active')
+	: isHovered
+		? getCircleStrokeColor('hover')
+		: getCircleStrokeColor('default')}
 
 <circle
-  fill={circleFill}
-  fill-opacity={hasChildren ? 0.7 : 0.85}
-  stroke={circleStroke}
-  stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 1.5 : 0}
-  stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
+	fill={circleFill}
+	fill-opacity={hasChildren ? 0.7 : 0.85}
+	stroke={circleStroke}
+	stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 1.5 : 0}
+	stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
 />
 ```
 
@@ -157,11 +159,11 @@ getCircleLabelStrokeColor()         // Light stroke for readability
 
 ```svelte
 <circle
-  fill={getRoleFillColor()}
-  fill-opacity="1"
-  stroke={getRoleStrokeColor()}
-  stroke-width={isSelected ? 2.5 : 1}
-  stroke-opacity={isSelected ? 1 : 0.3}
+	fill={getRoleFillColor()}
+	fill-opacity="1"
+	stroke={getRoleStrokeColor()}
+	stroke-width={isSelected ? 2.5 : 1}
+	stroke-opacity={isSelected ? 1 : 0.3}
 />
 <text fill={getRoleTextColor()}>Role Name</text>
 ```
@@ -172,12 +174,12 @@ getCircleLabelStrokeColor()         // Light stroke for readability
 
 Dark mode is handled automatically via semantic tokens:
 
-| Element | Light Mode | Dark Mode |
-|---------|------------|-----------|
-| Circle fill | `oklch(90% 0.05 195)` | `oklch(30% 0.06 195)` |
+| Element       | Light Mode            | Dark Mode             |
+| ------------- | --------------------- | --------------------- |
+| Circle fill   | `oklch(90% 0.05 195)` | `oklch(30% 0.06 195)` |
 | Circle stroke | `oklch(70% 0.10 195)` | `oklch(45% 0.08 195)` |
-| Role fill | Brand primary | Brand primary light |
-| Role text | White | Dark gray |
+| Role fill     | Brand primary         | Brand primary light   |
+| Role text     | White                 | Dark gray             |
 
 ---
 
@@ -187,28 +189,28 @@ Dark mode is handled automatically via semantic tokens:
 
 ```typescript
 // DON'T: Limited to N levels, semantic confusion
-getCircleColor(node.depth)
+getCircleColor(node.depth);
 ```
 
 ### ✅ Using single color for all depths
 
 ```typescript
 // DO: Unlimited depth, clear hierarchy through nesting/size
-getCircleColor()
+getCircleColor();
 ```
 
 ### ❌ Using status colors for hierarchy
 
 ```typescript
 // DON'T: success/warning don't mean "level 2/4"
-'var(--color-status-success)'
+'var(--color-status-success)';
 ```
 
 ### ✅ Using dedicated org chart tokens
 
 ```typescript
 // DO: Semantic tokens with clear purpose and dark mode support
-'var(--color-component-orgChart-circle-fill)'
+'var(--color-component-orgChart-circle-fill)';
 ```
 
 ---
@@ -250,4 +252,3 @@ getCircleColor()
 ---
 
 **Maintained by**: SynergyOS Design System Team
-

@@ -82,7 +82,7 @@
 			y="0"
 			text-anchor="middle"
 			dominant-baseline="middle"
-			class="role-label pointer-events-none select-none font-medium"
+			class="role-label pointer-events-none font-medium select-none"
 			fill={getRoleTextColor()}
 			fill-opacity="1"
 			font-size={fontSize}

@@ -483,6 +483,61 @@ export const createWorkspace = mutation({
 			joinedAt: now
 		});
 
+		// Create root circle (required - every workspace must have exactly one root circle)
+		// Root circle is identified by parentCircleId = undefined
+		await ctx.db.insert('circles', {
+			workspaceId,
+			name: 'General Circle',
+			slug: 'general-circle',
+			parentCircleId: undefined, // undefined = root circle
+			createdAt: now,
+			updatedAt: now,
+			updatedBy: userId
+		});
+
+		// Create default circle item categories
+		const circleCategories = [
+			{ name: 'Purpose', order: 0 },
+			{ name: 'Domains', order: 1 },
+			{ name: 'Accountabilities', order: 2 },
+			{ name: 'Policies', order: 3 },
+			{ name: 'Decision Rights', order: 4 },
+			{ name: 'Notes', order: 5 }
+		];
+
+		for (const category of circleCategories) {
+			await ctx.db.insert('circleItemCategories', {
+				workspaceId,
+				entityType: 'circle',
+				name: category.name,
+				order: category.order,
+				isDefault: true,
+				createdAt: now,
+				createdBy: userId,
+				updatedAt: now
+			});
+		}
+
+		// Create default role item categories
+		const roleCategories = [
+			{ name: 'Purpose', order: 0 },
+			{ name: 'Domains', order: 1 },
+			{ name: 'Accountabilities', order: 2 }
+		];
+
+		for (const category of roleCategories) {
+			await ctx.db.insert('circleItemCategories', {
+				workspaceId,
+				entityType: 'role',
+				name: category.name,
+				order: category.order,
+				isDefault: true,
+				createdAt: now,
+				createdBy: userId,
+				updatedAt: now
+			});
+		}
+
 		// Seed default meeting templates (Governance, Weekly Tactical)
 		// Schedule seeding to run after org creation completes
 		await ctx.scheduler.runAfter(0, internal.meetingTemplates.seedDefaultTemplatesInternal, {

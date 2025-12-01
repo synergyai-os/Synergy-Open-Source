@@ -148,7 +148,7 @@
 										href="https://dashboard.workos.com/"
 										target="_blank"
 										rel="noopener noreferrer"
-										class="text-small text-accent-primary underline transition-colors hover:text-accent-hover"
+										class="text-small hover:text-accent-hover text-accent-primary underline transition-colors"
 									>
 										Manage Password
 									</a>
@@ -161,4 +161,3 @@
 		</div>
 	</div>
 </div>
-

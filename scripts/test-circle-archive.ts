@@ -1,8 +1,8 @@
 /**
  * Quick test script to verify circle archive sets archivedBy and updatedBy
- * 
+ *
  * Usage: npx tsx scripts/test-circle-archive.ts
- * 
+ *
  * Prerequisites:
  * 1. Run `npx convex dev` in another terminal
  * 2. Have a valid sessionId (you can get one from Convex dashboard)
@@ -15,11 +15,11 @@ const CONVEX_URL = process.env.CONVEX_URL || 'http://localhost:3000';
 
 async function testCircleArchive() {
 	const client = new ConvexHttpClient(CONVEX_URL);
-	
+
 	// You'll need to replace these with actual values from your dev environment
 	const sessionId = process.env.TEST_SESSION_ID || 'YOUR_SESSION_ID_HERE';
 	const workspaceId = process.env.TEST_WORKSPACE_ID || 'YOUR_WORKSPACE_ID_HERE';
-	
+
 	if (sessionId === 'YOUR_SESSION_ID_HERE' || workspaceId === 'YOUR_WORKSPACE_ID_HERE') {
 		console.error('❌ Please set TEST_SESSION_ID and TEST_WORKSPACE_ID environment variables');
 		console.log('\nTo get these values:');
@@ -59,7 +59,10 @@ async function testCircleArchive() {
 		});
 
 		console.log('\n📊 Circle data:');
-		console.log('  - archivedAt:', circle.archivedAt ? new Date(circle.archivedAt).toISOString() : '❌ NOT SET');
+		console.log(
+			'  - archivedAt:',
+			circle.archivedAt ? new Date(circle.archivedAt).toISOString() : '❌ NOT SET'
+		);
 		console.log('  - archivedBy:', circle.archivedBy || '❌ NOT SET (check DB directly)');
 		console.log('  - updatedBy:', circle.updatedBy || '❌ NOT SET (check DB directly)');
 
@@ -82,4 +85,3 @@ async function testCircleArchive() {
 }
 
 testCircleArchive();
-

@@ -30,4 +30,3 @@ export const categoryHeaderRecipe = cva(
 );
 
 export type CategoryHeaderVariantProps = VariantProps<typeof categoryHeaderRecipe>;
-

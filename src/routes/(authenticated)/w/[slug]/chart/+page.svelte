@@ -34,16 +34,26 @@
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	const getWorkspaceId = () => workspaceId();
 
+	// Check if sessionId is available (prevents hydration errors)
+	const hasSessionId = $derived(() => {
+		if (!browser) return false;
+		return !!getSessionId();
+	});
+
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
+	// CRITICAL: Only create orgChart when sessionId is available to prevent hydration errors
 	if (!orgChartAPI) {
 		throw new Error('OrgChartModuleAPI not available in context');
 	}
-	const orgChart = orgChartAPI.useOrgChart({
-		sessionId: getSessionId,
-		workspaceId: getWorkspaceId
-	});
+	const orgChart =
+		browser && getSessionId()
+			? orgChartAPI.useOrgChart({
+					sessionId: getSessionId,
+					workspaceId: getWorkspaceId
+				})
+			: null;
 
-	const isLoading = $derived(orgChart.isLoading);
+	const isLoading = $derived(!orgChart || orgChart.isLoading);
 </script>
 
 <div class="flex h-full flex-col bg-base">
@@ -74,18 +84,28 @@
 
 	<!-- Content -->
 	<main class="relative flex-1 overflow-hidden">
-		{#if isLoading}
+		{#if !browser}
 			<div class="flex h-full items-center justify-center">
 				<div class="text-secondary">Loading org chart...</div>
 			</div>
-		{:else}
+		{:else if isLoading}
+			<div class="flex h-full items-center justify-center">
+				<div class="text-secondary">Loading org chart...</div>
+			</div>
+		{:else if orgChart}
 			<div class="p-inbox-container h-full">
 				<OrgChart {orgChart} />
+			</div>
+		{:else}
+			<div class="flex h-full items-center justify-center">
+				<div class="text-secondary">Loading org chart...</div>
 			</div>
 		{/if}
 	</main>
 </div>
 
-<!-- Detail Panels -->
-<CircleDetailPanel {orgChart} />
-<RoleDetailPanel {orgChart} />
+<!-- Detail Panels - Client-only (require browser context, sessionId, and orgChart) -->
+{#if browser && orgChart}
+	<CircleDetailPanel {orgChart} />
+	<RoleDetailPanel {orgChart} />
+{/if}

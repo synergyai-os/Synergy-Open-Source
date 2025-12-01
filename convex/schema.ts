@@ -209,6 +209,7 @@ const schema = defineSchema(
 		userCircleRoles: defineTable({
 			userId: v.id('users'),
 			circleRoleId: v.id('circleRoles'),
+			scope: v.optional(v.string()), // Member-level scope text (what this person is responsible for when filling the role)
 			assignedAt: v.number(),
 			assignedBy: v.id('users'), // Who made the assignment
 			updatedAt: v.number(), // Last modification timestamp
@@ -254,7 +255,7 @@ const schema = defineSchema(
 			updatedAt: v.number(),
 			updatedBy: v.optional(v.id('users')),
 			archivedAt: v.optional(v.number()), // Soft delete timestamp
-			archivedBy: v.optional(v.id('users')), // Who archived it
+			archivedBy: v.optional(v.id('users')) // Who archived it
 			// Future: embedding field for AI/RAG vectorization
 			// embeddingId: v.optional(v.id('embeddings'))
 		})

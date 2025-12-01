@@ -62,4 +62,3 @@ export const stackedPanelContentRecipe = cva(
 export type StackedPanelVariantProps = VariantProps<typeof stackedPanelRecipe>;
 export type StackedPanelBackdropVariantProps = VariantProps<typeof stackedPanelBackdropRecipe>;
 export type StackedPanelContentVariantProps = VariantProps<typeof stackedPanelContentRecipe>;
-

@@ -60,4 +60,3 @@ export const panelBreadcrumbIconRecipe = cva(
 export type PanelBreadcrumbBarVariantProps = VariantProps<typeof panelBreadcrumbBarRecipe>;
 export type PanelBreadcrumbTextVariantProps = VariantProps<typeof panelBreadcrumbTextRecipe>;
 export type PanelBreadcrumbIconVariantProps = VariantProps<typeof panelBreadcrumbIconRecipe>;
-

@@ -105,11 +105,11 @@
 		<div class="flex items-center justify-between">
 			<div>
 				<h2 class="text-button font-semibold text-primary">Roles</h2>
-				<p class="mt-fieldGroup text-label text-secondary">{roles.length} roles</p>
+				<p class="text-label text-secondary mt-fieldGroup">{roles.length} roles</p>
 			</div>
 			<button
 				onclick={() => (showCreateForm = !showCreateForm)}
-				class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary inset-sm"
+				class="hover:bg-sidebar-hover rounded-button inset-sm text-secondary hover:text-primary"
 				title="Create role"
 			>
 				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,14 +207,14 @@
 									<p class="text-button truncate font-medium text-primary">{role.name}</p>
 								</div>
 								{#if role.purpose}
-									<p class="mt-fieldGroup text-label text-secondary">{role.purpose}</p>
+									<p class="text-label text-secondary mt-fieldGroup">{role.purpose}</p>
 								{/if}
-								<p class="mt-fieldGroup text-label text-secondary">{role.fillerCount} fillers</p>
+								<p class="text-label text-secondary mt-fieldGroup">{role.fillerCount} fillers</p>
 							</button>
 							<button
 								onclick={() => handleDeleteRole(role.roleId, role.name)}
 								disabled={circles.loading.deleteRole}
-								class="hover:bg-sidebar-hover ml-2 rounded-button text-secondary hover:text-primary disabled:opacity-50 inset-sm"
+								class="hover:bg-sidebar-hover ml-2 rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
 								title="Delete role"
 							>
 								<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -272,7 +272,7 @@
 												<button
 													onclick={() => handleRemoveUser(role.roleId, filler.userId)}
 													disabled={circles.loading.removeUser}
-													class="rounded-button text-secondary hover:text-primary disabled:opacity-50 inset-sm"
+													class="rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
 													title="Remove user"
 												>
 													<svg

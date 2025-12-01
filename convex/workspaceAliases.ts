@@ -1,8 +1,6 @@
 import { query, internalMutation } from './_generated/server';
 import { v } from 'convex/values';
 import { validateSessionAndGetUserId } from './sessionValidation';
-import type { Id } from './_generated/dataModel';
-import type { MutationCtx, QueryCtx } from './_generated/server';
 
 /**
  * Get workspace alias by slug
@@ -81,4 +79,3 @@ export const createAlias = internalMutation({
 		return aliasId;
 	}
 });
-

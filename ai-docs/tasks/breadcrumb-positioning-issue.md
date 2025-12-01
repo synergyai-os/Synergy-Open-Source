@@ -9,7 +9,7 @@ Breadcrumbs in the `StackedPanel` component are stacking on top of each other in
 - Breadcrumbs should be positioned side-by-side, extending leftward from the content area
 - Each breadcrumb should align with the same breadcrumb position across different panel layers
 - Breadcrumb 1 (closest to content): 48px from content left edge
-- Breadcrumb 2: 96px from content left edge  
+- Breadcrumb 2: 96px from content left edge
 - Breadcrumb 3 (furthest): 144px from content left edge
 
 ## Current Behavior
@@ -22,16 +22,23 @@ From the rendered HTML, we can see:
 
 ```html
 <!-- Breadcrumb 1 (furthest left) -->
-<button style="--breadcrumb-position: 144px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 87;">
-
-<!-- Breadcrumb 2 (middle) -->
-<button style="--breadcrumb-position: 96px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 88;">
-
-<!-- Breadcrumb 3 (closest to content) -->
-<button style="--breadcrumb-position: 48px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 89;">
+<button
+	style="--breadcrumb-position: 144px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 87;"
+>
+	<!-- Breadcrumb 2 (middle) -->
+	<button
+		style="--breadcrumb-position: 96px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 88;"
+	>
+		<!-- Breadcrumb 3 (closest to content) -->
+		<button
+			style="--breadcrumb-position: 48px; left: calc(100vw - var(--base-width-sm) - var(--breadcrumb-position)); z-index: 89;"
+		></button>
+	</button>
+</button>
 ```
 
 **Expected calculations:**
+
 - Breadcrumb 1: `100vw - 900px - 144px = 100vw - 1044px`
 - Breadcrumb 2: `100vw - 900px - 96px = 100vw - 996px`
 - Breadcrumb 3: `100vw - 900px - 48px = 100vw - 948px`
@@ -41,15 +48,18 @@ These should result in different `left` positions, but visually they're stacking
 ## What We've Tried
 
 ### Attempt 1: Initial Implementation
+
 - **Approach**: Positioned breadcrumbs relative to panel's left edge
 - **Calculation**: `calc(100vw - baseWidth - totalBreadcrumbWidth + breadcrumbPosition)`
 - **Result**: Breadcrumbs overlapped content
 
 ### Attempt 2: Fixed Content Padding
+
 - **Approach**: Added `padding-left` to content to push it right
 - **Result**: Content no longer overlapped, but breadcrumbs still stacked
 
 ### Attempt 3: Position Relative to Content Edge
+
 - **Approach**: Changed calculation to `calc(100vw - baseWidth - breadcrumbPosition)`
 - **Calculation**: Position relative to fixed content left edge (`100vw - baseWidth`)
 - **Result**: Still stacking on top of each other
@@ -57,12 +67,14 @@ These should result in different `left` positions, but visually they're stacking
 ## Current Code State
 
 ### PanelBreadcrumbs.svelte
+
 - Breadcrumbs are `fixed` positioned
 - Each breadcrumb sets `--breadcrumb-position` inline
 - Uses `calc(100vw - var(--base-width-sm) - var(--breadcrumb-position))`
 - Z-index decreases as breadcrumbs go left (87, 88, 89)
 
 ### StackedPanel.svelte
+
 - Sets `--base-width-sm: 900px` and `--base-width-lg: 1200px` on `.stacked-panel-breadcrumbs` parent
 - Media query override for desktop: `calc(100vw - var(--base-width-lg) - var(--breadcrumb-position))`
 - Content has `padding-left: ${totalBreadcrumbWidth}px`
@@ -102,6 +114,7 @@ These should result in different `left` positions, but visually they're stacking
 ## Current Code Files
 
 ### PanelBreadcrumbs.svelte
+
 ```svelte
 <script lang="ts">
 	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
@@ -154,6 +167,7 @@ These should result in different `left` positions, but visually they're stacking
 ```
 
 ### StackedPanel.svelte (relevant section)
+
 ```svelte
 <!-- Breadcrumb Bars (all previous layers) - positioned to LEFT of panel content -->
 {#if hasBreadcrumbs}
@@ -169,17 +183,13 @@ These should result in different `left` positions, but visually they're stacking
 		}
 	</style>
 	<div class="stacked-panel-breadcrumbs">
-		<PanelBreadcrumbs
-			{navigationStack}
-			{onBreadcrumbClick}
-			{iconRenderer}
-			currentZIndex={currentZIndex}
-		/>
+		<PanelBreadcrumbs {navigationStack} {onBreadcrumbClick} {iconRenderer} {currentZIndex} />
 	</div>
 {/if}
 ```
 
 ### panelBreadcrumbs.recipe.ts
+
 ```typescript
 export const panelBreadcrumbBarRecipe = cva(
 	'fixed top-0 bottom-0 w-[48px] flex items-center justify-center border-r border-subtle bg-surface transition-colors cursor-pointer hover:bg-subtle',
@@ -246,4 +256,3 @@ export const panelBreadcrumbBarRecipe = cva(
 3. Test with direct pixel values instead of CSS variables
 4. Consider alternative positioning approach (absolute vs fixed)
 5. Check if there's a CSS specificity or cascade issue
-

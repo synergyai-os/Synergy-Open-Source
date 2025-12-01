@@ -12,14 +12,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
 export const roleCardRecipe = cva(
 	// Base classes - container styling for role card
 	// Interactive card with hover feedback
-	'flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors card-padding hover:bg-subtle',
+	// Uses list item padding (12px horizontal, 8px vertical) instead of card-padding (24px all sides)
+	'flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors px-input py-stack-item',
 	{
 		variants: {
-			// No variants needed yet - can add selected/active states later if needed
+			variant: {
+				default: 'hover:bg-subtle',
+				selected: 'bg-selected hover:bg-selected'
+			}
 		},
-		defaultVariants: {}
+		defaultVariants: {
+			variant: 'default'
+		}
 	}
 );
 
 export type RoleCardVariantProps = VariantProps<typeof roleCardRecipe>;
-

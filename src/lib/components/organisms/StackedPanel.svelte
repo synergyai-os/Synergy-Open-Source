@@ -88,7 +88,9 @@
 				: 0)
 	);
 	// Only add breadcrumb width on non-mobile (sidebar breadcrumbs only show on tablet+)
-	const totalBreadcrumbWidth = $derived(showSidebarBreadcrumbs ? breadcrumbCount * breadcrumbWidth : 0);
+	const totalBreadcrumbWidth = $derived(
+		showSidebarBreadcrumbs ? breadcrumbCount * breadcrumbWidth : 0
+	);
 
 	// Back button handler for mobile - goes to previous layer (same as clicking last breadcrumb)
 	const handleBack = () => {
@@ -174,12 +176,7 @@
 >
 	<!-- Breadcrumb Bars (tablet/desktop only) - positioned to LEFT of panel content -->
 	{#if showSidebarBreadcrumbs}
-		<PanelBreadcrumbs
-			{navigationStack}
-			{onBreadcrumbClick}
-			{iconRenderer}
-			currentZIndex={currentZIndex}
-		/>
+		<PanelBreadcrumbs {navigationStack} {onBreadcrumbClick} {iconRenderer} {currentZIndex} />
 	{/if}
 	<!-- Panel Content - Content stays at base width, pushed right by breadcrumb width on tablet+ -->
 	<div

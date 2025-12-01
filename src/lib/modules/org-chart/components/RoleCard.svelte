@@ -5,8 +5,9 @@
 
 	type Props = {
 		name: string;
-		purpose?: string;
+		scope?: string;
 		fillerCount?: number;
+		selected?: boolean;
 		onClick: () => void;
 		onEdit?: () => void;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
@@ -15,8 +16,9 @@
 
 	let {
 		name,
-		purpose,
+		scope,
 		fillerCount = 0,
+		selected = false,
 		onClick,
 		onEdit,
 		menuItems = [],
@@ -32,15 +34,18 @@
 			.slice(0, 2);
 	}
 
-	const buttonClasses = $derived([roleCardRecipe(), className]);
+	const buttonClasses = $derived([
+		roleCardRecipe({ variant: selected ? 'selected' : 'default' }),
+		className
+	]);
 </script>
 
 <button type="button" class={buttonClasses} onclick={onClick}>
 	<Avatar initials={getInitials(name)} size="md" />
 	<div class="min-w-0 flex-1">
 		<p class="text-button truncate font-medium text-primary">{name}</p>
-		{#if purpose}
-			<p class="truncate text-label text-secondary">{purpose}</p>
+		{#if scope}
+			<p class="truncate text-label text-secondary">{scope}</p>
 		{:else}
 			<p class="text-label text-tertiary">
 				{fillerCount} filler{fillerCount !== 1 ? 's' : ''}

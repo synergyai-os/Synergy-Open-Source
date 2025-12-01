@@ -751,12 +751,12 @@ export const deleteMeeting = mutation({
 		const now = Date.now();
 
 		// Soft delete linked agenda items
-		const agendaItems = await ctx.db
+		// Note: Agenda items don't have deletedAt field, so we'll leave them
+		// Query kept for future use if needed
+		await ctx.db
 			.query('meetingAgendaItems')
 			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
 			.collect();
-
-		// Note: Agenda items don't have deletedAt field, so we'll leave them
 		// They'll be filtered out when querying by meeting (which will be soft-deleted)
 		// If we need to soft delete agenda items, we'd need to add deletedAt to schema
 

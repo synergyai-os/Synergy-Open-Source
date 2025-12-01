@@ -53,7 +53,7 @@
 	<!-- Panel Header -->
 	<div class="border-base py-nav-item border-b px-button-sm-x">
 		<h2 class="text-button font-semibold text-primary">Members</h2>
-		<p class="mt-fieldGroup text-label text-secondary">{members.length} members</p>
+		<p class="text-label text-secondary mt-fieldGroup">{members.length} members</p>
 	</div>
 
 	<!-- Add Member Form -->
@@ -106,7 +106,7 @@
 						<button
 							onclick={() => handleRemoveMember(member.userId)}
 							disabled={circles.loading.removeMember}
-							class="hover:bg-sidebar-hover ml-2 rounded-button text-secondary hover:text-primary disabled:opacity-50 inset-sm"
+							class="hover:bg-sidebar-hover ml-2 rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
 							title="Remove member"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
