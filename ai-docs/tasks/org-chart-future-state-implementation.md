@@ -889,6 +889,6 @@ All key decisions have been made:
 | API       | [SYOS-621](https://linear.app/younghumanclub/issue/SYOS-621) | Query Updates (Exclude Archived)    | S        | ✅ Done |
 | API       | [SYOS-622](https://linear.app/younghumanclub/issue/SYOS-622) | Restore Mutations with Validation   | M        | ✅ Done |
 | Migration | [SYOS-623](https://linear.app/younghumanclub/issue/SYOS-623) | Backfill Existing Data              | L        | ✅ Done |
-| Business  | [SYOS-624](https://linear.app/younghumanclub/issue/SYOS-624) | Core Role Auto-Creation on Circle   | S        | Todo    |
+| Business  | [SYOS-624](https://linear.app/younghumanclub/issue/SYOS-624) | Core Role Auto-Creation on Circle   | S        | ✅ Done |
 
-**Blockers**: SYOS-624 needed before core roles work automatically
+**Blockers**: None - all subtasks complete! 🎉

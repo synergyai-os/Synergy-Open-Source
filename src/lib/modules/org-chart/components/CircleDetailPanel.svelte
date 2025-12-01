@@ -47,8 +47,9 @@
 
 	// Query roles with scope from userCircleRoles assignments
 	// Scope comes from userCircleRoles (member assignments), not circleRoles (roles)
+	// Always create query - check conditions inside function for reactivity
 	const rolesQuery =
-		browser && getSessionId() && orgChart?.selectedCircleId
+		browser && getSessionId()
 			? useQuery(api.circleRoles.listByCircle, () => {
 					const sessionId = getSessionId();
 					const circleId = orgChart?.selectedCircleId;

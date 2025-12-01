@@ -1,5 +1,7 @@
 # RoleCard Component Implementation Plan
 
+**Linear Ticket**: [SYOS-625](https://linear.app/younghumanclub/issue/SYOS-625)
+
 **Goal**: Implement comprehensive RoleCard component with all states, views, and child components for org chart module.
 
 **Focus**: Storybook-first development for isolated testing and iteration.
@@ -10,36 +12,105 @@
 
 ## Prerequisites
 
-- [x] Understand scope vs purpose distinction (scope is member-level, not role-level)
+- [x] Understand scope vs purpose distinction:
+  - **Purpose**: Role-level description (what the role does) - linked to roles and circles, NOT shown in RoleCard
+  - **Scope**: Member-level text (per-user assignment within role) - shown per-member in RoleCard expanded view
+  - Example: Two people have "Dev Role" - one has scope "backend", other has scope "frontend"
+  - Scope is optional text/string field
 - [x] Understand CircleDetailPanel shows both Roles AND Sub-Circles
 - [x] Understand Circle Lead is must-have role (default, configurable)
 - [x] Review Holaspirit reference images for UI patterns
 - [x] Create essentials.md documentation
-- [ ] Review current RoleCard implementation
-- [ ] Review roleCardRecipe implementation
+- [x] Review current RoleCard implementation
+- [x] Review roleCardRecipe implementation
 
 ---
 
-## Phase 1: Core States & Recipe Updates
+## Current Implementation Status
 
-### 1.1 Recipe System Updates
+### ✅ Implemented
 
-- [ ] Update `roleCardRecipe` with `selected` variant
-  - [ ] Add `variant: { default: '', selected: 'bg-selected' }`
-  - [ ] Update `defaultVariants` to include `variant: 'default'`
-  - [ ] Test recipe in Storybook
-- [ ] Update `roleCardRecipe` with `expanded` variant (if needed for styling)
-  - [ ] Add `expanded: { true: '', false: '' }` if styling differs
-  - [ ] Test recipe in Storybook
+- Basic RoleCard component with core props (`name`, `scope`, `fillerCount`, `selected`, `onClick`, `onEdit`, `menuItems`)
+- `selected` prop and recipe variant (`roleCardRecipe` with `selected` variant)
+- Basic structure with Avatar, actions
+- Recipe system using design tokens
+- Basic stories structure (but broken - references non-existent `purpose` prop)
 
-### 1.2 Component Props & Structure
+### ❌ Not Implemented
 
-- [ ] Add `selected?: boolean` prop to RoleCard
+- Component structure: Still uses `<button>` root - needs `<div>` with nested `<button>` for expandable support
+- Expandable functionality: Missing `expanded`, `onToggleExpand` props
+- Members integration: Missing `members`, `onAddMember`, `onRemoveMember`, `memberMenuItems` props
+- RoleMemberItem component: Doesn't exist
+- Stories broken: All stories pass `purpose` prop that doesn't exist (should use `scope`)
+- Missing stories: `Selected`, `Expandable`, `Expanded`, `WithInlineMembers`, `WithActivity`, `WithScope`
+
+---
+
+## Phase 1: Fix Stories & Add Selected Story
+
+### 1.1 Fix Existing Stories
+
+- [ ] Fix all stories to use `scope` instead of `purpose` prop
+  - [ ] Update `Default` story - remove `purpose` reference
+  - [ ] Rename `WithPurpose` story to `WithScope` - use `scope` prop
+  - [ ] Update `WithFillers` story - remove `purpose` reference
+  - [ ] Update `WithEdit` story - remove `purpose` reference
+  - [ ] Update `WithMenu` story - remove `purpose` reference
+  - [ ] Update `WithAllActions` story - remove `purpose` reference
+  - [ ] Update argTypes to use `scope` instead of `purpose`
+- [ ] Verify all stories render correctly
+
+### 1.2 Add Selected Story
+
+- [ ] Create `Selected` story - Selected state (highlighted background)
+  - [ ] Show visual difference between selected and unselected states
+  - [ ] Use `selected: true` prop
+
+**Files to Modify**:
+
+- `src/lib/modules/org-chart/components/RoleCard.stories.svelte`
+
+**Estimated Time**: 30 minutes
+
+---
+
+## Phase 2: Expandable Structure Refactor
+
+### 2.1 Component Structure Change
+
+- [ ] Refactor component structure:
+  - [ ] Change root element from `<button>` to `<div>` container
+  - [ ] Add nested `<button>` for header (clickable, handles `onClick`)
+  - [ ] Apply recipe classes to header button
+  - [ ] Add conditional expanded content section below header
+
+### 2.2 Expand/Collapse Props
+
 - [ ] Add `expanded?: boolean` prop to RoleCard
 - [ ] Add `onToggleExpand?: () => void` prop to RoleCard
-- [ ] Add `class?: string` prop support (already exists, verify)
-- [ ] Update component to use recipe variants
-- [ ] Test all prop combinations in Storybook
+- [ ] Add chevron icon for expand/collapse (use Icon component)
+- [ ] Position chevron appropriately (left side before avatar, or right side)
+- [ ] Handle click on header: if `onToggleExpand` exists, call it; otherwise call `onClick`
+- [ ] Add divider between header and expanded content (use semantic token `border-default`)
+
+### 2.3 Expandable Stories
+
+- [ ] Create `Expandable` story - Expandable card (collapsed state)
+- [ ] Create `Expanded` story - Expanded state (with placeholder content)
+
+**Files to Modify**:
+
+- `src/lib/modules/org-chart/components/RoleCard.svelte`
+- `src/lib/modules/org-chart/components/RoleCard.stories.svelte`
+
+**Design Decisions**:
+
+- Chevron position: Left side (before avatar) - matches reference image
+- Chevron rotation: Use CSS transform `rotate-90` when expanded
+- Divider styling: Use semantic token (`border-default`)
+
+**Estimated Time**: 1-2 hours
 
 ---
 
@@ -48,10 +119,12 @@
 ### 2.1 RoleMemberItem Component (New)
 
 - [ ] Create `RoleMemberItem.svelte` component
-  - [ ] Props: `userId`, `name?`, `email`, `avatarImage?`, `scope?`, `onMenuClick?`, `menuItems?`
-  - [ ] Display: Avatar + Name + Email + Scope (if provided)
-  - [ ] Actions: Menu icon with context menu
+  - [ ] Props: `userId`, `name?`, `email`, `avatarImage?`, `scope?`, `onMenuClick?`, `menuItems?`, `selected?`
+  - [ ] Display: Avatar + Name + Email + Scope (if provided, shown below name/email)
+  - [ ] Actions: Menu icon with context menu (vertical ellipsis)
+  - [ ] Selected state: Highlighted background (like reference image - peach background)
   - [ ] Use design system tokens (no hardcoded values)
+  - [ ] Structure: Similar to RoleCard header layout
 - [ ] Create `RoleMemberItem.stories.svelte`
   - [ ] Story: `Default` - Basic member item
   - [ ] Story: `WithScope` - Member with scope text
@@ -81,28 +154,23 @@
 
 ## Phase 3: Storybook Stories
 
-### 3.1 Existing Stories (Update)
+### 3.1 Story Updates (Moved to Phase 1)
 
-- [ ] Update `Default` story - verify it works
-- [ ] Update `WithPurpose` story - verify it works
-- [ ] Update `WithFillers` story - verify it works
-- [ ] Update `WithEdit` story - verify it works
-- [ ] Update `WithMenu` story - verify it works
-- [ ] Update `WithAllActions` story - verify it works
+- [x] Fix existing stories (moved to Phase 1.1)
+- [x] Add Selected story (moved to Phase 1.2)
 
-### 3.2 New Stories
+### 3.2 New Stories (After Members Integration)
 
-- [ ] Create `Selected` story - Selected state (highlighted background)
-- [ ] Create `Expandable` story - Expandable card (collapsed state)
 - [ ] Create `Expanded` story - Expanded card with members list
+- [ ] Create `WithMembers` story - Expanded card with multiple members
+- [ ] Create `WithScope` story - Members with scope text displayed (per-member)
 - [ ] Create `WithInlineMembers` story - Inline members view (no expansion)
 - [ ] Create `WithActivity` story - With activity/refresh indicator
-- [ ] Create `WithScope` story - Members with scope text displayed
 
 ### 3.3 Story Coverage
 
 - [ ] All visual states covered (unselected, selected, hover)
-- [ ] All content states covered (with/without purpose, with/without members, with scope)
+- [ ] All content states covered (with/without scope, with/without members, with scope per-member)
 - [ ] All expansion states covered (collapsed, expanded)
 - [ ] All action combinations covered (edit, add member, menu)
 
@@ -167,8 +235,12 @@
 ### 6.1 Integration Points
 
 - [ ] Update CircleDetailPanel to use new RoleCard props
-- [ ] Update CircleRolesPanel to use new RoleCard props
-- [ ] Verify RoleCard works in all usage contexts
+  - [ ] Add `selected` prop support (when role is selected/active)
+  - [ ] Add `expanded` prop support (if needed for CircleDetailPanel)
+  - [ ] Add `members` prop support (if showing members in CircleDetailPanel)
+  - [ ] Verify existing functionality still works
+- [ ] **CircleRolesPanel**: Review later (not in scope for initial implementation)
+- [ ] Verify RoleCard works in CircleDetailPanel context
 - [ ] Test expand/collapse behavior in real contexts
 
 ### 6.2 Visual Regression
@@ -261,43 +333,13 @@ userCircleRoles: defineTable({
 
 ## Implementation Plan (Detailed)
 
-### Current State ✅
+### Phase 1.1: Fix Stories & Add Selected (COMPLETED - Already Implemented)
 
-- ✅ Basic RoleCard component exists with core props
-- ✅ Basic Storybook stories (Default, WithPurpose, WithFillers, WithEdit, WithMenu, WithAllActions)
-- ✅ Recipe with proper list-item padding (`px-input py-stack-item`)
-- ✅ Component used in CircleDetailPanel
-- ✅ Design tokens verified: `bg-selected` exists (`oklch(55% 0.15 195 / 0.1)`)
+**Status**: ✅ Already implemented in component, just needs story
 
-### Phase 1.1: Selected State (Priority: High)
-
-**Goal**: Add selected state styling to highlight active/focused role cards.
-
-**Steps**:
-
-1. **Update `roleCardRecipe`** (`src/lib/design-system/recipes/roleCard.recipe.ts`)
-   - Add `variant` prop with `default` and `selected` options
-   - `selected: 'bg-selected'` (matches InboxCard pattern)
-   - `default: ''` (current styling)
-   - Update `defaultVariants` to include `variant: 'default'`
-   - Reference: `inboxCardRecipe` uses `selected: { true: 'bg-selected', false: '' }`
-
-2. **Update RoleCard Component** (`src/lib/modules/org-chart/components/RoleCard.svelte`)
-   - Add `selected?: boolean` prop to Props type
-   - Pass `selected` to recipe: `roleCardRecipe({ variant: selected ? 'selected' : 'default' })`
-   - Update `buttonClasses` derived to include variant
-
-3. **Create Selected Story** (`src/lib/modules/org-chart/components/RoleCard.stories.svelte`)
-   - Add `Selected` story with `selected: true`
-   - Show visual difference between selected and unselected states
-
-**Files to Modify**:
-
-- `src/lib/design-system/recipes/roleCard.recipe.ts`
-- `src/lib/modules/org-chart/components/RoleCard.svelte`
-- `src/lib/modules/org-chart/components/RoleCard.stories.svelte`
-
-**Estimated Time**: 30 minutes
+- ✅ `roleCardRecipe` has `selected` variant
+- ✅ RoleCard component has `selected` prop
+- ⏳ Missing: `Selected` story in Storybook
 
 ---
 
@@ -383,9 +425,10 @@ userCircleRoles: defineTable({
 
 **Design Decisions**:
 
-- Should RoleMemberItem be clickable? (probably yes, to view member profile)
-- Layout: Avatar + Name/Email + Menu (similar to RoleCard header)
-- Scope display: Show below name/email or inline?
+- RoleMemberItem should be clickable (to view member profile)
+- Layout: Avatar + Name/Email + Scope (below name) + Menu (similar to RoleCard header)
+- Scope display: Show below name/email (as shown in reference image)
+- Selected state: Use `bg-selected` token for highlighted members
 
 **Estimated Time**: 1-2 hours
 
@@ -524,16 +567,39 @@ userCircleRoles: defineTable({
 
 **Recommended Sequence**:
 
-1. ✅ **Phase 1.1** (Selected State) - Quick win, low risk
-2. ✅ **Phase 1.2** (Expandable Structure) - Foundation for members
+1. ✅ **Phase 1.1** (Fix Stories & Add Selected) - Fix broken stories, add Selected story
+2. ✅ **Phase 2** (Expandable Structure) - Foundation for members
 3. ✅ **Phase 2.1** (RoleMemberItem) - Reusable component
 4. ✅ **Phase 2.2** (Members Integration) - Complete expandable feature
 5. ✅ **Phase 4** (Design System Validation) - Ensure compliance
-6. ✅ **Phase 5** (Integration & Testing) - Real-world testing
+6. ✅ **Phase 5** (Integration & Testing) - Real-world testing (CircleDetailPanel only)
 7. ⏳ **Phase 3** (Advanced Features) - Nice-to-have features
 
 ---
 
-**Status**: 📋 Detailed Plan Created  
-**Last Updated**: 2025-12-01
-**Next Step**: Begin Phase 1.1 (Selected State)
+## Key Clarifications
+
+### Scope vs Purpose
+
+- **Purpose**: Role-level description (what the role does) - linked to roles and circles, NOT shown in RoleCard
+- **Scope**: Member-level text (per-user assignment within role) - shown per-member in RoleCard expanded view
+  - Example: Two people have "Dev Role" - one has scope "backend", other has scope "frontend"
+  - Scope is optional text/string field
+  - Scope is shown per-member, not at role level
+
+### Component Structure
+
+- **Current**: Uses `<button>` as root element
+- **Required**: Change to `<div>` container with nested `<button>` for header
+- **Reason**: Need to support expandable content (members list) below header
+
+### Integration Scope
+
+- **Focus**: CircleDetailPanel only
+- **CircleRolesPanel**: Review later (has its own implementation currently)
+
+---
+
+**Status**: 📋 Plan Updated with Clarifications  
+**Last Updated**: 2025-01-27
+**Next Step**: Begin Phase 1.1 (Fix Stories & Add Selected)

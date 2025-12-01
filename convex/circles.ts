@@ -60,6 +60,92 @@ async function ensureWorkspaceMembership(
 }
 
 /**
+ * Create core roles for a circle based on core role templates
+ *
+ * This function:
+ * 1. Queries system-level core templates (workspaceId = undefined, isCore = true)
+ * 2. Queries workspace-level core templates (workspaceId = workspaceId, isCore = true)
+ * 3. Creates roles from templates, skipping duplicates (idempotent)
+ * 4. Links roles to templates via templateId
+ * 5. Captures version history for each role created
+ *
+ * Design decisions:
+ * - Skip silently if role with same name already exists (idempotent)
+ * - Only active templates are used (archived templates are skipped)
+ * - Template description becomes role purpose if available
+ * - Roles are "stamped out" from templates (blueprint pattern - no auto-sync)
+ *
+ * @export - Exported for use in workspace creation and other circle creation flows
+ */
+export async function createCoreRolesForCircle(
+	ctx: MutationCtx,
+	circleId: Id<'circles'>,
+	workspaceId: Id<'workspaces'>,
+	userId: Id<'users'>
+): Promise<void> {
+	const now = Date.now();
+
+	// 1. Query system-level core templates (workspaceId = undefined, isCore = true)
+	const systemCoreTemplates = await ctx.db
+		.query('roleTemplates')
+		.withIndex('by_core', (q) => q.eq('workspaceId', undefined).eq('isCore', true))
+		.filter((q) => q.eq(q.field('archivedAt'), undefined))
+		.collect();
+
+	// 2. Query workspace-level core templates (workspaceId = workspaceId, isCore = true)
+	const workspaceCoreTemplates = await ctx.db
+		.query('roleTemplates')
+		.withIndex('by_core', (q) => q.eq('workspaceId', workspaceId).eq('isCore', true))
+		.filter((q) => q.eq(q.field('archivedAt'), undefined))
+		.collect();
+
+	// Combine all core templates
+	const allCoreTemplates = [...systemCoreTemplates, ...workspaceCoreTemplates];
+
+	if (allCoreTemplates.length === 0) {
+		// No core templates to create - this is fine
+		return;
+	}
+
+	// Get existing roles in circle (for duplicate checking)
+	const existingRoles = await ctx.db
+		.query('circleRoles')
+		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
+		.collect();
+
+	// Create a case-insensitive set of existing role names
+	const existingRoleNames = new Set(existingRoles.map((role) => role.name.toLowerCase().trim()));
+
+	// 3. Create roles from templates
+	for (const template of allCoreTemplates) {
+		const templateNameLower = template.name.toLowerCase().trim();
+
+		// Skip if role with same name already exists (idempotent behavior)
+		if (existingRoleNames.has(templateNameLower)) {
+			// Role already exists - skip silently
+			continue;
+		}
+
+		// Create role from template
+		const roleId = await ctx.db.insert('circleRoles', {
+			circleId,
+			name: template.name,
+			purpose: template.description, // Template description becomes role purpose
+			templateId: template._id, // Link role to template
+			createdAt: now,
+			updatedAt: now,
+			updatedBy: userId
+		});
+
+		// Capture version history for role creation
+		const newRole = await ctx.db.get(roleId);
+		if (newRole) {
+			await captureCreate(ctx, 'circleRole', newRole);
+		}
+	}
+}
+
+/**
  * List all circles in an workspace
  * By default, excludes archived circles. Set includeArchived=true to include them.
  */
@@ -322,6 +408,9 @@ export const create = mutation({
 		if (newCircle) {
 			await captureCreate(ctx, 'circle', newCircle);
 		}
+
+		// Auto-create core roles from templates
+		await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId);
 
 		return {
 			circleId,

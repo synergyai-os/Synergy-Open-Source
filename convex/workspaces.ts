@@ -6,6 +6,8 @@ import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internal } from './_generated/api';
+import { createCoreRolesForCircle } from './circles';
+import { captureCreate } from './orgVersionHistory';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName } from "../src/lib/infrastructure/analytics/events";
@@ -485,7 +487,7 @@ export const createWorkspace = mutation({
 
 		// Create root circle (required - every workspace must have exactly one root circle)
 		// Root circle is identified by parentCircleId = undefined
-		await ctx.db.insert('circles', {
+		const rootCircleId = await ctx.db.insert('circles', {
 			workspaceId,
 			name: 'General Circle',
 			slug: 'general-circle',
@@ -494,6 +496,15 @@ export const createWorkspace = mutation({
 			updatedAt: now,
 			updatedBy: userId
 		});
+
+		// Capture version history for root circle creation
+		const rootCircle = await ctx.db.get(rootCircleId);
+		if (rootCircle) {
+			await captureCreate(ctx, 'circle', rootCircle);
+		}
+
+		// Auto-create core roles from templates for root circle
+		await createCoreRolesForCircle(ctx, rootCircleId, workspaceId, userId);
 
 		// Create default circle item categories
 		const circleCategories = [
