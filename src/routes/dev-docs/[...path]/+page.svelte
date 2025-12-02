@@ -5,6 +5,7 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { processMermaidInHtml } from '$lib/utils/mermaidProcessor';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let { data }: { data: PageData } = $props();
 
@@ -184,11 +185,66 @@
 	<title>{data.title} | Dev Docs</title>
 </svelte:head>
 
-<div class="doc-page">
-	<article class="doc-content">
-		{@html htmlContent}
-	</article>
-</div>
+{#if data.isDirectory && data.files}
+	<div class="doc-page">
+		<article class="doc-content">
+			<header class="directory-header">
+				<h1 class="directory-title">{data.title}</h1>
+				<p class="directory-description">
+					Browse all documentation files in this directory ({data.files.length} file{data.files
+						.length !== 1
+						? 's'
+						: ''})
+				</p>
+			</header>
+
+			<div class="directory-grid">
+				{#each data.files as file (file.path)}
+					<a href={resolveRoute(file.href)} class="directory-card">
+						<div class="card-icon">
+							<svg
+								width="24"
+								height="24"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+								<polyline points="14 2 14 8 20 8"></polyline>
+								<line x1="16" y1="13" x2="8" y2="13"></line>
+								<line x1="16" y1="17" x2="8" y2="17"></line>
+								<polyline points="10 9 9 9 8 9"></polyline>
+							</svg>
+						</div>
+						<div class="card-content">
+							<h3 class="card-title">{file.title}</h3>
+							<p class="card-path">{file.displayName}</p>
+						</div>
+						<div class="card-arrow">
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<polyline points="9 18 15 12 9 6"></polyline>
+							</svg>
+						</div>
+					</a>
+				{/each}
+			</div>
+		</article>
+	</div>
+{:else}
+	<div class="doc-page">
+		<article class="doc-content">
+			{@html htmlContent}
+		</article>
+	</div>
+{/if}
 
 <style>
 	.doc-page {
@@ -230,5 +286,109 @@
 		margin: 0;
 		white-space: pre-wrap;
 		font-size: 0.875rem;
+	}
+
+	/* Directory listing styles */
+	.directory-header {
+		margin-bottom: 3rem;
+		padding-bottom: 2rem;
+		border-bottom: 2px solid var(--color-border-base);
+	}
+
+	.directory-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		color: var(--color-text-primary);
+		margin: 0 0 0.75rem 0;
+		letter-spacing: -0.02em;
+	}
+
+	.directory-description {
+		font-size: 1.125rem;
+		color: var(--color-text-secondary);
+		margin: 0;
+		line-height: 1.6;
+	}
+
+	.directory-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.directory-card {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1.5rem;
+		background: var(--color-bg-surface);
+		border: 2px solid var(--color-border-base);
+		border-radius: 0.75rem;
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.2s ease;
+		cursor: pointer;
+	}
+
+	.directory-card:hover {
+		border-color: var(--color-accent-primary);
+		background: var(--color-bg-hover);
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+
+	.card-icon {
+		flex-shrink: 0;
+		color: var(--color-accent-primary);
+		margin-top: 0.125rem;
+	}
+
+	.card-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.card-title {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin: 0 0 0.25rem 0;
+		line-height: 1.4;
+	}
+
+	.card-path {
+		font-size: 0.875rem;
+		color: var(--color-text-tertiary);
+		margin: 0;
+		font-family: monospace;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.card-arrow {
+		flex-shrink: 0;
+		color: var(--color-text-tertiary);
+		margin-top: 0.125rem;
+		transition: transform 0.2s ease;
+	}
+
+	.directory-card:hover .card-arrow {
+		transform: translateX(4px);
+		color: var(--color-accent-primary);
+	}
+
+	@media (max-width: 768px) {
+		.directory-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.directory-title {
+			font-size: 2rem;
+		}
+
+		.directory-description {
+			font-size: 1rem;
+		}
 	}
 </style>
