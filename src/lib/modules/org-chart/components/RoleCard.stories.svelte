@@ -15,6 +15,9 @@
 			},
 			fillerCount: {
 				control: { type: 'number' }
+			},
+			isCircle: {
+				control: { type: 'boolean' }
 			}
 		}
 	});
@@ -146,13 +149,8 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="flex flex-col gap-4">
-			<RoleCard
-				name={args.name}
-				scope={args.scope}
-				selected={true}
-				onClick={args.onClick}
-			/>
+		<div class="flex flex-col gap-card">
+			<RoleCard name={args.name} scope={args.scope} selected={true} onClick={args.onClick} />
 			<RoleCard
 				name="Unselected Card"
 				scope="For comparison"
@@ -191,7 +189,20 @@
 		scope: 'Lead the engineering team',
 		expanded: true,
 		onClick: () => console.log('Clicked'),
-		onToggleExpand: () => console.log('Toggle expand')
+		onToggleExpand: () => console.log('Toggle expand'),
+		members: [
+			{
+				userId: 'user-1',
+				name: 'John Doe',
+				email: 'john.doe@example.com'
+			},
+			{
+				userId: 'user-2',
+				name: 'Jane Smith',
+				email: 'jane.smith@example.com'
+			}
+		],
+		onAddMember: () => console.log('Add member clicked')
 	}}
 >
 	{#snippet template(args)}
@@ -201,6 +212,199 @@
 			expanded={args.expanded}
 			onClick={args.onClick}
 			onToggleExpand={args.onToggleExpand}
+			members={args.members}
+			onAddMember={args.onAddMember}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="WithMembers"
+	args={{
+		name: 'Product Manager',
+		scope: 'Own product roadmap and strategy',
+		expanded: true,
+		onClick: () => console.log('Clicked'),
+		onToggleExpand: () => console.log('Toggle expand'),
+		members: [
+			{
+				userId: 'user-1',
+				name: 'Alice Johnson',
+				email: 'alice.johnson@example.com',
+				avatarImage: 'https://i.pravatar.cc/150?img=12'
+			},
+			{
+				userId: 'user-2',
+				name: 'Bob Williams',
+				email: 'bob.williams@example.com'
+			},
+			{
+				userId: 'user-3',
+				name: 'Charlie Brown',
+				email: 'charlie.brown@example.com'
+			}
+		],
+		onAddMember: () => console.log('Add member clicked'),
+		memberMenuItems: (userId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			scope={args.scope}
+			expanded={args.expanded}
+			onClick={args.onClick}
+			onToggleExpand={args.onToggleExpand}
+			members={args.members}
+			onAddMember={args.onAddMember}
+			memberMenuItems={args.memberMenuItems}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="CurrentUserHighlighted"
+	args={{
+		name: 'Circle Lead',
+		isCircle: true,
+		expanded: true,
+		onClick: () => console.log('Clicked'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
+		currentUserId: 'randy-hereman',
+		members: [
+			{
+				userId: 'randy-hereman',
+				name: 'Randy Hereman',
+				email: 'randy@example.com',
+				scope: 'How we work and the performance of the circle'
+			},
+			{
+				userId: 'thomas-wagner',
+				name: 'Thomas Wagner',
+				email: 'thomas@example.com'
+			}
+		],
+		memberMenuItems: (userId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		]
+	}}
+>
+	{#snippet template(args)}
+		<div class="flex flex-col gap-card">
+			<p class="mb-card text-label text-secondary">
+				The current user's card (Randy Hereman) is highlighted with the brand teal background.
+			</p>
+			<RoleCard
+				name={args.name}
+				isCircle={args.isCircle}
+				expanded={args.expanded}
+				onClick={args.onClick}
+				onEdit={args.onEdit}
+				onAddMember={args.onAddMember}
+				menuItems={args.menuItems}
+				currentUserId={args.currentUserId}
+				members={args.members}
+				memberMenuItems={args.memberMenuItems}
+			/>
+		</div>
+	{/snippet}
+</Story>
+
+<Story
+	name="MembersWithScope"
+	args={{
+		name: 'Engineering Lead',
+		expanded: true,
+		onClick: () => console.log('Clicked'),
+		onToggleExpand: () => console.log('Toggle expand'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
+		members: [
+			{
+				userId: 'user-1',
+				name: 'John Doe',
+				email: 'john.doe@example.com',
+				scope: 'Lead product development and strategy'
+			},
+			{
+				userId: 'user-2',
+				name: 'Jane Smith',
+				email: 'jane.smith@example.com',
+				scope: 'Manage engineering team operations'
+			}
+		],
+		memberMenuItems: (userId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			scope={args.scope}
+			expanded={args.expanded}
+			isCircle={args.isCircle}
+			onClick={args.onClick}
+			onToggleExpand={args.onToggleExpand}
+			onEdit={args.onEdit}
+			onAddMember={args.onAddMember}
+			menuItems={args.menuItems}
+			members={args.members}
+			memberMenuItems={args.memberMenuItems}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="CircleWithMembers"
+	args={{
+		name: 'Circle Lead',
+		isCircle: true,
+		expanded: true,
+		onClick: () => console.log('Clicked'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
+		currentUserId: 'randy-hereman',
+		members: [
+			{
+				userId: 'randy-hereman',
+				name: 'Randy Hereman',
+				email: 'randy@example.com',
+				scope: 'How we work and the performance of the circle'
+			},
+			{
+				userId: 'thomas-wagner',
+				name: 'Thomas Wagner',
+				email: 'thomas@example.com'
+			}
+		],
+		memberMenuItems: (userId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			isCircle={args.isCircle}
+			expanded={args.expanded}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			onAddMember={args.onAddMember}
+			menuItems={args.menuItems}
+			currentUserId={args.currentUserId}
+			members={args.members}
+			memberMenuItems={args.memberMenuItems}
 		/>
 	{/snippet}
 </Story>

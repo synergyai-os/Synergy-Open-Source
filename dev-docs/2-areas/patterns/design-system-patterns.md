@@ -2327,5 +2327,79 @@ Example: root = 1000 → 1000 × 2.25 = 2250 for 1.5x radius
 
 ---
 
-**Last Updated**: 2025-11-30
+## #L1450: Nested Cards Without Rounded Corners [🟢 REFERENCE]
+
+**Keywords**: nested cards, rounded corners, container, list items, rounded-none, nested variant, visual hierarchy, container border, inner items
+
+**Principle**: When cards are nested inside a container with rounded corners and a border, the inner items should NOT have rounded corners. Only the outer container should have rounded corners to avoid visual conflict.
+
+**Symptom**: Nested items inside a rounded container show rounded corners that create visual noise or look awkward, especially when items have background colors.
+
+**Root Cause**: Both the container and nested items have `rounded-card`, causing double-rounded appearance that looks cluttered.
+
+**Pattern**: Add a `nested` variant to recipes that removes rounded corners for items inside containers:
+
+```typescript
+// roleCard.recipe.ts
+export const roleCardRecipe = cva(
+  'flex items-center gap-button text-left transition-colors px-input py-stack-item',
+  {
+    variants: {
+      variant: {
+        default: 'bg-surface hover:bg-subtle',
+        selected: 'bg-selected hover:bg-selected'
+      },
+      nested: {
+        false: 'rounded-card',  // Standalone cards
+        true: 'rounded-none'     // Nested inside container
+      }
+    },
+    defaultVariants: {
+      variant: 'default',
+      nested: false
+    }
+  }
+);
+```
+
+**Implementation Example**:
+```svelte
+<!-- Outer container has rounded corners and border -->
+<div class="rounded-card border border-default overflow-hidden">
+  <!-- Header uses default (rounded-card) -->
+  <button class={roleCardRecipe({ variant: 'default' })}>
+    Circle Lead
+  </button>
+  
+  <!-- Divider -->
+  <div class="h-px bg-[var(--color-border-default)]"></div>
+  
+  <!-- Member items use nested: true (no rounded corners) -->
+  {#each members as member}
+    <RoleMemberItem 
+      selected={member.userId === currentUserId}
+      class={roleCardRecipe({ variant: selected ? 'selected' : 'default', nested: true })}
+    />
+  {/each}
+</div>
+```
+
+**When to Apply**:
+- Cards nested inside containers with borders
+- List items inside rounded containers
+- Items that should fill container width without rounded edges
+- When background colors reveal rounded corner artifacts
+
+**Anti-Patterns**:
+- ❌ Using `rounded-card` on nested items inside rounded containers
+- ❌ Removing rounded corners from outer container (breaks visual consistency)
+- ❌ Using different border-radius values instead of `rounded-none`
+
+**Key Insight**: The outer container defines the visual boundary. Inner items should respect that boundary without adding their own rounded corners.
+
+**Related**: #L550 (Hover Effects with Rounded Corners), #L300 (Module Card Component Pattern)
+
+---
+
+**Last Updated**: 2025-12-02
 

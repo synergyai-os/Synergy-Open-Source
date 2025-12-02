@@ -40,27 +40,30 @@
 	const initials = $derived(getInitials(displayName));
 
 	const containerClasses = $derived([
-		roleCardRecipe({ variant: selected ? 'selected' : 'default' }),
+		roleCardRecipe({ variant: selected ? 'selected' : 'default', nested: true }),
 		onClick ? 'cursor-pointer' : '',
 		className
 	]);
 </script>
 
-<div class={containerClasses} onclick={onClick} role={onClick ? 'button' : undefined} tabindex={onClick ? 0 : undefined}>
-	<Avatar initials={initials} size="md" />
+<div
+	class={containerClasses}
+	onclick={onClick}
+	role={onClick ? 'button' : undefined}
+	tabindex={onClick ? 0 : undefined}
+>
+	<Avatar {initials} size="md" />
 	<div class="min-w-0 flex-1">
-		<p class="text-button truncate font-medium text-primary">{displayName}</p>
-		{#if name}
-			<p class="truncate text-label text-secondary">{email}</p>
-		{/if}
+		<p class="truncate text-label font-medium text-primary">{displayName}</p>
 		{#if scope}
 			<p class="truncate text-label text-secondary">{scope}</p>
 		{/if}
 	</div>
-	{#if menuItems.length > 0}
-		<div class="flex items-center gap-fieldGroup" role="group">
-			<ActionMenu items={menuItems} />
-		</div>
-	{/if}
+	<div
+		class="flex items-center gap-fieldGroup"
+		role="group"
+		onmousedown={(e) => e.stopPropagation()}
+	>
+		<ActionMenu items={menuItems} class="flex-shrink-0" />
+	</div>
 </div>
-

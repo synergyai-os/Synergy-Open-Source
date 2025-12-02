@@ -34,14 +34,14 @@
 <DropdownMenu.Root bind:open={menuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary {className}"
+		class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-primary transition-colors hover:text-primary {className}"
 		aria-label="More options"
 	>
 		{#if trigger}
 			{@render trigger()}
 		{:else}
 			<!-- Default three dots icon -->
-			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

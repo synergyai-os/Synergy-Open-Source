@@ -13,16 +13,22 @@ export const roleCardRecipe = cva(
 	// Base classes - container styling for role card
 	// Interactive card with hover feedback
 	// Uses list item padding (12px horizontal, 8px vertical) instead of card-padding (24px all sides)
-	'flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors px-input py-stack-item',
+	// Note: w-full is applied at component level (layout class, not styling)
+	'flex items-center gap-button text-left transition-colors px-input py-stack-item',
 	{
 		variants: {
 			variant: {
-				default: 'hover:bg-subtle',
+				default: 'bg-surface hover:bg-subtle',
 				selected: 'bg-selected hover:bg-selected'
+			},
+			nested: {
+				false: 'rounded-card',
+				true: 'rounded-none'
 			}
 		},
 		defaultVariants: {
-			variant: 'default'
+			variant: 'default',
+			nested: false
 		}
 	}
 );
