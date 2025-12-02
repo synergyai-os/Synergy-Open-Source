@@ -322,9 +322,12 @@
 							<div class="flex-1 overflow-y-auto px-page py-page">
 								<Tabs.Content value="overview" class={tabsContentRecipe()}>
 									<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-									<div class="grid grid-cols-1 gap-section lg:grid-cols-[40%_60%]">
+									<div
+										class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
+										style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
+									>
 										<!-- Left Column: Overview Details -->
-										<div class="flex flex-col gap-section">
+										<div class="flex min-w-0 flex-col gap-section overflow-hidden">
 											<!-- Purpose -->
 											{#if role.purpose}
 												<div>
@@ -333,7 +336,9 @@
 													>
 														Purpose
 													</h4>
-													<p class="text-button leading-relaxed text-secondary">{role.purpose}</p>
+													<p class="text-button leading-relaxed break-words text-secondary">
+														{role.purpose}
+													</p>
 												</div>
 											{/if}
 
@@ -464,7 +469,10 @@
 										</div>
 
 										<!-- Right Column: Filled By List -->
-										<div class="flex flex-col gap-section">
+										<div
+											class="flex flex-col gap-section"
+											style="padding-right: var(--spacing-page-x);"
+										>
 											<!-- Filled By List -->
 											<div>
 												<CategoryHeader

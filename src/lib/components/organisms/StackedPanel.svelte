@@ -190,21 +190,24 @@
 <style>
 	/* Panel width: mobile-first responsive approach */
 	/* Mobile (< 640px): Full width, no breadcrumb extension */
-	/* Tablet (640px+): 900px + breadcrumb extra width */
-	/* Desktop (1024px+): 1200px + breadcrumb extra width */
+	/* Tablet (640px+): Max 900px + breadcrumb extra width, can shrink below */
+	/* Desktop (1024px+): Max 1200px + breadcrumb extra width, can shrink below */
 	:global(.stacked-panel-width) {
 		/* Mobile: full width (handled by recipe w-full) */
+		width: 100%;
 	}
 
 	@media (min-width: 640px) {
 		:global(.stacked-panel-width) {
-			width: calc(900px + var(--breadcrumb-extra-width, 0px));
+			max-width: calc(900px + var(--breadcrumb-extra-width, 0px));
+			width: 100%;
 		}
 	}
 
 	@media (min-width: 1024px) {
 		:global(.stacked-panel-width) {
-			width: calc(1200px + var(--breadcrumb-extra-width, 0px));
+			max-width: calc(1200px + var(--breadcrumb-extra-width, 0px));
+			width: 100%;
 		}
 	}
 </style>
