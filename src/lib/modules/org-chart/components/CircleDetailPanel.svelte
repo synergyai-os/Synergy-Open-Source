@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
-	import { useQuery } from 'convex-svelte';
 	import type { Id } from '$lib/convex';
-	import { api } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
@@ -15,9 +12,6 @@
 	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
-
-	// Get sessionId from page data
-	const getSessionId = () => $page.data.sessionId;
 
 	// Guard: Don't access orgChart properties if it's null (prevents hydration errors)
 	if (!browser || !orgChart) {
@@ -45,21 +39,13 @@
 			: []
 	);
 
-	// Query roles with scope from userCircleRoles assignments
-	// Scope comes from userCircleRoles (member assignments), not circleRoles (roles)
-	// Always create query - check conditions inside function for reactivity
-	const rolesQuery =
-		browser && getSessionId()
-			? useQuery(api.circleRoles.listByCircle, () => {
-					const sessionId = getSessionId();
-					const circleId = orgChart?.selectedCircleId;
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
-					return { sessionId, circleId: circleId as Id<'circles'> };
-				})
-			: null;
-
-	// Get roles with scope from query result
-	const roles = $derived(rolesQuery?.data ?? []);
+	// Get roles from preloaded data (instant display, no query delay)
+	// Roles are preloaded in useOrgChart via listByWorkspace query
+	const roles = $derived(
+		orgChart && orgChart.selectedCircleId
+			? (orgChart.getRolesForCircle(orgChart.selectedCircleId) ?? [])
+			: []
+	);
 
 	// Tab state with dummy counts
 	let activeTab = $state(

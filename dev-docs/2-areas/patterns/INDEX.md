@@ -51,6 +51,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | D3 pack, circle size, depth sizing, radius, value, hierarchy depth, role size, sqrt, value to radius | D3 Pack Layout Depth Sizing | `design-system-patterns.md#L1350` |
 | border, visualization, D3, org chart, boxed, boxy, organic, blend, seamless, circular, SVG container, rectangular frame | Visualization Container Styling (Borderless) | `design-system-patterns.md#L1400` |
 | D3, pack layout, circle size, hierarchy depth, baseSizes, value, radius, role size, root circle, sub-circle, depth-based sizing, sqrt, value to radius | D3 Pack Circle Sizes by Depth | `design-system-patterns.md#L1350` |
+| preload, batch query, N+1 queries, performance, instant display, listByWorkspace, roles preloading, delay, sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
 
 ---
 
@@ -76,6 +77,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | SVG text wrong font, D3 labels not matching design system, mask background bar, text stroke distortion | SVG Text with Design System Tokens | `design-system-patterns.md#L1150` |
 | Circle cropped when zooming to focus, element clipped at top/bottom, zoom-to-fit ignores viewport aspect ratio | Viewport-Aware Zoom-to-Fit | `design-system-patterns.md#L1250` |
 | Browser zoom takes over at D3 zoom limits, pinch zoom triggers browser zoom, trackpad zoom escapes app | Prevent Browser Zoom Takeover | `design-system-patterns.md#L1300` |
+| Data loads with delay after user interaction, roles appear after circle selection, multiple sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
 
 ## 🟢 Reference (Best Practices)
 
@@ -112,7 +114,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 - `svelte-reactivity.md` - Svelte 5 runes, $derived, $effect, composables
 - `ui-patterns.md` - bits-ui components, scroll areas, dropdowns
 - `design-system-patterns.md` - Design tokens, CVA recipes, layout patterns, **data visualization colors**
-- `convex-integration.md` - Convex queries, mutations, real-time updates
+- `convex-integration.md` - Convex queries, mutations, real-time updates, **performance optimization**
 - `analytics.md` - PostHog integration, events, feature flags
 
 ## Module-Specific Docs

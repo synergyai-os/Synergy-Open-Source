@@ -86,6 +86,38 @@ export function useOrgChart(options: {
 				})
 			: null;
 
+	// Query roles for all circles in workspace (preload for instant display)
+	const rolesByWorkspaceQuery =
+		browser && getSessionId() && getWorkspaceId()
+			? useQuery(api.circleRoles.listByWorkspace, () => {
+					const sessionId = getSessionId();
+					const workspaceId = getWorkspaceId();
+					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+				})
+			: null;
+
+	// Store roles in Map for O(1) lookup by circleId
+	const rolesByCircle = $derived.by(() => {
+		const data = rolesByWorkspaceQuery?.data ?? [];
+		const map = new Map<
+			Id<'circles'>,
+			Array<{
+				roleId: Id<'circleRoles'>;
+				circleId: Id<'circles'>;
+				name: string;
+				purpose?: string;
+				scope?: string;
+				fillerCount: number;
+				createdAt: number;
+			}>
+		>();
+		for (const { circleId, roles } of data) {
+			map.set(circleId, roles);
+		}
+		return map;
+	});
+
 	// Load selected circle details with $effect pattern (proven pattern from useSelectedItem)
 	$effect(() => {
 		if (!browser || !convexClient || !state.selectedCircleId) {
@@ -363,6 +395,11 @@ export function useOrgChart(options: {
 		},
 		get isLoading() {
 			return !browser || circlesQuery?.data === undefined;
+		},
+
+		// Get roles for a specific circle (from preloaded data)
+		getRolesForCircle: (circleId: Id<'circles'>) => {
+			return rolesByCircle.get(circleId) ?? null;
 		},
 
 		// Navigation stack - hierarchical panel navigation

@@ -10,7 +10,7 @@
 			name: {
 				control: { type: 'text' }
 			},
-			purpose: {
+			scope: {
 				control: { type: 'text' }
 			},
 			fillerCount: {
@@ -24,7 +24,7 @@
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
@@ -34,17 +34,17 @@
 </Story>
 
 <Story
-	name="WithPurpose"
+	name="WithScope"
 	args={{
 		name: 'Engineering Lead',
-		purpose: 'Lead the engineering team',
+		scope: 'Lead the engineering team',
 		onClick: () => console.log('Clicked')
 	}}
 >
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
@@ -60,7 +60,7 @@
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
@@ -73,7 +73,7 @@
 	name="WithEdit"
 	args={{
 		name: 'Marketing Lead',
-		purpose: 'Drive marketing strategy',
+		scope: 'Drive marketing strategy',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked')
 	}}
@@ -81,7 +81,7 @@
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
@@ -94,7 +94,7 @@
 	name="WithMenu"
 	args={{
 		name: 'Operations Manager',
-		purpose: 'Manage daily operations',
+		scope: 'Manage daily operations',
 		onClick: () => console.log('Clicked'),
 		menuItems: [
 			{ label: 'Edit', onclick: () => console.log('Edit') },
@@ -105,7 +105,7 @@
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
@@ -118,7 +118,7 @@
 	name="WithAllActions"
 	args={{
 		name: 'Sales Director',
-		purpose: 'Lead sales team',
+		scope: 'Lead sales team',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
@@ -127,11 +127,80 @@
 	{#snippet template(args)}
 		<RoleCard
 			name={args.name}
-			purpose={args.purpose}
+			scope={args.scope}
 			fillerCount={args.fillerCount}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
 			menuItems={args.menuItems}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="Selected"
+	args={{
+		name: 'Product Manager',
+		scope: 'Own product roadmap and strategy',
+		selected: true,
+		onClick: () => console.log('Clicked')
+	}}
+>
+	{#snippet template(args)}
+		<div class="flex flex-col gap-4">
+			<RoleCard
+				name={args.name}
+				scope={args.scope}
+				selected={true}
+				onClick={args.onClick}
+			/>
+			<RoleCard
+				name="Unselected Card"
+				scope="For comparison"
+				selected={false}
+				onClick={() => console.log('Unselected clicked')}
+			/>
+		</div>
+	{/snippet}
+</Story>
+
+<Story
+	name="Expandable"
+	args={{
+		name: 'Engineering Lead',
+		scope: 'Lead the engineering team',
+		expanded: false,
+		onClick: () => console.log('Clicked'),
+		onToggleExpand: () => console.log('Toggle expand')
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			scope={args.scope}
+			expanded={args.expanded}
+			onClick={args.onClick}
+			onToggleExpand={args.onToggleExpand}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="Expanded"
+	args={{
+		name: 'Engineering Lead',
+		scope: 'Lead the engineering team',
+		expanded: true,
+		onClick: () => console.log('Clicked'),
+		onToggleExpand: () => console.log('Toggle expand')
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			scope={args.scope}
+			expanded={args.expanded}
+			onClick={args.onClick}
+			onToggleExpand={args.onToggleExpand}
 		/>
 	{/snippet}
 </Story>

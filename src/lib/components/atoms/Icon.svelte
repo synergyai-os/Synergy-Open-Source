@@ -10,7 +10,14 @@
 		HTMLSpanElement
 	>;
 
-	let { type, size = 'md', color = 'default', ref = $bindable(null), ...rest }: Props = $props();
+	let {
+		type,
+		size = 'md',
+		color = 'default',
+		ref = $bindable(null),
+		class: className = '',
+		...rest
+	}: Props = $props();
 
 	// Get icon definition from registry
 	// Add error handling for development/debugging
@@ -40,7 +47,8 @@
 	});
 
 	// Apply design tokens using recipe system
-	const iconClasses = $derived(iconRecipe({ size, color }));
+	// Merge recipe classes with custom className using array syntax
+	const iconClasses = $derived([iconRecipe({ size, color }), className]);
 </script>
 
 <span bind:this={ref} class={iconClasses} {...rest}>

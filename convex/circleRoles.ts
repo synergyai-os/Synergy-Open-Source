@@ -120,6 +120,133 @@ export const listByCircle = query({
 });
 
 /**
+ * List all roles for all circles in a workspace
+ * Optimized for preloading roles to avoid N+1 queries
+ * Returns roles grouped by circleId for efficient lookup
+ */
+export const listByWorkspace = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		includeArchived: v.optional(v.boolean())
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+
+		// Get all circles in workspace (1 query with index)
+		const circles = await ctx.db
+			.query('circles')
+			.withIndex('by_workspace_archived', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('archivedAt', undefined)
+			)
+			.collect();
+
+		if (circles.length === 0) {
+			return [];
+		}
+
+		const circleIds = circles.map((c) => c._id);
+
+		// OPTIMIZATION: Fetch all roles for all circles in parallel
+		// Convex executes Promise.all queries efficiently (not sequential)
+		const rolesByCirclePromises = circleIds.map(async (circleId) => {
+			const roles = args.includeArchived
+				? await ctx.db
+						.query('circleRoles')
+						.withIndex('by_circle', (q) => q.eq('circleId', circleId))
+						.collect()
+				: await ctx.db
+						.query('circleRoles')
+						.withIndex('by_circle_archived', (q) =>
+							q.eq('circleId', circleId).eq('archivedAt', undefined)
+						)
+						.collect();
+			return { circleId, roles };
+		});
+
+		const rolesByCircleData = await Promise.all(rolesByCirclePromises);
+
+		// Flatten to get all roleIds for assignment lookup
+		const allRoleIds = new Set<Id<'circleRoles'>>();
+		for (const { roles } of rolesByCircleData) {
+			for (const role of roles) {
+				allRoleIds.add(role._id);
+			}
+		}
+
+		// OPTIMIZATION: Fetch assignments for all roles in parallel
+		// Use Promise.all for efficient parallel execution
+		const assignmentPromises = Array.from(allRoleIds).map(async (roleId) => {
+			const assignments = args.includeArchived
+				? await ctx.db
+						.query('userCircleRoles')
+						.withIndex('by_role', (q) => q.eq('circleRoleId', roleId))
+						.collect()
+				: await ctx.db
+						.query('userCircleRoles')
+						.withIndex('by_role_archived', (q) =>
+							q.eq('circleRoleId', roleId).eq('archivedAt', undefined)
+						)
+						.collect();
+			return { roleId, assignments };
+		});
+
+		const assignmentsByRoleData = await Promise.all(assignmentPromises);
+
+		// Build assignments map for O(1) lookup
+		const assignmentsByRole = new Map<
+			Id<'circleRoles'>,
+			(typeof assignmentsByRoleData)[0]['assignments']
+		>();
+		for (const { roleId, assignments } of assignmentsByRoleData) {
+			assignmentsByRole.set(roleId, assignments);
+		}
+
+		// Build result: Map roles to circles with full data
+		const result: Array<{
+			circleId: Id<'circles'>;
+			roles: Array<{
+				roleId: Id<'circleRoles'>;
+				circleId: Id<'circles'>;
+				name: string;
+				purpose?: string;
+				scope?: string;
+				fillerCount: number;
+				createdAt: number;
+			}>;
+		}> = [];
+
+		for (const { circleId, roles } of rolesByCircleData) {
+			const rolesWithData = roles.map((role) => {
+				const assignments = assignmentsByRole.get(role._id) ?? [];
+				const scopes = assignments
+					.map((a) => a.scope)
+					.filter(
+						(scope): scope is string => scope !== undefined && scope !== null && scope !== ''
+					);
+
+				return {
+					roleId: role._id,
+					circleId: role.circleId,
+					name: role.name,
+					purpose: role.purpose,
+					scope: scopes.length > 0 ? scopes[0] : undefined,
+					fillerCount: assignments.length,
+					createdAt: role.createdAt
+				};
+			});
+
+			if (rolesWithData.length > 0) {
+				result.push({ circleId, roles: rolesWithData });
+			}
+		}
+
+		return result;
+	}
+});
+
+/**
  * Get a single role by ID
  */
 export const get = query({
