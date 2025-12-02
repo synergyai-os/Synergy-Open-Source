@@ -51,6 +51,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | D3 pack, circle size, depth sizing, radius, value, hierarchy depth, role size, sqrt, value to radius | D3 Pack Layout Depth Sizing | `design-system-patterns.md#L1350` |
 | border, visualization, D3, org chart, boxed, boxy, organic, blend, seamless, circular, SVG container, rectangular frame | Visualization Container Styling (Borderless) | `design-system-patterns.md#L1400` |
 | D3, pack layout, circle size, hierarchy depth, baseSizes, value, radius, role size, root circle, sub-circle, depth-based sizing, sqrt, value to radius | D3 Pack Circle Sizes by Depth | `design-system-patterns.md#L1350` |
+|| nested cards, rounded corners, container, list items, rounded-none, nested variant, visual hierarchy, container border, inner items | Nested Cards Without Rounded Corners | `design-system-patterns.md#L1450` |
 | preload, batch query, N+1 queries, performance, instant display, listByWorkspace, roles preloading, delay, sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
 
 ---
