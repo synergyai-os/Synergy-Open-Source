@@ -12,9 +12,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
 export const roleCardRecipe = cva(
 	// Base classes - container styling for role card
 	// Interactive card with hover feedback
-	// Uses list item padding (12px horizontal, 8px vertical) instead of card-padding (24px all sides)
+	// Uses card padding (24px horizontal) for adequate spacing
 	// Note: w-full is applied at component level (layout class, not styling)
-	'flex items-center gap-button text-left transition-colors px-input py-stack-item',
+	'flex items-center gap-button text-left transition-colors px-card-padding py-stack-item',
 	{
 		variants: {
 			variant: {

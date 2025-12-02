@@ -1,0 +1,299 @@
+/**
+ * Validation Queries for Role Templates
+ *
+ * Use these queries to debug why Core Roles aren't showing up:
+ * 1. Check if system role templates exist
+ * 2. Check if roles exist in a circle
+ * 3. Check if templates are being used correctly
+ */
+
+import { query } from '../_generated/server';
+import { v } from 'convex/values';
+import { validateSessionAndGetUserId } from '../sessionValidation';
+
+/**
+ * Query: Check if system role templates exist
+ * Returns all system-level templates (workspaceId = undefined)
+ */
+export const checkSystemTemplates = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const systemTemplates = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
+			.collect();
+
+		return {
+			count: systemTemplates.length,
+			templates: systemTemplates.map((t) => ({
+				_id: t._id,
+				name: t.name,
+				description: t.description,
+				isCore: t.isCore,
+				isRequired: t.isRequired,
+				archivedAt: t.archivedAt
+			}))
+		};
+	}
+});
+
+/**
+ * Query: Check core templates for a workspace
+ * Returns system-level and workspace-level core templates
+ */
+export const checkCoreTemplates = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this workspace');
+		}
+
+		// Get system-level core templates
+		const systemCoreTemplates = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_core', (q) => q.eq('workspaceId', undefined).eq('isCore', true))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.collect();
+
+		// Get workspace-level core templates
+		const workspaceCoreTemplates = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_core', (q) => q.eq('workspaceId', args.workspaceId).eq('isCore', true))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.collect();
+
+		return {
+			system: {
+				count: systemCoreTemplates.length,
+				templates: systemCoreTemplates.map((t) => ({
+					_id: t._id,
+					name: t.name,
+					description: t.description,
+					isCore: t.isCore,
+					isRequired: t.isRequired
+				}))
+			},
+			workspace: {
+				count: workspaceCoreTemplates.length,
+				templates: workspaceCoreTemplates.map((t) => ({
+					_id: t._id,
+					name: t.name,
+					description: t.description,
+					isCore: t.isCore,
+					isRequired: t.isRequired
+				}))
+			},
+			total: systemCoreTemplates.length + workspaceCoreTemplates.length
+		};
+	}
+});
+
+/**
+ * Query: Check roles in a circle and their template links
+ */
+export const checkCircleRoles = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// Verify user has access
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', circle.workspaceId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this workspace');
+		}
+
+		// Get all active roles in circle
+		const roles = await ctx.db
+			.query('circleRoles')
+			.withIndex('by_circle_archived', (q) =>
+				q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+			)
+			.collect();
+
+		// Enrich roles with template information
+		const rolesWithTemplates = await Promise.all(
+			roles.map(async (role) => {
+				let template = null;
+				if (role.templateId) {
+					template = await ctx.db.get(role.templateId);
+				}
+
+				return {
+					roleId: role._id,
+					name: role.name,
+					purpose: role.purpose,
+					templateId: role.templateId,
+					template: template
+						? {
+								_id: template._id,
+								name: template.name,
+								isCore: template.isCore,
+								isRequired: template.isRequired,
+								archivedAt: template.archivedAt
+							}
+						: null,
+					isLeadRole: template?.isRequired === true,
+					isCoreRole: template?.isCore === true
+				};
+			})
+		);
+
+		return {
+			circleId: args.circleId,
+			circleName: circle.name,
+			roleCount: roles.length,
+			roles: rolesWithTemplates,
+			coreRoles: rolesWithTemplates.filter((r) => r.isCoreRole),
+			leadRoles: rolesWithTemplates.filter((r) => r.isLeadRole)
+		};
+	}
+});
+
+/**
+ * Query: Comprehensive validation for a workspace
+ * Checks templates, circles, and roles
+ */
+export const validateWorkspace = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this workspace');
+		}
+
+		// Get all circles
+		const circles = await ctx.db
+			.query('circles')
+			.withIndex('by_workspace_archived', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('archivedAt', undefined)
+			)
+			.collect();
+
+		// Get core templates
+		const systemCoreTemplates = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_core', (q) => q.eq('workspaceId', undefined).eq('isCore', true))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.collect();
+
+		const workspaceCoreTemplates = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_core', (q) => q.eq('workspaceId', args.workspaceId).eq('isCore', true))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.collect();
+
+		// Check each circle for roles
+		const circleChecks = await Promise.all(
+			circles.map(async (circle) => {
+				const roles = await ctx.db
+					.query('circleRoles')
+					.withIndex('by_circle_archived', (q) =>
+						q.eq('circleId', circle._id).eq('archivedAt', undefined)
+					)
+					.collect();
+
+				const rolesWithTemplates = await Promise.all(
+					roles.map(async (role) => {
+						const template = role.templateId ? await ctx.db.get(role.templateId) : null;
+						return {
+							name: role.name,
+							templateId: role.templateId,
+							isCore: template?.isCore === true,
+							isLead: template?.isRequired === true
+						};
+					})
+				);
+
+				return {
+					circleId: circle._id,
+					circleName: circle.name,
+					roleCount: roles.length,
+					hasLeadRole: rolesWithTemplates.some((r) => r.isLead),
+					coreRoleCount: rolesWithTemplates.filter((r) => r.isCore).length
+				};
+			})
+		);
+
+		return {
+			workspaceId: args.workspaceId,
+			summary: {
+				systemCoreTemplates: systemCoreTemplates.length,
+				workspaceCoreTemplates: workspaceCoreTemplates.length,
+				totalCircles: circles.length,
+				circlesWithoutLeadRole: circleChecks.filter((c) => !c.hasLeadRole).length,
+				circlesWithoutCoreRoles: circleChecks.filter((c) => c.coreRoleCount === 0).length
+			},
+			issues: [
+				...(systemCoreTemplates.length === 0
+					? [
+							'⚠️ No system role templates found. Run: npx convex run admin/seedRoleTemplates:seedRoleTemplates'
+						]
+					: []),
+				...(circleChecks.filter((c) => !c.hasLeadRole).length > 0
+					? [`⚠️ ${circleChecks.filter((c) => !c.hasLeadRole).length} circle(s) missing Lead role`]
+					: []),
+				...(circleChecks.filter((c) => c.coreRoleCount === 0).length > 0
+					? [
+							`⚠️ ${circleChecks.filter((c) => c.coreRoleCount === 0).length} circle(s) have no core roles`
+						]
+					: [])
+			],
+			circles: circleChecks,
+			templates: {
+				system: systemCoreTemplates.map((t) => ({
+					name: t.name,
+					isCore: t.isCore,
+					isRequired: t.isRequired
+				})),
+				workspace: workspaceCoreTemplates.map((t) => ({
+					name: t.name,
+					isCore: t.isCore,
+					isRequired: t.isRequired
+				}))
+			}
+		};
+	}
+});

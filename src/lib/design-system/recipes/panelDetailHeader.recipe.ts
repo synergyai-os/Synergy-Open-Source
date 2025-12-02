@@ -10,14 +10,13 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * to display panel titles with action buttons and dividers.
  *
  * Styling:
- * - Border: border-b border-base for visual separation
  * - Background: bg-surface for consistent surface appearance
  * - Padding: px-panelDetailHeader (16px horizontal), py-panelDetailHeader (36px vertical)
  * - Height: Fixed at 2.5rem (40px) via inline style (layout, not styling)
  */
 export const panelDetailHeaderRecipe = cva(
 	// Base classes - applied to all panel detail headers
-	'border-base flex flex-shrink-0 items-center justify-between border-b bg-surface px-panelDetailHeader py-panelDetailHeader',
+	'flex flex-shrink-0 items-center justify-between bg-surface px-panelDetailHeader py-panelDetailHeader',
 	{
 		variants: {},
 		defaultVariants: {}

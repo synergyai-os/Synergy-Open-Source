@@ -1,15 +1,16 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { Id } from '$lib/convex';
+	import { page } from '$app/stores';
+	import { useConvexClient } from 'convex-svelte';
+	import { api, type Id } from '$lib/convex';
+	import { SvelteMap } from 'svelte/reactivity';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
-	import { Avatar } from '$lib/components/atoms';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
-	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -20,7 +21,6 @@
 	}
 
 	const circle = $derived(orgChart?.selectedCircle ?? null);
-	const members = $derived(orgChart?.selectedCircleMembers ?? []);
 	const isOpen = $derived((orgChart?.selectedCircleId ?? null) !== null);
 	const isLoading = $derived(orgChart?.selectedCircleIsLoading ?? false);
 	const error = $derived(orgChart?.selectedCircleError ?? null);
@@ -41,10 +41,65 @@
 
 	// Get roles from preloaded data (instant display, no query delay)
 	// Roles are preloaded in useOrgChart via listByWorkspace query
-	const roles = $derived(
+	const allRoles = $derived(
 		orgChart && orgChart.selectedCircleId
 			? (orgChart.getRolesForCircle(orgChart.selectedCircleId) ?? [])
 			: []
+	);
+
+	// Get members without roles
+	const membersWithoutRoles = $derived(orgChart?.selectedCircleMembersWithoutRoles ?? []);
+
+	// Fetch role templates to check isCore
+	const convexClient = browser ? useConvexClient() : null;
+	let templatesMap = new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
+
+	// Fetch templates when circle is selected
+	$effect(() => {
+		if (!browser || !convexClient || !orgChart?.selectedCircleId || !circle) return;
+
+		const sessionId = $page.data.sessionId;
+		const workspaceId = circle.workspaceId;
+
+		if (!sessionId || !workspaceId) return;
+
+		convexClient
+			.query(api.roleTemplates.list, {
+				sessionId,
+				workspaceId: workspaceId as Id<'workspaces'>
+			})
+			.then((result) => {
+				const map = new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
+				// Add system templates
+				for (const template of result.system) {
+					map.set(template._id, { isCore: template.isCore });
+				}
+				// Add workspace templates
+				for (const template of result.workspace) {
+					map.set(template._id, { isCore: template.isCore });
+				}
+				templatesMap = map;
+			})
+			.catch((error) => {
+				console.error('[CircleDetailPanel] Failed to load templates:', error);
+			});
+	});
+
+	// Separate roles into core and regular
+	const coreRoles = $derived(
+		allRoles.filter((role) => {
+			if (!role.templateId) return false;
+			const template = templatesMap.get(role.templateId);
+			return template?.isCore === true;
+		})
+	);
+
+	const regularRoles = $derived(
+		allRoles.filter((role) => {
+			if (!role.templateId) return true; // Roles without templateId are regular
+			const template = templatesMap.get(role.templateId);
+			return template?.isCore !== true;
+		})
 	);
 
 	// Tab state with dummy counts
@@ -119,19 +174,6 @@
 	function handleChildCircleClick(circleId: string) {
 		if (!orgChart) return;
 		orgChart.selectCircle(circleId as Id<'circles'>);
-	}
-
-	function formatDate(timestamp: number): string {
-		return new Date(timestamp).toLocaleDateString(DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT);
-	}
-
-	function getInitials(name: string): string {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
 	}
 
 	// Icon renderer for breadcrumbs - modules define their own icons
@@ -311,9 +353,12 @@
 						<div class="flex-1 overflow-y-auto px-page py-page">
 							<Tabs.Content value="overview" class={tabsContentRecipe()}>
 								<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-								<div class="grid grid-cols-1 gap-section lg:grid-cols-[40%_60%]">
+								<div
+									class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
+									style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
+								>
 									<!-- Left Column: Overview Details -->
-									<div class="flex flex-col gap-section">
+									<div class="flex min-w-0 flex-col gap-section overflow-hidden">
 										<!-- Purpose -->
 										{#if circle.purpose}
 											<div>
@@ -322,7 +367,9 @@
 												>
 													Purpose
 												</h4>
-												<p class="text-button leading-relaxed text-secondary">{circle.purpose}</p>
+												<p class="text-button leading-relaxed break-words text-secondary">
+													{circle.purpose}
+												</p>
 											</div>
 										{/if}
 
@@ -453,30 +500,35 @@
 									</div>
 
 									<!-- Right Column: Roles & Circles -->
-									<div class="flex flex-col gap-section">
-										<!-- Roles List -->
-										<div>
-											<CategoryHeader
-												variant="plain"
-												title="Roles"
-												count={roles.length}
-												onEdit={() => {
-													/* TODO: Implement edit roles */
-												}}
-												onAdd={() => {
-													/* TODO: Implement add role */
-												}}
-											/>
-											{#if roles.length > 0}
+									<div
+										class="flex flex-col gap-section"
+										style="padding-right: var(--spacing-page-x);"
+									>
+										<!-- Core Roles Section -->
+										{#if coreRoles.length > 0}
+											<div>
+												<CategoryHeader
+													variant="plain"
+													title="Core Roles"
+													count={coreRoles.length}
+													onEdit={() => {
+														/* TODO: Implement edit roles */
+													}}
+													onAdd={() => {
+														/* TODO: Implement add role */
+													}}
+												/>
 												<div class="flex flex-col gap-content mb-section">
-													{#each roles as role (role.roleId)}
+													{#each coreRoles as role (role.roleId)}
 														<RoleCard
 															name={role.name}
-															scope={role.scope}
-															fillerCount={role.fillerCount}
+															purpose={role.purpose}
 															onClick={() => handleRoleClick(role.roleId)}
 															onEdit={() => {
 																/* TODO: Implement edit role */
+															}}
+															onAddMember={() => {
+																/* TODO: Implement add member to role */
 															}}
 															menuItems={[
 																{ label: 'Edit role', onclick: () => {} },
@@ -485,87 +537,108 @@
 														/>
 													{/each}
 												</div>
-											{:else}
-												<p class="text-button text-secondary mb-section">
-													No roles in this circle yet
-												</p>
-											{/if}
-										</div>
+											</div>
+										{/if}
 
-										<!-- Child Circles List -->
-										<div>
-											<CategoryHeader
-												variant="plain"
-												title="Circles"
-												count={childCircles.length}
-												onAdd={() => {
-													/* TODO: Implement add circle */
-												}}
-											/>
-											{#if childCircles.length > 0}
+										<!-- Regular Roles Section -->
+										{#if regularRoles.length > 0}
+											<div>
+												<CategoryHeader
+													variant="plain"
+													title="Roles"
+													count={regularRoles.length}
+													onEdit={() => {
+														/* TODO: Implement edit roles */
+													}}
+													onAdd={() => {
+														/* TODO: Implement add role */
+													}}
+												/>
 												<div class="flex flex-col gap-content mb-section">
-													{#each childCircles as childCircle (childCircle.circleId)}
-														<button
-															type="button"
-															class="p-card flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors hover:bg-subtle"
-															onclick={() => handleChildCircleClick(childCircle.circleId)}
-														>
-															<Avatar initials={getInitials(childCircle.name)} size="md" />
-															<div class="min-w-0 flex-1">
-																<p class="text-button truncate font-medium text-primary">
-																	{childCircle.name}
-																</p>
-																{#if childCircle.purpose}
-																	<p class="truncate text-label text-secondary">
-																		{childCircle.purpose}
-																	</p>
-																{:else}
-																	<p class="text-label text-tertiary">
-																		{childCircle.memberCount} member{childCircle.memberCount !== 1
-																			? 's'
-																			: ''}
-																	</p>
-																{/if}
-															</div>
-														</button>
+													{#each regularRoles as role (role.roleId)}
+														<RoleCard
+															name={role.name}
+															purpose={role.purpose}
+															onClick={() => handleRoleClick(role.roleId)}
+															onEdit={() => {
+																/* TODO: Implement edit role */
+															}}
+															onAddMember={() => {
+																/* TODO: Implement add member to role */
+															}}
+															menuItems={[
+																{ label: 'Edit role', onclick: () => {} },
+																{ label: 'Remove', onclick: () => {}, danger: true }
+															]}
+														/>
 													{/each}
 												</div>
-											{:else}
-												<p class="text-button text-secondary mb-section">
-													No child circles in this circle yet
-												</p>
-											{/if}
-										</div>
+											</div>
+										{/if}
 
-										<!-- Members List -->
+										<!-- Child Circles Section -->
+										{#if childCircles.length > 0}
+											<div>
+												<CategoryHeader
+													variant="plain"
+													title="Circles"
+													count={childCircles.length}
+													onAdd={() => {
+														/* TODO: Implement add circle */
+													}}
+												/>
+												<div class="flex flex-col gap-content mb-section">
+													{#each childCircles as childCircle (childCircle.circleId)}
+														<RoleCard
+															name={childCircle.name}
+															purpose={childCircle.purpose}
+															isCircle={true}
+															onClick={() => handleChildCircleClick(childCircle.circleId)}
+															onEdit={() => {
+																/* TODO: Implement edit circle */
+															}}
+															onAddMember={() => {
+																/* TODO: Implement add member to circle */
+															}}
+															menuItems={[
+																{ label: 'Edit circle', onclick: () => {} },
+																{ label: 'Remove', onclick: () => {}, danger: true }
+															]}
+														/>
+													{/each}
+												</div>
+											</div>
+										{/if}
+
+										<!-- Members Without Roles Section -->
 										<div>
 											<CategoryHeader
 												variant="plain"
-												title="Members"
-												count={members.length}
+												title="Members without role"
+												count={membersWithoutRoles.length}
 												onAdd={() => {
 													/* TODO: Implement add member */
 												}}
 											/>
-											{#if members.length > 0}
+											{#if membersWithoutRoles.length > 0}
 												<div class="flex flex-col gap-content mb-section">
-													{#each members as member (member.userId)}
-														<div
-															class="p-card flex items-center gap-button rounded-card bg-surface"
-														>
-															<Avatar initials={getInitials(member.name)} size="md" />
-															<div class="min-w-0 flex-1">
-																<p class="text-button truncate font-medium text-primary">
-																	{member.name}
-																</p>
-																<p class="truncate text-label text-secondary">{member.email}</p>
-															</div>
-														</div>
-													{/each}
+													<RoleCard
+														name="Members without role"
+														isCircle={false}
+														onClick={() => {}}
+														onAddMember={() => {
+															/* TODO: Implement add member */
+														}}
+														members={membersWithoutRoles.map((m) => ({
+															userId: m.userId,
+															name: m.name,
+															email: m.email
+														}))}
+													/>
 												</div>
 											{:else}
 												<p class="text-button text-secondary mb-section">
-													No members in this circle yet
+													All members are assigned to roles
 												</p>
 											{/if}
 										</div>

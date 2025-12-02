@@ -1,6 +1,6 @@
 # Global Business Rules
 
-**Last Updated**: 2025-01-27
+**Last Updated**: 2025-12-02
 
 This document defines global business rules that apply across the entire SynergyOS application. These rules govern how the system behaves and should be consistently enforced throughout the codebase.
 
@@ -60,6 +60,94 @@ This document defines global business rules that apply across the entire Synergy
 - Update day-of-week index mappings (0 = Monday, 6 = Sunday)
 - Ensure Bits UI DatePicker calendar grid displays Monday-first
 - Update ICS calendar export to use correct day order if needed
+
+---
+
+## Circle Lead Role Requirement
+
+### Every Circle Must Have a Lead Role
+
+**Rule**: Every circle MUST have exactly one Lead role. This requirement can NEVER be false.
+
+**Rationale**: The Lead role is fundamental to circle governance and accountability. Every circle needs a designated leader who is responsible for coordinating work and making decisions. The Lead role is a **standard organizational role** (not circle-specific), so it must remain consistent across all circles.
+
+**Key Points**:
+- **Default Name**: "Circle Lead" (system default)
+- **Configurable**: Workspace admin can rename this role (e.g., "Team Lead", "Manager", "Coordinator")
+- **Always Required**: This is the ONLY required role - all other roles are optional
+- **Identification**: Lead role is identified by having a `templateId` pointing to a role template with `isRequired: true`
+- **Only One Lead Template**: Only one template per workspace can have `isRequired: true` (enforced)
+- **Display**: Lead role should be prominently displayed in `CircleDetailPanel` for sub-circles
+
+### Lead Role Template: Live Sync Pattern
+
+**Critical Design Decision**: Lead Role Template uses **live sync** (not blueprint pattern).
+
+**Why**: The Lead role is a standard organizational role, not a circle-specific accountability. All Lead roles across all circles must remain consistent to enforce uniform communication and responsibilities.
+
+**How It Works**:
+
+1. **Template Changes → Propagate to ALL Existing Roles**:
+   - When workspace admin updates Lead template name → ALL Lead roles across ALL circles update their name
+   - When workspace admin updates Lead template description → ALL Lead roles update their purpose
+   - This ensures consistent communication across the entire workspace
+
+2. **Direct Role Edits Are Blocked**:
+   - Users CANNOT directly edit Lead roles (name or purpose)
+   - Only workspace admin can edit Lead roles via the template
+   - Attempting to edit a Lead role directly throws error: "Circle roles created from Lead template cannot be edited directly. Edit the role template instead.`
+
+3. **Template-Based Identification**:
+   - Lead Role = role where `role.templateId` → `template.isRequired === true`
+   - Only roles created from templates can be Lead roles
+   - Existing roles without `templateId` are NOT Lead roles
+
+**Current State**:
+- ✅ System-level template exists: "Circle Lead" with `isCore: true` and `isRequired: true`
+- ✅ Core roles auto-created when circles are created
+- ✅ Protection against archiving required roles (if `template.isRequired === true`)
+- ❌ **Missing**: Live sync from template to all Lead roles
+- ❌ **Missing**: Block direct edits to Lead roles
+- ❌ **Missing**: Validation that only one template per workspace can have `isRequired: true`
+- ❌ **Missing**: Validation preventing archiving the last Lead role in a circle
+- ❌ **Missing**: UI display of Lead role for sub-circles in CircleDetailPanel
+
+**Enforcement Requirements**:
+
+1. **Backend Validation** (`convex/circleRoles.ts`):
+   - **Block direct edits**: In `circleRoles.update()`, check if role is Lead role → throw error if user tries to edit
+   - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error
+   - **Ensure Lead exists**: On circle creation, ensure Lead role is created (already handled via `createCoreRolesForCircle`)
+
+2. **Template Sync** (`convex/roleTemplates.ts` - to be created):
+   - **Sync helper**: `syncLeadRolesFromTemplate(templateId)` - updates all roles with matching `templateId`
+   - **On template update**: If `isRequired === true`, call sync helper to propagate changes
+   - **Validation**: Only one template per workspace can have `isRequired: true`
+
+3. **UI Display** (`src/lib/modules/org-chart/components/CircleDetailPanel.svelte`):
+   - Identify Lead role: Role with `templateId` pointing to template with `isRequired: true`
+   - Display Lead role prominently for sub-circles (e.g., in child circles list or separate section)
+   - Show Lead role information when viewing a circle that has sub-circles
+   - Disable edit button for Lead roles (only workspace admin can edit via template)
+
+**Implementation Notes**:
+- Lead role identification: Query role's `templateId`, then check `template.isRequired === true`
+- Workspace-level templates can override system templates (workspace admin can create their own Lead role template)
+- When workspace admin creates new Lead template: Must unset `isRequired` on old template first (enforced)
+- Template sync updates: `name` and `purpose` (from template `description`) fields
+- Version history: Capture update events for each synced role
+
+**Files Requiring Updates**:
+- `convex/circleRoles.ts`:
+  - Block direct edits to Lead roles in `update()` mutation
+  - Add validation in `archiveRoleHelper()` to prevent archiving last Lead role
+  - Add helper: `isLeadRole(role)` to check if role is Lead role
+- `convex/roleTemplates.ts` (new file or existing):
+  - Create `syncLeadRolesFromTemplate()` helper function
+  - Add validation: Only one template per workspace can have `isRequired: true`
+  - Update template mutation to sync Lead roles when template changes
+- `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` - Display Lead role for sub-circles
+- `src/lib/modules/org-chart/composables/useOrgChart.svelte.ts` - Helper function to identify Lead role
 
 ---
 

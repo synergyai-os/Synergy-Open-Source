@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
+import { SvelteMap } from 'svelte/reactivity';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
 import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 import type {
@@ -52,16 +53,19 @@ export function useOrgChart(options: {
 		// Query results (loaded via $effect)
 		selectedCircle: null as CircleSummary | null,
 		selectedCircleMembers: [] as CircleMember[],
+		selectedCircleMembersWithoutRoles: [] as CircleMember[],
 		selectedRole: null as CircleRoleDetail | null,
 		selectedRoleFillers: [] as RoleFiller[],
 		// Loading states
 		selectedCircleIsLoading: false,
 		selectedCircleMembersIsLoading: false,
+		selectedCircleMembersWithoutRolesIsLoading: false,
 		selectedRoleIsLoading: false,
 		selectedRoleFillersIsLoading: false,
 		// Error states
 		selectedCircleError: null as unknown | null,
 		selectedCircleMembersError: null as unknown | null,
+		selectedCircleMembersWithoutRolesError: null as unknown | null,
 		selectedRoleError: null as unknown | null,
 		selectedRoleFillersError: null as unknown | null
 	});
@@ -72,6 +76,7 @@ export function useOrgChart(options: {
 	// Query tracking for race condition prevention
 	let currentCircleQueryId: Id<'circles'> | null = null;
 	let currentCircleMembersQueryId: Id<'circles'> | null = null;
+	let currentCircleMembersWithoutRolesQueryId: Id<'circles'> | null = null;
 	let currentRoleQueryId: Id<'circleRoles'> | null = null;
 	let currentRoleFillersQueryId: Id<'circleRoles'> | null = null;
 
@@ -100,13 +105,14 @@ export function useOrgChart(options: {
 	// Store roles in Map for O(1) lookup by circleId
 	const rolesByCircle = $derived.by(() => {
 		const data = rolesByWorkspaceQuery?.data ?? [];
-		const map = new Map<
+		const map = new SvelteMap<
 			Id<'circles'>,
 			Array<{
 				roleId: Id<'circleRoles'>;
 				circleId: Id<'circles'>;
 				name: string;
 				purpose?: string;
+				templateId?: Id<'roleTemplates'>;
 				scope?: string;
 				fillerCount: number;
 				createdAt: number;
@@ -228,6 +234,63 @@ export function useOrgChart(options: {
 		return () => {
 			if (currentCircleMembersQueryId === queryId) {
 				currentCircleMembersQueryId = null;
+			}
+		};
+	});
+
+	// Load selected circle members without roles with $effect pattern
+	$effect(() => {
+		if (!browser || !convexClient || !state.selectedCircleId) {
+			state.selectedCircleMembersWithoutRoles = [];
+			state.selectedCircleMembersWithoutRolesIsLoading = false;
+			state.selectedCircleMembersWithoutRolesError = null;
+			currentCircleMembersWithoutRolesQueryId = null;
+			return;
+		}
+
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			state.selectedCircleMembersWithoutRoles = [];
+			state.selectedCircleMembersWithoutRolesIsLoading = false;
+			state.selectedCircleMembersWithoutRolesError = null;
+			currentCircleMembersWithoutRolesQueryId = null;
+			return;
+		}
+
+		// Generate unique ID for this query
+		const queryId = state.selectedCircleId;
+		currentCircleMembersWithoutRolesQueryId = queryId;
+		state.selectedCircleMembersWithoutRolesIsLoading = true;
+		state.selectedCircleMembersWithoutRolesError = null;
+
+		// Load circle members without roles
+		convexClient
+			.query(api.circleRoles.getMembersWithoutRoles, {
+				sessionId,
+				circleId: state.selectedCircleId
+			})
+			.then((result) => {
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentCircleMembersWithoutRolesQueryId === queryId) {
+					state.selectedCircleMembersWithoutRoles = result;
+					state.selectedCircleMembersWithoutRolesIsLoading = false;
+					state.selectedCircleMembersWithoutRolesError = null;
+				}
+			})
+			.catch((error) => {
+				// Only handle error if this is still the current query
+				if (currentCircleMembersWithoutRolesQueryId === queryId) {
+					console.error('[useOrgChart] Failed to load members without roles:', error);
+					state.selectedCircleMembersWithoutRoles = [];
+					state.selectedCircleMembersWithoutRolesIsLoading = false;
+					state.selectedCircleMembersWithoutRolesError = error;
+				}
+			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentCircleMembersWithoutRolesQueryId === queryId) {
+				currentCircleMembersWithoutRolesQueryId = null;
 			}
 		};
 	});
@@ -362,6 +425,15 @@ export function useOrgChart(options: {
 		},
 		get selectedCircleMembers() {
 			return state.selectedCircleMembers;
+		},
+		get selectedCircleMembersWithoutRoles() {
+			return state.selectedCircleMembersWithoutRoles;
+		},
+		get selectedCircleMembersWithoutRolesIsLoading() {
+			return state.selectedCircleMembersWithoutRolesIsLoading;
+		},
+		get selectedCircleMembersWithoutRolesError() {
+			return state.selectedCircleMembersWithoutRolesError;
 		},
 		get selectedCircleId() {
 			return state.selectedCircleId;

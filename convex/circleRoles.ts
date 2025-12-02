@@ -42,6 +42,68 @@ async function ensureCircleExists(
 }
 
 /**
+ * Check if a role is a Lead role
+ * Lead role = role with templateId pointing to template with isRequired: true
+ */
+async function isLeadRole(
+	ctx: QueryCtx | MutationCtx,
+	roleId: Id<'circleRoles'>
+): Promise<boolean> {
+	const role = await ctx.db.get(roleId);
+	if (!role || !role.templateId) {
+		return false;
+	}
+
+	const template = await ctx.db.get(role.templateId);
+	return template?.isRequired === true;
+}
+
+/**
+ * Check if user is workspace admin or owner
+ */
+async function isWorkspaceAdmin(
+	ctx: QueryCtx | MutationCtx,
+	workspaceId: Id<'workspaces'>,
+	userId: Id<'users'>
+): Promise<boolean> {
+	const membership = await ctx.db
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
+		.first();
+
+	if (!membership) {
+		return false;
+	}
+
+	return membership.role === 'owner' || membership.role === 'admin';
+}
+
+/**
+ * Count active Lead roles in a circle
+ */
+async function countLeadRolesInCircle(
+	ctx: QueryCtx | MutationCtx,
+	circleId: Id<'circles'>
+): Promise<number> {
+	const roles = await ctx.db
+		.query('circleRoles')
+		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
+		.collect();
+
+	let leadCount = 0;
+	for (const role of roles) {
+		if (role.templateId) {
+			const template = await ctx.db.get(role.templateId);
+			if (template?.isRequired === true) {
+				leadCount++;
+			}
+		}
+	}
+
+	return leadCount;
+}
+
+/**
  * List all roles in a circle
  * By default, excludes archived roles. Set includeArchived=true to include them.
  */
@@ -211,6 +273,7 @@ export const listByWorkspace = query({
 				circleId: Id<'circles'>;
 				name: string;
 				purpose?: string;
+				templateId?: Id<'roleTemplates'>;
 				scope?: string;
 				fillerCount: number;
 				createdAt: number;
@@ -231,6 +294,7 @@ export const listByWorkspace = query({
 					circleId: role.circleId,
 					name: role.name,
 					purpose: role.purpose,
+					templateId: role.templateId,
 					scope: scopes.length > 0 ? scopes[0] : undefined,
 					fillerCount: assignments.length,
 					createdAt: role.createdAt
@@ -414,6 +478,123 @@ export const getRoleFillers = query({
 });
 
 /**
+ * Get members of a circle who are not assigned to any role
+ * Returns circle members who have no active role assignments in any role within the circle
+ */
+export const getMembersWithoutRoles = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles'),
+		includeArchived: v.optional(v.boolean())
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+
+		// Get all active roles in this circle
+		const roles = args.includeArchived
+			? await ctx.db
+					.query('circleRoles')
+					.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
+					.collect()
+			: await ctx.db
+					.query('circleRoles')
+					.withIndex('by_circle_archived', (q) =>
+						q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+					)
+					.collect();
+
+		const roleIds = roles.map((r) => r._id);
+
+		// Get all circle members
+		const memberships = args.includeArchived
+			? await ctx.db
+					.query('circleMembers')
+					.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
+					.collect()
+			: await ctx.db
+					.query('circleMembers')
+					.withIndex('by_circle_archived', (q) =>
+						q.eq('circleId', args.circleId).eq('archivedAt', undefined)
+					)
+					.collect();
+
+		// If no roles exist, all members are "without roles"
+		if (roleIds.length === 0) {
+			const members = await Promise.all(
+				memberships.map(async (membership) => {
+					const user = await ctx.db.get(membership.userId);
+					if (!user) return null;
+
+					return {
+						userId: membership.userId,
+						email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+						name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+						joinedAt: membership.joinedAt
+					};
+				})
+			);
+			return members.filter((member): member is NonNullable<typeof member> => member !== null);
+		}
+
+		// Get all active role assignments for roles in this circle
+		const allAssignments = await Promise.all(
+			roleIds.map(async (roleId) => {
+				const assignments = args.includeArchived
+					? await ctx.db
+							.query('userCircleRoles')
+							.withIndex('by_role', (q) => q.eq('circleRoleId', roleId))
+							.collect()
+					: await ctx.db
+							.query('userCircleRoles')
+							.withIndex('by_role_archived', (q) =>
+								q.eq('circleRoleId', roleId).eq('archivedAt', undefined)
+							)
+							.collect();
+				return assignments;
+			})
+		);
+
+		// Flatten and get set of userIds who have role assignments
+		const userIdsWithRoles = new Set<Id<'users'>>();
+		for (const assignments of allAssignments) {
+			for (const assignment of assignments) {
+				userIdsWithRoles.add(assignment.userId);
+			}
+		}
+
+		// Filter members to only those without role assignments
+		const membersWithoutRoles = memberships.filter(
+			(membership) => !userIdsWithRoles.has(membership.userId)
+		);
+
+		// Fetch user data for members without roles
+		const members = await Promise.all(
+			membersWithoutRoles.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) return null;
+
+				return {
+					userId: membership.userId,
+					email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+					name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+					joinedAt: membership.joinedAt
+				};
+			})
+		);
+
+		return members.filter((member): member is NonNullable<typeof member> => member !== null);
+	}
+});
+
+/**
  * Create a new role in a circle
  */
 export const create = mutation({
@@ -490,7 +671,31 @@ export const update = mutation({
 		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
 		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
-		const updates: { name?: string; purpose?: string } = {};
+		// Block direct edits to Lead roles - only workspace admin can edit via template
+		const roleIsLead = await isLeadRole(ctx, args.circleRoleId);
+		if (roleIsLead) {
+			const userIsAdmin = await isWorkspaceAdmin(ctx, workspaceId, userId);
+			if (!userIsAdmin) {
+				throw new Error(
+					'Circle roles created from Lead template cannot be edited directly. Only workspace admins can edit Lead roles via the role template.'
+				);
+			}
+			// Even workspace admin shouldn't edit Lead roles directly - they should edit the template
+			// This ensures consistency across all circles
+			throw new Error(
+				'Lead roles cannot be edited directly. Edit the Lead role template instead to update all Lead roles across all circles.'
+			);
+		}
+
+		const updates: {
+			name?: string;
+			purpose?: string;
+			updatedAt: number;
+			updatedBy: Id<'users'>;
+		} = {
+			updatedAt: Date.now(),
+			updatedBy: userId
+		};
 
 		if (args.name !== undefined) {
 			const trimmedName = args.name.trim();
@@ -518,9 +723,6 @@ export const update = mutation({
 		if (args.purpose !== undefined) {
 			updates.purpose = args.purpose;
 		}
-
-		updates.updatedAt = Date.now();
-		updates.updatedBy = userId;
 
 		await ctx.db.patch(args.circleRoleId, updates);
 
@@ -554,11 +756,18 @@ async function archiveRoleHelper(
 		return; // Already archived, skip
 	}
 
-	// Circle Lead Protection: Block archiving required roles (unless cascading from circle archive)
+	// Circle Lead Protection: Block archiving Lead roles (unless cascading from circle archive)
 	if (reason === 'direct' && role.templateId) {
 		const template = await ctx.db.get(role.templateId);
 		if (template?.isRequired) {
-			throw new Error('ERR_CIRCLE_LEAD_REQUIRED: Cannot archive required role (Circle Lead)');
+			// Check if this is the last Lead role in the circle
+			const leadCount = await countLeadRolesInCircle(ctx, role.circleId);
+			if (leadCount <= 1) {
+				throw new Error(
+					'ERR_CIRCLE_LEAD_REQUIRED: Cannot archive the last Lead role in a circle. Every circle must have at least one Lead role.'
+				);
+			}
+			// If there are multiple Lead roles, allow archiving (but warn that at least one must remain)
 		}
 	}
 
@@ -693,11 +902,13 @@ export const assignUser = mutation({
 			throw new Error('User is already assigned to this role');
 		}
 
+		const now = Date.now();
 		await ctx.db.insert('userCircleRoles', {
 			userId: args.userId,
 			circleRoleId: args.circleRoleId,
-			assignedAt: Date.now(),
-			assignedBy: actingUserId
+			assignedAt: now,
+			assignedBy: actingUserId,
+			updatedAt: now
 		});
 
 		return { success: true };

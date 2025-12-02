@@ -9,23 +9,19 @@
 		name?: string;
 		email: string;
 		avatarImage?: string;
-		scope?: string;
+		scope?: string; // User-level scope (displayed on user card)
+		roleName?: string;
 	};
 
 	type Props = {
 		name: string;
-		scope?: string;
-		fillerCount?: number;
-		selected?: boolean;
-		expanded?: boolean;
+		purpose?: string; // Purpose of the role/circle (what is the purpose of this role)
 		isCircle?: boolean;
 		onClick: () => void;
-		onToggleExpand?: () => void;
 		onEdit?: () => void;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
 		members?: Member[];
 		onAddMember?: () => void;
-		onRemoveMember?: (userId: string) => void;
 		memberMenuItems?: (
 			userId: string
 		) => Array<{ label: string; onclick: () => void; danger?: boolean }>;
@@ -35,18 +31,13 @@
 
 	let {
 		name,
-		scope,
-		fillerCount = 0,
-		selected = false,
-		expanded = false,
+		purpose,
 		isCircle = false,
 		onClick,
-		onToggleExpand,
 		onEdit,
 		menuItems = [],
 		members = [],
 		onAddMember,
-		onRemoveMember,
 		memberMenuItems,
 		currentUserId,
 		class: className = ''
@@ -65,7 +56,7 @@
 		onClick();
 	}
 
-	const buttonClasses = $derived(roleCardRecipe({ variant: selected ? 'selected' : 'default' }));
+	const buttonClasses = $derived(roleCardRecipe({ variant: 'default' }));
 
 	// Always show members if they exist (no collapse)
 	const showMembers = $derived(members.length > 0);
@@ -78,10 +69,8 @@
 		{/if}
 		<div class="min-w-0 flex-1 text-left">
 			<p class="text-button truncate font-medium text-primary">{name}</p>
-			{#if !scope && fillerCount > 0}
-				<p class="text-label text-tertiary">
-					{fillerCount} filler{fillerCount !== 1 ? 's' : ''}
-				</p>
+			{#if purpose && !isCircle}
+				<p class="text-label text-secondary">{purpose}</p>
 			{/if}
 		</div>
 		<div class="flex items-center gap-fieldGroup" role="group">
@@ -117,13 +106,15 @@
 					{/snippet}
 				</Button>
 			{/if}
-			<div onmousedown={(e) => e.stopPropagation()} role="group">
-				<ActionMenu items={menuItems} class="flex-shrink-0" />
-			</div>
+			{#if menuItems.length > 0}
+				<div onmousedown={(e) => e.stopPropagation()} role="group">
+					<ActionMenu items={menuItems} class="flex-shrink-0" />
+				</div>
+			{/if}
 		</div>
 	</button>
 	{#if showMembers}
-		<div class="h-px w-full shrink-0 bg-[var(--color-border-default)]"></div>
+		<div class="w-full shrink-0 border-t border-subtle"></div>
 		<div class="flex flex-col gap-fieldGroup">
 			{#each members as member (member.userId)}
 				<RoleMemberItem
@@ -131,7 +122,7 @@
 					name={member.name}
 					email={member.email}
 					avatarImage={member.avatarImage}
-					scope={member.scope}
+					scope={isCircle ? member.roleName : member.scope}
 					selected={currentUserId ? member.userId === currentUserId : false}
 					menuItems={memberMenuItems ? memberMenuItems(member.userId) : []}
 				/>

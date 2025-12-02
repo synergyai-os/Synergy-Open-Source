@@ -33,7 +33,7 @@
 	Panel Detail Header
 	- Height: 2.5rem (40px) - Standard panel header height for consistent vertical rhythm
 	- Padding: Uses panelDetailHeaderRecipe (px-panelDetailHeader = 16px horizontal, py-panelDetailHeader = 36px vertical)
-	- Styling: Recipe handles border (border-b border-base), background (bg-surface), and padding
+	- Styling: Recipe handles background (bg-surface) and padding
 -->
 <header class={headerClasses} style="height: 2.5rem;">
 	<div class="flex items-center gap-button">
