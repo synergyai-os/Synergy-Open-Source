@@ -118,6 +118,7 @@ export const seedTestData = mutation({
 				slug,
 				purpose,
 				parentCircleId: parentCircleId ?? undefined,
+				status: 'active',
 				createdAt: now,
 				updatedAt: now
 			});
@@ -127,7 +128,8 @@ export const seedTestData = mutation({
 		// Helper to create roles for a circle (3-10 roles)
 		async function createRolesForCircle(
 			circleId: Id<'circles'>,
-			circleName: string
+			circleName: string,
+			workspaceId: Id<'workspaces'>
 		): Promise<void> {
 			const roleCount = Math.floor(Math.random() * 8) + 3; // 3-10 roles
 			const usedRoleNames = new Set<string>();
@@ -150,9 +152,13 @@ export const seedTestData = mutation({
 
 				await ctx.db.insert('circleRoles', {
 					circleId,
+					workspaceId,
 					name: roleName,
 					purpose,
-					createdAt: now
+					status: 'active',
+					isHiring: false,
+					createdAt: now,
+					updatedAt: now
 				});
 			}
 		}
@@ -165,7 +171,7 @@ export const seedTestData = mutation({
 			'Active Platforms',
 			'Run Clients tech platforms and coordinate cross-platform initiatives'
 		);
-		await createRolesForCircle(rootCircleId, 'Active Platforms');
+		await createRolesForCircle(rootCircleId, 'Active Platforms', args.workspaceId);
 
 		// ========================================================================
 		// Step 2: Create Level 1 Sub Circles (2-3 circles)
@@ -190,7 +196,7 @@ export const seedTestData = mutation({
 		for (const circle of level1Circles) {
 			const circleId = await createCircle(circle.name, circle.purpose, rootCircleId);
 			level1CircleIds.push(circleId);
-			await createRolesForCircle(circleId, circle.name);
+			await createRolesForCircle(circleId, circle.name, args.workspaceId);
 		}
 
 		// ========================================================================
@@ -236,7 +242,7 @@ export const seedTestData = mutation({
 		for (const circle of level2Circles) {
 			const parentId = level1CircleIds[circle.parentIndex];
 			const circleId = await createCircle(circle.name, circle.purpose, parentId);
-			await createRolesForCircle(circleId, circle.name);
+			await createRolesForCircle(circleId, circle.name, args.workspaceId);
 		}
 
 		console.log('✅ Org chart test data seeded successfully!');
@@ -302,6 +308,7 @@ export const seedTestDataInternal = internalMutation({
 				slug,
 				purpose,
 				parentCircleId: parentCircleId ?? undefined,
+				status: 'active',
 				createdAt: now,
 				updatedAt: now
 			});
@@ -311,7 +318,8 @@ export const seedTestDataInternal = internalMutation({
 		// Helper to create roles for a circle (3-10 roles)
 		async function createRolesForCircle(
 			circleId: Id<'circles'>,
-			circleName: string
+			circleName: string,
+			workspaceId: Id<'workspaces'>
 		): Promise<void> {
 			const roleCount = Math.floor(Math.random() * 8) + 3; // 3-10 roles
 			const usedRoleNames = new Set<string>();
@@ -334,9 +342,13 @@ export const seedTestDataInternal = internalMutation({
 
 				await ctx.db.insert('circleRoles', {
 					circleId,
+					workspaceId,
 					name: roleName,
 					purpose,
-					createdAt: now
+					status: 'active',
+					isHiring: false,
+					createdAt: now,
+					updatedAt: now
 				});
 			}
 		}
@@ -349,7 +361,7 @@ export const seedTestDataInternal = internalMutation({
 			'Active Platforms',
 			'Run Clients tech platforms and coordinate cross-platform initiatives'
 		);
-		await createRolesForCircle(rootCircleId, 'Active Platforms');
+		await createRolesForCircle(rootCircleId, 'Active Platforms', args.workspaceId);
 
 		// ========================================================================
 		// Step 2: Create Level 1 Sub Circles (2-3 circles)
@@ -374,7 +386,7 @@ export const seedTestDataInternal = internalMutation({
 		for (const circle of level1Circles) {
 			const circleId = await createCircle(circle.name, circle.purpose, rootCircleId);
 			level1CircleIds.push(circleId);
-			await createRolesForCircle(circleId, circle.name);
+			await createRolesForCircle(circleId, circle.name, args.workspaceId);
 		}
 
 		// ========================================================================
@@ -420,7 +432,7 @@ export const seedTestDataInternal = internalMutation({
 		for (const circle of level2Circles) {
 			const parentId = level1CircleIds[circle.parentIndex];
 			const circleId = await createCircle(circle.name, circle.purpose, parentId);
-			await createRolesForCircle(circleId, circle.name);
+			await createRolesForCircle(circleId, circle.name, args.workspaceId);
 		}
 
 		console.log('✅ Org chart test data seeded successfully!');

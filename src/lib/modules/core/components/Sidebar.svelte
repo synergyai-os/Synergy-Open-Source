@@ -216,18 +216,6 @@
 			workspaces: map[account.userId] ?? []
 		}));
 
-		console.log('🔍 [Sidebar] Linked account workspaces mapped:', {
-			accountsLength: accounts.length,
-			mappedLength: mapped.length,
-			mapKeys: Object.keys(map),
-			mapped: mapped.map((a) => ({
-				userId: a.userId,
-				email: a.email,
-				orgCount: a.workspaces.length,
-				cachedOrgs: map[a.userId]?.length ?? 0
-			}))
-		});
-
 		return mapped;
 	});
 

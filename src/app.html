@@ -48,21 +48,9 @@
 									headingText.includes('Hereman') ||
 									(headingText !== 'Switching account' && headingText !== 'Loading workspace'))
 							) {
-								console.warn('⚠️ [EARLY CLEANUP] Found stale overlay with wrong text - removing', {
-									headingText: headingText,
-									textContent: text.substring(0, 100),
-									hasValidAttr: hasValidAttr
-								});
 								overlayById.remove();
 							} else if (!hasValidAttr) {
 								// Remove any overlay without valid attribute (CSS will hide it, but remove it too)
-								console.warn(
-									'⚠️ [EARLY CLEANUP] Found overlay without valid attribute - removing',
-									{
-										headingText: headingText,
-										hasValidAttr: hasValidAttr
-									}
-								);
 								overlayById.remove();
 							}
 						}
@@ -78,7 +66,7 @@
 						}
 					}
 				} catch (e) {
-					console.error('❌ [EARLY CLEANUP] Error removing stale overlays', e);
+					// Silently fail if cleanup fails
 				}
 			})();
 
@@ -113,23 +101,6 @@
 							// Check for overlay in document
 							const existingOverlay = document.getElementById('__switching-overlay');
 							if (existingOverlay) {
-								const headingText = existingOverlay.querySelector('h2')?.textContent || '';
-								const overlayText = existingOverlay.textContent || '';
-								console.warn(
-									'⚠️ [STATIC OVERLAY] Found existing overlay in DOM - removing immediately',
-									{
-										overlayText: overlayText.substring(0, 100),
-										headingText: headingText,
-										overlayHTML: existingOverlay.innerHTML?.substring(0, 200),
-										hasRandyHereman:
-											overlayText.includes('Randy') || overlayText.includes('Hereman'),
-										hasLoadingAccountName:
-											headingText.includes('Loading') &&
-											(headingText.includes('Randy') ||
-												headingText.includes('Hereman') ||
-												headingText.includes('Account'))
-									}
-								);
 								existingOverlay.remove();
 							}
 
@@ -155,18 +126,6 @@
 							});
 
 							if (suspiciousOverlays.length > 0) {
-								console.warn(
-									'⚠️ [STATIC OVERLAY] Found suspicious overlays with account name - removing',
-									{
-										count: suspiciousOverlays.length,
-										overlays: suspiciousOverlays.map((el) => ({
-											id: el.id,
-											className: el.className,
-											textContent: el.textContent?.substring(0, 100),
-											headingText: el.querySelector('h2')?.textContent
-										}))
-									}
-								);
 								suspiciousOverlays.forEach((el) => el.remove());
 							}
 						}
@@ -209,14 +168,6 @@
 															(headingText !== 'Switching account' &&
 																headingText !== 'Loading workspace'))
 													) {
-														console.warn(
-															'⚠️ [STATIC OVERLAY] MutationObserver detected suspicious overlay added - removing',
-															{
-																headingText: headingText,
-																textContent: text.substring(0, 100),
-																hasValidAttr: hasValidAttr
-															}
-														);
 														el.remove();
 														observer.disconnect();
 													}
@@ -240,31 +191,15 @@
 									}
 								}, 5000);
 							} catch (e) {
-								console.error('❌ [STATIC OVERLAY] Error setting up MutationObserver', e);
+								// Silently fail if MutationObserver setup fails
 							}
 						}
 					})();
 
-					console.log('🔍 [STATIC OVERLAY] Checking for switchingAccount flag...');
 					const switchingData = sessionStorage.getItem('switchingAccount');
-					console.log('🔍 [STATIC OVERLAY] sessionStorage.getItem result:', {
-						hasData: !!switchingData,
-						dataLength: switchingData?.length,
-						dataPreview: switchingData?.substring(0, 100)
-					});
 
 					if (switchingData) {
 						const data = JSON.parse(switchingData);
-						console.log(
-							'🔍 [STATIC OVERLAY] Parsed switchingAccount data (STATIC OVERLAY DISABLED FOR TESTING):',
-							{
-								accountName: data.accountName,
-								accountNameType: typeof data.accountName,
-								accountNameLength: data.accountName?.length,
-								startTime: data.startTime,
-								rawData: data
-							}
-						);
 
 						// EXPERIMENT: Commented out static overlay to test if it eliminates duplicate "Switching account" message
 						// If Svelte loads fast enough, we don't need the static overlay
@@ -289,27 +224,11 @@
 							}
 						});
 
-						console.log('🔍 [STATIC OVERLAY] Sanitized accountName:', {
-							rawAccountName,
-							sanitizedAccountName: accountName
-						});
-
 						// Inject overlay HTML immediately (before Svelte loads)
 						document.addEventListener('DOMContentLoaded', function () {
-							console.log('🔍 [STATIC OVERLAY] DOMContentLoaded - Creating static overlay', {
-								accountName,
-								rawAccountName,
-								bodyChildren: document.body?.children?.length,
-								existingOverlay: document.getElementById('__switching-overlay')
-							});
-
 							// Check for existing overlay first
 							const existingOverlay = document.getElementById('__switching-overlay');
 							if (existingOverlay) {
-								console.warn('⚠️ [STATIC OVERLAY] Existing overlay found! Removing it first.', {
-									overlayText: existingOverlay.textContent,
-									overlayHTML: existingOverlay.innerHTML.substring(0, 200)
-								});
 								existingOverlay.remove();
 							}
 
@@ -341,13 +260,6 @@
 							const headingText = 'Switching account'; // Safe: uses textContent
 							heading.textContent = headingText;
 
-							console.log('🔍 [STATIC OVERLAY] Setting heading text:', {
-								headingText,
-								accountName,
-								headingTextContent: heading.textContent,
-								headingInnerHTML: heading.innerHTML
-							});
-
 							const subTextWrapper = document.createElement('div');
 							subTextWrapper.style.cssText = 'text-align:center';
 
@@ -372,30 +284,13 @@
 							overlay.setAttribute('data-valid', 'true');
 							document.body.appendChild(overlay);
 
-							console.log('✅ [STATIC OVERLAY] Static overlay created and appended', {
-								overlayId: overlay.id,
-								headingText: heading.textContent,
-								headingInnerHTML: heading.innerHTML,
-								overlayTextContent: overlay.textContent?.substring(0, 100),
-								bodyChildren: document.body?.children?.length,
-								hasValidAttribute: overlay.getAttribute('data-valid')
-							});
-
 							// Set a marker so Svelte knows to clean this up
 							window.__hasStaticOverlay = true;
 						});
 						*/
-						console.log(
-							'⚠️ [STATIC OVERLAY] Static overlay DISABLED for testing - Svelte overlay will show directly'
-						);
-					} else {
-						console.log(
-							'🔍 [STATIC OVERLAY] No switchingAccount flag found - skipping static overlay'
-						);
 					}
 				} catch (e) {
 					// Silently fail if sessionStorage isn't available
-					console.error('❌ [STATIC OVERLAY] Error checking switching state', e);
 				}
 			})();
 		</script>

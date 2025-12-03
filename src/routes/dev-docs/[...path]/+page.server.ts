@@ -216,6 +216,75 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	const { path } = params;
 
+	// Check if this is a directory FIRST - before trying to resolve files
+	// This ensures directory listings are shown when visiting a directory path
+	const possibleDirPath = join(cwd(), 'dev-docs', path);
+	if (existsSync(possibleDirPath)) {
+		try {
+			// Verify it's actually a directory, not a file
+			const stats = statSync(possibleDirPath);
+			if (stats.isDirectory()) {
+				const entries = await readdir(possibleDirPath, { withFileTypes: true });
+				const markdownFiles = entries
+					.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+					.map((entry) => {
+						const fileName = entry.name.replace(/\.md$/, '');
+						const filePath = `${path}/${fileName}`;
+						return {
+							name: fileName,
+							displayName: cleanParaName(fileName),
+							path: filePath,
+							href: `/dev-docs/${filePath}`
+						};
+					})
+					.sort((a, b) => {
+						// Sort by numeric prefix if present, otherwise alphabetically
+						const aNum = parseInt(a.name.match(/^(\d+)-/)?.[1] || '999');
+						const bNum = parseInt(b.name.match(/^(\d+)-/)?.[1] || '999');
+						if (aNum !== bNum) return aNum - bNum;
+						return a.name.localeCompare(b.name);
+					});
+
+				if (markdownFiles.length > 0) {
+					// Extract titles from files for better display
+					const filesWithTitles = await Promise.all(
+						markdownFiles.map(async (file) => {
+							try {
+								const fileContent = await readFile(
+									join(possibleDirPath, `${file.name}.md`),
+									'utf-8'
+								);
+								const titleMatch =
+									fileContent.match(/^#\s+(.+)$/m) || fileContent.match(/^title:\s*(.+)$/m);
+								const title = titleMatch ? titleMatch[1].trim() : file.displayName;
+								return {
+									...file,
+									title: cleanParaName(title)
+								};
+							} catch {
+								return {
+									...file,
+									title: file.displayName
+								};
+							}
+						})
+					);
+
+					const dirName = path.split('/').pop() || path;
+					return {
+						isDirectory: true,
+						content: '',
+						title: cleanParaName(dirName),
+						path: `/${path}`,
+						files: filesWithTitles
+					};
+				}
+			}
+		} catch (_err) {
+			// Not a readable directory or error reading it, continue to file resolution
+		}
+	}
+
 	// Generate all possible paths to try using dynamic file discovery
 	const possiblePaths = await generatePossiblePaths(path);
 
@@ -267,73 +336,6 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			}
 			// Otherwise, try next path
 			continue;
-		}
-	}
-
-	// Check if this might be a directory - try to list files in the directory
-	const possibleDirPath = join(cwd(), 'dev-docs', path);
-	if (existsSync(possibleDirPath)) {
-		try {
-			// Verify it's actually a directory, not a file
-			const stats = statSync(possibleDirPath);
-			if (!stats.isDirectory()) {
-				throw new Error('Not a directory');
-			}
-
-			const entries = await readdir(possibleDirPath, { withFileTypes: true });
-			const markdownFiles = entries
-				.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
-				.map((entry) => {
-					const fileName = entry.name.replace(/\.md$/, '');
-					const filePath = `${path}/${fileName}`;
-					return {
-						name: fileName,
-						displayName: cleanParaName(fileName),
-						path: filePath,
-						href: `/dev-docs/${filePath}`
-					};
-				})
-				.sort((a, b) => {
-					// Sort by numeric prefix if present, otherwise alphabetically
-					const aNum = parseInt(a.name.match(/^(\d+)-/)?.[1] || '999');
-					const bNum = parseInt(b.name.match(/^(\d+)-/)?.[1] || '999');
-					if (aNum !== bNum) return aNum - bNum;
-					return a.name.localeCompare(b.name);
-				});
-
-			if (markdownFiles.length > 0) {
-				// Extract titles from files for better display
-				const filesWithTitles = await Promise.all(
-					markdownFiles.map(async (file) => {
-						try {
-							const fileContent = await readFile(join(possibleDirPath, `${file.name}.md`), 'utf-8');
-							const titleMatch =
-								fileContent.match(/^#\s+(.+)$/m) || fileContent.match(/^title:\s*(.+)$/m);
-							const title = titleMatch ? titleMatch[1].trim() : file.displayName;
-							return {
-								...file,
-								title: cleanParaName(title)
-							};
-						} catch {
-							return {
-								...file,
-								title: file.displayName
-							};
-						}
-					})
-				);
-
-				const dirName = path.split('/').pop() || path;
-				return {
-					isDirectory: true,
-					content: '',
-					title: cleanParaName(dirName),
-					path: `/${path}`,
-					files: filesWithTitles
-				};
-			}
-		} catch (_err) {
-			// Not a readable directory or error reading it, continue to 404
 		}
 	}
 

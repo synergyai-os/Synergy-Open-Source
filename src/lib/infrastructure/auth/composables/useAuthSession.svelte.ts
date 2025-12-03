@@ -89,22 +89,12 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			// Fetch and save linked account sessions from server
 			if (data.authenticated && data.user) {
-				console.log('🔍 [useAuthSession] Fetching linked account sessions...', {
-					currentUserId: data.user.userId,
-					currentUserEmail: data.user.email
-				});
 				try {
 					const linkedSessionsResponse = await fetch('/auth/linked-sessions', {
 						headers: {
 							Accept: 'application/json'
 						},
 						credentials: 'include'
-					});
-
-					console.log('📋 [useAuthSession] Linked sessions response:', {
-						ok: linkedSessionsResponse.ok,
-						status: linkedSessionsResponse.status,
-						statusText: linkedSessionsResponse.statusText
 					});
 
 					if (linkedSessionsResponse.ok) {
@@ -126,24 +116,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 							}>;
 						};
 
-						console.log('📦 [useAuthSession] Linked sessions data received:', {
-							sessionCount: linkedSessionsData.sessions?.length ?? 0,
-							sessions: linkedSessionsData.sessions?.map((s) => ({
-								userId: s.userId,
-								email: s.userEmail,
-								sessionId: s.sessionId,
-								orgCount: s.workspaces.length
-							}))
-						});
-
 						// Save each linked account session to localStorage
 						if (linkedSessionsData.sessions) {
 							for (const session of linkedSessionsData.sessions) {
-								console.log('💾 [useAuthSession] Saving session to localStorage:', {
-									userId: session.userId,
-									email: session.userEmail,
-									orgCount: session.workspaces.length
-								});
 								await addSession(session.userId, {
 									sessionId: session.sessionId,
 									csrfToken: session.csrfToken,
@@ -157,21 +132,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 									const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
 									const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${session.userId}`;
 									localStorage.setItem(cacheKey, JSON.stringify(session.workspaces));
-									console.log('💾 [useAuthSession] Cached workspaces:', {
-										userId: session.userId,
-										email: session.userEmail,
-										orgCount: session.workspaces.length,
-										cacheKey
-									});
 								}
-
-								console.log('✅ [useAuthSession] Session saved:', {
-									userId: session.userId,
-									email: session.userEmail
-								});
 							}
-						} else {
-							console.warn('⚠️ [useAuthSession] No sessions in response data');
 						}
 
 						// NOTE: We intentionally DON'T clean up localStorage here
@@ -193,16 +155,6 @@ export function useAuthSession(): UseAuthSessionReturn {
 			// Load all available accounts (excluding current user)
 			const allSessions = await getAllSessions();
 			const currentUserId = data.user?.userId;
-			console.log('📋 [useAuthSession] All sessions from localStorage:', {
-				totalSessions: Object.keys(allSessions).length,
-				sessions: Object.entries(allSessions).map(([userId, session]) => ({
-					userId,
-					email: session.userEmail,
-					name: session.userName,
-					sessionId: session.sessionId
-				})),
-				currentUserId
-			});
 			state.availableAccounts = Object.entries(allSessions)
 				.filter(([userId]) => userId !== currentUserId)
 				.map(([userId, session]) => ({
@@ -211,14 +163,6 @@ export function useAuthSession(): UseAuthSessionReturn {
 					name: session.userName,
 					sessionId: session.sessionId // Include sessionId for querying workspaces
 				}));
-			console.log('✅ [useAuthSession] Available accounts set:', {
-				count: state.availableAccounts.length,
-				accounts: state.availableAccounts.map((a) => ({
-					userId: a.userId,
-					email: a.email,
-					name: a.name
-				}))
-			});
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;

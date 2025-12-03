@@ -111,11 +111,6 @@
 					const relativeX = node.x - circleNode.x;
 					const relativeY = node.y - circleNode.y;
 
-					// Debug logging to verify role radius after packing
-					console.log(
-						`📍 Role "${roleData.name}" in "${circleNode.data.name}" (depth ${circleNode.depth}): r=${node.r.toFixed(2)}, value=${node.value?.toFixed(2) ?? 'N/A'}`
-					);
-
 					// Initialize packedRoles array if it doesn't exist
 					if (!(circleNode.data as CircleNode).packedRoles) {
 						(circleNode.data as CircleNode).packedRoles = [];

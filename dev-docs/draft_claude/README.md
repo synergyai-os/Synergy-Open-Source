@@ -1,7 +1,7 @@
 # SynergyOS: Complete Product Documentation
 
 **Created:** December 2, 2025  
-**For:** Randy (PurposePilot / SaproLab) and future SynergyOS team
+**For:** Randy (PurposePilot / Agency Partner) and future SynergyOS team
 
 ---
 
@@ -121,7 +121,7 @@ graph TB
 2. [Problem-Solution Map](computer:///mnt/user-data/outputs/01-problem-solution-map.md) - 20 min (know what to build)
 3. [Outcome Roadmap](computer:///mnt/user-data/outputs/03-outcome-based-roadmap.md) - 25 min (understand phases)
 4. [Weekly Rhythm](computer:///mnt/user-data/outputs/06-weekly-rhythm.md) - 30 min (learn process)
-5. **Action:** Do Monday planning, build first feature, schedule ZDHC test
+5. **Action:** Do Monday planning, build first feature, schedule Client test
 
 **Total time:** 2 hours reading + start building
 
@@ -237,7 +237,7 @@ graph TB
 - [ ] Time-box building sessions (2-3 hours total)
 
 **Saturday (2 hours):**
-- [ ] User test with ZDHC
+- [ ] User test with Client
 - [ ] Follow test structure from Weekly Rhythm
 - [ ] Take notes on surprises
 
@@ -252,12 +252,12 @@ graph TB
 **For Randy - This Month:**
 
 **Week 1:**
-- [ ] Talk to Bjorn about building SynergyOS as SaproLab work
-- [ ] Get ZDHC buy-in on using them as pilot
+- [ ] Talk to Bjorn about building SynergyOS as Agency Partner work
+- [ ] Get Client buy-in on using them as pilot
 - [ ] Ship capacity dashboard prototype
 
 **Week 2:**
-- [ ] Test capacity dashboard with ZDHC leadership
+- [ ] Test capacity dashboard with Client leadership
 - [ ] Interview 3 consultants about their needs
 - [ ] Document learnings
 
@@ -403,7 +403,7 @@ Follow the [Weekly Rhythm](computer:///mnt/user-data/outputs/06-weekly-rhythm.md
 **Current Version:** 1.0  
 **Last Updated:** December 2, 2025  
 **Next Review:** March 2026  
-**Owner:** Randy (PurposePilot / SaproLab)
+**Owner:** Randy (PurposePilot / Agency Partner)
 
 **Let's build the future of organizational operating systems. 🚀**
 

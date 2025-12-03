@@ -200,11 +200,11 @@
 
 			<div class="directory-grid">
 				{#each data.files as file (file.path)}
-					<a href={resolveRoute(file.href)} class="directory-card">
+					<a href={file.href} class="directory-card">
 						<div class="card-icon">
 							<svg
-								width="24"
-								height="24"
+								width="20"
+								height="20"
 								viewBox="0 0 24 24"
 								fill="none"
 								stroke="currentColor"
@@ -223,8 +223,8 @@
 						</div>
 						<div class="card-arrow">
 							<svg
-								width="20"
-								height="20"
+								width="16"
+								height="16"
 								viewBox="0 0 24 24"
 								fill="none"
 								stroke="currentColor"
@@ -312,35 +312,35 @@
 
 	.directory-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 0.75rem;
 	}
 
 	.directory-card {
 		display: flex;
-		align-items: flex-start;
-		gap: 1rem;
-		padding: 1.5rem;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.875rem 1rem;
 		background: var(--color-bg-surface);
-		border: 2px solid var(--color-border-base);
-		border-radius: 0.75rem;
+		border: 1px solid var(--color-border-base);
+		border-radius: 0.5rem;
 		text-decoration: none;
 		color: inherit;
-		transition: all 0.2s ease;
+		transition: all 0.15s ease;
 		cursor: pointer;
 	}
 
 	.directory-card:hover {
 		border-color: var(--color-accent-primary);
 		background: var(--color-bg-hover);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 	}
 
 	.card-icon {
 		flex-shrink: 0;
 		color: var(--color-accent-primary);
-		margin-top: 0.125rem;
+		width: 20px;
+		height: 20px;
 	}
 
 	.card-content {
@@ -349,17 +349,20 @@
 	}
 
 	.card-title {
-		font-size: 1.125rem;
+		font-size: 0.9375rem;
 		font-weight: 600;
 		color: var(--color-text-primary);
-		margin: 0 0 0.25rem 0;
+		margin: 0;
 		line-height: 1.4;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.card-path {
-		font-size: 0.875rem;
+		font-size: 0.75rem;
 		color: var(--color-text-tertiary);
-		margin: 0;
+		margin: 0.125rem 0 0 0;
 		font-family: monospace;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -369,8 +372,9 @@
 	.card-arrow {
 		flex-shrink: 0;
 		color: var(--color-text-tertiary);
-		margin-top: 0.125rem;
-		transition: transform 0.2s ease;
+		width: 16px;
+		height: 16px;
+		transition: transform 0.15s ease;
 	}
 
 	.directory-card:hover .card-arrow {

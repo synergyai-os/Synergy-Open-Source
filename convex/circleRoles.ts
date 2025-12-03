@@ -630,8 +630,11 @@ export const create = mutation({
 
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId: args.circleId,
+			workspaceId,
 			name: trimmedName,
 			purpose: args.purpose,
+			status: 'active',
+			isHiring: false,
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 			updatedBy: userId

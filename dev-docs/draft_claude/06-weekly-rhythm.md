@@ -16,7 +16,7 @@ With only 6-8 hours per week on SynergyOS, every hour matters. Without structure
 This weekly rhythm gives you:
 - **Clarity** - Know exactly what you're doing each week
 - **Momentum** - Ship something testable every week
-- **Learning** - Regular feedback loops with ZDHC users
+- **Learning** - Regular feedback loops with Client users
 - **Focus** - Stay aligned to current outcome
 
 ---
@@ -39,7 +39,7 @@ pie title Weekly Time Allocation
 - **25% User Testing (1.5-2 hours)** - Demos, interviews, observing usage
 - **15% Learning Review (1 hour)** - Document what you learned, update logs
 - **10% Planning (30-45 min)** - Review roadmap, plan next week
-- **10% Communication (30-45 min)** - Updates to Bjorn, coordination with ZDHC
+- **10% Communication (30-45 min)** - Updates to Bjorn, coordination with Client
 
 **Critical:** If you're spending more than 40% building, you're not learning enough. If less than 25% testing, you're building blindly.
 
@@ -127,7 +127,7 @@ graph TD
 **What we're NOT building:** [Things we're explicitly excluding]
 
 **Test design:**
-- Who: [Which ZDHC user(s)]
+- Who: [Which Client user(s)]
 - When: [Saturday morning / Friday afternoon]
 - How: [Demo, interview, observation, etc.]
 
@@ -380,7 +380,7 @@ graph TD
 **Update roadmap if:**
 - We discovered a bigger pain to solve first
 - Current outcome is taking longer than expected
-- ZDHC feedback suggests different priority
+- Client feedback suggests different priority
 
 #### 3. Stakeholder Communication (20 min)
 - Draft update for Bjorn/Jose: "Here's what we learned this month"

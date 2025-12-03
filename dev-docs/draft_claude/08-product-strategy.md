@@ -86,7 +86,7 @@ mindmap
 **Implication:** Software that embeds transformation methodology will win over consulting alone.
 
 **Evidence:**
-- ZDHC paid for transformation consulting, still operating in project mode
+- Client paid for transformation consulting, still operating in project mode
 - Randy's observation across multiple engagements: same pattern
 - Existing tools (Jira, Asana) optimize for old patterns
 
@@ -106,7 +106,7 @@ mindmap
 **Implication:** Role-based structure (not hierarchy) is the foundation everything else builds on.
 
 **Evidence:**
-- ZDHC's pain: "Nobody knows who should do this"
+- Client's pain: "Nobody knows who should do this"
 - Thomas forced into product work because role boundaries blur
 - Holacracy's insight: explicit roles > implicit expectations
 - Every successful product org has clear role definitions
@@ -403,7 +403,7 @@ graph TD
 graph LR
     Q1[Q1 2025] --> P1[Capacity<br/>Visibility]
     Q1 --> P2[Role<br/>Directory]
-    Q1 --> P3[ZDHC<br/>Validation]
+    Q1 --> P3[Client<br/>Validation]
     
     P1 --> M1[Leadership sees<br/>capacity]
     P2 --> M2[Teams know<br/>who owns what]
@@ -413,7 +413,7 @@ graph LR
 ```
 
 **Goals:**
-- Solve ZDHC's highest-pain problems
+- Solve Client's highest-pain problems
 - Validate core value prop
 - Begin case study documentation
 
@@ -421,7 +421,7 @@ graph LR
 - Capacity dashboard (allocation, impact simulation)
 - Role directory (search, dependencies, decision authority)
 - Basic outcome roadmap view
-- ZDHC actively using daily
+- Client actively using daily
 
 ---
 
@@ -552,7 +552,7 @@ graph LR
 - Users tell us other features are more valuable
 
 **De-risk strategy:**
-- Test role directory with ZDHC first
+- Test role directory with Client first
 - Measure engagement metrics (searches, updates, references)
 - Interview users about what they value most
 - Be ready to pivot to different core feature if needed
@@ -831,7 +831,7 @@ graph TD
 - [ ] Validate strategy with Bjorn/Jose
 - [ ] Interview 5 consultants about their needs
 - [ ] Build first consultant-facing features
-- [ ] Draft first case study outline (ZDHC)
+- [ ] Draft first case study outline (Client)
 
 **Next quarter:**
 - [ ] Recruit 10 consultant beta users

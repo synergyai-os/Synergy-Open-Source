@@ -81,6 +81,7 @@ export const migrateRootCircles = internalMutation({
 					name: 'General Circle',
 					slug: 'general-circle',
 					parentCircleId: undefined, // undefined = root circle
+					status: 'active',
 					createdAt: now,
 					updatedAt: now,
 					updatedBy: ownerId

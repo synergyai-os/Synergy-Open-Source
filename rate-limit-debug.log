@@ -28650,3 +28650,536 @@
 [2025-11-30T14:33:25.949Z] Max allowed: 3
 [2025-11-30T14:33:25.949Z] Retry after (seconds): 60
 [2025-11-30T14:33:25.949Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===
+[2025-12-03T12:44:08.878Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.879Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.879Z] Identifier: test-allow-1764765848878
+[2025-12-03T12:44:08.879Z] Key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.879Z] 📝 Creating new entry for key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.880Z] Current count after filter: 0
+[2025-12-03T12:44:08.880Z] Max requests allowed: 5
+[2025-12-03T12:44:08.880Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.880Z] New count: 1
+[2025-12-03T12:44:08.880Z] Remaining: 4
+[2025-12-03T12:44:08.880Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.880Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.880Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.880Z] Identifier: test-allow-1764765848878
+[2025-12-03T12:44:08.880Z] Key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.880Z] 📖 Found existing entry for key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.880Z] Existing timestamps: 1
+[2025-12-03T12:44:08.880Z] Current count after filter: 1
+[2025-12-03T12:44:08.880Z] Max requests allowed: 5
+[2025-12-03T12:44:08.880Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.881Z] New count: 2
+[2025-12-03T12:44:08.881Z] Remaining: 3
+[2025-12-03T12:44:08.881Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.881Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.881Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.881Z] Identifier: test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] Key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] 📖 Found existing entry for key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] Existing timestamps: 2
+[2025-12-03T12:44:08.881Z] Current count after filter: 2
+[2025-12-03T12:44:08.881Z] Max requests allowed: 5
+[2025-12-03T12:44:08.881Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.881Z] New count: 3
+[2025-12-03T12:44:08.881Z] Remaining: 2
+[2025-12-03T12:44:08.881Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.881Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.881Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.881Z] Identifier: test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] Key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] 📖 Found existing entry for key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.881Z] Existing timestamps: 3
+[2025-12-03T12:44:08.882Z] Current count after filter: 3
+[2025-12-03T12:44:08.882Z] Max requests allowed: 5
+[2025-12-03T12:44:08.882Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.882Z] New count: 4
+[2025-12-03T12:44:08.882Z] Remaining: 1
+[2025-12-03T12:44:08.882Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.882Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.882Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.882Z] Identifier: test-allow-1764765848878
+[2025-12-03T12:44:08.882Z] Key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.882Z] 📖 Found existing entry for key: login:test-allow-1764765848878
+[2025-12-03T12:44:08.882Z] Existing timestamps: 4
+[2025-12-03T12:44:08.882Z] Current count after filter: 4
+[2025-12-03T12:44:08.882Z] Max requests allowed: 5
+[2025-12-03T12:44:08.882Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.882Z] New count: 5
+[2025-12-03T12:44:08.882Z] Remaining: 0
+[2025-12-03T12:44:08.882Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.883Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.884Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.884Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.884Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.884Z] 📝 Creating new entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.884Z] Current count after filter: 0
+[2025-12-03T12:44:08.884Z] Max requests allowed: 5
+[2025-12-03T12:44:08.884Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.884Z] New count: 1
+[2025-12-03T12:44:08.884Z] Remaining: 4
+[2025-12-03T12:44:08.884Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.884Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.884Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.884Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.884Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.884Z] 📖 Found existing entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.884Z] Existing timestamps: 1
+[2025-12-03T12:44:08.884Z] Current count after filter: 1
+[2025-12-03T12:44:08.884Z] Max requests allowed: 5
+[2025-12-03T12:44:08.885Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.885Z] New count: 2
+[2025-12-03T12:44:08.885Z] Remaining: 3
+[2025-12-03T12:44:08.885Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.885Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.885Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.885Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.885Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.885Z] 📖 Found existing entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.885Z] Existing timestamps: 2
+[2025-12-03T12:44:08.885Z] Current count after filter: 2
+[2025-12-03T12:44:08.885Z] Max requests allowed: 5
+[2025-12-03T12:44:08.885Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.885Z] New count: 3
+[2025-12-03T12:44:08.885Z] Remaining: 2
+[2025-12-03T12:44:08.885Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.885Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.885Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.885Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.885Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.885Z] 📖 Found existing entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.885Z] Existing timestamps: 3
+[2025-12-03T12:44:08.886Z] Current count after filter: 3
+[2025-12-03T12:44:08.886Z] Max requests allowed: 5
+[2025-12-03T12:44:08.886Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.886Z] New count: 4
+[2025-12-03T12:44:08.886Z] Remaining: 1
+[2025-12-03T12:44:08.886Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.886Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.886Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.887Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.887Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.887Z] 📖 Found existing entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.887Z] Existing timestamps: 4
+[2025-12-03T12:44:08.887Z] Current count after filter: 4
+[2025-12-03T12:44:08.887Z] Max requests allowed: 5
+[2025-12-03T12:44:08.887Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.887Z] New count: 5
+[2025-12-03T12:44:08.887Z] Remaining: 0
+[2025-12-03T12:44:08.887Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.887Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.888Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:08.888Z] Identifier: test-block-1764765848883
+[2025-12-03T12:44:08.888Z] Key: login:test-block-1764765848883
+[2025-12-03T12:44:08.888Z] 📖 Found existing entry for key: login:test-block-1764765848883
+[2025-12-03T12:44:08.888Z] Existing timestamps: 5
+[2025-12-03T12:44:08.888Z] Current count after filter: 5
+[2025-12-03T12:44:08.888Z] Max requests allowed: 5
+[2025-12-03T12:44:08.888Z] 🚫 RATE LIMIT EXCEEDED!
+[2025-12-03T12:44:08.888Z] Current count: 5
+[2025-12-03T12:44:08.888Z] Max allowed: 5
+[2025-12-03T12:44:08.888Z] Retry after (seconds): 60
+[2025-12-03T12:44:08.888Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===
+[2025-12-03T12:44:08.889Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.889Z] Config: {
+  "keyPrefix": "test-reset",
+  "maxRequests": 2,
+  "windowMs": 100
+}
+[2025-12-03T12:44:08.889Z] Identifier: test-reset-1764765848889
+[2025-12-03T12:44:08.890Z] Key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.890Z] 📝 Creating new entry for key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.890Z] Current count after filter: 0
+[2025-12-03T12:44:08.890Z] Max requests allowed: 2
+[2025-12-03T12:44:08.890Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.890Z] New count: 1
+[2025-12-03T12:44:08.890Z] Remaining: 1
+[2025-12-03T12:44:08.890Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.891Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.891Z] Config: {
+  "keyPrefix": "test-reset",
+  "maxRequests": 2,
+  "windowMs": 100
+}
+[2025-12-03T12:44:08.891Z] Identifier: test-reset-1764765848889
+[2025-12-03T12:44:08.891Z] Key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.891Z] 📖 Found existing entry for key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.891Z] Existing timestamps: 1
+[2025-12-03T12:44:08.891Z] Current count after filter: 1
+[2025-12-03T12:44:08.891Z] Max requests allowed: 2
+[2025-12-03T12:44:08.891Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:08.891Z] New count: 2
+[2025-12-03T12:44:08.891Z] Remaining: 0
+[2025-12-03T12:44:08.891Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:08.891Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:08.892Z] Config: {
+  "keyPrefix": "test-reset",
+  "maxRequests": 2,
+  "windowMs": 100
+}
+[2025-12-03T12:44:08.892Z] Identifier: test-reset-1764765848889
+[2025-12-03T12:44:08.892Z] Key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.892Z] 📖 Found existing entry for key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:08.892Z] Existing timestamps: 2
+[2025-12-03T12:44:08.892Z] Current count after filter: 2
+[2025-12-03T12:44:08.892Z] Max requests allowed: 2
+[2025-12-03T12:44:08.892Z] 🚫 RATE LIMIT EXCEEDED!
+[2025-12-03T12:44:08.892Z] Current count: 2
+[2025-12-03T12:44:08.892Z] Max allowed: 2
+[2025-12-03T12:44:08.892Z] Retry after (seconds): 1
+[2025-12-03T12:44:08.892Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===
+[2025-12-03T12:44:09.043Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.043Z] Config: {
+  "keyPrefix": "test-reset",
+  "maxRequests": 2,
+  "windowMs": 100
+}
+[2025-12-03T12:44:09.043Z] Identifier: test-reset-1764765848889
+[2025-12-03T12:44:09.043Z] Key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:09.043Z] 📖 Found existing entry for key: test-reset:test-reset-1764765848889
+[2025-12-03T12:44:09.043Z] Existing timestamps: 2
+[2025-12-03T12:44:09.043Z] 🧹 Filtered old timestamps: 2 → 0
+[2025-12-03T12:44:09.043Z] Current count after filter: 0
+[2025-12-03T12:44:09.043Z] Max requests allowed: 2
+[2025-12-03T12:44:09.043Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.044Z] New count: 1
+[2025-12-03T12:44:09.044Z] Remaining: 1
+[2025-12-03T12:44:09.044Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.044Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.044Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.045Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.045Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.045Z] 📝 Creating new entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.045Z] Current count after filter: 0
+[2025-12-03T12:44:09.045Z] Max requests allowed: 5
+[2025-12-03T12:44:09.045Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.045Z] New count: 1
+[2025-12-03T12:44:09.045Z] Remaining: 4
+[2025-12-03T12:44:09.045Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.045Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.045Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.045Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.045Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.046Z] 📖 Found existing entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.046Z] Existing timestamps: 1
+[2025-12-03T12:44:09.046Z] Current count after filter: 1
+[2025-12-03T12:44:09.046Z] Max requests allowed: 5
+[2025-12-03T12:44:09.046Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.046Z] New count: 2
+[2025-12-03T12:44:09.046Z] Remaining: 3
+[2025-12-03T12:44:09.046Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.046Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.046Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.046Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.046Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.046Z] 📖 Found existing entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.046Z] Existing timestamps: 2
+[2025-12-03T12:44:09.046Z] Current count after filter: 2
+[2025-12-03T12:44:09.046Z] Max requests allowed: 5
+[2025-12-03T12:44:09.046Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.046Z] New count: 3
+[2025-12-03T12:44:09.046Z] Remaining: 2
+[2025-12-03T12:44:09.046Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.046Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.046Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.046Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.047Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.047Z] 📖 Found existing entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.047Z] Existing timestamps: 3
+[2025-12-03T12:44:09.047Z] Current count after filter: 3
+[2025-12-03T12:44:09.047Z] Max requests allowed: 5
+[2025-12-03T12:44:09.047Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.047Z] New count: 4
+[2025-12-03T12:44:09.047Z] Remaining: 1
+[2025-12-03T12:44:09.047Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.047Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.047Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.048Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.048Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.048Z] 📖 Found existing entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.048Z] Existing timestamps: 4
+[2025-12-03T12:44:09.048Z] Current count after filter: 4
+[2025-12-03T12:44:09.048Z] Max requests allowed: 5
+[2025-12-03T12:44:09.048Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.048Z] New count: 5
+[2025-12-03T12:44:09.048Z] Remaining: 0
+[2025-12-03T12:44:09.048Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.048Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.049Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.049Z] Identifier: test-multi-1-1764765849044
+[2025-12-03T12:44:09.049Z] Key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.049Z] 📖 Found existing entry for key: login:test-multi-1-1764765849044
+[2025-12-03T12:44:09.049Z] Existing timestamps: 5
+[2025-12-03T12:44:09.049Z] Current count after filter: 5
+[2025-12-03T12:44:09.049Z] Max requests allowed: 5
+[2025-12-03T12:44:09.049Z] 🚫 RATE LIMIT EXCEEDED!
+[2025-12-03T12:44:09.049Z] Current count: 5
+[2025-12-03T12:44:09.049Z] Max allowed: 5
+[2025-12-03T12:44:09.049Z] Retry after (seconds): 60
+[2025-12-03T12:44:09.049Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===
+[2025-12-03T12:44:09.049Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.049Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.051Z] Identifier: test-multi-2-1764765849044
+[2025-12-03T12:44:09.051Z] Key: login:test-multi-2-1764765849044
+[2025-12-03T12:44:09.051Z] 📝 Creating new entry for key: login:test-multi-2-1764765849044
+[2025-12-03T12:44:09.051Z] Current count after filter: 0
+[2025-12-03T12:44:09.051Z] Max requests allowed: 5
+[2025-12-03T12:44:09.051Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.051Z] New count: 1
+[2025-12-03T12:44:09.052Z] Remaining: 4
+[2025-12-03T12:44:09.052Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.052Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.052Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.052Z] Identifier: test-reset-time-1764765849052
+[2025-12-03T12:44:09.052Z] Key: login:test-reset-time-1764765849052
+[2025-12-03T12:44:09.052Z] 📝 Creating new entry for key: login:test-reset-time-1764765849052
+[2025-12-03T12:44:09.052Z] Current count after filter: 0
+[2025-12-03T12:44:09.052Z] Max requests allowed: 5
+[2025-12-03T12:44:09.052Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.052Z] New count: 1
+[2025-12-03T12:44:09.052Z] Remaining: 4
+[2025-12-03T12:44:09.052Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.054Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (process.env): undefined
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (env): true
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (final): true
+[2025-12-03T12:44:09.054Z] X-Test-ID header: null
+[2025-12-03T12:44:09.054Z] Will use test ID?: false
+[2025-12-03T12:44:09.054Z] Using forwarded IP: 192.168.1.1
+[2025-12-03T12:44:09.054Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-12-03T12:44:09.054Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (process.env): undefined
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (env): true
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (final): true
+[2025-12-03T12:44:09.054Z] X-Test-ID header: null
+[2025-12-03T12:44:09.054Z] Will use test ID?: false
+[2025-12-03T12:44:09.054Z] Using real IP: 192.168.1.2
+[2025-12-03T12:44:09.054Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-12-03T12:44:09.054Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-12-03T12:44:09.054Z] E2E_TEST_MODE (process.env): undefined
+[2025-12-03T12:44:09.055Z] E2E_TEST_MODE (env): true
+[2025-12-03T12:44:09.055Z] E2E_TEST_MODE (final): true
+[2025-12-03T12:44:09.055Z] X-Test-ID header: null
+[2025-12-03T12:44:09.055Z] Will use test ID?: false
+[2025-12-03T12:44:09.055Z] Using forwarded IP: 192.168.1.1
+[2025-12-03T12:44:09.055Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-12-03T12:44:09.055Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-12-03T12:44:09.055Z] E2E_TEST_MODE (process.env): undefined
+[2025-12-03T12:44:09.057Z] E2E_TEST_MODE (env): true
+[2025-12-03T12:44:09.057Z] E2E_TEST_MODE (final): true
+[2025-12-03T12:44:09.058Z] X-Test-ID header: null
+[2025-12-03T12:44:09.058Z] Will use test ID?: false
+[2025-12-03T12:44:09.058Z] ⚠️ Using fallback: unknown
+[2025-12-03T12:44:09.064Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-12-03T12:44:09.064Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-12-03T12:44:09.064Z] E2E_TEST_MODE (process.env): undefined
+[2025-12-03T12:44:09.064Z] E2E_TEST_MODE (env): true
+[2025-12-03T12:44:09.064Z] E2E_TEST_MODE (final): true
+[2025-12-03T12:44:09.064Z] X-Test-ID header: null
+[2025-12-03T12:44:09.064Z] Will use test ID?: false
+[2025-12-03T12:44:09.064Z] Using forwarded IP: 192.168.1.1
+[2025-12-03T12:44:09.064Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-12-03T12:44:09.065Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.065Z] Config: {
+  "keyPrefix": "test-sliding",
+  "maxRequests": 3,
+  "windowMs": 200
+}
+[2025-12-03T12:44:09.065Z] Identifier: test-sliding-1764765849065
+[2025-12-03T12:44:09.065Z] Key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.066Z] 📝 Creating new entry for key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.067Z] Current count after filter: 0
+[2025-12-03T12:44:09.067Z] Max requests allowed: 3
+[2025-12-03T12:44:09.067Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.069Z] New count: 1
+[2025-12-03T12:44:09.069Z] Remaining: 2
+[2025-12-03T12:44:09.070Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.170Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.171Z] Config: {
+  "keyPrefix": "test-sliding",
+  "maxRequests": 3,
+  "windowMs": 200
+}
+[2025-12-03T12:44:09.171Z] Identifier: test-sliding-1764765849065
+[2025-12-03T12:44:09.171Z] Key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.171Z] 📖 Found existing entry for key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.171Z] Existing timestamps: 1
+[2025-12-03T12:44:09.171Z] Current count after filter: 1
+[2025-12-03T12:44:09.171Z] Max requests allowed: 3
+[2025-12-03T12:44:09.171Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.171Z] New count: 2
+[2025-12-03T12:44:09.171Z] Remaining: 1
+[2025-12-03T12:44:09.171Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.274Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.274Z] Config: {
+  "keyPrefix": "test-sliding",
+  "maxRequests": 3,
+  "windowMs": 200
+}
+[2025-12-03T12:44:09.274Z] Identifier: test-sliding-1764765849065
+[2025-12-03T12:44:09.274Z] Key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.274Z] 📖 Found existing entry for key: test-sliding:test-sliding-1764765849065
+[2025-12-03T12:44:09.274Z] Existing timestamps: 2
+[2025-12-03T12:44:09.274Z] 🧹 Filtered old timestamps: 2 → 1
+[2025-12-03T12:44:09.274Z] Current count after filter: 1
+[2025-12-03T12:44:09.274Z] Max requests allowed: 3
+[2025-12-03T12:44:09.274Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.274Z] New count: 2
+[2025-12-03T12:44:09.274Z] Remaining: 1
+[2025-12-03T12:44:09.274Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.275Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.275Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.275Z] Identifier: test-format-allowed-1764765849275
+[2025-12-03T12:44:09.276Z] Key: register:test-format-allowed-1764765849275
+[2025-12-03T12:44:09.276Z] 📝 Creating new entry for key: register:test-format-allowed-1764765849275
+[2025-12-03T12:44:09.276Z] Current count after filter: 0
+[2025-12-03T12:44:09.276Z] Max requests allowed: 3
+[2025-12-03T12:44:09.276Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.276Z] New count: 1
+[2025-12-03T12:44:09.276Z] Remaining: 2
+[2025-12-03T12:44:09.276Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.276Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.276Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.276Z] Identifier: test-format-blocked-1764765849276
+[2025-12-03T12:44:09.276Z] Key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.276Z] 📝 Creating new entry for key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] Current count after filter: 0
+[2025-12-03T12:44:09.277Z] Max requests allowed: 3
+[2025-12-03T12:44:09.277Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.277Z] New count: 1
+[2025-12-03T12:44:09.277Z] Remaining: 2
+[2025-12-03T12:44:09.277Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.277Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.277Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.277Z] Identifier: test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] Key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] 📖 Found existing entry for key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] Existing timestamps: 1
+[2025-12-03T12:44:09.277Z] Current count after filter: 1
+[2025-12-03T12:44:09.277Z] Max requests allowed: 3
+[2025-12-03T12:44:09.277Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.277Z] New count: 2
+[2025-12-03T12:44:09.277Z] Remaining: 1
+[2025-12-03T12:44:09.277Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.277Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.277Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.277Z] Identifier: test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] Key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] 📖 Found existing entry for key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.277Z] Existing timestamps: 2
+[2025-12-03T12:44:09.277Z] Current count after filter: 2
+[2025-12-03T12:44:09.277Z] Max requests allowed: 3
+[2025-12-03T12:44:09.277Z] ✅ Request allowed, recorded timestamp
+[2025-12-03T12:44:09.277Z] New count: 3
+[2025-12-03T12:44:09.277Z] Remaining: 0
+[2025-12-03T12:44:09.278Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-12-03T12:44:09.278Z] === RATE LIMIT: checkRateLimit START ===
+[2025-12-03T12:44:09.278Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-12-03T12:44:09.278Z] Identifier: test-format-blocked-1764765849276
+[2025-12-03T12:44:09.278Z] Key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.278Z] 📖 Found existing entry for key: register:test-format-blocked-1764765849276
+[2025-12-03T12:44:09.278Z] Existing timestamps: 3
+[2025-12-03T12:44:09.278Z] Current count after filter: 3
+[2025-12-03T12:44:09.278Z] Max requests allowed: 3
+[2025-12-03T12:44:09.278Z] 🚫 RATE LIMIT EXCEEDED!
+[2025-12-03T12:44:09.278Z] Current count: 3
+[2025-12-03T12:44:09.278Z] Max allowed: 3
+[2025-12-03T12:44:09.278Z] Retry after (seconds): 60
+[2025-12-03T12:44:09.278Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===

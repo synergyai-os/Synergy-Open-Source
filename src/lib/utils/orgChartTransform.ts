@@ -69,17 +69,10 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	const circleMap = new Map<Id<'circles'>, CircleNode>();
 	circles.forEach((circle) => {
 		circleMap.set(circle.circleId, circle);
-		console.log(
-			`🗺️ Circle "${circle.name}" (${circle.circleId}) → parent: ${circle.parentCircleId || 'NONE'}`
-		);
 	});
 
 	// Find root circles (no parent)
 	const rootCircles = circles.filter((c) => !c.parentCircleId);
-	console.log(
-		`🌱 Found ${rootCircles.length} root circles:`,
-		rootCircles.map((c) => c.name)
-	);
 
 	// Build children map (includes both child circles AND roles as synthetic circles)
 	const childrenMap = new Map<Id<'circles'>, CircleNode[]>();
@@ -90,7 +83,6 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 				childrenMap.set(parent, []);
 			}
 			childrenMap.get(parent)!.push(circle);
-			console.log(`👶 "${circle.name}" is child of parent ID: ${parent}`);
 		}
 	});
 
@@ -135,20 +127,8 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 
 			// Add roles group to childrenMap so buildHierarchy can find its children (roles)
 			childrenMap.set(`__roles_group__${circle.circleId}` as Id<'circles'>, roleCircles);
-
-			console.log(
-				`🎭 Added ${roleCircles.length} roles as grouped synthetic circles to "${circle.name}"`
-			);
 		}
 	});
-
-	console.log(
-		`📊 Children map:`,
-		Array.from(childrenMap.entries()).map(([parentId, children]) => ({
-			parentId,
-			childrenNames: children.map((c) => c.name)
-		}))
-	);
 
 	// Helper function to calculate depth of a circle by traversing parent chain
 	function _calculateCircleDepth(circleId: Id<'circles'>): number {
@@ -279,11 +259,6 @@ export function calculateCircleValue(
 		// Depth 3+: Deepest roles (35 → r ~17-18)
 		const baseSizes = [2250, 500, 100, 35]; // depth 0, 1, 2, 3+
 		const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
-
-		// Debug logging to verify depth calculation
-		console.log(
-			`🎭 Role "${circle.name}": storedParentDepth=${circle._parentDepth ?? 'N/A'}, adjustedParentDepth=${parentDepth}, baseSize=${baseSize}, parent=${node?.parent?.data?.name ?? 'none'}`
-		);
 
 		return baseSize;
 	}

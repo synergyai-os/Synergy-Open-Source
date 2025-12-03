@@ -52,7 +52,7 @@ timeline
                             : Learning drives decisions
     section FUTURE (Months 6-12)
         Transformation Metrics : Product-mode behaviors measurable
-                               : ZDHC case study complete
+                               : Client case study complete
     section VISION (Year 2)
         AI Agent Delegation : Roles delegated to AI agents
                            : Human-AI collaboration seamless
@@ -63,7 +63,7 @@ timeline
 ## NOW: Capacity Visibility (Weeks 1-4)
 
 ### Desired Outcome
-**ZDHC leadership can see actual capacity vs. demands and stop setting arbitrary deadlines**
+**Client leadership can see actual capacity vs. demands and stop setting arbitrary deadlines**
 
 ### The Problem This Solves
 - #1: False Certainty & Unrealistic Deadlines
@@ -142,7 +142,7 @@ graph TD
 ## NEXT: Role Clarity (Weeks 5-8)
 
 ### Desired Outcome
-**Everyone at ZDHC knows who owns what, and dependencies between roles are visible**
+**Everyone at Client knows who owns what, and dependencies between roles are visible**
 
 ### The Problem This Solves
 - #2: Nobody Knows Who's Responsible for What
@@ -225,7 +225,7 @@ graph TD
 ## SOON: Outcome-Based Planning (Weeks 9-12)
 
 ### Desired Outcome
-**ZDHC teams plan work as outcomes to achieve, not features to deliver, and iteration is baked into every launch**
+**Client teams plan work as outcomes to achieve, not features to deliver, and iteration is baked into every launch**
 
 ### The Problem This Solves
 - #3: Project Mindset - "Done" Means "Launched"
@@ -383,7 +383,7 @@ graph TD
 ## FUTURE: Transformation Metrics (Months 6-12)
 
 ### Desired Outcome
-**ZDHC's shift from project-mode to product-mode is measurable, and we have a compelling case study**
+**Client's shift from project-mode to product-mode is measurable, and we have a compelling case study**
 
 ### The Problem This Solves
 - Validates that SynergyOS actually drives transformation
@@ -398,7 +398,7 @@ graph TD
 
 **After 12 Months:**
 1. ✅ Can show before/after metrics on product behaviors
-2. ✅ ZDHC leadership attributes organizational improvements to SynergyOS
+2. ✅ Client leadership attributes organizational improvements to SynergyOS
 3. ✅ Other organizations ask "what tool are you using?"
 4. ✅ Case study draft exists showing transformation journey
 
@@ -479,7 +479,7 @@ graph LR
 ### Success Criteria
 
 **After 18-24 Months:**
-1. ✅ At least one complete role at ZDHC is handled by AI agent
+1. ✅ At least one complete role at Client is handled by AI agent
 2. ✅ Agent performance is comparable to human in that role
 3. ✅ Humans coordinate with AI agents naturally through SynergyOS
 4. ✅ We can articulate which role types work well for AI delegation
@@ -555,10 +555,10 @@ Each phase includes validation:
 - Prototype → Test with users → Learn → Iterate → Ship
 - We ship working software every 2-3 weeks, but outcomes take 4-8 weeks
 
-### 3. ZDHC-First
-Everything is validated with ZDHC before generalizing:
-- If it doesn't solve ZDHC's pain, we don't build it
-- Once it works for ZDHC, we can adapt for others
+### 3. Client-First
+Everything is validated with Client before generalizing:
+- If it doesn't solve Client's pain, we don't build it
+- Once it works for Client, we can adapt for others
 
 ### 4. No Feature Bloat
 We resist adding features that don't ladder to outcomes:
@@ -589,7 +589,7 @@ When deciding what to work on:
 
 ## Risks and Mitigation
 
-### Risk 1: ZDHC doesn't adopt
+### Risk 1: Client doesn't adopt
 **Mitigation:** Weekly user testing with Thomas, Francesco, Jose - if they're not using it by week 4, we're building wrong thing
 
 ### Risk 2: Too complex for 6-8 hours/week
@@ -598,8 +598,8 @@ When deciding what to work on:
 ### Risk 3: AI development hits limits
 **Mitigation:** Identify technical co-founder by month 3 if needed
 
-### Risk 4: Competing priorities (SaproLab demands)
-**Mitigation:** Frame SynergyOS as part of SaproLab work, not separate from it
+### Risk 4: Competing priorities (Agency Partner demands)
+**Mitigation:** Frame SynergyOS as part of Agency Partner work, not separate from it
 
 ---
 

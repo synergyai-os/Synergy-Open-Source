@@ -121,9 +121,12 @@ export const migrateWorkspace = mutation({
 					for (const template of missingTemplates) {
 						await ctx.db.insert('circleRoles', {
 							circleId: circle._id,
+							workspaceId: circle.workspaceId,
 							name: template.name,
 							purpose: template.description,
 							templateId: template._id,
+							status: 'active',
+							isHiring: false,
 							createdAt: now,
 							updatedAt: now,
 							updatedBy: userId
@@ -241,9 +244,12 @@ export const migrateWorkspaceInternal = internalMutation({
 					for (const template of missingTemplates) {
 						await ctx.db.insert('circleRoles', {
 							circleId: circle._id,
+							workspaceId: circle.workspaceId,
 							name: template.name,
 							purpose: template.description,
 							templateId: template._id,
+							status: 'active',
+							isHiring: false,
 							createdAt: now,
 							updatedAt: now,
 							updatedBy: args.userId

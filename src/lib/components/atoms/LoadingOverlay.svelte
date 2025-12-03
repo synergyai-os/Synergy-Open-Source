@@ -65,19 +65,7 @@
 	};
 
 	const config = $derived(flowConfigs[flow]);
-	const displayTitle = $derived.by(() => {
-		const computedTitle = title || config.title(subtitle || 'workspace');
-		console.log('📝 [LOADING OVERLAY] Computing displayTitle', {
-			flow,
-			title,
-			subtitle,
-			subtitleType: typeof subtitle,
-			subtitleLength: subtitle?.length,
-			computedTitle,
-			configTitleFn: config.title.toString()
-		});
-		return computedTitle;
-	});
+	const displayTitle = $derived(title || config.title(subtitle || 'workspace'));
 
 	// Track previous subtitle/flow to detect changes
 	let previousSubtitle = $state<string | undefined>(undefined);
@@ -116,18 +104,6 @@
 
 	const currentStageText = $derived(stages[Math.min(stage, stages.length - 1)]);
 
-	// Log overlay state changes
-	$effect(() => {
-		if (!browser) return;
-		console.log('🎨 [LOADING OVERLAY] Component state', {
-			show,
-			flow,
-			subtitle,
-			displayTitle: displayTitle, // $derived value, not a function
-			currentStageText: currentStageText // $derived value, not a function
-		});
-	});
-
 	// Track overlay state and manage timers
 	let previousShow = $state(false);
 	let activeTimers = $state<ReturnType<typeof setTimeout>[]>([]);
@@ -158,30 +134,11 @@
 
 			previousShow = true;
 
-			// Log stages for debugging
-			if (browser) {
-				console.log('🔄 [LOADING OVERLAY] Stage progression', {
-					flow,
-					subtitle,
-					stagesCount: stages.length,
-					stages: stages,
-					stageIndex: stage,
-					reason: overlayJustShown ? 'overlay-shown' : 'subtitle-flow-changed'
-				});
-			}
-
 			// Create timers for stage progression
 			stages.forEach((_, index) => {
 				if (index === 0) return; // Skip stage 0 (already set)
 				const delay = index * 1500; // 1.5s between stages
 				const timer = setTimeout(() => {
-					if (browser) {
-						console.log(`⏭️ [LOADING OVERLAY] Advancing to stage ${index}`, {
-							stageText: stages[index],
-							allStages: stages,
-							currentStage: stage
-						});
-					}
 					stage = index;
 				}, delay);
 				activeTimers.push(timer);
@@ -194,33 +151,6 @@
 
 {#if show}
 	<!-- z-[9999] ensures it's above toasts (which typically use z-50) -->
-	{@const logRender = () => {
-		if (browser) {
-			const staticOverlay = document.getElementById('__switching-overlay');
-			const staticOverlayHeading = staticOverlay?.querySelector('h2');
-			console.log('🎨 [LOADING OVERLAY] Component rendering', {
-				show,
-				flow,
-				subtitle,
-				displayTitle,
-				currentStageText,
-				// Check for static overlay
-				staticOverlayExists: !!staticOverlay,
-				staticOverlayHeadingText: staticOverlayHeading?.textContent,
-				staticOverlayFullText: staticOverlay?.textContent?.substring(0, 150),
-				// Check DOM for any other overlays
-				allOverlays: Array.from(
-					document.querySelectorAll('[id*="overlay"], [class*="overlay"]')
-				).map((el) => ({
-					id: el.id,
-					className: el.className,
-					textContent: el.textContent?.substring(0, 80),
-					zIndex: window.getComputedStyle(el).zIndex
-				}))
-			});
-		}
-	}}
-	{@const _logRender = logRender()}
 	<div
 		class="via-base from-accent-primary/10 to-accent-primary/5 fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br backdrop-blur-xl"
 		in:fade={{ duration: 0 }}

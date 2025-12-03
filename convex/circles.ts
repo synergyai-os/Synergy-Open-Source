@@ -129,9 +129,12 @@ export async function createCoreRolesForCircle(
 		// Create role from template
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId,
+			workspaceId,
 			name: template.name,
 			purpose: template.description, // Template description becomes role purpose
 			templateId: template._id, // Link role to template
+			status: 'active',
+			isHiring: false,
 			createdAt: now,
 			updatedAt: now,
 			updatedBy: userId
@@ -398,6 +401,7 @@ export const create = mutation({
 			slug,
 			purpose: args.purpose,
 			parentCircleId: args.parentCircleId,
+			status: 'active',
 			createdAt: now,
 			updatedAt: now,
 			updatedBy: userId

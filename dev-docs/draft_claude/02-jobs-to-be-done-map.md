@@ -5,7 +5,7 @@
 
 ---
 
-## User Archetypes at ZDHC
+## User Archetypes at Client
 
 ```mermaid
 mindmap
@@ -430,7 +430,7 @@ graph TD
 
 ## Next Steps
 
-1. **Validate jobs with ZDHC users** - Especially Thomas, Francesco, Jose
+1. **Validate jobs with Client users** - Especially Thomas, Francesco, Jose
 2. **Build capacity visualization first** - Serves 3 archetypes' top jobs
 3. **Test early and often** - Weekly demos to archetype representatives
 4. **Update this map as we learn** - Jobs will evolve based on user feedback

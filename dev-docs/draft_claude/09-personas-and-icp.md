@@ -270,7 +270,7 @@ graph TD
 
 **A Day in Randy's Life:**
 
-*Morning (9am):* Video call with ZDHC leadership, reviewing transformation roadmap. They're stuck in project mode again. Randy explains outcome-based planning for the 5th time.
+*Morning (9am):* Video call with Client leadership, reviewing transformation roadmap. They're stuck in project mode again. Randy explains outcome-based planning for the 5th time.
 
 *Late Morning (11am):* Facilitated Holacracy governance meeting for tech startup client. Roles still unclear, same questions every meeting.
 

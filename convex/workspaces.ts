@@ -492,6 +492,7 @@ export const createWorkspace = mutation({
 			name: 'General Circle',
 			slug: 'general-circle',
 			parentCircleId: undefined, // undefined = root circle
+			status: 'active',
 			createdAt: now,
 			updatedAt: now,
 			updatedBy: userId

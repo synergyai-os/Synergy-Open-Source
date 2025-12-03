@@ -71,16 +71,9 @@
 	});
 	const organizationSummaries = $derived(() => {
 		if (!workspaces) {
-			console.log('🔍 [SidebarHeader] No workspaces context');
 			return [];
 		}
-		const orgs = workspaces.workspaces ?? [];
-		console.log('🔍 [SidebarHeader] Organization summaries:', {
-			hasOrganizations: !!workspaces,
-			orgsLength: orgs.length,
-			orgs: orgs.map((o) => ({ id: o?.workspaceId, name: o?.name }))
-		});
-		return orgs;
+		return workspaces.workspaces ?? [];
 	});
 	const activeWorkspaceId = $derived(() => {
 		if (!workspaces) return null;

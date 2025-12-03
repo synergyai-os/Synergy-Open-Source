@@ -117,7 +117,7 @@ graph LR
 - Document as you go
 
 **Saturday:** Test & Learn
-- User test with ZDHC (or other users)
+- User test with Client (or other users)
 - Demo → Observe → Interview
 - Take notes on surprises
 - Immediate debrief
@@ -384,7 +384,7 @@ graph TD
 - Proves business model
 
 **Runway:**
-- Randy's SaproLab income funds development
+- Randy's Agency Partner income funds development
 - PurposePilot consulting covers SynergyOS expenses
 - Target: 12-18 months runway minimum
 
@@ -557,7 +557,7 @@ mindmap
 ### Year 1 (2025)
 
 **Q1 2025:**
-- ✅ ZDHC using SynergyOS daily
+- ✅ Client using SynergyOS daily
 - ✅ First case study in progress
 - ✅ 5 consultant beta users recruited
 - ✅ $0 → $10K MRR

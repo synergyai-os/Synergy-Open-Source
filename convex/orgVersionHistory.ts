@@ -92,6 +92,7 @@ function extractEntityFields(entityType: EntityType, doc: any): any {
 				slug: doc.slug,
 				purpose: doc.purpose,
 				parentCircleId: doc.parentCircleId,
+				status: doc.status,
 				archivedAt: doc.archivedAt
 			};
 		case 'circleRole':
@@ -100,6 +101,8 @@ function extractEntityFields(entityType: EntityType, doc: any): any {
 				name: doc.name,
 				purpose: doc.purpose,
 				templateId: doc.templateId,
+				status: doc.status,
+				isHiring: doc.isHiring,
 				archivedAt: doc.archivedAt
 			};
 		case 'userCircleRole':

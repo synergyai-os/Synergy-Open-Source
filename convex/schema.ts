@@ -140,6 +140,7 @@ const schema = defineSchema(
 			slug: v.string(), // "active-platforms"
 			purpose: v.optional(v.string()), // Why this work exists
 			parentCircleId: v.optional(v.id('circles')), // Nested circles
+			status: v.union(v.literal('draft'), v.literal('active')), // Draft status for imports
 			createdAt: v.number(),
 			updatedAt: v.number(),
 			updatedBy: v.optional(v.id('users')), // Who last modified
@@ -149,7 +150,8 @@ const schema = defineSchema(
 			.index('by_workspace', ['workspaceId'])
 			.index('by_parent', ['parentCircleId'])
 			.index('by_slug', ['workspaceId', 'slug'])
-			.index('by_workspace_archived', ['workspaceId', 'archivedAt']), // For efficient filtering of active/archived circles
+			.index('by_workspace_archived', ['workspaceId', 'archivedAt']) // For efficient filtering of active/archived circles
+			.index('by_workspace_status', ['workspaceId', 'status', 'archivedAt']), // For filtering by status
 
 		// Circle members (many-to-many)
 		circleMembers: defineTable({
@@ -169,9 +171,12 @@ const schema = defineSchema(
 		// Examples: "Circle Lead", "Dev Lead", "Facilitator"
 		circleRoles: defineTable({
 			circleId: v.id('circles'),
+			workspaceId: v.id('workspaces'), // Denormalized for efficient workspace-level queries
 			name: v.string(), // "Circle Lead"
 			purpose: v.optional(v.string()), // Optional description of role
 			templateId: v.optional(v.id('roleTemplates')), // Which template this role is based on
+			status: v.union(v.literal('draft'), v.literal('active')), // Draft status for imports
+			isHiring: v.boolean(), // Open position flag
 			createdAt: v.number(),
 			updatedAt: v.number(), // Last modification timestamp
 			updatedBy: v.optional(v.id('users')), // Who last modified
@@ -180,7 +185,9 @@ const schema = defineSchema(
 		})
 			.index('by_circle', ['circleId'])
 			.index('by_circle_archived', ['circleId', 'archivedAt']) // For efficient filtering of active/archived roles
-			.index('by_template', ['templateId']), // For querying roles by template
+			.index('by_template', ['templateId']) // For querying roles by template
+			.index('by_circle_status', ['circleId', 'status', 'archivedAt']) // For filtering by status within circle
+			.index('by_workspace_hiring', ['workspaceId', 'isHiring', 'archivedAt']), // For finding open positions
 
 		// Role Templates - Reusable role definitions that can be marked as core roles
 		// System-level templates have workspaceId = undefined, workspace-level templates have an ID
@@ -287,6 +294,7 @@ const schema = defineSchema(
 							slug: v.string(),
 							purpose: v.optional(v.string()),
 							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+							status: v.union(v.literal('draft'), v.literal('active')),
 							archivedAt: v.optional(v.number())
 						})
 					),
@@ -296,6 +304,7 @@ const schema = defineSchema(
 							slug: v.string(),
 							purpose: v.optional(v.string()),
 							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+							status: v.union(v.literal('draft'), v.literal('active')),
 							archivedAt: v.optional(v.number())
 						})
 					)
@@ -320,6 +329,8 @@ const schema = defineSchema(
 							name: v.string(),
 							purpose: v.optional(v.string()),
 							templateId: v.optional(v.id('roleTemplates')),
+							status: v.union(v.literal('draft'), v.literal('active')),
+							isHiring: v.boolean(),
 							archivedAt: v.optional(v.number())
 						})
 					),
@@ -329,6 +340,8 @@ const schema = defineSchema(
 							name: v.string(),
 							purpose: v.optional(v.string()),
 							templateId: v.optional(v.id('roleTemplates')),
+							status: v.union(v.literal('draft'), v.literal('active')),
+							isHiring: v.boolean(),
 							archivedAt: v.optional(v.number())
 						})
 					)

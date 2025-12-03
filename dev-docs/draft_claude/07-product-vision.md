@@ -381,7 +381,7 @@ graph LR
     EM3 --> MS3
 ```
 
-**Horizon 1:** Organizations actively trying to adopt product operating models (our current ZDHC beachhead)
+**Horizon 1:** Organizations actively trying to adopt product operating models (our current Client beachhead)
 
 **Horizon 2:** Organizations preparing for AI transformation (mainstream product companies + AI-forward enterprises)
 
@@ -487,7 +487,7 @@ mindmap
 - Friction points reveal opportunities
 
 **Start with specific pain, expand to broader vision.**
-- ZDHC is our beachhead, not our entire market
+- Client is our beachhead, not our entire market
 - Solve specific problems extremely well before generalizing
 - Depth-first, then breadth
 
@@ -593,7 +593,7 @@ This vision builds on:
 - **Holacracy's role-based structure** (clear accountabilities)
 - **Continuous Discovery Habits** (Teresa Torres)
 - **First principles thinking** about AI-ready organizations
-- **ZDHC's lived experience** of transformation pain
+- **Client's lived experience** of transformation pain
 
 We're not inventing new concepts—we're synthesizing the best practices and making them software-enabled, then extending them into the AI era.
 
@@ -609,7 +609,7 @@ We're not inventing new concepts—we're synthesizing the best practices and mak
 
 **For Randy:**
 1. Share with Bjorn/Jose to align on long-term direction
-2. Reference when pitching to ZDHC users
+2. Reference when pitching to Client users
 3. Use Horizon 1 to guide current roadmap
 4. Keep Horizon 2 in mind when making architecture decisions
 
