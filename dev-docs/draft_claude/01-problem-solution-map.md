@@ -56,7 +56,7 @@ graph TD
 ## Problem 1: False Certainty & Unrealistic Deadlines
 
 ### The Pain
-**Source:** Client/Agency Partner Experience  
+**Source:** ZDHC/SaproLab Experience  
 **Urgency:** 🔴 HIGH - Immediate threat to delivery & team health
 
 Management demands "locked and not negotiable" dates for completely unscoped work. When deadlines are missed (inevitably), it damages team credibility and creates burnout. Leadership explicitly states "capacity is the development team's problem, not mine."
@@ -80,7 +80,7 @@ Management demands "locked and not negotiable" dates for completely unscoped wor
 ## Problem 2: Nobody Knows Who's Responsible for What
 
 ### The Pain
-**Source:** Universal consulting experience + Client  
+**Source:** Universal consulting experience + ZDHC  
 **Urgency:** 🔴 HIGH - Creates dependencies and bottlenecks
 
 Product Owners do scoping work (should be discovery/strategy). Lead developers do product work (should be engineering). Coaches facilitate but also scope (unclear boundaries). Everyone is overloaded because roles blur.
@@ -144,7 +144,7 @@ graph LR
 ## Problem 3: Project Mindset - "Done" Means "Launched"
 
 ### The Pain
-**Source:** Client/Agency Partner + universal consulting pattern  
+**Source:** ZDHC/SaproLab + universal consulting pattern  
 **Urgency:** 🟡 MEDIUM - Creates technical debt and poor UX
 
 Organizations are deliverable-driven. V1 launches with shortcuts. "Going live" is treated as "done." No one plans for iteration, maintenance, or learning. Products rot immediately after launch.
@@ -185,7 +185,7 @@ journey
 ## Problem 4: Hidden Capacity Creates Resource Conflicts
 
 ### The Pain
-**Source:** Client under-resourcing  
+**Source:** ZDHC under-resourcing  
 **Urgency:** 🔴 HIGH - Root cause of delivery failures
 
 Only 3 active developers support 20+ platforms. Product Owners spread thin. No visibility into actual capacity. Leadership can't make informed priority decisions because they don't see the constraints.
@@ -235,7 +235,7 @@ gantt
 ## Problem 5: Decentralized Data & System Fragmentation
 
 ### The Pain
-**Source:** Client system complexity  
+**Source:** ZDHC system complexity  
 **Urgency:** 🟡 MEDIUM - Increases risk and slows delivery
 
 Multiple teams, multiple systems (SPP, Onset App, Gateway), each managing their own data. No single source of truth. Reporting excluded from planning. Changes in one system break others unpredictably.
@@ -308,7 +308,7 @@ Based on highest pain + fastest value, we're solving:
 - What gets delayed if priorities change
 
 **Priority 2: Role Clarity** (Solves Problem #2)
-- Map existing roles at Client
+- Map existing roles at ZDHC
 - Define clear boundaries and accountabilities
 - Visualize role dependencies
 
@@ -327,14 +327,14 @@ Not "AI helps you do your job" — **"AI takes a clearly-scoped role and owns it
 
 This positions SynergyOS as the foundational operating system for AI-augmented organizations.
 
-**Timeline:** 12-18 months after we prove the base product works at Client.
+**Timeline:** 12-18 months after we prove the base product works at ZDHC.
 
 ---
 
 ## How We'll Know This Is Working
 
 ### After 1 Month
-- Client leadership uses the capacity view in priority discussions
+- ZDHC leadership uses the capacity view in priority discussions
 - Role boundaries are documented for at least one team
 - One roadmap shows outcomes instead of features
 
@@ -344,7 +344,7 @@ This positions SynergyOS as the foundational operating system for AI-augmented o
 - At least one product shows post-launch iteration
 
 ### After 6 Months
-- Client operates visibly differently (product mode behaviors)
+- ZDHC operates visibly differently (product mode behaviors)
 - Other organizations ask "what tool are you using?"
 - We have a compelling case study for commercialization
 
@@ -364,7 +364,7 @@ These guide every decision:
 
 ## Next Steps
 
-1. **Get buy-in from Bjorn/Jose** - Frame this as solving Client's transformation pain
+1. **Get buy-in from Bjorn/Jose** - Frame this as solving ZDHC's transformation pain
 2. **Build capacity visualization first** - Solve the most urgent pain
 3. **Weekly learning cycle** - Build, test with users, learn, adjust
 4. **Document as we go** - This map evolves based on what we learn

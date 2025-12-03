@@ -48,11 +48,11 @@ graph TD
 ## SynergyOS Opportunity Solution Tree
 
 ### Desired Outcome (Top Level)
-**Client operates in product mode - teams deliver outcomes continuously rather than projects once**
+**ZDHC operates in product mode - teams deliver outcomes continuously rather than projects once**
 
 ```mermaid
 graph TD
-    ROOT["🎯 Desired Outcome:<br/>Client operates in product mode"]
+    ROOT["🎯 Desired Outcome:<br/>ZDHC operates in product mode"]
     
     ROOT --> OPP1["Opportunity 1:<br/>Unrealistic expectations<br/>cause burnout"]
     ROOT --> OPP2["Opportunity 2:<br/>Unclear roles create<br/>confusion & bottlenecks"]
@@ -170,7 +170,7 @@ Nobody knows who owns what. Thomas does product work, Randy does scoping, POs ar
 - Thomas (lead dev) forced into scoping and product work
 - Randy doing work that should be product owner territory
 - Friction between Thomas and Geert leads to duplicate work
-- Every initiative at Client has ambiguous ownership
+- Every initiative at ZDHC has ambiguous ownership
 
 ### Solution Ideas
 
@@ -234,7 +234,7 @@ graph TD
 
 **Experiments:**
 1. **Document decision types** - "Deploy to prod," "Change roadmap priority," "Add team member," etc.
-   - **Success Metric:** Can categorize 80% of decisions at Client
+   - **Success Metric:** Can categorize 80% of decisions at ZDHC
    - **Time to learn:** 2 weeks
    
 2. **Link decisions to roles** - "Role X can decide Y without approval"
@@ -306,7 +306,7 @@ graph TD
 **Hypothesis:** If roadmaps show outcomes we're trying to achieve (not features to ship), teams will naturally think about iteration and learning.
 
 **Experiments:**
-1. **Convert one roadmap** - Take Client's current roadmap, reframe as outcomes
+1. **Convert one roadmap** - Take ZDHC's current roadmap, reframe as outcomes
    - **Success Metric:** Leadership can explain "why" behind each initiative
    - **Time to learn:** 2 weeks
    
@@ -359,7 +359,7 @@ graph TD
 
 **Hypothesis:** If teams track assumptions and validation status, they'll reduce waste from building unvalidated features.
 
-**Why Later:** This is sophisticated continuous discovery. Client needs basics first.
+**Why Later:** This is sophisticated continuous discovery. ZDHC needs basics first.
 
 ---
 
@@ -446,7 +446,7 @@ graph TD
 ## Opportunity 5: No Shared Language for Transformation
 
 ### The Opportunity
-Client is trying to transform but lacks common vocabulary and mental models. People use "product" and "project" interchangeably. No shared understanding of what transformation means.
+ZDHC is trying to transform but lacks common vocabulary and mental models. People use "product" and "project" interchangeably. No shared understanding of what transformation means.
 
 ### Why This Matters
 **Impact:** 🟡 MEDIUM - Slows transformation adoption  
@@ -536,7 +536,7 @@ graph TD
 - Did we learn something that adds a new opportunity?
 - Did we discover a solution doesn't work? (Move to "Not Pursuing")
 - Are we pursuing too many solutions at once? (Focus more)
-- Should we shift opportunity priority based on Client feedback?
+- Should we shift opportunity priority based on ZDHC feedback?
 
 ### When Adding New Ideas
 Don't just add features. Ask:

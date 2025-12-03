@@ -53,7 +53,7 @@ graph TD
 sequenceDiagram
     participant You
     participant Docs
-    participant Client Users
+    participant ZDHC Users
     
     Note over You,Docs: Monday: Planning
     You->>Docs: Read Problem Map & Roadmap
@@ -63,9 +63,9 @@ sequenceDiagram
     Note over You: Tue-Fri: Building
     You->>You: Build minimal test
     
-    Note over You,Client Users: Saturday: Testing
-    You->>Client Users: Demo & observe
-    Client Users->>You: Feedback & behavior
+    Note over You,ZDHC Users: Saturday: Testing
+    You->>ZDHC Users: Demo & observe
+    ZDHC Users->>You: Feedback & behavior
     
     Note over You,Docs: Sunday: Learning
     You->>Docs: Document in Learning Log
@@ -246,7 +246,7 @@ graph TD
 2. Check Opportunity Solution Tree (active experiments)
 3. Review last week's Learning Log entries
 4. Fill out Weekly Rhythm planning template
-5. Message Client users to schedule Saturday test
+5. Message ZDHC users to schedule Saturday test
 ```
 
 **Tuesday-Friday (2-3 hours total):**
@@ -258,7 +258,7 @@ graph TD
 
 **Saturday Morning (2-3 hours):**
 ```
-1. User test with Client
+1. User test with ZDHC
 2. Follow test structure in Weekly Rhythm
 3. Take notes on what surprises you
 4. Quick debrief immediately after
@@ -383,7 +383,7 @@ graph TD
 ✅ **You can explain why you're building what you're building**  
 ✅ **You document learnings weekly (not "I'll do it later")**  
 ✅ **You're pivoting based on evidence, not hunches**  
-✅ **Stakeholders (Bjorn, Client) see clear progress**  
+✅ **Stakeholders (Bjorn, ZDHC) see clear progress**  
 ✅ **You feel momentum and clarity, not scattered and overwhelmed**  
 
 ### You'll Know This System Is Failing If:
@@ -445,7 +445,7 @@ graph TD
 - [ ] Reference all 6 documents regularly (they become second nature)
 - [ ] Show measurable progress on first outcome
 - [ ] Have compelling story of learnings and pivots
-- [ ] Validate whether Client is actually adopting
+- [ ] Validate whether ZDHC is actually adopting
 
 ---
 
@@ -455,7 +455,7 @@ graph TD
 
 Adjust them based on:
 - Your actual weekly hours (might be 4, might be 10)
-- Client's availability for testing (weekly vs bi-weekly)
+- ZDHC's availability for testing (weekly vs bi-weekly)
 - What helps you vs adds overhead
 - Your learning style and preferences
 
@@ -499,7 +499,7 @@ Adjust them based on:
 
 **This Week:**
 1. [ ] Build first experiment (2-3 hours)
-2. [ ] Test with Client user (1-2 hours)
+2. [ ] Test with ZDHC user (1-2 hours)
 3. [ ] Document learning (30 min)
 
 **This Month:**

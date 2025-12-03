@@ -10,7 +10,7 @@
 ## Why This Matters
 
 You're building SynergyOS based on assumptions about:
-- What problems Client has
+- What problems ZDHC has
 - What solutions will work
 - How people will use the tool
 - What matters most vs nice-to-have
@@ -50,7 +50,7 @@ graph LR
 
 ## Current Assumptions (Pre-Launch)
 
-These are assumptions we're making BEFORE we've validated with Client users:
+These are assumptions we're making BEFORE we've validated with ZDHC users:
 
 | ID | Assumption | Confidence | Risk if Wrong | How We'll Test | Target Date |
 |----|-----------|------------|---------------|----------------|-------------|
@@ -58,10 +58,10 @@ These are assumptions we're making BEFORE we've validated with Client users:
 | A002 | Teams can't push back on unrealistic deadlines because they lack data | High | MEDIUM - Maybe they have other blockers (fear, culture) | Interview Thomas/Randy about past attempts to push back | Week 1 |
 | A003 | Role clarity will reduce "who should do this?" questions | High | LOW - Even if not, still valuable for other reasons | Count these questions before/after role directory launch | Week 6 |
 | A004 | Product Owners want to plan by outcomes but don't have tools | Medium | HIGH - Maybe they actually prefer feature lists | Show outcome roadmap prototype to Thomas, ask if this is useful | Week 9 |
-| A005 | Client will adopt SynergyOS if it solves their pain | Medium | CRITICAL - If not, entire strategy fails | Weekly user testing, measure actual usage not just feedback | Ongoing |
+| A005 | ZDHC will adopt SynergyOS if it solves their pain | Medium | CRITICAL - If not, entire strategy fails | Weekly user testing, measure actual usage not just feedback | Ongoing |
 | A006 | Randy can build enough with AI to validate concepts | Low | HIGH - May need technical co-founder sooner | Build first 3 features, assess complexity vs AI capability | Week 4 |
 | A007 | 6-8 hours/week is enough to make meaningful progress | Low | MEDIUM - May need to restructure time allocation | Track hours and output for 4 weeks, compare to roadmap | Week 4 |
-| A008 | Bjorn/Jose will support building this as part of Agency Partner work | Medium | CRITICAL - Without this, no time/resources | Pitch to Bjorn this week, gauge enthusiasm vs resistance | Week 1 |
+| A008 | Bjorn/Jose will support building this as part of SaproLab work | Medium | CRITICAL - Without this, no time/resources | Pitch to Bjorn this week, gauge enthusiasm vs resistance | Week 1 |
 
 ---
 
@@ -151,7 +151,7 @@ Track experiments currently running:
 |----|------------|------------|-------------|--------|----------------------|
 | E001 | Capacity Dashboard - Experiment 1 | If leadership sees allocation %, they'll reference it | Build dashboard showing team allocation, observe in one priority meeting | 🟡 In Progress | Week 2 |
 | E002 | Role Mapping Pilot | If we map roles for one team, usage will validate value | Map Thomas's team roles, track lookups for 2 weeks | 📅 Starting Week 5 | Week 7 |
-| E003 | Outcome Roadmap Prototype | If roadmap shows outcomes vs features, teams will plan differently | Convert one Client roadmap to outcome format, observe planning discussion | 📅 Starting Week 9 | Week 10 |
+| E003 | Outcome Roadmap Prototype | If roadmap shows outcomes vs features, teams will plan differently | Convert one ZDHC roadmap to outcome format, observe planning discussion | 📅 Starting Week 9 | Week 10 |
 
 **Status Key:**
 - 🟡 In Progress
@@ -179,7 +179,7 @@ mindmap
     Technical
       AI development is sufficient for V1
       Can build fast enough with constraints
-      Architecture scales to Client needs
+      Architecture scales to ZDHC needs
 ```
 
 **Validation Strategy:** Build minimal versions, test with users, iterate based on feedback
@@ -218,7 +218,7 @@ mindmap
 ```mermaid
 mindmap
   root((Business Assumptions))
-    Client
+    ZDHC
       Will adopt if valuable
       Will allow time to build
       Could become case study
@@ -228,7 +228,7 @@ mindmap
       SynergyOS is differentiated
     Execution
       6-8 hours/week is enough
-      Can build in public with Client
+      Can build in public with ZDHC
       Timeline is realistic
 ```
 
@@ -242,7 +242,7 @@ These are the assumptions that, if wrong, could derail the entire effort:
 
 ```mermaid
 graph TD
-    A[Risky Assumptions] --> A1["A005: Client will adopt<br/>RISK: CRITICAL"]
+    A[Risky Assumptions] --> A1["A005: ZDHC will adopt<br/>RISK: CRITICAL"]
     A --> A2["A008: Bjorn supports this<br/>RISK: CRITICAL"]
     A --> A3["A001: Leadership uses data<br/>RISK: HIGH"]
     A --> A4["A006: AI development adequate<br/>RISK: HIGH"]
