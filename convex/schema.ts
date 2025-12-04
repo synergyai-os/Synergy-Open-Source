@@ -141,6 +141,23 @@ const schema = defineSchema(
 			purpose: v.optional(v.string()), // Why this work exists
 			parentCircleId: v.optional(v.id('circles')), // Nested circles
 			status: v.union(v.literal('draft'), v.literal('active')), // Draft status for imports
+			// Operating mode fields
+			circleType: v.optional(
+				v.union(
+					v.literal('hierarchy'), // Traditional: manager decides
+					v.literal('empowered_team'), // Agile: team consensus
+					v.literal('guild'), // Coordination only, no authority
+					v.literal('hybrid') // Mixed: depends on decision type
+				)
+			), // Default: 'hierarchy' (null = hierarchy for backward compat)
+			decisionModel: v.optional(
+				v.union(
+					v.literal('manager_decides'), // Single approver (manager/lead)
+					v.literal('team_consensus'), // All members must agree
+					v.literal('consent'), // No valid objections (IDM)
+					v.literal('coordination_only') // Guild: must approve in home circle
+				)
+			), // Default: 'manager_decides' (null = manager_decides for backward compat)
 			createdAt: v.number(),
 			updatedAt: v.number(),
 			updatedBy: v.optional(v.id('users')), // Who last modified
@@ -581,6 +598,106 @@ const schema = defineSchema(
 			.index('by_meeting_lastSeen', ['meetingId', 'lastSeenAt']) // For active user queries
 			.index('by_meeting_user', ['meetingId', 'userId']), // For upserts
 
+		// Circle Proposals - Suggested changes to circles or roles
+		circleProposals: defineTable({
+			workspaceId: v.id('workspaces'),
+			// Target entity (circle or role)
+			entityType: v.union(v.literal('circle'), v.literal('role')),
+			entityId: v.string(), // Circle ID or Role ID as string
+			// For circle proposals, also store circleId for efficient queries
+			circleId: v.optional(v.id('circles')),
+			// Proposal content
+			title: v.string(), // Short summary of the change
+			description: v.string(), // Justification/context for the change
+			// Status workflow
+			status: v.union(
+				v.literal('draft'), // Created, not yet submitted
+				v.literal('submitted'), // Submitted, waiting for meeting
+				v.literal('in_meeting'), // Being discussed in governance meeting
+				v.literal('objections'), // Has unresolved objections
+				v.literal('integrated'), // Objections integrated, ready for approval
+				v.literal('approved'), // Approved, changes applied
+				v.literal('rejected'), // Rejected, no changes applied
+				v.literal('withdrawn') // Creator withdrew the proposal
+			),
+			// Meeting integration
+			meetingId: v.optional(v.id('meetings')), // Linked governance meeting
+			agendaItemId: v.optional(v.id('meetingAgendaItems')), // Agenda item in meeting
+			// Version history integration
+			versionHistoryEntryId: v.optional(v.id('orgVersionHistory')), // Link to applied change
+			// Metadata
+			createdBy: v.id('users'),
+			createdAt: v.number(),
+			updatedAt: v.number(),
+			submittedAt: v.optional(v.number()), // When submitted to meeting
+			processedAt: v.optional(v.number()), // When approved/rejected
+			processedBy: v.optional(v.id('users')) // Who made final decision
+		})
+			.index('by_workspace', ['workspaceId'])
+			.index('by_entity', ['entityType', 'entityId'])
+			.index('by_circle', ['circleId'])
+			.index('by_meeting', ['meetingId'])
+			.index('by_status', ['workspaceId', 'status'])
+			.index('by_creator', ['createdBy'])
+			.index('by_workspace_status', ['workspaceId', 'status', 'createdAt']),
+
+		// Proposal Evolutions - The actual changes in a proposal
+		proposalEvolutions: defineTable({
+			proposalId: v.id('circleProposals'),
+			// What's changing
+			fieldPath: v.string(), // e.g., "name", "purpose", "items.domains.0"
+			fieldLabel: v.string(), // Human-readable: "Circle Name", "Domain #1"
+			// Before/after values (JSON stringified for flexibility)
+			beforeValue: v.optional(v.string()), // null for additions
+			afterValue: v.optional(v.string()), // null for deletions
+			// Change type
+			changeType: v.union(
+				v.literal('add'), // Adding new item
+				v.literal('update'), // Modifying existing
+				v.literal('remove') // Removing item
+			),
+			// Ordering
+			order: v.number(), // Display order in proposal
+			// Timestamps
+			createdAt: v.number()
+		})
+			.index('by_proposal', ['proposalId'])
+			.index('by_proposal_order', ['proposalId', 'order']),
+
+		// Proposal Attachments - Files attached to proposals
+		proposalAttachments: defineTable({
+			proposalId: v.id('circleProposals'),
+			fileId: v.id('_storage'), // Convex file storage
+			fileName: v.string(),
+			fileType: v.string(), // MIME type
+			fileSize: v.number(), // Bytes
+			uploadedBy: v.id('users'),
+			uploadedAt: v.number()
+		}).index('by_proposal', ['proposalId']),
+
+		// Proposal Objections - Concerns raised during IDM process
+		proposalObjections: defineTable({
+			proposalId: v.id('circleProposals'),
+			// Who raised the objection
+			raisedBy: v.id('users'),
+			// Objection content
+			objectionText: v.string(), // The concern being raised
+			// Validation (recorder determines if objection is valid)
+			isValid: v.optional(v.boolean()), // null = not yet validated
+			validationNote: v.optional(v.string()), // Why valid/invalid
+			validatedBy: v.optional(v.id('users')), // Recorder who validated
+			validatedAt: v.optional(v.number()),
+			// Resolution
+			isIntegrated: v.boolean(), // Has been integrated into proposal
+			integrationNote: v.optional(v.string()), // How it was integrated
+			integratedAt: v.optional(v.number()),
+			// Timestamps
+			createdAt: v.number()
+		})
+			.index('by_proposal', ['proposalId'])
+			.index('by_raiser', ['raisedBy'])
+			.index('by_proposal_valid', ['proposalId', 'isValid']),
+
 		// Meeting Templates - reusable meeting structures with predefined agenda steps
 		meetingTemplates: defineTable({
 			workspaceId: v.id('workspaces'),
@@ -728,6 +845,8 @@ const schema = defineSchema(
 			requireCircleLeadRole: v.boolean(), // Default: true
 			// Core role template IDs for this workspace
 			coreRoleTemplateIds: v.array(v.id('roleTemplates')),
+			// Quick edit mode control
+			allowQuickChanges: v.boolean(), // Default: false (proposals required)
 			// Timestamps
 			createdAt: v.number(),
 			updatedAt: v.number()

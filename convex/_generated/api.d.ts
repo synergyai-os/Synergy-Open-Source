@@ -39,6 +39,7 @@ import type * as meetingPresence from "../meetingPresence.js";
 import type * as meetingTemplates from "../meetingTemplates.js";
 import type * as meetings from "../meetings.js";
 import type * as notes from "../notes.js";
+import type * as orgChartPermissions from "../orgChartPermissions.js";
 import type * as orgChartTriggers from "../orgChartTriggers.js";
 import type * as orgStructureImport from "../orgStructureImport.js";
 import type * as orgVersionHistory from "../orgVersionHistory.js";
@@ -109,6 +110,7 @@ declare const fullApi: ApiFromModules<{
   meetingTemplates: typeof meetingTemplates;
   meetings: typeof meetings;
   notes: typeof notes;
+  orgChartPermissions: typeof orgChartPermissions;
   orgChartTriggers: typeof orgChartTriggers;
   orgStructureImport: typeof orgStructureImport;
   orgVersionHistory: typeof orgVersionHistory;

@@ -12,6 +12,12 @@
 
 	let { data: _data } = $props();
 
+	// Get targetCircleId from query params
+	// Use $page.url for SSR compatibility (url prop may be undefined during SSR)
+	const targetCircleId = $derived(
+		browser ? $page.url.searchParams.get('targetCircleId') || undefined : undefined
+	);
+
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const orgChartAPI = getContext<OrgChartModuleAPI | undefined>('org-chart-api');
 
@@ -85,6 +91,7 @@
 					workspaceId={workspaceId()}
 					rootCircleId={rootCircle.circleId}
 					workspaceSlug={workspaceSlug()}
+					{targetCircleId}
 				/>
 			</div>
 		{:else}

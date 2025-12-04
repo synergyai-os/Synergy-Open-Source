@@ -31,6 +31,15 @@ export type ParseError = {
 export type ParseWarning = {
 	lineNumber: number;
 	message: string;
+	type?: 'core-role' | 'duplicate' | 'general';
+};
+
+export type CoreTemplate = {
+	_id: string;
+	name: string;
+	description?: string;
+	isCore: boolean;
+	isRequired?: boolean;
 };
 
 export type ParseResult = {
@@ -38,14 +47,29 @@ export type ParseResult = {
 	root: ParsedNode | null;
 	errors: ParseError[];
 	warnings: ParseWarning[];
+	coreRoleWarnings: ParseWarning[]; // Separated for easier UI handling
 };
 
 /**
  * Parse org structure from indented text markup
+ * @param text - The text markup to parse
+ * @param coreTemplates - Optional array of core role templates to validate against
  */
-export function parseOrgStructure(text: string): ParseResult {
+export function parseOrgStructure(text: string, coreTemplates: CoreTemplate[] = []): ParseResult {
 	const errors: ParseError[] = [];
 	const warnings: ParseWarning[] = [];
+	const coreRoleWarnings: ParseWarning[] = [];
+
+	// Create case-insensitive map of core template names for fast lookup
+	const coreTemplateMap = new Map<string, CoreTemplate>();
+	for (const template of coreTemplates) {
+		const normalizedName = template.name.toLowerCase().trim();
+		// Workspace templates take precedence over system templates
+		// (assuming workspace templates come after system templates in array)
+		if (!coreTemplateMap.has(normalizedName)) {
+			coreTemplateMap.set(normalizedName, template);
+		}
+	}
 
 	// Handle empty input
 	if (!text.trim()) {
@@ -215,14 +239,36 @@ export function parseOrgStructure(text: string): ParseResult {
 		if (duplicateName) {
 			warnings.push({
 				lineNumber,
+				type: 'duplicate',
 				message: `Duplicate ${node.type} name "${node.name}" in same parent. This is allowed but may cause confusion.`
 			});
 		}
 
-		// Warn about Lead roles (auto-created by system)
-		if (node.type === 'role' && node.name.toLowerCase().includes('lead')) {
+		// Validate against core role templates
+		if (node.type === 'role' && coreTemplateMap.size > 0) {
+			const normalizedRoleName = node.name.toLowerCase().trim();
+			const matchingTemplate = coreTemplateMap.get(normalizedRoleName);
+
+			if (matchingTemplate) {
+				const warning: ParseWarning = {
+					lineNumber,
+					type: 'core-role',
+					message: `"${node.name}" is a core role that will be automatically created for every circle. Remove this line to avoid duplicates.`
+				};
+				warnings.push(warning);
+				coreRoleWarnings.push(warning);
+			}
+		}
+
+		// Legacy warning about Lead roles (keep for backward compatibility, but core template check above is more accurate)
+		if (
+			node.type === 'role' &&
+			node.name.toLowerCase().includes('lead') &&
+			coreTemplateMap.size === 0
+		) {
 			warnings.push({
 				lineNumber,
+				type: 'general',
 				message: `Role "${node.name}" may conflict with auto-created Circle Lead role. Circle Lead roles are automatically created by the system.`
 			});
 		}
@@ -249,7 +295,8 @@ export function parseOrgStructure(text: string): ParseResult {
 		success,
 		root: success ? root : null,
 		errors,
-		warnings
+		warnings,
+		coreRoleWarnings
 	};
 }
 

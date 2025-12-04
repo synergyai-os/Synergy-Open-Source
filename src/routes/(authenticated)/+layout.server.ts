@@ -7,6 +7,7 @@ import type { LayoutServerLoad } from './$types';
 // Initialize module registry (registers all modules)
 import '$lib/modules';
 import { getEnabledModules, isModuleEnabled } from '$lib/modules/registry';
+import { logger } from '$lib/utils/logger';
 
 // Enforce authentication for all routes in this group
 export const load: LayoutServerLoad = async ({ locals, url }) => {
@@ -70,14 +71,14 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	let permissions: unknown[] = [];
 	let tags: unknown[] = [];
 	try {
-		console.log('🔍 [layout.server] Loading workspaces for sessionId:', sessionId);
+		logger.debug('layout', 'Loading workspaces', { sessionId });
 		const [orgsResult, invitesResult] = await Promise.all([
 			client.query(api.workspaces.listWorkspaces, { sessionId }),
 			client.query(api.workspaces.listWorkspaceInvites, { sessionId })
 		]);
 		workspaces = orgsResult as unknown[];
 		workspaceInvites = invitesResult as unknown[];
-		console.log('✅ [layout.server] Organizations loaded:', {
+		logger.debug('layout', 'Organizations loaded', {
 			orgsCount: workspaces.length,
 			invitesCount: workspaceInvites.length,
 			orgs: (workspaces as Array<{ workspaceId?: string; name?: string }>).map((o) => ({
@@ -88,7 +89,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	} catch (error) {
 		// If queries fail, default to empty arrays (safe fallback)
 		// Log error but don't block page load
-		console.error('❌ [layout.server] Failed to load workspaces/invites server-side:', error);
+		logger.error('layout', 'Failed to load workspaces/invites server-side', { error });
 	}
 
 	// Determine active workspace for permissions/tags preload

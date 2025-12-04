@@ -20,6 +20,11 @@
   - Access is limited to their workspace and assigned circles
   - Permissions are controlled via RBAC
 
+- **Org Designer** - User with permission to make quick edits to org structure
+  - Can edit circles and roles directly (when workspace setting allows)
+  - Must have `org-chart.edit.quick` RBAC permission
+  - Anyone can still create proposals regardless of this role
+
 ## Glossary
 
 | Term                     | Definition                                                                                                                                                                    |
@@ -38,6 +43,12 @@
 | **User Circle Role**     | Many-to-many assignment of users to circle roles. Users can fill multiple roles across different circles. Roles can have multiple users filling them.                         |
 | **Version History**      | Complete audit trail of all changes to organizational elements (roles, circles, domains, purpose, etc.). Enables traceability, AI analysis, and future visual timeline views. |
 | **Workspace**            | A workspace that users belong to. Contains circles, roles, and members.                                                                                                       |
+| **Circle Type**          | Operating mode for a circle: `hierarchy`, `empowered_team`, `guild`, or `hybrid`. Affects who can make decisions and quick edits.                                             |
+| **Decision Model**       | How decisions are made in a circle: `manager_decides`, `team_consensus`, `consent`, or `coordination_only`.                                                                   |
+| **IDM**                  | Integrative Decision Making - consent-based decision process where proposals pass if no valid objections exist.                                                               |
+| **Objection**            | A concern raised during proposal processing in a governance meeting. Must be integrated or dismissed before approval.                                                         |
+| **Proposal**             | A suggested change to a circle or role that goes through governance meeting approval. Any workspace member can create proposals.                                              |
+| **Quick Edit Mode**      | Direct inline editing of circles/roles with auto-save. Requires Org Designer role + `allowQuickChanges` workspace setting enabled.                                            |
 
 ## Data Entities
 
@@ -55,7 +66,9 @@
   - Within the root circle, users create sub-circles
   - All circles except the root circle are sub-circles with a parent circle (`parentCircleId` is set)
   - Sub-circles can be nested infinitely deep (sub-circles can have their own sub-circles)
-  - Has `name`, `slug`, optional `purpose`, `parentCircleId`, `createdAt`, `updatedAt`, `archivedAt`, `archivedBy`
+  - Has `name`, `slug`, optional `purpose`, `parentCircleId`, `circleType`, `decisionModel`, `createdAt`, `updatedAt`, `archivedAt`, `archivedBy`
+  - **Circle Type**: Operating mode (`hierarchy`, `empowered_team`, `guild`, `hybrid`) - affects permissions and decision-making
+  - **Decision Model**: How decisions are made (`manager_decides`, `team_consensus`, `consent`, `coordination_only`)
   - Uses soft delete (`archivedAt`) to maintain version history
 
 - **Circle Item Categories** - Customizable category containers for circles and roles
@@ -90,6 +103,19 @@
   - Roles can have multiple users filling them
   - Tracks `assignedAt`, `assignedBy`, `updatedAt`, `archivedAt`, `archivedBy`
   - **Scope Field**: Member-level text clarifying user's specific responsibility within the role assignment
+
+- **Circle Proposals** - Suggested changes to circles or roles
+  - Created by any workspace member (no permission required)
+  - Links to governance meeting for processing via agenda item
+  - Status workflow: `draft` → `submitted` → `in_meeting` → `approved`/`rejected`
+  - Contains evolutions (the actual proposed changes with before/after values)
+  - References version history when changes are applied
+
+- **Proposal Objections** - Concerns raised during IDM process
+  - Created during objection round in governance meeting
+  - Can be marked valid/invalid by meeting recorder
+  - Valid objections must be integrated before proposal can be approved
+  - Tracks who raised, validation status, and integration notes
 
 ## Relationships
 
@@ -166,6 +192,17 @@
 - **Archived filtering**: All list queries (circles, roles, members) exclude archived records by default
 - **Include archived**: Optional `includeArchived` parameter to show archived records when needed
 
+### Quick Edit vs Proposals
+
+- **Quick Edit**: Requires `org-chart.edit.quick` RBAC permission + `allowQuickChanges` workspace setting enabled
+- **Proposals**: Always available to all workspace members (no permission required)
+- **Circle Type Impact**: Quick edits may be restricted based on circle operating mode:
+  - `hierarchy`: Only Circle Lead/Manager can quick edit
+  - `empowered_team`: All circle members can quick edit (if permitted)
+  - `guild`: No quick edits (coordination only - must create proposal in home circle)
+  - `hybrid`: Circle members can quick edit (if permitted)
+- **Version History**: Both quick edits and approved proposals capture full version history
+
 ## UI Components
 
 ### Circle Detail View
@@ -195,7 +232,10 @@
 ### Workspace Org Settings
 
 - **Purpose**: Workspace-level configuration for org chart behavior
-- **Settings**: Require Circle Lead role, core role template IDs, version history retention, etc.
+- **Settings**:
+  - `requireCircleLeadRole`: Whether every circle must have a Circle Lead role
+  - `coreRoleTemplateIds`: Which role templates auto-create roles in new circles
+  - `allowQuickChanges`: Whether Org Designers can use quick edit mode (default: false)
 - **Defaults**: System provides sensible defaults, workspace admin can override
 
 ### Circle/Role Item Categories

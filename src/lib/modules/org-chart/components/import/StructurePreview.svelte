@@ -3,49 +3,35 @@
   Right panel - live preview of parsed structure with stats and import action
 -->
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
-	import { useQuery } from 'convex-svelte';
-	import { api } from '$lib/convex';
 	import { Button, Text } from '$lib/components/atoms';
 	import type { ParseResult, ParsedNode } from '../../utils/parseOrgStructure';
 	import PreviewTree from './PreviewTree.svelte';
-	import type { Id } from '$lib/convex/_generated/dataModel';
+
+	type CoreTemplate = {
+		_id: string;
+		name: string;
+		description?: string;
+		isCore: boolean;
+		isRequired?: boolean;
+	};
 
 	let {
 		result,
 		onImport,
 		importing,
-		workspaceId
+		workspaceId,
+		coreTemplates = []
 	}: {
 		result: ParseResult | null;
 		onImport: () => Promise<void>;
 		importing: boolean;
 		workspaceId: string;
+		coreTemplates?: CoreTemplate[];
 	} = $props();
 
 	const canImport = $derived(result?.success && result.root !== null && result.errors.length === 0);
 
-	// Query core role templates
-	const coreTemplatesQuery =
-		browser && workspaceId && $page.data.sessionId
-			? useQuery(api.roleTemplates.list, () => {
-					const sessionId = $page.data.sessionId;
-					if (!sessionId) throw new Error('sessionId required');
-					return {
-						sessionId,
-						workspaceId: workspaceId as Id<'workspaces'>
-					};
-				})
-			: null;
-
-	const coreTemplates = $derived.by(() => {
-		const data = coreTemplatesQuery?.data;
-		if (!data) return [];
-		// Combine system and workspace templates, filter for isCore: true
-		const allTemplates = [...(data.system ?? []), ...(data.workspace ?? [])];
-		return allTemplates.filter((t) => t.isCore === true && !t.archivedAt);
-	});
+	const hasCoreRoleWarnings = $derived((result?.coreRoleWarnings?.length ?? 0) > 0);
 
 	const stats = $derived(() => {
 		if (!result?.root) return null;
@@ -99,9 +85,33 @@
 					<Text variant="body" size="sm" color="secondary">All items will start as drafts</Text>
 				</div>
 
-				{#if result.warnings.length > 0}
+				{#if result.coreRoleWarnings.length > 0}
+					<div class="bg-warning-subtle rounded-card border border-warning inset-md mt-fieldGroup">
+						<Text variant="body" size="sm" color="warning" class="mb-fieldGroup font-medium">
+							⚠️ Core Role Warning{result.coreRoleWarnings.length > 1 ? 's' : ''}
+						</Text>
+						<ul class="list-inside list-disc space-y-1">
+							{#each result.coreRoleWarnings as warning (warning.lineNumber)}
+								<li class="text-sm text-warning">
+									Line {warning.lineNumber}: {warning.message}
+								</li>
+							{/each}
+						</ul>
+						<Text variant="body" size="xs" color="warning" class="mt-fieldGroup">
+							💡 Tip: Core roles are automatically created for every circle. Remove these lines to
+							avoid duplicates.
+						</Text>
+					</div>
+				{/if}
+
+				{#if result.warnings.length > result.coreRoleWarnings.length}
 					<Text variant="body" size="sm" color="warning" class="mt-fieldGroup">
-						⚠️ {result.warnings.length} warning{result.warnings.length > 1 ? 's' : ''}
+						⚠️ {result.warnings.length - result.coreRoleWarnings.length} other warning{result
+							.warnings.length -
+							result.coreRoleWarnings.length >
+						1
+							? 's'
+							: ''}
 					</Text>
 				{/if}
 			</div>

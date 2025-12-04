@@ -94,7 +94,7 @@
 			</div>
 		{:else if orgChart}
 			<div class="p-inbox-container h-full">
-				<OrgChart {orgChart} />
+				<OrgChart {orgChart} workspaceId={workspaceId()} workspaceSlug={workspaceSlug()} />
 			</div>
 		{:else}
 			<div class="flex h-full items-center justify-center">

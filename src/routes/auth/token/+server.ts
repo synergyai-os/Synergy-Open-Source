@@ -4,6 +4,7 @@ import { api } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { decryptSecret } from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { logger } from '$lib/utils/logger';
 
 /**
  * GET /auth/token
@@ -32,29 +33,27 @@ export const GET: RequestHandler = withRateLimit(RATE_LIMITS.token, async ({ eve
 		// Decrypt the access token
 		const accessToken = decryptSecret(sessionRecord.accessTokenCiphertext);
 
-		// Debug: Decode JWT to inspect claims (without verification) - only in development
-		if (import.meta.env.DEV) {
-			try {
-				const parts = accessToken.split('.');
-				if (parts.length === 3) {
-					const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-					console.log('🔍 JWT token payload:', {
-						iss: payload.iss,
-						aud: payload.aud,
-						sub: payload.sub,
-						sid: payload.sid,
-						exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : undefined,
-						keys: Object.keys(payload)
-					});
-				}
-			} catch (err) {
-				console.error('❌ Failed to decode JWT:', err);
+		// Debug: Decode JWT to inspect claims (without verification)
+		try {
+			const parts = accessToken.split('.');
+			if (parts.length === 3) {
+				const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+				logger.debug('api', 'JWT token payload decoded', {
+					iss: payload.iss,
+					aud: payload.aud,
+					sub: payload.sub,
+					sid: payload.sid,
+					exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : undefined,
+					keys: Object.keys(payload)
+				});
 			}
+		} catch (err) {
+			logger.error('api', 'Failed to decode JWT', { error: err });
 		}
 
 		return json({ token: accessToken });
 	} catch (error) {
-		console.error('Error fetching access token:', error);
+		logger.error('api', 'Failed to fetch access token', { error });
 		return json({ error: 'Failed to retrieve access token' }, { status: 500 });
 	}
 });

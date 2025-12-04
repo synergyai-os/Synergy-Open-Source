@@ -4,7 +4,7 @@
 	type SystemStats = {
 		users: { total: number; active: number; deleted: number };
 		workspaces: { total: number };
-		teams: { total: number };
+		circles: { total: number };
 		roles: { total: number; system: number; custom: number };
 		permissions: { total: number; system: number; custom: number };
 		roleAssignments: { total: number; active: number; revoked: number };
@@ -49,8 +49,8 @@
 				</div>
 
 				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
-					<p class="text-label text-tertiary">Teams</p>
-					<p class="mt-form-field-gap text-h2 font-semibold text-primary">{stats.teams.total}</p>
+					<p class="text-label text-tertiary">Circles</p>
+					<p class="mt-form-field-gap text-h2 font-semibold text-primary">{stats.circles.total}</p>
 				</div>
 
 				<div class="border-sidebar px-card py-card rounded-card border bg-surface">

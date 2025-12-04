@@ -27,6 +27,8 @@
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import { generateHoverColor } from '$lib/utils/color-conversion';
+	import { PUBLIC_CONVEX_URL } from '$env/static/public';
+	import { getPlatform } from '$lib/utils/platform';
 
 	let { children, data } = $props();
 
@@ -61,7 +63,7 @@
 	// Load branding for active Workspace (for current org class application)
 	// Only create query when workspaceId is available (prevents hydration errors)
 	const orgBrandingQuery =
-		browser && getSessionId() && activeWorkspaceId()
+		browser && getSessionId() && workspaces?.activeWorkspaceId
 			? useQuery(api.workspaces.getBranding, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required');
@@ -388,6 +390,55 @@
 
 		// Record mount time
 		mountedAt = Date.now();
+
+		// Developer console log - only in development mode
+		if (import.meta.env.DEV) {
+			const pathname = window.location.pathname;
+			const isWorkspaceRoute = pathname.startsWith('/w/');
+
+			// Sanitize Convex URL (show only first part for security)
+			const convexUrlSanitized = PUBLIC_CONVEX_URL
+				? PUBLIC_CONVEX_URL.split('/').slice(0, 3).join('/') + '/...'
+				: 'not configured';
+
+			console.log('🔍 SynergyOS Dev Info', {
+				auth: {
+					userId: data.user?.userId ?? null,
+					email: data.user?.email ?? null,
+					name: accountName() ?? null,
+					workosId: data.user?.workosId ?? null,
+					isAuthenticated: isAuthenticated,
+					sessionId: data.sessionId ?? null
+				},
+				workspace: {
+					activeId: workspaces?.activeWorkspaceId ?? null,
+					activeName: workspaceName() ?? null,
+					totalCount: workspaces?.workspaces?.length ?? 0,
+					invitesCount: workspaces?.workspaceInvites?.length ?? 0,
+					isSwitching: workspaces?.isSwitching ?? false
+				},
+				features: {
+					circles: circlesEnabled,
+					meetings: meetingsEnabled,
+					dashboard: dashboardEnabled
+				},
+				route: {
+					pathname,
+					isWorkspaceRoute
+				},
+				environment: {
+					mode: import.meta.env.DEV ? 'development' : 'production',
+					platform: getPlatform(),
+					convexUrl: convexUrlSanitized,
+					isMobile
+				},
+				state: {
+					isAccountSwitching: isAccountSwitching,
+					isOrgSwitching: isOrgSwitching,
+					isLoading: workspaces?.isLoading ?? false
+				}
+			});
+		}
 
 		// Don't remove static overlay immediately - wait until Svelte overlay is ready
 		// This prevents flicker (blur on → blur off → blur on)

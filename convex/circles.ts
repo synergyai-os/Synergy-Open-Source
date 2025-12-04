@@ -225,7 +225,9 @@ export const list = query({
 					roleCount: roles.length,
 					roles: roles.map((r) => ({
 						roleId: r._id,
-						name: r.name
+						name: r.name,
+						status: r.status,
+						isHiring: r.isHiring
 					})),
 					createdAt: circle.createdAt,
 					updatedAt: circle.updatedAt,

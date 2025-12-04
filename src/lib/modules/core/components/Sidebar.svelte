@@ -326,14 +326,17 @@
 	}
 
 	// Smooth animated width using tweened - start at 0 for smooth opening
-	const animatedWidth = tweened(sidebarCollapsed ? 0 : sidebarWidth, {
+	// Initialize with 0, then update reactively via $effect to avoid closure warning
+	const animatedWidth = tweened(0, {
 		duration: 250, // Gentle but responsive animation
 		easing: cubicOut
 	});
 
-	// Update animated width when sidebarWidth changes (but only when not collapsing)
+	// Update animated width when sidebarWidth or sidebarCollapsed changes
 	$effect(() => {
-		if (!sidebarCollapsed && !isMobile) {
+		if (sidebarCollapsed || isMobile) {
+			animatedWidth.set(0, { duration: 250, easing: cubicOut });
+		} else {
 			animatedWidth.set(sidebarWidth, { duration: 250, easing: cubicOut });
 		}
 	});
@@ -576,28 +579,7 @@
 					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
-					<!-- Org Chart - Core functionality, always visible -->
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
-						)}
-						iconType="orgChart"
-						label="Org Chart"
-						title="Organization Chart"
-						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-					/>
-
-					<!-- Circles - List view of organizational units -->
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
-						)}
-						iconType="circles"
-						label="Circles"
-						title="Circles"
-						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-					/>
-
+					<!-- Top section (no label) -->
 					<!-- Inbox -->
 					<NavItem
 						href={resolveRoute(
@@ -610,75 +592,45 @@
 						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 					/>
 
-					<!-- Flashcards -->
+					<!-- Org Chart -->
 					<NavItem
 						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
 						)}
-						iconType="flashcards"
-						label="Flashcards"
-						title="Flashcards"
+						iconType="orgChart"
+						label="Org Chart"
+						title="Organization Chart"
 						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 					/>
 
-					<!-- Study -->
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
-						)}
-						iconType="study"
-						label="Study"
-						title="Study Session"
-						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-					/>
+					<!-- Workspace Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+									Workspace
+								</p>
+							</div>
+						{/if}
 
-					<!-- Tags -->
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
-						)}
-						iconType="tags"
-						label="Tags"
-						title="Tags"
-						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-					/>
-
-					<!-- Members -->
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
-						)}
-						iconType="members"
-						label="Members"
-						title="Members"
-						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-					/>
-
-					<!-- Dashboard (Beta - Feature Flag) -->
-					{#if dashboardEnabled}
-						<NavItem
-							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
-							)}
-							iconType="dashboard"
-							label="Dashboard"
-							title="Dashboard"
-							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-						/>
-					{/if}
-
-					<!-- Meetings (Beta - Feature Flag) -->
-					{#if meetingsEnabled}
-						<NavItem
-							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
-							)}
-							iconType="calendar"
-							label="Meetings"
-							title="Meetings"
-							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-						/>
-					{/if}
+						<div class="space-y-form-field-gap">
+							<!-- Meetings (Beta - Feature Flag) -->
+							{#if meetingsEnabled}
+								<NavItem
+									href={resolveRoute(
+										activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+									)}
+									iconType="calendar"
+									label="Meetings"
+									title="Meetings"
+									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+								/>
+							{/if}
+						</div>
+					</section>
 
 					<!-- Favorites Section -->
 					<section style="margin-top: var(--spacing-content-sectionGap);">
@@ -708,6 +660,106 @@
 								No favorites yet.
 							</p>
 						{/if}
+					</section>
+
+					<!-- Your circles Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+									Your circles
+								</p>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Empty state - content will be added later -->
+						</div>
+					</section>
+
+					<!-- Legacy Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label font-medium tracking-wider text-tertiary uppercase">Legacy</p>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Circles -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+								)}
+								iconType="circles"
+								label="Circles"
+								title="Circles"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Flashcards -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+								)}
+								iconType="flashcards"
+								label="Flashcards"
+								title="Flashcards"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Study -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+								)}
+								iconType="study"
+								label="Study"
+								title="Study Session"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Tags -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
+								)}
+								iconType="tags"
+								label="Tags"
+								title="Tags"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Members -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
+								)}
+								iconType="members"
+								label="Members"
+								title="Members"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Dashboard (Beta - Feature Flag) -->
+							{#if dashboardEnabled}
+								<NavItem
+									href={resolveRoute(
+										activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+									)}
+									iconType="dashboard"
+									label="Dashboard"
+									title="Dashboard"
+									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+								/>
+							{/if}
+						</div>
 					</section>
 
 					<!-- Theme Toggle -->
@@ -754,6 +806,13 @@
 								title="Dev Docs"
 								target="_blank"
 								rel="noopener noreferrer"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
+								href={resolveRoute('/admin')}
+								iconType="settings"
+								label="Admin"
+								title="Admin"
 								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 							/>
 							<CleanReadwiseButton />
@@ -878,28 +937,7 @@
 				class="flex-1 overflow-y-auto"
 				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 			>
-				<!-- Org Chart - Core functionality, always visible -->
-				<NavItem
-					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
-					)}
-					iconType="orgChart"
-					label="Org Chart"
-					title="Organization Chart"
-					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-				/>
-
-				<!-- Circles - List view of organizational units -->
-				<NavItem
-					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
-					)}
-					iconType="circles"
-					label="Circles"
-					title="Circles"
-					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-				/>
-
+				<!-- Top section (no label) -->
 				<!-- Inbox -->
 				<NavItem
 					href={resolveRoute(
@@ -912,73 +950,43 @@
 					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 				/>
 
-				<!-- Flashcards -->
+				<!-- Org Chart -->
 				<NavItem
 					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
 					)}
-					iconType="flashcards"
-					label="Flashcards"
-					title="Flashcards"
+					iconType="orgChart"
+					label="Org Chart"
+					title="Organization Chart"
 					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 				/>
 
-				<!-- Study -->
-				<NavItem
-					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
-					)}
-					iconType="study"
-					label="Study"
-					title="Study Session"
-					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-				/>
+				<!-- Workspace Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Workspace</p>
+						</div>
+					{/if}
 
-				<!-- Tags -->
-				<NavItem
-					href={resolveRoute(activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox')}
-					iconType="tags"
-					label="Tags"
-					title="Tags"
-					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-				/>
-
-				<!-- Members -->
-				<NavItem
-					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
-					)}
-					iconType="members"
-					label="Members"
-					title="Members"
-					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-				/>
-
-				<!-- Dashboard (Beta - Feature Flag) -->
-				{#if dashboardEnabled}
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
-						)}
-						iconType="dashboard"
-						label="Dashboard"
-						title="Dashboard"
-						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-					/>
-				{/if}
-
-				<!-- Meetings (Beta - Feature Flag) -->
-				{#if meetingsEnabled}
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
-						)}
-						iconType="calendar"
-						label="Meetings"
-						title="Meetings"
-						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-					/>
-				{/if}
+					<div class="space-y-form-field-gap">
+						<!-- Meetings (Beta - Feature Flag) -->
+						{#if meetingsEnabled}
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+								)}
+								iconType="calendar"
+								label="Meetings"
+								title="Meetings"
+								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+							/>
+						{/if}
+					</div>
+				</section>
 
 				<!-- Favorites Section -->
 				<section style="margin-top: var(--spacing-content-sectionGap);">
@@ -1006,6 +1014,106 @@
 							No favorites yet.
 						</p>
 					{/if}
+				</section>
+
+				<!-- Your circles Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+								Your circles
+							</p>
+						</div>
+					{/if}
+
+					<div class="space-y-form-field-gap">
+						<!-- Empty state - content will be added later -->
+					</div>
+				</section>
+
+				<!-- Legacy Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Legacy</p>
+						</div>
+					{/if}
+
+					<div class="space-y-form-field-gap">
+						<!-- Circles -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+							)}
+							iconType="circles"
+							label="Circles"
+							title="Circles"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Flashcards -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+							)}
+							iconType="flashcards"
+							label="Flashcards"
+							title="Flashcards"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Study -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+							)}
+							iconType="study"
+							label="Study"
+							title="Study Session"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Tags -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
+							)}
+							iconType="tags"
+							label="Tags"
+							title="Tags"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Members -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
+							)}
+							iconType="members"
+							label="Members"
+							title="Members"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Dashboard (Beta - Feature Flag) -->
+						{#if dashboardEnabled}
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+								)}
+								iconType="dashboard"
+								label="Dashboard"
+								title="Dashboard"
+								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+							/>
+						{/if}
+					</div>
 				</section>
 
 				<!-- Theme Toggle -->
@@ -1052,6 +1160,13 @@
 							title="Dev Docs"
 							target="_blank"
 							rel="noopener noreferrer"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
+							href={resolveRoute('/admin')}
+							iconType="settings"
+							label="Admin"
+							title="Admin"
 							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 						/>
 						<CleanReadwiseButton />

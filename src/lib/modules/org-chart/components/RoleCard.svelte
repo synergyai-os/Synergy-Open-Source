@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, Button, Icon } from '$lib/components/atoms';
+	import { Avatar, Badge, Button, Icon } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { roleCardRecipe } from '$lib/design-system/recipes';
 	import RoleMemberItem from './RoleMemberItem.svelte';
@@ -17,6 +17,7 @@
 		name: string;
 		purpose?: string; // Purpose of the role/circle (what is the purpose of this role)
 		isCircle?: boolean;
+		status?: 'draft' | 'hiring'; // Status badge displayed next to role name
 		onClick: () => void;
 		onEdit?: () => void;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
@@ -33,6 +34,7 @@
 		name,
 		purpose,
 		isCircle = false,
+		status,
 		onClick,
 		onEdit,
 		menuItems = [],
@@ -60,6 +62,10 @@
 
 	// Always show members if they exist (no collapse)
 	const showMembers = $derived(members.length > 0);
+
+	// Badge variant mapping: hiring = warning, draft = default
+	const badgeVariant = $derived(status === 'hiring' ? 'warning' : 'default');
+	const badgeLabel = $derived(status === 'hiring' ? 'Hiring' : 'Draft');
 </script>
 
 <div class={[className, 'overflow-hidden rounded-card border border-default']}>
@@ -68,7 +74,16 @@
 			<Icon type="circle" size="md" color="secondary" />
 		{/if}
 		<div class="min-w-0 flex-1 text-left">
-			<p class="text-button truncate font-medium text-primary">{name}</p>
+			<div class="flex items-center gap-fieldGroup">
+				<p class="text-button truncate font-medium text-primary">{name}</p>
+				{#if status}
+					<Badge variant={badgeVariant} size="md">
+						{#snippet children()}
+							{badgeLabel}
+						{/snippet}
+					</Badge>
+				{/if}
+			</div>
 			{#if purpose && !isCircle}
 				<p class="text-label text-secondary">{purpose}</p>
 			{/if}
@@ -107,7 +122,11 @@
 				</Button>
 			{/if}
 			{#if menuItems.length > 0}
-				<div onmousedown={(e) => e.stopPropagation()} role="group">
+				<div
+					onmousedown={(e) => e.stopPropagation()}
+					onkeydown={(e) => e.stopPropagation()}
+					role="group"
+				>
 					<ActionMenu items={menuItems} class="flex-shrink-0" />
 				</div>
 			{/if}

@@ -14,6 +14,7 @@
 	 * Related: SYOS-520 (Component Audit), SYOS-514 (Recipe System POC), SYOS-522 (Document SVG Exception)
 	 */
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { pack as d3Pack, type HierarchyNode } from 'd3-hierarchy';
 	import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 	import { select } from 'd3-selection';
@@ -38,15 +39,21 @@
 	} from '$lib/utils/orgChartTransform';
 	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
+	import CircleContextMenu from './CircleContextMenu.svelte';
+	import { Badge } from '$lib/components/atoms';
 
 	let {
 		orgChart,
 		width = 1000,
-		height = 800
+		height = 800,
+		workspaceId,
+		workspaceSlug
 	}: {
 		orgChart: UseOrgChart;
 		width?: number;
 		height?: number;
+		workspaceId?: string;
+		workspaceSlug?: string;
 	} = $props();
 
 	let svgElement: SVGSVGElement | undefined = $state();
@@ -1112,30 +1119,92 @@
 												: roleOpacity * 0.5}
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label - multi-line with proper padding -->
+									<!-- Role name label with badge - using foreignObject for HTML/CSS support -->
 									{#if roleLabelVisible}
 										{@const labelParams = getRoleLabelParams(role)}
 										{@const lineCount = labelParams.lines.length}
 										{@const totalHeight = (lineCount - 1) * labelParams.lineHeight}
-										{@const startY = -totalHeight / 2}
-										<text
-											x="0"
-											y={startY}
-											text-anchor="middle"
-											dominant-baseline="middle"
-											class="role-label pointer-events-none select-none"
-											style="font-family: var(--typography-fontFamily-sans); font-weight: 500; paint-order: stroke fill;"
-											fill={getRoleTextColor()}
-											font-size={labelParams.fontSize}
+										{@const labelHeight = totalHeight + labelParams.fontSize}
+										{@const labelWidth = role.r * 1.6}
+										{@const hasStatus = role.status === 'draft' || role.isHiring}
+										{@const status =
+											role.status === 'draft' ? 'draft' : role.isHiring ? 'hiring' : undefined}
+										{@const badgeVariant = status === 'hiring' ? 'warning' : 'default'}
+										{@const badgeLabel = status === 'hiring' ? 'Hiring' : 'Draft'}
+										<foreignObject
+											x={-labelWidth / 2}
+											y={-labelHeight / 2}
+											width={labelWidth}
+											height={labelHeight}
+											class="pointer-events-none overflow-visible"
 										>
-											{#each labelParams.lines as line, i}
-												<tspan x="0" dy={i === 0 ? 0 : labelParams.lineHeight}>{line}</tspan>
-											{/each}
-										</text>
+											<div
+												xmlns="http://www.w3.org/1999/xhtml"
+												class="flex h-full w-full flex-col items-center justify-center gap-fieldGroup"
+											>
+												<!-- Role name lines -->
+												{#each labelParams.lines as line, i}
+													<span
+														class="role-label text-center font-sans font-medium select-none"
+														style="
+															font-size: {labelParams.fontSize}px;
+															color: {getRoleTextColor()};
+															text-shadow: 
+																0 0 3px var(--color-component-orgChart-circle-fill),
+																0 0 6px var(--color-component-orgChart-circle-fill),
+																0 1px 2px rgba(0,0,0,0.3);
+															line-height: {labelParams.lineHeight}px;
+														"
+													>
+														{line}
+													</span>
+												{/each}
+												<!-- Status badge -->
+												{#if hasStatus}
+													<Badge variant={badgeVariant} size="md">
+														{#snippet children()}
+															{badgeLabel}
+														{/snippet}
+													</Badge>
+												{/if}
+											</div>
+										</foreignObject>
 									{/if}
 								</g>
 							{/each}
 						</g>
+					{/if}
+
+					<!-- Context Menu Overlay: foreignObject with transparent div for right-click -->
+					{#if browser && workspaceId && workspaceSlug && !isSyntheticRole(node.data.circleId)}
+						{@const circleDiameter = node.r * 2}
+						<foreignObject
+							x={-node.r}
+							y={-node.r}
+							width={circleDiameter}
+							height={circleDiameter}
+							class="pointer-events-all"
+							style="overflow: visible;"
+						>
+							<div xmlns="http://www.w3.org/1999/xhtml" class="h-full w-full">
+								<CircleContextMenu
+									circleId={node.data.circleId}
+									circleName={node.data.name}
+									workspaceId={workspaceId as Id<'workspaces'>}
+									{workspaceSlug}
+									onLeftClick={(e) => {
+										// Forward left-click to circle's click handler
+										handleCircleClick(e, node);
+									}}
+									onRoleCreated={() => {
+										// Refresh org chart data - circles query will auto-refresh
+									}}
+									onCircleCreated={() => {
+										// Refresh org chart data - circles query will auto-refresh
+									}}
+								/>
+							</div>
+						</foreignObject>
 					{/if}
 				</g>
 			{/each}

@@ -479,9 +479,16 @@
 												/>
 												<div class="flex flex-col gap-content mb-section">
 													{#each coreRoles as role (role.roleId)}
+														{@const roleStatus =
+															role.status === 'draft'
+																? 'draft'
+																: role.isHiring
+																	? 'hiring'
+																	: undefined}
 														<RoleCard
 															name={role.name}
 															purpose={role.purpose}
+															status={roleStatus}
 															onClick={() => handleRoleClick(role.roleId)}
 															onEdit={() => {
 																/* TODO: Implement edit role */
@@ -515,9 +522,16 @@
 												/>
 												<div class="flex flex-col gap-content mb-section">
 													{#each regularRoles as role (role.roleId)}
+														{@const roleStatus =
+															role.status === 'draft'
+																? 'draft'
+																: role.isHiring
+																	? 'hiring'
+																	: undefined}
 														<RoleCard
 															name={role.name}
 															purpose={role.purpose}
+															status={roleStatus}
 															onClick={() => handleRoleClick(role.roleId)}
 															onEdit={() => {
 																/* TODO: Implement edit role */

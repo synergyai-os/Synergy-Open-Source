@@ -151,29 +151,15 @@ export const listWorkspaces = query({
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		console.log('🔍 [listOrganizations] Query started:', {
-			sessionId: args.sessionId,
-			userId
-		});
-
 		const memberships = await ctx.db
 			.query('workspaceMembers')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 
-		console.log('🔍 [listOrganizations] Memberships found:', {
-			membershipCount: memberships.length,
-			memberships: memberships.map((m) => ({
-				workspaceId: m.workspaceId,
-				role: m.role
-			}))
-		});
-
 		const workspaces = await Promise.all(
 			memberships.map(async (membership) => {
 				const workspace = await ctx.db.get(membership.workspaceId);
 				if (!workspace) {
-					console.warn('⚠️ [listOrganizations] Organization not found:', membership.workspaceId);
 					return null;
 				}
 
@@ -198,10 +184,6 @@ export const listWorkspaces = query({
 		);
 
 		const filtered = workspaces.filter((item): item is NonNullable<typeof item> => item !== null);
-		console.log('✅ [listOrganizations] Returning workspaces:', {
-			count: filtered.length,
-			orgs: filtered.map((o) => ({ id: o.workspaceId, name: o.name }))
-		});
 
 		return filtered;
 	}

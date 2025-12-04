@@ -46,24 +46,44 @@
 	]);
 </script>
 
-<div
-	class={containerClasses}
-	onclick={onClick}
-	role={onClick ? 'button' : undefined}
-	tabindex={onClick ? 0 : undefined}
->
-	<Avatar {initials} size="md" />
-	<div class="min-w-0 flex-1">
-		<p class="truncate text-label font-medium text-primary">{displayName}</p>
-		{#if scope}
-			<p class="truncate text-label text-secondary">{scope}</p>
-		{/if}
-	</div>
-	<div
-		class="flex items-center gap-fieldGroup"
-		role="group"
-		onmousedown={(e) => e.stopPropagation()}
+{#if onClick}
+	<button
+		type="button"
+		class={[...containerClasses, 'w-full border-0 bg-transparent p-0']}
+		onclick={onClick}
 	>
-		<ActionMenu items={menuItems} class="flex-shrink-0" />
+		<Avatar {initials} size="md" />
+		<div class="min-w-0 flex-1">
+			<p class="truncate text-label font-medium text-primary">{displayName}</p>
+			{#if scope}
+				<p class="truncate text-label text-secondary">{scope}</p>
+			{/if}
+		</div>
+		<div
+			class="flex items-center gap-fieldGroup"
+			role="group"
+			onmousedown={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
+			<ActionMenu items={menuItems} class="flex-shrink-0" />
+		</div>
+	</button>
+{:else}
+	<div class={containerClasses}>
+		<Avatar {initials} size="md" />
+		<div class="min-w-0 flex-1">
+			<p class="truncate text-label font-medium text-primary">{displayName}</p>
+			{#if scope}
+				<p class="truncate text-label text-secondary">{scope}</p>
+			{/if}
+		</div>
+		<div
+			class="flex items-center gap-fieldGroup"
+			role="group"
+			onmousedown={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
+			<ActionMenu items={menuItems} class="flex-shrink-0" />
+		</div>
 	</div>
-</div>
+{/if}

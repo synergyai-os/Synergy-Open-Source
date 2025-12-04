@@ -15,6 +15,10 @@
 			},
 			isCircle: {
 				control: { type: 'boolean' }
+			},
+			status: {
+				control: { type: 'select' },
+				options: [undefined, 'draft', 'hiring']
 			}
 		}
 	});
@@ -336,6 +340,95 @@
 			onClick={args.onClick}
 			onAddMember={args.onAddMember}
 			members={args.members}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="DraftStatus"
+	args={{
+		name: 'Product Manager',
+		status: 'draft',
+		purpose: 'Own product roadmap and strategy',
+		onClick: () => console.log('Clicked'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			status={args.status}
+			purpose={args.purpose}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			onAddMember={args.onAddMember}
+			menuItems={args.menuItems}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="HiringStatus"
+	args={{
+		name: 'Engineering Lead',
+		status: 'hiring',
+		purpose: 'Lead the engineering team',
+		onClick: () => console.log('Clicked'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			status={args.status}
+			purpose={args.purpose}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			onAddMember={args.onAddMember}
+			menuItems={args.menuItems}
+		/>
+	{/snippet}
+</Story>
+
+<Story
+	name="HiringStatusWithMembers"
+	args={{
+		name: 'Senior Designer',
+		status: 'hiring',
+		purpose: 'Lead design initiatives',
+		onClick: () => console.log('Clicked'),
+		onEdit: () => console.log('Edit clicked'),
+		onAddMember: () => console.log('Add member clicked'),
+		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
+		members: [
+			{
+				userId: 'user-1',
+				name: 'Alice Johnson',
+				email: 'alice.johnson@example.com',
+				avatarImage: 'https://i.pravatar.cc/150?img=12'
+			}
+		],
+		memberMenuItems: (userId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		]
+	}}
+>
+	{#snippet template(args)}
+		<RoleCard
+			name={args.name}
+			status={args.status}
+			purpose={args.purpose}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			onAddMember={args.onAddMember}
+			menuItems={args.menuItems}
+			members={args.members}
+			memberMenuItems={args.memberMenuItems}
 		/>
 	{/snippet}
 </Story>

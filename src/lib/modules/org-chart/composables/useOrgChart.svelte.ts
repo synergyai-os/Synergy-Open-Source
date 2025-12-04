@@ -145,6 +145,8 @@ export function useOrgChart(options: {
 				purpose?: string;
 				templateId?: Id<'roleTemplates'>;
 				scope?: string;
+				status: 'draft' | 'active';
+				isHiring: boolean;
 				fillerCount: number;
 				createdAt: number;
 			}>

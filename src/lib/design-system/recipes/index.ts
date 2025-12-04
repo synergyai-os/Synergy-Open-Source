@@ -245,3 +245,11 @@ export {
 	type PanelBreadcrumbTextVariantProps,
 	type PanelBreadcrumbIconVariantProps
 } from './panelBreadcrumbs.recipe';
+export {
+	contextMenuContentRecipe,
+	contextMenuItemRecipe,
+	contextMenuSeparatorRecipe,
+	type ContextMenuContentVariantProps,
+	type ContextMenuItemVariantProps,
+	type ContextMenuSeparatorVariantProps
+} from './contextMenu.recipe';

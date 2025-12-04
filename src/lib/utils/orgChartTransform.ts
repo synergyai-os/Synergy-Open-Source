@@ -8,6 +8,8 @@ import type { HierarchyNode as D3HierarchyNode } from 'd3-hierarchy';
 export type RoleNode = {
 	roleId: Id<'circleRoles'>;
 	name: string;
+	status?: 'draft' | 'active'; // Role status
+	isHiring?: boolean; // Open position flag
 	x: number; // Position relative to parent circle center (0,0)
 	y: number;
 	r: number; // Radius of role circle
@@ -26,7 +28,12 @@ export type CircleNode = {
 	parentName?: string | null;
 	memberCount: number;
 	roleCount?: number; // Number of roles in this circle
-	roles?: Array<{ roleId: Id<'circleRoles'>; name: string }>; // Raw roles from backend
+	roles?: Array<{
+		roleId: Id<'circleRoles'>;
+		name: string;
+		status?: 'draft' | 'active';
+		isHiring?: boolean;
+	}>; // Raw roles from backend
 	packedRoles?: RoleNode[]; // Packed role positions (calculated after main layout)
 	createdAt: number;
 	updatedAt?: number;
@@ -105,8 +112,15 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 				memberCount: 0,
 				roleCount: 0,
 				createdAt: circle.createdAt,
-				// Store original role data for later extraction
-				roles: [{ roleId: role.roleId, name: role.name }]
+				// Store original role data for later extraction (including status/isHiring)
+				roles: [
+					{
+						roleId: role.roleId,
+						name: role.name,
+						status: role.status,
+						isHiring: role.isHiring
+					}
+				]
 			}));
 
 			// Create synthetic "roles group" node that contains all roles
@@ -383,7 +397,12 @@ export function getCircleLabelStrokeColor(): string {
  * @returns Array of RoleNode with calculated positions
  */
 export function packRolesInsideCircle(
-	roles: Array<{ roleId: Id<'circleRoles'>; name: string }>,
+	roles: Array<{
+		roleId: Id<'circleRoles'>;
+		name: string;
+		status?: 'draft' | 'active';
+		isHiring?: boolean;
+	}>,
 	parentRadius: number,
 	padding: number = 3
 ): RoleNode[] {
@@ -451,6 +470,8 @@ export function packRolesInsideCircle(
 			roleNodes.push({
 				roleId: roles[roleIndex].roleId,
 				name: roles[roleIndex].name,
+				status: roles[roleIndex].status,
+				isHiring: roles[roleIndex].isHiring,
 				x,
 				y,
 				r

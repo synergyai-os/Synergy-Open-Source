@@ -87,6 +87,77 @@ async function validateCircle(
 }
 
 /**
+ * Validate that no roles in the parsed structure match core template names
+ * Throws error with user-friendly message if duplicates found
+ */
+async function validateNoCoreRoleDuplicates(
+	ctx: MutationCtx,
+	structure: ParsedNode,
+	workspaceId: Id<'workspaces'>
+): Promise<void> {
+	// Query system-level core templates
+	const systemCoreTemplates = await ctx.db
+		.query('roleTemplates')
+		.withIndex('by_core', (q) => q.eq('workspaceId', undefined).eq('isCore', true))
+		.filter((q) => q.eq(q.field('archivedAt'), undefined))
+		.collect();
+
+	// Query workspace-level core templates
+	const workspaceCoreTemplates = await ctx.db
+		.query('roleTemplates')
+		.withIndex('by_core', (q) => q.eq('workspaceId', workspaceId).eq('isCore', true))
+		.filter((q) => q.eq(q.field('archivedAt'), undefined))
+		.collect();
+
+	// Combine all core templates (workspace takes precedence if duplicate names)
+	const allCoreTemplates = [...systemCoreTemplates, ...workspaceCoreTemplates];
+	const coreTemplateNames = new Set(allCoreTemplates.map((t) => t.name.toLowerCase().trim()));
+
+	if (coreTemplateNames.size === 0) {
+		// No core templates to check against
+		return;
+	}
+
+	// Recursively check all roles in the structure
+	const duplicateRoles: Array<{ lineNumber: number; roleName: string; templateName: string }> = [];
+
+	function checkNode(node: ParsedNode): void {
+		if (node.type === 'role') {
+			const normalizedRoleName = node.name.toLowerCase().trim();
+			if (coreTemplateNames.has(normalizedRoleName)) {
+				// Find the matching template to get the exact name
+				const matchingTemplate = allCoreTemplates.find(
+					(t) => t.name.toLowerCase().trim() === normalizedRoleName
+				);
+				duplicateRoles.push({
+					lineNumber: node.lineNumber,
+					roleName: node.name,
+					templateName: matchingTemplate?.name ?? node.name
+				});
+			}
+		}
+
+		// Recursively check children
+		for (const child of node.children) {
+			checkNode(child);
+		}
+	}
+
+	// Check all nodes in structure (skip root)
+	for (const child of structure.children) {
+		checkNode(child);
+	}
+
+	// If duplicates found, throw error with user-friendly message
+	if (duplicateRoles.length > 0) {
+		const roleList = duplicateRoles.map((r) => `"${r.roleName}" (line ${r.lineNumber})`).join(', ');
+		throw new Error(
+			`Cannot import: ${roleList} ${duplicateRoles.length === 1 ? 'is' : 'are'} core role${duplicateRoles.length === 1 ? '' : 's'} that will be automatically created. Remove these lines from your import to avoid duplicates.`
+		);
+	}
+}
+
+/**
  * Type for parsed nodes (recursive structure)
  */
 type ParsedNode = {
@@ -149,6 +220,9 @@ export const importOrgStructure = mutation({
 		if (!workspace) {
 			throw new Error('Workspace not found');
 		}
+
+		// Validate no core role duplicates BEFORE creating anything
+		await validateNoCoreRoleDuplicates(ctx, args.structure, args.workspaceId);
 
 		const now = Date.now();
 

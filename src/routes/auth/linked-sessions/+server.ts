@@ -5,11 +5,12 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { api } from '$convex/_generated/api';
 import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
 import { generateRandomToken } from '$lib/infrastructure/auth/server/crypto';
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { auth } = locals;
 
-	console.log('🔍 [/auth/linked-sessions] Request received:', {
+	logger.debug('linkedSessions', 'Request received', {
 		hasAuth: !!auth,
 		hasSessionId: !!auth?.sessionId,
 		hasUser: !!auth?.user,
@@ -18,7 +19,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 	});
 
 	if (!auth?.sessionId || !auth.user) {
-		console.error('❌ [/auth/linked-sessions] Not authenticated');
+		logger.error('linkedSessions', 'Not authenticated');
 		return json({ error: 'Not authenticated' }, { status: 401 });
 	}
 
@@ -30,11 +31,11 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 	try {
 		// Get all linked accounts for the current user
-		console.log('🔍 [/auth/linked-sessions] Fetching linked accounts...');
+		logger.debug('linkedSessions', 'Fetching linked accounts');
 		const linkedAccounts = await convex.query(api.users.listLinkedAccounts, {
 			sessionId: auth.sessionId
 		});
-		console.log('✅ [/auth/linked-sessions] Linked accounts fetched:', {
+		logger.debug('linkedSessions', 'Linked accounts fetched', {
 			count: linkedAccounts.length,
 			accounts: linkedAccounts.map((a) => ({
 				userId: a.userId,
@@ -62,12 +63,12 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 		for (const account of linkedAccounts) {
 			try {
-				console.log(`🔍 [/auth/linked-sessions] Fetching session for account:`, {
+				logger.debug('linkedSessions', 'Fetching session for account', {
 					userId: account.userId,
 					email: account.email
 				});
 				const sessionRecord = await getActiveSessionRecordForUser(account.userId);
-				console.log(`📋 [/auth/linked-sessions] Session record result:`, {
+				logger.debug('linkedSessions', 'Session record result', {
 					userId: account.userId,
 					hasSession: !!sessionRecord,
 					expiresAt: sessionRecord?.expiresAt,
@@ -82,7 +83,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 					const csrfToken = generateRandomToken(32);
 
 					// Fetch workspaces for this account using their sessionId
-					console.log(`🔍 [/auth/linked-sessions] Fetching workspaces for account:`, {
+					logger.debug('linkedSessions', 'Fetching workspaces for account', {
 						userId: account.userId,
 						email: account.email,
 						sessionId: sessionRecord.sessionId
@@ -90,7 +91,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 					const accountOrganizations = await convex.query(api.workspaces.listWorkspaces, {
 						sessionId: sessionRecord.sessionId
 					});
-					console.log(`✅ [/auth/linked-sessions] Organizations fetched:`, {
+					logger.debug('linkedSessions', 'Organizations fetched', {
 						userId: account.userId,
 						email: account.email,
 						orgCount: accountOrganizations.length,
@@ -118,29 +119,29 @@ export const GET: RequestHandler = async ({ locals }) => {
 					};
 
 					linkedSessions.push(sessionData);
-					console.log(`✅ [/auth/linked-sessions] Added session for account:`, {
+					logger.debug('linkedSessions', 'Added session for account', {
 						userId: account.userId,
 						email: account.email,
 						sessionId: sessionRecord.sessionId,
 						orgCount: sessionData.workspaces.length
 					});
 				} else {
-					console.warn(`⚠️ [/auth/linked-sessions] Skipping account (no valid session):`, {
+					logger.warn('linkedSessions', 'Skipping account (no valid session)', {
 						userId: account.userId,
 						email: account.email,
 						reason: !sessionRecord ? 'no session record' : 'session expired'
 					});
 				}
 			} catch (error) {
-				console.error(
-					`❌ [/auth/linked-sessions] Failed to get session for linked account ${account.userId}:`,
+				logger.error('linkedSessions', 'Failed to get session for linked account', {
+					userId: account.userId,
 					error
-				);
+				});
 				// Continue with other accounts
 			}
 		}
 
-		console.log('✅ [/auth/linked-sessions] Returning sessions:', {
+		logger.debug('linkedSessions', 'Returning sessions', {
 			count: linkedSessions.length,
 			sessions: linkedSessions.map((s) => ({
 				userId: s.userId,
@@ -152,7 +153,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 		return json({ sessions: linkedSessions });
 	} catch (error) {
-		console.error('❌ [/auth/linked-sessions] Failed to fetch linked account sessions:', error);
+		logger.error('linkedSessions', 'Failed to fetch linked account sessions', { error });
 		return json({ error: 'Failed to fetch linked account sessions' }, { status: 500 });
 	}
 };

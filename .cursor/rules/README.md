@@ -92,6 +92,12 @@ globs: ['**/*linear*', '.cursor/commands/linear.md']
 - **Why rule**: Security constraint (never hallucinate API keys)
 - **Status**: ✅ Appropriate size
 
+### `logging-patterns.mdc` (~200 lines)
+
+- **Purpose**: When to use `console.log` vs `logger` utility
+- **Why rule**: Prevents production logs from cluttering terminal
+- **Status**: ✅ Appropriate size, scoped to server files
+
 ---
 
 ## 🚀 Optimization Strategy
@@ -215,9 +221,10 @@ alwaysApply: true
 | `way-of-working.mdc`      | Rule    | ~174  | ✅ Appropriate    |
 | `working-with-linear.mdc` | Rule    | 84    | ✅ Optimized      |
 | `posthog-integration.mdc` | Rule    | ~26   | ✅ Appropriate    |
+| `logging-patterns.mdc`    | Rule    | ~200  | ✅ Scoped to globs |
 | `linear.md`               | Command | 366   | ✅ Reference only |
 
-**Total Rule Context**: ~284 lines (down from 740+)
+**Total Rule Context**: ~484 lines (scoped appropriately)
 
 ---
 

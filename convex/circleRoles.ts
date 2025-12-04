@@ -275,6 +275,8 @@ export const listByWorkspace = query({
 				purpose?: string;
 				templateId?: Id<'roleTemplates'>;
 				scope?: string;
+				status: 'draft' | 'active';
+				isHiring: boolean;
 				fillerCount: number;
 				createdAt: number;
 			}>;
@@ -296,6 +298,8 @@ export const listByWorkspace = query({
 					purpose: role.purpose,
 					templateId: role.templateId,
 					scope: scopes.length > 0 ? scopes[0] : undefined,
+					status: role.status,
+					isHiring: role.isHiring,
 					fillerCount: assignments.length,
 					createdAt: role.createdAt
 				};

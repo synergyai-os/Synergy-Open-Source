@@ -15,6 +15,7 @@ import {
 	verifySignature
 } from './crypto';
 import { refreshWorkOSSession } from './workos';
+import { logger } from '$lib/utils/logger';
 
 export const SESSION_COOKIE_NAME = 'syos_session';
 export const CSRF_COOKIE_NAME = 'syos_csrf';
@@ -89,7 +90,9 @@ export async function establishSession(options: {
 			'127.0.0.1';
 
 		if (env.E2E_TEST_MODE === 'true') {
-			console.log('⚠️ getClientAddress failed in establishSession, using fallback:', ipAddress);
+			logger.warn('auth', 'getClientAddress failed in establishSession, using fallback', {
+				ipAddress
+			});
 		}
 	}
 
@@ -106,7 +109,7 @@ export async function establishSession(options: {
 		userAgent: options.event.request.headers.get('user-agent')
 	});
 
-	console.log('🔍 Setting session cookies:', {
+	logger.debug('auth', 'Setting session cookies', {
 		sessionCookieName: SESSION_COOKIE_NAME,
 		csrfCookieName: CSRF_COOKIE_NAME,
 		cookieOptions: sessionCookieOptions
@@ -119,7 +122,7 @@ export async function establishSession(options: {
 	);
 	options.event.cookies.set(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
 
-	console.log('✅ Session cookies set successfully');
+	logger.debug('auth', 'Session cookies set successfully');
 
 	// Normalize activeWorkspace to ensure id is string | null (not optional)
 	const activeWorkspace = options.userSnapshot.activeWorkspace
@@ -147,18 +150,22 @@ export async function establishSession(options: {
 		csrfToken
 	};
 
-	console.log('✅ Session established for user:', options.userSnapshot.email);
+	logger.info('auth', 'Session established for user', {
+		email: options.userSnapshot.email
+	});
 
 	return sessionId;
 }
 
 export async function resolveRequestSession(event: RequestEvent) {
-	console.log('🔍 Resolving session for:', event.url.pathname);
+	logger.debug('auth', 'Resolving session', {
+		pathname: event.url.pathname
+	});
 
 	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
 	const csrfCookieValue = event.cookies.get(CSRF_COOKIE_NAME);
 
-	console.log('🔍 Session cookies:', {
+	logger.debug('auth', 'Session cookies', {
 		hasSession: !!sessionCookie,
 		hasCsrf: !!csrfCookieValue
 	});
@@ -186,7 +193,9 @@ export async function resolveRequestSession(event: RequestEvent) {
 
 	const record = await getSessionRecord(sessionId);
 	if (!record) {
-		console.warn('⚠️  Session record not found in Convex for sessionId:', sessionId);
+		logger.warn('auth', 'Session record not found in Convex', {
+			sessionId
+		});
 		clearSessionCookies(event);
 		event.locals.auth = {
 			sessionId: undefined,
@@ -195,7 +204,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 		return;
 	}
 
-	console.log('✅ Session record found:', {
+	logger.debug('auth', 'Session record found', {
 		sessionId: record.sessionId,
 		expiresAt: new Date(record.expiresAt).toISOString(),
 		userEmail: record.userSnapshot?.email
@@ -204,7 +213,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 	const now = Date.now();
 
 	if (record.expiresAt <= now) {
-		console.warn('⚠️  Session expired:', {
+		logger.warn('auth', 'Session expired', {
 			sessionId: record.sessionId,
 			expiresAt: new Date(record.expiresAt).toISOString(),
 			now: new Date(now).toISOString()
@@ -270,7 +279,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 			event.cookies.set(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
 			expiresAt = refreshedExpiresAt;
 		} catch (error) {
-			console.error('❌ Failed to refresh WorkOS session - logging user out', {
+			logger.error('auth', 'Failed to refresh WorkOS session - logging user out', {
 				sessionId: record.sessionId,
 				userEmail: record.userSnapshot?.email,
 				error: (error as Error)?.message
@@ -296,10 +305,9 @@ export async function resolveRequestSession(event: RequestEvent) {
 				'127.0.0.1';
 
 			if (env.E2E_TEST_MODE === 'true') {
-				console.log(
-					'⚠️ getClientAddress failed in resolveRequestSession, using fallback:',
+				logger.warn('auth', 'getClientAddress failed in resolveRequestSession, using fallback', {
 					ipAddress
-				);
+				});
 			}
 		}
 

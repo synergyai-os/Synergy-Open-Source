@@ -4,6 +4,7 @@ import type { Id } from '$lib/convex';
 import { decryptSecret, encryptSecret, generateSessionId, hashValue } from './crypto';
 import type { ConvexClient } from '$lib/types/convex';
 import type { AuthFlowMode, LoginStateMetadata, SessionSnapshot, SessionRecord } from '../types';
+import { logger } from '$lib/utils/logger';
 
 const LOGIN_STATE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -17,12 +18,16 @@ let hasLoggedConvexUrl = false;
 function createConvexClient() {
 	// Debug logging for E2E tests to verify Convex URL
 	if (process.env.E2E_TEST_MODE === 'true') {
-		console.log('🔍 [E2E Debug] PUBLIC_CONVEX_URL:', publicEnv.PUBLIC_CONVEX_URL);
+		logger.debug('general', 'E2E Debug: PUBLIC_CONVEX_URL', {
+			url: publicEnv.PUBLIC_CONVEX_URL
+		});
 	}
 
 	// Log Convex URL once at startup (dev mode only)
 	if (!hasLoggedConvexUrl && process.env.NODE_ENV !== 'production') {
-		console.log('🔍 [Convex] Using deployment:', publicEnv.PUBLIC_CONVEX_URL);
+		logger.debug('general', 'Convex deployment initialized', {
+			deploymentUrl: publicEnv.PUBLIC_CONVEX_URL
+		});
 		hasLoggedConvexUrl = true;
 	}
 
