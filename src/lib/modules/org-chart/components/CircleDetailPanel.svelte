@@ -1,9 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
-	import { useConvexClient } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
-	import { SvelteMap } from 'svelte/reactivity';
+	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
@@ -50,56 +47,18 @@
 	// Get members without roles
 	const membersWithoutRoles = $derived(orgChart?.selectedCircleMembersWithoutRoles ?? []);
 
-	// Fetch role templates to check isCore
-	const convexClient = browser ? useConvexClient() : null;
-	let templatesMap = new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
-
-	// Fetch templates when circle is selected
-	$effect(() => {
-		if (!browser || !convexClient || !orgChart?.selectedCircleId || !circle) return;
-
-		const sessionId = $page.data.sessionId;
-		const workspaceId = circle.workspaceId;
-
-		if (!sessionId || !workspaceId) return;
-
-		convexClient
-			.query(api.roleTemplates.list, {
-				sessionId,
-				workspaceId: workspaceId as Id<'workspaces'>
-			})
-			.then((result) => {
-				const map = new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
-				// Add system templates
-				for (const template of result.system) {
-					map.set(template._id, { isCore: template.isCore });
-				}
-				// Add workspace templates
-				for (const template of result.workspace) {
-					map.set(template._id, { isCore: template.isCore });
-				}
-				templatesMap = map;
-			})
-			.catch((error) => {
-				console.error('[CircleDetailPanel] Failed to load templates:', error);
-			});
-	});
-
-	// Separate roles into core and regular
+	// Get core and regular roles from composable (uses preloaded templates data)
+	// This avoids hydration errors - query is managed in composable with proper SSR handling
 	const coreRoles = $derived(
-		allRoles.filter((role) => {
-			if (!role.templateId) return false;
-			const template = templatesMap.get(role.templateId);
-			return template?.isCore === true;
-		})
+		orgChart && orgChart.selectedCircleId
+			? orgChart.getCoreRolesForCircle(orgChart.selectedCircleId)
+			: []
 	);
 
 	const regularRoles = $derived(
-		allRoles.filter((role) => {
-			if (!role.templateId) return true; // Roles without templateId are regular
-			const template = templatesMap.get(role.templateId);
-			return template?.isCore !== true;
-		})
+		orgChart && orgChart.selectedCircleId
+			? orgChart.getRegularRolesForCircle(orgChart.selectedCircleId)
+			: []
 	);
 
 	// Tab state with dummy counts

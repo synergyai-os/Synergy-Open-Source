@@ -134,5 +134,114 @@ const roles = $derived(
 
 ---
 
-**Last Updated**: 2025-01-27
+## #L140: useQuery Hydration Errors in Components vs Composables [🔴 CRITICAL]
+
+**Keywords**: useQuery, hydration error, SSR, white screen, browser check, composable, component, $derived, conditional query, reactive query
+
+**Symptom**: 
+- White screen on hard refresh with `Failed to hydrate: Error: sessionId and workspaceId required`
+- Query works initially but breaks on page refresh
+- Error at component line where `useQuery` is conditionally created
+- Component script runs during SSR even when wrapped in `{#if browser}`
+
+**Root Cause**: 
+1. `{#if browser}` in template only controls **rendering**, not **script execution**
+2. Component scripts run during SSR/hydration regardless of template conditionals
+3. `useQuery` conditionally created based on `$derived` values evaluates **once at initialization**
+4. If `$derived` value is `undefined` initially, query is `null` forever (not reactive)
+5. If query throws during hydration, it breaks the page
+
+**Example of broken code**:
+```svelte
+<!-- Parent: +page.svelte -->
+{#if browser && orgChart}
+  <CircleDetailPanel {orgChart} />  <!-- ❌ Component script STILL runs during SSR -->
+{/if}
+
+<!-- CircleDetailPanel.svelte -->
+<script lang="ts">
+  // ❌ BROKEN: workspaceId is $derived and undefined during hydration
+  const workspaceId = $derived.by(() => circle?.workspaceId);
+  
+  // ❌ BROKEN: Condition evaluates ONCE at initialization
+  // When workspaceId becomes available later, query is still null
+  const templatesQuery =
+    browser && $page.data.sessionId && workspaceId
+      ? useQuery(api.roleTemplates.list, () => {
+          if (!workspaceId) throw new Error('workspaceId required');  // ❌ Throws during hydration
+          return { workspaceId };
+        })
+      : null;
+</script>
+```
+
+**Fix**: Move query to composable where SSR behavior is different:
+
+```typescript
+// ✅ CORRECT: Query in composable (useOrgChart.svelte.ts)
+// Composable is only created when browser && sessionId is true (in +page.svelte)
+// The "throw when params not ready" pattern works - Convex retries reactively
+
+const roleTemplatesQuery = browser
+  ? useQuery(api.roleTemplates.list, () => {
+      const sessionId = getSessionId();
+      const workspaceId = getWorkspaceId();
+      // Throw when params not ready - Convex handles gracefully and retries
+      if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+      return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+    })
+  : null;
+
+// Store in Map for O(1) lookup
+const templatesMap = $derived.by(() => {
+  const data = roleTemplatesQuery?.data;
+  if (!data) return new SvelteMap();
+  // ... populate map
+});
+
+// Expose helper methods
+return {
+  getCoreRolesForCircle: (circleId) => { /* use templatesMap */ },
+  getRegularRolesForCircle: (circleId) => { /* use templatesMap */ },
+};
+
+// Component: Use composable's preloaded data (no query creation)
+const coreRoles = $derived(
+  orgChart?.selectedCircleId
+    ? orgChart.getCoreRolesForCircle(orgChart.selectedCircleId)
+    : []
+);
+```
+
+**Why Composables Work**:
+1. Composable is only instantiated when `browser && sessionId` is true
+2. The "throw error when params not ready" pattern works in composables
+3. Convex handles the error gracefully and retries when params become available
+4. Components use reactive getters - no query creation needed
+
+**Key Principles**:
+1. **Never conditionally create useQuery based on $derived values in components**
+2. **Move queries to composables** where SSR behavior is predictable
+3. **Use "throw when params not ready" pattern** inside query function
+4. **Expose helper methods** from composable for filtered/derived data
+5. **Components use reactive getters** - no query logic in components
+
+**Detection**:
+- Check for `useQuery` in component with condition checking `$derived` values
+- Check for hydration errors mentioning "required" or query params
+- Check if query works initially but breaks on hard refresh
+
+**Real Example**: 
+- Before: `CircleDetailPanel.svelte` had `templatesQuery` with workspaceId condition
+- After: `useOrgChart.svelte.ts` has `roleTemplatesQuery` + helper methods
+- Component uses `orgChart.getCoreRolesForCircle()` / `orgChart.getRegularRolesForCircle()`
+
+**Related**: 
+- Composable Reactivity Break (svelte-reactivity.md#L10)
+- Preload Related Data (convex-integration.md#L10)
+- SvelteKit SSR/Hydration lifecycle
+
+---
+
+**Last Updated**: 2025-12-04
 

@@ -10,6 +10,15 @@ import type {
 	RoleFiller
 } from '$lib/infrastructure/organizational-model';
 
+// Type for role template (from api.roleTemplates.list)
+type RoleTemplate = {
+	_id: Id<'roleTemplates'>;
+	name: string;
+	description?: string;
+	isCore: boolean;
+	isRequired: boolean;
+};
+
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
 // Type for role returned by api.circleRoles.get
@@ -81,26 +90,48 @@ export function useOrgChart(options: {
 	let currentRoleFillersQueryId: Id<'circleRoles'> | null = null;
 
 	// Query circles list - wait for org context before querying
-	const circlesQuery =
-		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.circles.list, () => {
-					const sessionId = getSessionId();
-					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
-					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
-				})
-			: null;
+	// CRITICAL: Always call useQuery when browser is true to ensure reactivity
+	// The query function is reactive, so it will retry when workspaceId becomes available
+	// Pattern matches useCircles.svelte.ts (throws error when params not ready)
+	const circlesQuery = browser
+		? useQuery(api.circles.list, () => {
+				const sessionId = getSessionId();
+				const workspaceId = getWorkspaceId();
+				// Throw error when dependencies aren't ready - Convex handles this gracefully
+				// Query will retry reactively when workspaceId becomes available
+				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+			})
+		: null;
 
 	// Query roles for all circles in workspace (preload for instant display)
-	const rolesByWorkspaceQuery =
-		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.circleRoles.listByWorkspace, () => {
-					const sessionId = getSessionId();
-					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
-					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
-				})
-			: null;
+	// CRITICAL: Always call useQuery when browser is true to ensure reactivity
+	// The query function is reactive, so it will retry when workspaceId becomes available
+	// Pattern matches useCircles.svelte.ts (throws error when params not ready)
+	const rolesByWorkspaceQuery = browser
+		? useQuery(api.circleRoles.listByWorkspace, () => {
+				const sessionId = getSessionId();
+				const workspaceId = getWorkspaceId();
+				// Throw error when dependencies aren't ready - Convex handles this gracefully
+				// Query will retry reactively when workspaceId becomes available
+				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+			})
+		: null;
+
+	// Query role templates to determine which roles are "core"
+	// CRITICAL: Always call useQuery when browser is true to ensure reactivity
+	// This prevents hydration errors - query throws when params not ready, Convex retries
+	const roleTemplatesQuery = browser
+		? useQuery(api.roleTemplates.list, () => {
+				const sessionId = getSessionId();
+				const workspaceId = getWorkspaceId();
+				// Throw error when dependencies aren't ready - Convex handles this gracefully
+				// Query will retry reactively when workspaceId becomes available
+				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+			})
+		: null;
 
 	// Store roles in Map for O(1) lookup by circleId
 	const rolesByCircle = $derived.by(() => {
@@ -120,6 +151,24 @@ export function useOrgChart(options: {
 		>();
 		for (const { circleId, roles } of data) {
 			map.set(circleId, roles);
+		}
+		return map;
+	});
+
+	// Store role templates in Map for O(1) lookup by templateId
+	// Used to determine which roles are "core" based on their template
+	const templatesMap = $derived.by(() => {
+		const data = roleTemplatesQuery?.data;
+		if (!data) return new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
+
+		const map = new SvelteMap<Id<'roleTemplates'>, { isCore: boolean }>();
+		// Add system templates
+		for (const template of data.system ?? []) {
+			map.set(template._id, { isCore: template.isCore });
+		}
+		// Add workspace templates
+		for (const template of data.workspace ?? []) {
+			map.set(template._id, { isCore: template.isCore });
 		}
 		return map;
 	});
@@ -466,12 +515,47 @@ export function useOrgChart(options: {
 			return state.hoveredCircleId;
 		},
 		get isLoading() {
-			return !browser || circlesQuery?.data === undefined;
+			// If not in browser, always loading
+			if (!browser) return true;
+			// If query doesn't exist, we're loading
+			if (!circlesQuery) return true;
+			// If query is skipped (params not ready), we're loading
+			// Check if we're waiting for workspaceId to become available
+			if (!getSessionId() || !getWorkspaceId()) return true;
+			// Otherwise, check if data is loaded
+			return circlesQuery.data === undefined;
 		},
 
 		// Get roles for a specific circle (from preloaded data)
 		getRolesForCircle: (circleId: Id<'circles'>) => {
 			return rolesByCircle.get(circleId) ?? null;
+		},
+
+		// Get core roles for a specific circle (roles with isCore template)
+		getCoreRolesForCircle: (circleId: Id<'circles'>) => {
+			const roles = rolesByCircle.get(circleId) ?? [];
+			return roles.filter((role) => {
+				if (!role.templateId) return false;
+				const template = templatesMap.get(role.templateId);
+				return template?.isCore === true;
+			});
+		},
+
+		// Get regular (non-core) roles for a specific circle
+		getRegularRolesForCircle: (circleId: Id<'circles'>) => {
+			const roles = rolesByCircle.get(circleId) ?? [];
+			return roles.filter((role) => {
+				if (!role.templateId) return true; // Roles without templateId are regular
+				const template = templatesMap.get(role.templateId);
+				return template?.isCore !== true;
+			});
+		},
+
+		// Check if a role is a core role (based on its template)
+		isRoleCore: (templateId: Id<'roleTemplates'> | undefined) => {
+			if (!templateId) return false;
+			const template = templatesMap.get(templateId);
+			return template?.isCore === true;
 		},
 
 		// Navigation stack - hierarchical panel navigation

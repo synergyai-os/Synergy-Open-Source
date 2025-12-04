@@ -53,6 +53,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | D3, pack layout, circle size, hierarchy depth, baseSizes, value, radius, role size, root circle, sub-circle, depth-based sizing, sqrt, value to radius | D3 Pack Circle Sizes by Depth | `design-system-patterns.md#L1350` |
 || nested cards, rounded corners, container, list items, rounded-none, nested variant, visual hierarchy, container border, inner items | Nested Cards Without Rounded Corners | `design-system-patterns.md#L1450` |
 | preload, batch query, N+1 queries, performance, instant display, listByWorkspace, roles preloading, delay, sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
+| useQuery, hydration error, SSR, white screen, browser check, composable, component, $derived, conditional query, reactive query | useQuery Hydration Errors in Components vs Composables | `convex-integration.md#L140` |
 
 ---
 
@@ -63,6 +64,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Props not updating in composable/helper function | Composable Reactivity Break | `svelte-reactivity.md#L10` |
 | TypeError: $.get(...) is not a function, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | Scroll area shows content at bottom, must scroll up | ScrollArea Initial Position | `ui-patterns.md#L10` |
+| White screen on refresh with hydration error, useQuery in component | useQuery Hydration Errors | `convex-integration.md#L140` |
 
 ## 🟡 Important (Common Issues)
 
@@ -124,7 +126,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-12-01
+**Last Updated**: 2025-12-04
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
 
 ## Recent Additions (2025-12-01)
