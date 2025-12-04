@@ -1,65 +1,23 @@
 <script lang="ts">
-	import { Switch, Text, Heading, Icon, Badge, FormInput } from '$lib/components/atoms';
+	import { Switch, Text, Heading, Icon, Badge } from '$lib/components/atoms';
 	import { switchRootRecipe, switchThumbRecipe } from '$lib/design-system/recipes';
 	import { setTheme, isDark as isDarkFn } from '$lib/stores/theme.svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { onMount, getContext } from 'svelte';
-	import type { FunctionReference, FunctionReturnType } from 'convex/server';
+	import { onMount } from 'svelte';
+	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$convex/_generated/dataModel';
-	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
-	// Types for Convex hooks (currently unused but kept for future use)
-	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
-	type _UseQueryReturn<Query extends FunctionReference<'query'>> =
-		| {
-				data: undefined;
-				error: undefined;
-				isLoading: true;
-				isStale: false;
-		  }
-		| {
-				data: undefined;
-				error: Error;
-				isLoading: false;
-				isStale: boolean;
-		  }
-		| {
-				data: FunctionReturnType<Query>;
-				error: undefined;
-				isLoading: false;
-				isStale: boolean;
-		  };
+	// Get workspace slug from route params
+	const workspaceSlug = $derived($page.params.slug as string | undefined);
 
-	// Mutation function type - returns a function that takes args and returns a promise (currently unused but kept for future use)
-	// type UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
-	type _UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
-		args: FunctionArgs<Mutation>
-	) => Promise<FunctionReturnType<Mutation>>;
-
-	// Helper type for function args
-	// Using 'public' | 'internal' for visibility constraint since we're only inferring Args
-	type FunctionArgs<F extends FunctionReference<'query' | 'mutation' | 'action'>> =
-		F extends FunctionReference<'query' | 'mutation' | 'action', 'public' | 'internal', infer Args>
-			? Args
-			: never;
-
-	// User settings type (decrypted, as returned from query)
-	// Using string literal for Id type since table may not be in generated types yet
-	type UserSettings = {
-		_id: string;
-		userId: string;
-		theme?: 'light' | 'dark';
-		claudeApiKey?: string; // Encrypted key from query
-		readwiseApiKey?: string; // Encrypted key from query
-		_creationTime: number;
-	};
+	// Get workspace name from parent layout data
+	const workspaceName = $derived(() => {
+		const workspace = ($page.data as any)?.workspace;
+		return workspace?.name ?? 'Workspace';
+	});
 
 	// CRITICAL: Convex hooks MUST be called during component initialization (synchronously)
-	// Solution: Import convex-svelte at top level and call hooks synchronously
-	// Guard with browser check for SSR safety
-	// setupConvexAuth already sets up the authenticated client context
-
 	// Import at top level - the module import is safe, hooks are called conditionally
 	import { useConvexClient } from 'convex-svelte';
 
@@ -67,41 +25,13 @@
 	const isAuthenticated = true; // User is always authenticated in this route (protected by server)
 
 	// Call useConvexClient at top level (must be synchronous, during component init)
-	// setupConvexAuth should have already set up the authenticated client context
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Create function references using makeFunctionReference
 	// Import at top level (safe to import, execution is guarded)
 	import { makeFunctionReference } from 'convex/server';
 
-	// Get workspace context
-	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
-	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
-	// Pattern: Check object existence first, then access getter property directly
-	// See SYOS-228 for full pattern documentation
-	const activeWorkspaceId = $derived(() => {
-		if (!workspaces) return null;
-		return workspaces.activeWorkspaceId ?? null;
-	});
-	const organizationSummaries = $derived(() => {
-		if (!workspaces) return [];
-		return workspaces.workspaces ?? [];
-	});
-	const currentOrganization = $derived(() => {
-		const orgId = activeWorkspaceId();
-		if (!orgId) return null;
-		return organizationSummaries().find((org) => org.workspaceId === orgId);
-	});
-	const workspaceContext = $derived(() => {
-		// Users always have an workspace (enforced server-side)
-		// If no workspace found, return fallback (should never happen)
-		const org = currentOrganization();
-		if (org) {
-			return { type: 'workspace', name: org.name };
-		}
-		// Fallback for edge case (should never happen due to server-side enforcement)
-		return { type: 'workspace', name: 'Organization' };
-	});
+	let { data }: { data: { sessionId: string; workspaceId: string } } = $props();
 
 	const settingsApiFunctions = browser
 		? {
@@ -139,49 +69,12 @@
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				deleteReadwiseApiKey: makeFunctionReference(
 					'settings:deleteReadwiseApiKey'
-				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
-				// Organization settings
-				getOrganizationSettings: makeFunctionReference(
-					'workspaceSettings:getOrganizationSettings'
-				) as FunctionReference<
-					'query',
-					'public',
-					{ sessionId: string; workspaceId: Id<'workspaces'> },
-					{
-						_id: Id<'workspaceSettings'> | null;
-						workspaceId: Id<'workspaces'>;
-						hasClaudeKey: boolean;
-						isAdmin: boolean;
-					} | null
-				>,
-				updateOrganizationClaudeApiKey: makeFunctionReference(
-					'workspaceSettings:updateOrganizationClaudeApiKey'
-				) as FunctionReference<
-					'action',
-					'public',
-					{ sessionId: string; workspaceId: Id<'workspaces'>; apiKey: string },
-					Id<'workspaces'>
-				>,
-				deleteOrganizationClaudeApiKey: makeFunctionReference(
-					'workspaceSettings:deleteOrganizationClaudeApiKey'
-				) as FunctionReference<
-					'mutation',
-					'public',
-					{ sessionId: string; workspaceId: Id<'workspaces'> },
-					Id<'workspaceSettings'> | null
-				>
+				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>
 			}
 		: null;
 
-	// Load settings using client.query (not useQuery, to keep it simple)
-	// TODO: Re-enable when userSettings is needed
-	let _userSettings: UserSettings | null = $state(null);
-
 	// Create reactive isDark derived value (since isDark() is a function, not a store)
-	// We need to track theme changes reactively
 	const isDark = $derived.by(() => {
-		// Call isDark() function and track it reactively
-		// This will update when the theme changes
 		return isDarkFn();
 	});
 
@@ -192,8 +85,7 @@
 		}
 
 		try {
-			// Get sessionId from page data (provided by authenticated layout)
-			const sessionId = $page.data.sessionId;
+			const sessionId = data.sessionId;
 			if (!sessionId) {
 				console.error('Session ID not available');
 				return;
@@ -204,36 +96,10 @@
 				sessionId
 			});
 			if (settings) {
-				// Query returns { hasClaudeKey, hasReadwiseKey, theme } | null
-				// Create UserSettings-compatible object for type compatibility
-				// TODO: Re-enable when userSettings is needed
-				_userSettings = {
-					_id: '', // Not needed for display
-					userId: '', // Not needed for display
-					theme: settings.theme as 'light' | 'dark' | undefined,
-					_creationTime: 0 // Not needed for display
-				};
-
 				// SECURITY: NEVER decrypt keys on the client - only track if they exist
-				// Keys are encrypted in the database and should NEVER be sent to the client
-				// Use boolean flags from query to know if keys exist
 				claudeHasKey = settings.hasClaudeKey || false;
 				readwiseHasKey = settings.hasReadwiseKey || false;
 				// Keep inputs empty - never display actual keys on client
-			}
-
-			// Load workspace settings if in org workspace
-			const orgId = activeWorkspaceId();
-			if (orgId) {
-				const orgSettings = await convexClient.query(settingsApiFunctions.getOrganizationSettings, {
-					sessionId,
-					workspaceId: orgId as Id<'workspaces'>
-				});
-				if (orgSettings) {
-					_isOrgAdmin = orgSettings.isAdmin || false;
-					// Track if org has Claude key (Readwise is always personal)
-					// orgClaudeHasKey will be added below if needed
-				}
 			}
 		} catch (_e) {
 			// Silently handle errors - user will see empty inputs
@@ -247,11 +113,6 @@
 	let updateReadwiseApiKeyFn:
 		| ((args: { sessionId: string; apiKey: string }) => Promise<string>)
 		| null = $state(null);
-	// TODO: Re-enable when updateThemeFn is needed (currently only used as type)
-	type UpdateThemeFn =
-		| ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>)
-		| null;
-	let _updateThemeFn: UpdateThemeFn = $state(null);
 	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
@@ -259,21 +120,12 @@
 	$effect(() => {
 		if (!browser || !convexClient || !settingsApiFunctions) return;
 
-		// Create action functions for API key updates (they're actions, not mutations, because they validate via HTTP)
+		// Create action functions for API key updates
 		updateClaudeApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
-			convexClient!.action(
-				settingsApiFunctions.updateClaudeApiKey,
-				args
-			)) as typeof updateClaudeApiKeyFn;
+			convexClient!.action(settingsApiFunctions.updateClaudeApiKey, args)) as typeof updateClaudeApiKeyFn;
 		updateReadwiseApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
-			convexClient!.action(
-				settingsApiFunctions.updateReadwiseApiKey,
-				args
-			)) as typeof updateReadwiseApiKeyFn;
-		// Theme update is still a mutation (no validation needed)
-		_updateThemeFn = ((args: { sessionId: string; theme: 'light' | 'dark' }) =>
-			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof _updateThemeFn;
-		// Delete functions are actions (they validate via HTTP)
+			convexClient!.action(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+		// Delete functions are actions
 		deleteClaudeApiKeyFn = ((sessionId: string) =>
 			convexClient!.action(settingsApiFunctions.deleteClaudeApiKey, {
 				sessionId
@@ -286,34 +138,23 @@
 
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
-
-	// User API keys (personal settings within workspace)
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
-
-	// Organization workspace keys (separate state)
-	// TODO: Re-enable when org API keys are needed
-	let _orgClaudeApiKey = $state('');
-	let _orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
-	let _isOrgAdmin = $state(false); // Whether user can edit org settings (currently unused, reserved for future org settings)
-
-	// Settings are loaded directly in onMount above, no separate effect needed
 
 	// Validation states - 'idle' | 'validating' | 'valid' | 'invalid'
 	let claudeValidationState = $state<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
 	let claudeError = $state<string | null>(null);
-	let claudeShowCheckmark = $state(false); // Temporary checkmark after validation
-	let claudeHasKey = $state(false); // Track if key exists (for delete icon)
+	let claudeShowCheckmark = $state(false);
+	let claudeHasKey = $state(false);
 
 	let readwiseValidationState = $state<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
 	let readwiseError = $state<string | null>(null);
-	let readwiseShowCheckmark = $state(false); // Temporary checkmark after validation
-	let readwiseHasKey = $state(false); // Track if key exists (for delete icon)
+	let readwiseShowCheckmark = $state(false);
+	let readwiseHasKey = $state(false);
 
 	// Handle blur validation for Claude API key
 	async function handleClaudeKeyBlur() {
-		const sessionId = $page.data.sessionId;
-		// Only validate if there's a value and we're not already validating
+		const sessionId = data.sessionId;
 		if (
 			!sessionId ||
 			!claudeApiKey.trim() ||
@@ -330,28 +171,24 @@
 		try {
 			await updateClaudeApiKeyFn({ sessionId, apiKey: claudeApiKey.trim() });
 			claudeValidationState = 'valid';
-			claudeHasKey = true; // Mark that key exists
-			claudeShowCheckmark = true; // Show checkmark temporarily
-			// Hide checkmark after 3 seconds
+			claudeHasKey = true;
+			claudeShowCheckmark = true;
 			setTimeout(() => {
 				claudeShowCheckmark = false;
 			}, 3000);
 		} catch (error) {
 			claudeValidationState = 'invalid';
-			// Extract user-friendly error message (strip all technical details)
 			const rawMessage = error instanceof Error ? error.message : String(error);
-			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
 			let cleanMessage = rawMessage
 				.replace(
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
-				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
-				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
+				.replace(/\s*at handler[^]*$/i, '')
+				.replace(/\s*Called by client.*$/i, '')
+				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '')
 				.trim();
 
-			// Simplify common error messages
 			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
 				cleanMessage = 'Invalid API key. Please check your key and try again.';
 			} else if (
@@ -369,8 +206,7 @@
 
 	// Handle blur validation for Readwise API key
 	async function handleReadwiseKeyBlur() {
-		const sessionId = $page.data.sessionId;
-		// Only validate if there's a value and we're not already validating
+		const sessionId = data.sessionId;
 		if (
 			!sessionId ||
 			!readwiseApiKey.trim() ||
@@ -387,28 +223,24 @@
 		try {
 			await updateReadwiseApiKeyFn({ sessionId, apiKey: readwiseApiKey.trim() });
 			readwiseValidationState = 'valid';
-			readwiseHasKey = true; // Mark that key exists
-			readwiseShowCheckmark = true; // Show checkmark temporarily
-			// Hide checkmark after 3 seconds
+			readwiseHasKey = true;
+			readwiseShowCheckmark = true;
 			setTimeout(() => {
 				readwiseShowCheckmark = false;
 			}, 3000);
 		} catch (error) {
 			readwiseValidationState = 'invalid';
-			// Extract user-friendly error message (strip all technical details)
 			const rawMessage = error instanceof Error ? error.message : String(error);
-			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
 			let cleanMessage = rawMessage
 				.replace(
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
-				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
-				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
+				.replace(/\s*at handler[^]*$/i, '')
+				.replace(/\s*Called by client.*$/i, '')
+				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '')
 				.trim();
 
-			// Simplify common error messages
 			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
 				cleanMessage = 'Invalid API key. Please check your key and try again.';
 			} else if (
@@ -431,8 +263,7 @@
 			claudeValidationState = 'idle';
 			claudeError = null;
 		}
-		claudeShowCheckmark = false; // Hide checkmark when typing
-		// If input is cleared, key no longer exists
+		claudeShowCheckmark = false;
 		if (!value.trim()) {
 			claudeHasKey = false;
 		}
@@ -444,8 +275,7 @@
 			readwiseValidationState = 'idle';
 			readwiseError = null;
 		}
-		readwiseShowCheckmark = false; // Hide checkmark when typing
-		// If input is cleared, key no longer exists
+		readwiseShowCheckmark = false;
 		if (!value.trim()) {
 			readwiseHasKey = false;
 		}
@@ -453,7 +283,7 @@
 
 	// Delete API key handlers
 	async function handleDeleteClaudeKey() {
-		const sessionId = $page.data.sessionId;
+		const sessionId = data.sessionId;
 		if (!sessionId || !deleteClaudeApiKeyFn) return;
 
 		try {
@@ -464,12 +294,12 @@
 			claudeValidationState = 'idle';
 			claudeError = null;
 		} catch (_e) {
-			// Handle error silently - could show error message here if needed
+			// Handle error silently
 		}
 	}
 
 	async function handleDeleteReadwiseKey() {
-		const sessionId = $page.data.sessionId;
+		const sessionId = data.sessionId;
 		if (!sessionId || !deleteReadwiseApiKeyFn) return;
 
 		try {
@@ -480,12 +310,12 @@
 			readwiseValidationState = 'idle';
 			readwiseError = null;
 		} catch (_e) {
-			// Handle error silently - could show error message here if needed
+			// Handle error silently
 		}
 	}
 </script>
 
-<div class="h-screen overflow-y-auto bg-base">
+<div class="h-full overflow-y-auto bg-base">
 	<div class="mx-auto max-w-4xl px-page py-page">
 		<!-- Page Title -->
 		<Heading level={1} class="mb-section">Settings</Heading>
@@ -498,14 +328,11 @@
 				<Icon type="info" size="md" color="accent-primary" class="flex-shrink-0" />
 				<div class="min-w-0 flex-1">
 					<Text variant="body" size="sm" color="accent-primary" class="mb-fieldGroup font-medium">
-						Organization Settings: {workspaceContext().name}
+						Workspace Settings: {workspaceName()}
 					</Text>
 					<Text variant="body" size="sm" color="secondary" class="mb-fieldGroup">
-						These settings apply to {workspaceContext().name} workspace. Personal settings (theme, API
-						keys) are managed within this workspace context.
-					</Text>
-					<Text variant="label" size="sm" color="tertiary">
-						<strong>Coming soon:</strong> Team-specific settings and advanced workspace management.
+						These settings apply to {workspaceName()} workspace. Personal settings (theme, API keys) are
+						managed within this workspace context.
 					</Text>
 				</div>
 			</div>
@@ -640,7 +467,6 @@
 												</svg>
 											</div>
 										{:else if claudeShowCheckmark}
-											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
 											<div
 												class="absolute top-1/2 -translate-y-1/2"
 												style="right: var(--spacing-fieldGroup-gap);"
@@ -654,7 +480,6 @@
 												</svg>
 											</div>
 										{:else if claudeHasKey}
-											<!-- Delete button (trash icon) - replaces eye icon for security -->
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
@@ -815,7 +640,6 @@
 												</svg>
 											</div>
 										{:else if readwiseShowCheckmark}
-											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
 											<div
 												class="absolute top-1/2 -translate-y-1/2"
 												style="right: var(--spacing-fieldGroup-gap);"
@@ -829,7 +653,6 @@
 												</svg>
 											</div>
 										{:else if readwiseHasKey}
-											<!-- Delete button (trash icon) - replaces eye icon for security -->
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
@@ -915,3 +738,4 @@
 		</div>
 	</div>
 </div>
+

@@ -216,6 +216,15 @@ const schema = defineSchema(
 			// Template flags
 			isCore: v.boolean(), // Should auto-create in new circles
 			isRequired: v.boolean(), // Cannot be deleted (e.g., Circle Lead)
+			// RBAC permissions mapping - Maps organizational role → RBAC permissions
+			rbacPermissions: v.optional(
+				v.array(
+					v.object({
+						permissionSlug: v.string(), // e.g., "users.change-roles"
+						scope: v.union(v.literal('all'), v.literal('own')) // How the permission applies
+					})
+				)
+			),
 			// Soft delete
 			archivedAt: v.optional(v.number()),
 			archivedBy: v.optional(v.id('users')),
@@ -1297,14 +1306,16 @@ const schema = defineSchema(
 			assignedBy: v.id('users'), // Who assigned this role
 			assignedAt: v.number(),
 			expiresAt: v.optional(v.number()), // Optional expiration
-			revokedAt: v.optional(v.number()) // When role was revoked
+			revokedAt: v.optional(v.number()), // When role was revoked
+			sourceCircleRoleId: v.optional(v.id('userCircleRoles')) // Track which circleRole granted this RBAC role (for cleanup)
 		})
 			.index('by_user', ['userId'])
 			.index('by_role', ['roleId'])
 			.index('by_user_role', ['userId', 'roleId'])
 			.index('by_user_workspace', ['userId', 'workspaceId'])
 			.index('by_user_circle', ['userId', 'circleId'])
-			.index('by_user_resource', ['userId', 'resourceType', 'resourceId']),
+			.index('by_user_resource', ['userId', 'resourceType', 'resourceId'])
+			.index('by_source_circle_role', ['sourceCircleRoleId']), // For efficient cleanup when circleRole removed
 
 		// Resource Guests - Guest access to specific resources (like Notion/Google Docs)
 		resourceGuests: defineTable({

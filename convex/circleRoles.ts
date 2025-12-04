@@ -2,9 +2,10 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { captureCreate, captureUpdate, captureArchive, captureRestore } from './orgVersionHistory';
+import { requireQuickEditPermission } from './orgChartPermissions';
 
 /**
  * Circle Roles represent organizational accountabilities within circles
@@ -744,6 +745,94 @@ export const update = mutation({
 });
 
 /**
+ * Quick update a role (inline editing with auto-save)
+ * Requires: Org Designer role + allowQuickChanges workspace setting
+ * PHASE 2: Simplified permission check (circle type checks deferred to Phase 3)
+ */
+export const quickUpdate = mutation({
+	args: {
+		sessionId: v.string(),
+		circleRoleId: v.id('circleRoles'),
+		updates: v.object({
+			name: v.optional(v.string()),
+			purpose: v.optional(v.string())
+		})
+	},
+	handler: async (ctx, args) => {
+		// 1. Validate session
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// 2. Get role and its circle
+		const role = await ctx.db.get(args.circleRoleId);
+		if (!role) {
+			throw new Error('Role not found');
+		}
+
+		const circle = await ctx.db.get(role.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// 3. Check quick edit permission (RBAC + workspace setting)
+		await requireQuickEditPermission(ctx, userId, circle);
+
+		// Block quick edits to Lead roles - only workspace admin can edit via template
+		const roleIsLead = await isLeadRole(ctx, args.circleRoleId);
+		if (roleIsLead) {
+			throw new Error(
+				'Lead roles cannot be edited directly. Edit the Lead role template instead to update all Lead roles across all circles.'
+			);
+		}
+
+		// 4. Capture before state
+		const beforeDoc = { ...role };
+
+		// 5. Apply updates
+		const updateData: Partial<Doc<'circleRoles'>> = {
+			updatedAt: Date.now(),
+			updatedBy: userId
+		};
+
+		if (args.updates.name !== undefined) {
+			const trimmedName = args.updates.name.trim();
+			if (!trimmedName) {
+				throw new Error('Role name cannot be empty');
+			}
+
+			// Check for duplicate role name in circle (excluding current role)
+			const existingRoles = await ctx.db
+				.query('circleRoles')
+				.withIndex('by_circle', (q) => q.eq('circleId', role.circleId))
+				.collect();
+
+			const duplicate = existingRoles.find(
+				(r) => r._id !== args.circleRoleId && r.name.toLowerCase() === trimmedName.toLowerCase()
+			);
+
+			if (duplicate) {
+				throw new Error('A role with this name already exists in this circle');
+			}
+
+			updateData.name = trimmedName;
+		}
+
+		if (args.updates.purpose !== undefined) {
+			updateData.purpose = args.updates.purpose;
+		}
+
+		await ctx.db.patch(args.circleRoleId, updateData);
+
+		// 6. Capture version history
+		const afterDoc = await ctx.db.get(args.circleRoleId);
+		if (afterDoc) {
+			await captureUpdate(ctx, 'circleRole', beforeDoc, afterDoc);
+		}
+
+		return { success: true };
+	}
+});
+
+/**
  * Helper function to archive a role and cascade to assignments
  * Used internally by archiveRole mutation and circles.archive cascade
  */
@@ -807,6 +896,9 @@ async function archiveRoleHelper(
 			updatedAt: now,
 			updatedBy: userId
 		});
+
+		// Revoke auto-assigned RBAC permissions for this circleRole
+		await handleUserCircleRoleRemoved(ctx, assignment._id);
 	}
 }
 
@@ -870,6 +962,173 @@ export const deleteRole = mutation({
 });
 
 /**
+ * Auto-assign RBAC permissions when a user is assigned to a CircleRole
+ * This function handles the side effect of granting RBAC roles based on the role template's rbacPermissions
+ */
+async function handleUserCircleRoleCreated(
+	ctx: MutationCtx,
+	userCircleRole: {
+		_id: Id<'userCircleRoles'>;
+		userId: Id<'users'>;
+		circleRoleId: Id<'circleRoles'>;
+		assignedBy: Id<'users'>;
+	},
+	circleRole: {
+		templateId?: Id<'roleTemplates'>;
+		circleId: Id<'circles'>;
+		workspaceId: Id<'workspaces'>;
+	}
+): Promise<void> {
+	// If no template, nothing to do
+	if (!circleRole.templateId) {
+		return;
+	}
+
+	// Get template with RBAC permissions
+	const template = await ctx.db.get(circleRole.templateId);
+	if (!template?.rbacPermissions?.length) {
+		return;
+	}
+
+	// CircleRole → RBAC is ALWAYS enabled (default behavior)
+	// This is independent of Quick Edit Mode
+
+	// Auto-assign RBAC permissions for this role
+	for (const perm of template.rbacPermissions) {
+		// Find permission by slug
+		const permission = await ctx.db
+			.query('permissions')
+			.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+			.first();
+
+		if (!permission) {
+			// Permission doesn't exist, skip
+			continue;
+		}
+
+		// Find all RBAC roles that grant this permission
+		const rolePermissions = await ctx.db
+			.query('rolePermissions')
+			.withIndex('by_permission', (q) => q.eq('permissionId', permission._id))
+			.collect();
+
+		// For each role that grants this permission, assign it to the user
+		for (const rolePerm of rolePermissions) {
+			// Get the role details
+			const rbacRole = await ctx.db.get(rolePerm.roleId);
+			if (!rbacRole) {
+				continue;
+			}
+
+			// Check if user already has this RBAC role with this circle scope
+			const existingRole = await ctx.db
+				.query('userRoles')
+				.withIndex('by_user_role', (q) =>
+					q.eq('userId', userCircleRole.userId).eq('roleId', rbacRole._id)
+				)
+				.filter((q) =>
+					q.and(
+						q.eq(q.field('circleId'), circleRole.circleId),
+						q.eq(q.field('revokedAt'), undefined)
+					)
+				)
+				.first();
+
+			if (!existingRole) {
+				// Auto-assign RBAC role with circle scope
+				// Track sourceCircleRoleId for precise cleanup when user is removed
+				await ctx.db.insert('userRoles', {
+					userId: userCircleRole.userId,
+					roleId: rbacRole._id,
+					workspaceId: circleRole.workspaceId,
+					circleId: circleRole.circleId,
+					sourceCircleRoleId: userCircleRole._id, // Track source for cleanup
+					assignedBy: userCircleRole.assignedBy,
+					assignedAt: Date.now()
+				});
+			}
+		}
+	}
+}
+
+/**
+ * Revoke RBAC permissions when a user is removed from a CircleRole
+ * This function revokes ONLY the RBAC roles that were auto-assigned from this specific circleRole
+ * Uses sourceCircleRoleId for precise cleanup
+ */
+async function handleUserCircleRoleRemoved(
+	ctx: MutationCtx,
+	userCircleRoleId: Id<'userCircleRoles'>
+): Promise<void> {
+	// Find ONLY the RBAC roles that were auto-assigned from THIS circleRole
+	// This prevents over-revoking if user has multiple roles in same circle
+	const autoAssignedRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_source_circle_role', (q) => q.eq('sourceCircleRoleId', userCircleRoleId))
+		.filter((q) => q.eq(q.field('revokedAt'), undefined))
+		.collect();
+
+	// Revoke only the roles that came from this specific circleRole
+	for (const ur of autoAssignedRoles) {
+		await ctx.db.patch(ur._id, { revokedAt: Date.now() });
+	}
+}
+
+/**
+ * Restore RBAC permissions when a user is restored to a CircleRole
+ * This function un-revokes ONLY the RBAC roles that were auto-assigned from this specific circleRole
+ */
+async function handleUserCircleRoleRestored(
+	ctx: MutationCtx,
+	userCircleRoleId: Id<'userCircleRoles'>
+): Promise<void> {
+	// Find revoked RBAC roles that were auto-assigned from THIS circleRole
+	const revokedRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_source_circle_role', (q) => q.eq('sourceCircleRoleId', userCircleRoleId))
+		.filter((q) => q.neq(q.field('revokedAt'), undefined))
+		.collect();
+
+	// Un-revoke the roles that came from this specific circleRole
+	for (const ur of revokedRoles) {
+		await ctx.db.patch(ur._id, { revokedAt: undefined });
+	}
+
+	// Also ensure RBAC roles are assigned (in case they were deleted, not just revoked)
+	// Get the userCircleRole and circleRole to re-run auto-assignment
+	const userCircleRole = await ctx.db.get(userCircleRoleId);
+	if (!userCircleRole) {
+		return;
+	}
+
+	const circleRole = await ctx.db.get(userCircleRole.circleRoleId);
+	if (!circleRole) {
+		return;
+	}
+
+	const circle = await ctx.db.get(circleRole.circleId);
+	if (!circle) {
+		return;
+	}
+
+	// Re-run auto-assignment (will skip if roles already exist)
+	await handleUserCircleRoleCreated(
+		ctx,
+		{
+			_id: userCircleRoleId,
+			userId: userCircleRole.userId,
+			circleRoleId: userCircleRole.circleRoleId,
+			assignedBy: userCircleRole.assignedBy
+		},
+		{
+			templateId: circleRole.templateId,
+			circleId: circleRole.circleId,
+			workspaceId: circle.workspaceId
+		}
+	);
+}
+
+/**
  * Assign a user to a role
  */
 export const assignUser = mutation({
@@ -910,13 +1169,29 @@ export const assignUser = mutation({
 		}
 
 		const now = Date.now();
-		await ctx.db.insert('userCircleRoles', {
+		const userCircleRoleId = await ctx.db.insert('userCircleRoles', {
 			userId: args.userId,
 			circleRoleId: args.circleRoleId,
 			assignedAt: now,
 			assignedBy: actingUserId,
 			updatedAt: now
 		});
+
+		// Auto-assign RBAC permissions if template has rbacPermissions configured
+		await handleUserCircleRoleCreated(
+			ctx,
+			{
+				_id: userCircleRoleId,
+				userId: args.userId,
+				circleRoleId: args.circleRoleId,
+				assignedBy: actingUserId
+			},
+			{
+				templateId: role.templateId,
+				circleId: role.circleId,
+				workspaceId
+			}
+		);
 
 		return { success: true };
 	}
@@ -966,6 +1241,9 @@ export const removeUser = mutation({
 			updatedAt: now,
 			updatedBy: actingUserId
 		});
+
+		// Revoke auto-assigned RBAC permissions for this circleRole
+		await handleUserCircleRoleRemoved(ctx, assignment._id);
 
 		return { success: true };
 	}
@@ -1120,6 +1398,9 @@ export const restoreAssignment = mutation({
 			updatedAt: now,
 			updatedBy: userId
 		});
+
+		// Restore auto-assigned RBAC permissions for this circleRole
+		await handleUserCircleRoleRestored(ctx, args.assignmentId);
 
 		// Capture version history for assignment restore
 		const restoredAssignment = await ctx.db.get(args.assignmentId);

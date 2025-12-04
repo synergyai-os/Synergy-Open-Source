@@ -24,6 +24,7 @@ import type * as admin_validateRoleTemplates from "../admin/validateRoleTemplate
 import type * as auth from "../auth.js";
 import type * as authSessions from "../authSessions.js";
 import type * as blogExport from "../blogExport.js";
+import type * as circleItems from "../circleItems.js";
 import type * as circleRoles from "../circleRoles.js";
 import type * as circles from "../circles.js";
 import type * as cryptoActions from "../cryptoActions.js";
@@ -69,6 +70,7 @@ import type * as validateApiKeys from "../validateApiKeys.js";
 import type * as verification from "../verification.js";
 import type * as waitlist from "../waitlist.js";
 import type * as workspaceAliases from "../workspaceAliases.js";
+import type * as workspaceRoles from "../workspaceRoles.js";
 import type * as workspaceSettings from "../workspaceSettings.js";
 import type * as workspaces from "../workspaces.js";
 
@@ -95,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authSessions: typeof authSessions;
   blogExport: typeof blogExport;
+  circleItems: typeof circleItems;
   circleRoles: typeof circleRoles;
   circles: typeof circles;
   cryptoActions: typeof cryptoActions;
@@ -140,6 +143,7 @@ declare const fullApi: ApiFromModules<{
   verification: typeof verification;
   waitlist: typeof waitlist;
   workspaceAliases: typeof workspaceAliases;
+  workspaceRoles: typeof workspaceRoles;
   workspaceSettings: typeof workspaceSettings;
   workspaces: typeof workspaces;
 }>;

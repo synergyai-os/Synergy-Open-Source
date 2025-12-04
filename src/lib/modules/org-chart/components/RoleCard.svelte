@@ -3,6 +3,9 @@
 	import { ActionMenu } from '$lib/components/molecules';
 	import { roleCardRecipe } from '$lib/design-system/recipes';
 	import RoleMemberItem from './RoleMemberItem.svelte';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
+	import type { Id } from '$lib/convex/_generated/dataModel';
 
 	type Member = {
 		userId: string;
@@ -27,6 +30,13 @@
 			userId: string
 		) => Array<{ label: string; onclick: () => void; danger?: boolean }>;
 		currentUserId?: string;
+		// Inline editing props (optional - only for roles, not circles)
+		roleId?: Id<'circleRoles'>;
+		circleId?: Id<'circles'>;
+		canEdit?: boolean;
+		editReason?: string;
+		onNameChange?: (name: string) => Promise<void>;
+		onPurposeChange?: (purpose: string) => Promise<void>;
 		class?: string;
 	};
 
@@ -42,6 +52,12 @@
 		onAddMember,
 		memberMenuItems,
 		currentUserId,
+		roleId,
+		circleId,
+		canEdit = false,
+		editReason,
+		onNameChange,
+		onPurposeChange,
 		class: className = ''
 	}: Props = $props();
 
@@ -75,7 +91,23 @@
 		{/if}
 		<div class="min-w-0 flex-1 text-left">
 			<div class="flex items-center gap-fieldGroup">
-				<p class="text-button truncate font-medium text-primary">{name}</p>
+				{#if canEdit && onNameChange && !isCircle && roleId}
+					<InlineEditText
+						value={name}
+						onSave={onNameChange}
+						placeholder="Role name"
+						size="md"
+						className="truncate font-medium"
+					/>
+				{:else if editReason && !isCircle}
+					<EditPermissionTooltip reason={editReason}>
+						{#snippet children()}
+							<p class="text-button truncate font-medium text-primary">{name}</p>
+						{/snippet}
+					</EditPermissionTooltip>
+				{:else}
+					<p class="text-button truncate font-medium text-primary">{name}</p>
+				{/if}
 				{#if status}
 					<Badge variant={badgeVariant} size="md">
 						{#snippet children()}
@@ -84,8 +116,26 @@
 					</Badge>
 				{/if}
 			</div>
-			{#if purpose && !isCircle}
-				<p class="text-label text-secondary">{purpose}</p>
+			{#if !isCircle}
+				{#if canEdit && onPurposeChange && roleId}
+					<InlineEditText
+						value={purpose || ''}
+						onSave={onPurposeChange}
+						multiline={true}
+						placeholder="What's the purpose of this role?"
+						maxRows={2}
+						size="sm"
+						className="text-label"
+					/>
+				{:else if editReason}
+					<EditPermissionTooltip reason={editReason}>
+						{#snippet children()}
+							<p class="text-label text-secondary">{purpose || 'No purpose set'}</p>
+						{/snippet}
+					</EditPermissionTooltip>
+				{:else if purpose}
+					<p class="text-label text-secondary">{purpose}</p>
+				{/if}
 			{/if}
 		</div>
 		<div class="flex items-center gap-fieldGroup" role="group">

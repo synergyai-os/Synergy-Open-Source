@@ -399,6 +399,51 @@ export const getRBACAnalytics = query({
 	}
 });
 
+/**
+ * List all workspaces (for admin dropdown)
+ */
+export const listWorkspaces = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const workspaces = await ctx.db.query('workspaces').collect();
+
+		return workspaces.map((workspace) => ({
+			_id: workspace._id,
+			name: workspace.name,
+			slug: workspace.slug
+		}));
+	}
+});
+
+/**
+ * List circles by workspace (for admin dropdown)
+ */
+export const listCirclesByWorkspace = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const circles = await ctx.db
+			.query('circles')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect();
+
+		return circles.map((circle) => ({
+			_id: circle._id,
+			name: circle.name,
+			slug: circle.slug,
+			workspaceId: circle.workspaceId
+		}));
+	}
+});
+
 // ============================================================================
 // RBAC Management Mutations
 // ============================================================================
@@ -857,5 +902,116 @@ export const setupDocsPermission = mutation({
 			message:
 				'docs.view permission created and assigned to admin role. Admin role assigned to you.'
 		};
+	}
+});
+
+// ============================================================================
+// Role Template RBAC Permissions Management
+// ============================================================================
+
+/**
+ * List all role templates with their RBAC permissions
+ * Returns both system-level and workspace-level templates
+ */
+export const listRoleTemplates = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		// Get all role templates (system and workspace-level)
+		const allTemplates = await ctx.db.query('roleTemplates').collect();
+
+		// Filter out archived templates
+		const activeTemplates = allTemplates.filter((t) => !t.archivedAt);
+
+		// Enrich with permission details
+		const templatesWithPermissions = await Promise.all(
+			activeTemplates.map(async (template) => {
+				const rbacPermissions = template.rbacPermissions || [];
+
+				// Enrich permission slugs with permission details
+				const enrichedPermissions = await Promise.all(
+					rbacPermissions.map(async (perm) => {
+						const permission = await ctx.db
+							.query('permissions')
+							.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+							.first();
+
+						return {
+							permissionSlug: perm.permissionSlug,
+							scope: perm.scope,
+							permissionId: permission?._id,
+							permissionName: permission?.description || perm.permissionSlug,
+							category: permission?.category
+						};
+					})
+				);
+
+				return {
+					_id: template._id,
+					name: template.name,
+					description: template.description,
+					workspaceId: template.workspaceId,
+					isCore: template.isCore,
+					isRequired: template.isRequired,
+					rbacPermissions: enrichedPermissions,
+					createdAt: template.createdAt,
+					updatedAt: template.updatedAt
+				};
+			})
+		);
+
+		// Sort: system templates first, then by name
+		return templatesWithPermissions.sort((a, b) => {
+			if (a.workspaceId === undefined && b.workspaceId !== undefined) return -1;
+			if (a.workspaceId !== undefined && b.workspaceId === undefined) return 1;
+			return a.name.localeCompare(b.name);
+		});
+	}
+});
+
+/**
+ * Update RBAC permissions for a role template
+ */
+export const updateTemplateRbacPermissions = mutation({
+	args: {
+		sessionId: v.string(),
+		templateId: v.id('roleTemplates'),
+		rbacPermissions: v.array(
+			v.object({
+				permissionSlug: v.string(),
+				scope: v.union(v.literal('all'), v.literal('own'))
+			})
+		)
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const template = await ctx.db.get(args.templateId);
+		if (!template) {
+			throw new Error('Role template not found');
+		}
+
+		// Validate all permission slugs exist
+		for (const perm of args.rbacPermissions) {
+			const permission = await ctx.db
+				.query('permissions')
+				.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+				.first();
+
+			if (!permission) {
+				throw new Error(`Permission "${perm.permissionSlug}" not found`);
+			}
+		}
+
+		// Update template
+		await ctx.db.patch(args.templateId, {
+			rbacPermissions: args.rbacPermissions,
+			updatedAt: Date.now()
+		});
+
+		return { success: true };
 	}
 });

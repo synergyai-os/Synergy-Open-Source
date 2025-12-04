@@ -5,6 +5,7 @@ import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { captureCreate, captureUpdate, captureArchive, captureRestore } from './orgVersionHistory';
+import { requireQuickEditPermission } from './orgChartPermissions';
 
 /**
  * Circles represent work workspace units (not people grouping)
@@ -494,6 +495,70 @@ export const update = mutation({
 		const updatedCircle = await ctx.db.get(args.circleId);
 		if (updatedCircle) {
 			await captureUpdate(ctx, 'circle', circle, updatedCircle);
+		}
+
+		return { success: true };
+	}
+});
+
+/**
+ * Quick update a circle (inline editing with auto-save)
+ * Requires: Org Designer role + allowQuickChanges workspace setting
+ * PHASE 2: Simplified permission check (circle type checks deferred to Phase 3)
+ */
+export const quickUpdate = mutation({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles'),
+		updates: v.object({
+			name: v.optional(v.string()),
+			purpose: v.optional(v.string())
+		})
+	},
+	handler: async (ctx, args) => {
+		// 1. Validate session
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// 2. Get circle and workspace
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// 3. Check quick edit permission (RBAC + workspace setting)
+		await requireQuickEditPermission(ctx, userId, circle);
+
+		// 4. Capture before state
+		const beforeDoc = { ...circle };
+
+		// 5. Apply updates
+		const updateData: Partial<Doc<'circles'>> = {
+			updatedAt: Date.now(),
+			updatedBy: userId
+		};
+
+		if (args.updates.name !== undefined) {
+			const trimmedName = args.updates.name.trim();
+			if (!trimmedName) {
+				throw new Error('Circle name cannot be empty');
+			}
+			updateData.name = trimmedName;
+
+			// Update slug if name changed
+			const slugBase = slugifyName(trimmedName);
+			updateData.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
+		}
+
+		if (args.updates.purpose !== undefined) {
+			updateData.purpose = args.updates.purpose;
+		}
+
+		await ctx.db.patch(args.circleId, updateData);
+
+		// 6. Capture version history
+		const afterDoc = await ctx.db.get(args.circleId);
+		if (afterDoc) {
+			await captureUpdate(ctx, 'circle', beforeDoc, afterDoc);
 		}
 
 		return { success: true };

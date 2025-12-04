@@ -75,7 +75,8 @@ const ALLOWED_PATTERNS = [
 	// Positioning
 	/\b(relative|absolute|fixed|sticky|static)\b/,
 	/\binset-0\b/,
-	/\b(top|bottom|left|right)-(0|auto|full)\b/,
+	/\b(top|bottom|left|right)-(0|auto|full|1\/2)\b/,
+	/\b-translate-(x|y)-1\/2\b/,
 
 	// Text alignment
 	/\btext-(left|center|right|justify)\b/,

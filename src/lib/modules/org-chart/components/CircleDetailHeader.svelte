@@ -3,6 +3,8 @@
 	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { panelDetailHeaderRecipe } from '$lib/design-system/recipes';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 
 	type Props = {
 		circleName: string;
@@ -12,6 +14,9 @@
 		showBackButton?: boolean;
 		addMenuItems?: Array<{ label: string; onclick: () => void }>;
 		headerMenuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		editable?: boolean;
+		editReason?: string;
+		onNameChange?: (name: string) => Promise<void>;
 		class?: string;
 	};
 
@@ -23,6 +28,9 @@
 		showBackButton = false,
 		addMenuItems = [],
 		headerMenuItems = [],
+		editable = false,
+		editReason,
+		onNameChange,
 		class: className = ''
 	}: Props = $props();
 
@@ -44,9 +52,27 @@
 				{/snippet}
 			</Button>
 		{/if}
-		<Heading level={3} color="primary">
-			{circleName}
-		</Heading>
+		{#if editable && onNameChange}
+			<InlineEditText
+				value={circleName}
+				onSave={onNameChange}
+				placeholder="Circle name"
+				size="lg"
+				className="font-semibold"
+			/>
+		{:else if editReason}
+			<EditPermissionTooltip reason={editReason}>
+				{#snippet children()}
+					<Heading level={3} color="primary">
+						{circleName}
+					</Heading>
+				{/snippet}
+			</EditPermissionTooltip>
+		{:else}
+			<Heading level={3} color="primary">
+				{circleName}
+			</Heading>
+		{/if}
 	</div>
 	<div class="flex items-center gap-button">
 		{#if addMenuItems.length > 0}

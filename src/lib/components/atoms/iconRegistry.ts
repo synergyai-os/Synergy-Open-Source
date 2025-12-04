@@ -10,6 +10,7 @@
 
 export type IconType =
 	| 'add'
+	| 'bell'
 	| 'calendar'
 	| 'check'
 	| 'check-circle'
@@ -21,7 +22,9 @@ export type IconType =
 	| 'clipboard'
 	| 'clock'
 	| 'close'
+	| 'code'
 	| 'dashboard'
+	| 'database'
 	| 'delete'
 	| 'document'
 	| 'download'
@@ -29,6 +32,7 @@ export type IconType =
 	| 'flashcards'
 	| 'inbox'
 	| 'info'
+	| 'keyboard'
 	| 'lightbulb'
 	| 'lock'
 	| 'members'
@@ -37,6 +41,7 @@ export type IconType =
 	| 'orgChart'
 	| 'payment'
 	| 'recurrence'
+	| 'settings'
 	| 'share'
 	| 'study'
 	| 'sun'
@@ -142,6 +147,41 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 	},
 	info: {
 		path: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	settings: {
+		path: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	bell: {
+		path: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	keyboard: {
+		path: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	code: {
+		path: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	database: {
+		path: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4',
 		viewBox: '0 0 24 24',
 		strokeWidth: '2',
 		strokeLinecap: 'round',

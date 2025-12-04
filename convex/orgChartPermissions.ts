@@ -6,6 +6,9 @@
  * to determine if users can perform quick edits or approve proposals.
  */
 
+import { query } from './_generated/server';
+import { v } from 'convex/values';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { hasPermission } from './rbac/permissions';
@@ -43,6 +46,27 @@ async function hasCircleRole(
 	// 3. Check if any assignment matches the role names
 	return false;
 }
+
+/**
+ * Query: Check if user can perform quick edits on a circle
+ * Frontend-friendly wrapper for canQuickEdit
+ */
+export const canQuickEditQuery = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		return await canQuickEdit(ctx, userId, circle);
+	}
+});
 
 /**
  * Check if user is a member of a circle
@@ -127,63 +151,50 @@ export async function canQuickEdit(
 		};
 	}
 
-	// 3. Check circle type
-	const circleType = circle.circleType ?? 'hierarchy';
-
-	switch (circleType) {
-		case 'hierarchy': {
-			const isManager = await hasCircleRole(ctx, userId, circle._id, ['Circle Lead', 'Manager']);
-			if (!isManager) {
-				return {
-					allowed: false,
-					reason: 'Only Circle Lead can make changes in hierarchical circles.'
-				};
-			}
-			break;
-		}
-		case 'empowered_team': {
-			const isMember = await isCircleMember(ctx, userId, circle._id);
-			if (!isMember) {
-				return {
-					allowed: false,
-					reason: 'Only circle members can make changes in empowered teams.'
-				};
-			}
-			break;
-		}
-		case 'guild':
-			return {
-				allowed: false,
-				reason: 'Guilds are coordination-only. Create a proposal in your home circle.'
-			};
-		case 'hybrid': {
-			const isMember = await isCircleMember(ctx, userId, circle._id);
-			if (!isMember) {
-				return {
-					allowed: false,
-					reason: 'Only circle members can make changes.'
-				};
-			}
-			break;
-		}
-	}
-
+	// 3. Circle type check - DEFER TO PHASE 3
+	// For now, if user passes 1+2, allow edit
 	return { allowed: true };
 }
 
 /**
  * Require quick edit permission (throws error if not allowed)
  * Use this in mutations that need quick edit permission
+ * 
+ * PHASE 2: Simplified check - only workspace setting + RBAC permission
+ * Circle type checks deferred to Phase 3 (Operating Modes)
  */
 export async function requireQuickEditPermission(
 	ctx: MutationCtx,
 	userId: Id<'users'>,
 	circle: Doc<'circles'>
 ): Promise<void> {
-	const result = await canQuickEdit(ctx, userId, circle);
-	if (!result.allowed) {
-		throw new Error(result.reason || 'Quick edit permission denied');
+	// 1. Check workspace setting
+	const orgSettings = await ctx.db
+		.query('workspaceOrgSettings')
+		.withIndex('by_workspace', (q) => q.eq('workspaceId', circle.workspaceId))
+		.first();
+
+	if (!orgSettings?.allowQuickChanges) {
+		throw new Error('Quick edits disabled. Use "Edit circle" to create a proposal.');
 	}
+
+	// 2. Check RBAC permission
+	const hasPermissionResult = await hasPermission(
+		ctx,
+		userId,
+		'org-chart.edit.quick' as any, // Type assertion - permission exists in DB
+		{
+			workspaceId: circle.workspaceId,
+			circleId: circle._id
+		}
+	);
+
+	if (!hasPermissionResult) {
+		throw new Error('Quick edits require Org Designer role.');
+	}
+
+	// 3. Circle type check - DEFER TO PHASE 3
+	// For now, if user passes 1+2, allow edit
 }
 
 // ============================================================================

@@ -35,6 +35,9 @@
 	// Check if we're on an admin route - skip authenticated layout for admin routes
 	const isAdminRoute = $derived(browser ? $page.url.pathname.startsWith('/admin') : false);
 
+	// Check if we're on a settings route - hide main sidebar for settings routes
+	const isSettingsRoute = $derived(browser ? $page.url.pathname.includes('/settings') : false);
+
 	// Initialize workspaces composable with sessionId and server-side preloaded data
 	// Returns WorkspacesModuleAPI interface (enables loose coupling - see SYOS-295)
 	const workspaces = useWorkspaces({
@@ -83,6 +86,104 @@
 					return { sessionId };
 				})
 			: null;
+
+	// Load RBAC details for dev console logging
+	const rbacDetailsQuery =
+		browser && import.meta.env.DEV && getSessionId()
+			? useQuery(api.rbac.queries.getUserRBACDetails, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required');
+					const workspaceId = activeWorkspaceId();
+					return {
+						sessionId,
+						workspaceId: workspaceId as Id<'workspaces'> | undefined
+					};
+				})
+			: null;
+
+	// Log RBAC details when available (dev mode only) - adds to existing dev info
+	$effect(() => {
+		if (!browser || !import.meta.env.DEV || !rbacDetailsQuery?.data) return;
+
+		const rbacData = rbacDetailsQuery.data;
+		const pathname = window.location.pathname;
+		const isWorkspaceRoute = pathname.startsWith('/w/');
+		const convexUrlSanitized = PUBLIC_CONVEX_URL
+			? PUBLIC_CONVEX_URL.split('/').slice(0, 3).join('/') + '/...'
+			: 'not configured';
+
+		// Format RBAC data to match existing console log structure
+		const rbacInfo = {
+			systemRoles: rbacData.systemRoles.map((role) => ({
+				roleSlug: role.roleSlug,
+				roleName: role.roleName,
+				permissions: role.permissions.map((p) => ({
+					slug: p.slug,
+					scope: p.scope,
+					description: p.description
+				}))
+			})),
+			activeWorkspaceRoles: rbacData.activeWorkspaceRoles.map((role) => ({
+				roleSlug: role.roleSlug,
+				roleName: role.roleName,
+				circleId: role.circleId ?? null,
+				permissions: role.permissions.map((p) => ({
+					slug: p.slug,
+					scope: p.scope,
+					description: p.description
+				}))
+			})),
+			allWorkspaceRoles: rbacData.workspaceRoles.map((ws) => ({
+				workspaceId: ws.workspaceId,
+				workspaceName: ws.workspaceName,
+				roles: ws.roles.map((role) => ({
+					roleSlug: role.roleSlug,
+					roleName: role.roleName,
+					circleId: role.circleId ?? null
+				}))
+			}))
+		};
+
+		// Log complete dev info with RBAC included
+		console.log('🔍 SynergyOS Dev Info', {
+			auth: {
+				userId: data.user?.userId ?? null,
+				email: data.user?.email ?? null,
+				name: accountName() ?? null,
+				workosId: data.user?.workosId ?? null,
+				isAuthenticated: isAuthenticated,
+				sessionId: data.sessionId ?? null
+			},
+			workspace: {
+				activeId: workspaces?.activeWorkspaceId ?? null,
+				activeName: workspaceName() ?? null,
+				totalCount: workspaces?.workspaces?.length ?? 0,
+				invitesCount: workspaces?.workspaceInvites?.length ?? 0,
+				isSwitching: workspaces?.isSwitching ?? false
+			},
+			features: {
+				circles: circlesEnabled,
+				meetings: meetingsEnabled,
+				dashboard: dashboardEnabled
+			},
+			route: {
+				pathname,
+				isWorkspaceRoute
+			},
+			environment: {
+				mode: import.meta.env.DEV ? 'development' : 'production',
+				platform: getPlatform(),
+				convexUrl: convexUrlSanitized,
+				isMobile
+			},
+			state: {
+				isAccountSwitching: isAccountSwitching,
+				isOrgSwitching: isOrgSwitching,
+				isLoading: workspaces?.isLoading ?? false
+			},
+			rbac: rbacInfo
+		});
+	});
 
 	// Org branding state (Phase 2: Org Branding)
 	// Use reactive query result, fallback to SSR data for initial render
@@ -713,59 +814,69 @@
 			aria-hidden="true"
 		></div>
 
-		<!-- Shared Sidebar Component -->
-		<Sidebar
-			{inboxCount}
-			{isMobile}
-			{sidebarCollapsed}
-			onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
-			{sidebarWidth}
-			onSidebarWidthChange={handleSidebarWidthChange}
-			{createMenuOpen}
-			onCreateMenuChange={(open) => (createMenuOpen = open)}
-			onQuickCreate={(trigger) => {
-				quickCreateTrigger = trigger;
-				quickCreateInitialType = null; // Show command palette
-				quickCreateModalOpen = true;
-			}}
-			user={data.user}
-			{circlesEnabled}
-			{meetingsEnabled}
-			{dashboardEnabled}
-		/>
+		<!-- Shared Sidebar Component - Hidden on settings routes -->
+		{#if !isSettingsRoute}
+			<Sidebar
+				{inboxCount}
+				{isMobile}
+				{sidebarCollapsed}
+				onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
+				{sidebarWidth}
+				onSidebarWidthChange={handleSidebarWidthChange}
+				{createMenuOpen}
+				onCreateMenuChange={(open) => (createMenuOpen = open)}
+				onQuickCreate={(trigger) => {
+					quickCreateTrigger = trigger;
+					quickCreateInitialType = null; // Show command palette
+					quickCreateModalOpen = true;
+				}}
+				user={data.user}
+				{circlesEnabled}
+				{meetingsEnabled}
+				{dashboardEnabled}
+			/>
+		{/if}
 
-		<!-- Main Content Area - Floating Card -->
-		<div
-			class="relative flex flex-1 flex-col overflow-hidden"
-			style="padding: var(--spacing-2); padding-left: 0;"
-		>
-			<!--
-				Content Card Container
-				- Rounded corners (rounded-xl = 16px)
-				- Subtle border for soft definition (not harsh)
-				- Soft shadow for depth
-				- Elevated background (lighter than sidebar for contrast)
-			-->
+		<!-- Main Content Area - Floating Card (skip for settings routes) -->
+		{#if isSettingsRoute}
+			<!-- Settings routes use full-width layout (no shell pattern) -->
+			<div class="flex flex-1 flex-col overflow-hidden">
+				{@render children()}
+			</div>
+		{:else}
+			<!-- Regular routes use shell layout pattern -->
 			<div
-				class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-elevated shadow-sm"
+				class="relative flex flex-1 flex-col overflow-hidden"
+				style="padding: var(--spacing-2); padding-left: 0;"
 			>
-				<!-- Top Bar with matching rounded corners -->
-				<!-- <div class="rounded-t-xl bg-surface">
-					<AppTopBar
-						{workspaces}
-						{isMobile}
-						{sidebarCollapsed}
-						onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
-						accountName={accountName()}
-						accountEmail={accountEmail()}
-						workspaceName={workspaceName()}
-					/>
-				</div> -->
-				<div class="flex-1 overflow-y-auto">
-					{@render children()}
+				<!--
+					Content Card Container
+					- Rounded corners (rounded-xl = 16px)
+					- Subtle border for soft definition (not harsh)
+					- Soft shadow for depth
+					- Elevated background (lighter than sidebar for contrast)
+				-->
+				<div
+					class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-elevated shadow-sm"
+				>
+					<!-- Top Bar with matching rounded corners -->
+					<!-- <div class="rounded-t-xl bg-surface">
+						<AppTopBar
+							{workspaces}
+							{isMobile}
+							{sidebarCollapsed}
+							onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+							accountName={accountName()}
+							accountEmail={accountEmail()}
+							workspaceName={workspaceName()}
+						/>
+					</div> -->
+					<div class="flex-1 overflow-y-auto">
+						{@render children()}
+					</div>
 				</div>
 			</div>
-		</div>
+		{/if}
 
 		<!-- Global Activity Tracker -->
 		<GlobalActivityTracker />

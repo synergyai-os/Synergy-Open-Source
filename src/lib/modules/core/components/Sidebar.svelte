@@ -512,10 +512,20 @@
 				{isMobile}
 				{isHovered}
 				onSettings={() => {
-					goto(resolveRoute('/settings'));
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						goto(resolveRoute(`/w/${slug}/settings`));
+					} else {
+						goto(resolveRoute('/settings'));
+					}
 				}}
 				onInviteMembers={() => {
-					goto(resolveRoute('/settings'));
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						goto(resolveRoute(`/w/${slug}/settings`));
+					} else {
+						goto(resolveRoute('/settings'));
+					}
 				}}
 				onSwitchWorkspace={() => {
 					// Switch workspace functionality
@@ -868,12 +878,22 @@
 			{isHovered}
 			onSettings={() => {
 				if (typeof window !== 'undefined') {
-					window.location.href = resolveRoute('/settings');
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						window.location.href = resolveRoute(`/w/${slug}/settings`);
+					} else {
+						window.location.href = resolveRoute('/settings');
+					}
 				}
 			}}
 			onInviteMembers={() => {
 				if (typeof window !== 'undefined') {
-					window.location.href = resolveRoute('/settings');
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						window.location.href = resolveRoute(`/w/${slug}/settings`);
+					} else {
+						window.location.href = resolveRoute('/settings');
+					}
 				}
 			}}
 			onSwitchWorkspace={() => {

@@ -226,3 +226,121 @@ export const deleteOrganizationClaudeApiKey = mutation({
 		return null;
 	}
 });
+
+/**
+ * Query: Get workspace org chart settings
+ * Returns org chart settings (allowQuickChanges, requireCircleLeadRole, etc.)
+ */
+export const getOrgSettings = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Verify user is member of workspace
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this workspace');
+		}
+
+		const orgSettings = await ctx.db
+			.query('workspaceOrgSettings')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.first();
+
+		// Return defaults if no settings exist
+		if (!orgSettings) {
+			return {
+				workspaceId: args.workspaceId,
+				requireCircleLeadRole: true,
+				coreRoleTemplateIds: [],
+				allowQuickChanges: false,
+				isAdmin: membership.role === 'owner' || membership.role === 'admin'
+			};
+		}
+
+		return {
+			...orgSettings,
+			isAdmin: membership.role === 'owner' || membership.role === 'admin'
+		};
+	}
+});
+
+/**
+ * Mutation: Update workspace org chart settings
+ * Only admins/owners can update
+ */
+export const updateOrgSettings = mutation({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		allowQuickChanges: v.optional(v.boolean()),
+		requireCircleLeadRole: v.optional(v.boolean()),
+		coreRoleTemplateIds: v.optional(v.array(v.id('roleTemplates')))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Verify user is admin
+		const isAdmin = await isWorkspaceAdmin(ctx, userId, args.workspaceId);
+		if (!isAdmin) {
+			throw new Error('Only workspace admins can update org chart settings');
+		}
+
+		// Find existing settings
+		const existing = await ctx.db
+			.query('workspaceOrgSettings')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.first();
+
+		const now = Date.now();
+		const updateData: {
+			allowQuickChanges?: boolean;
+			requireCircleLeadRole?: boolean;
+			coreRoleTemplateIds?: Id<'roleTemplates'>[];
+			updatedAt: number;
+		} = {
+			updatedAt: now
+		};
+
+		if (args.allowQuickChanges !== undefined) {
+			updateData.allowQuickChanges = args.allowQuickChanges;
+		}
+		if (args.requireCircleLeadRole !== undefined) {
+			updateData.requireCircleLeadRole = args.requireCircleLeadRole;
+		}
+		if (args.coreRoleTemplateIds !== undefined) {
+			updateData.coreRoleTemplateIds = args.coreRoleTemplateIds;
+		}
+
+		if (existing) {
+			// Update existing
+			await ctx.db.patch(existing._id, updateData);
+			return existing._id;
+		} else {
+			// Create new with defaults
+			return await ctx.db.insert('workspaceOrgSettings', {
+				workspaceId: args.workspaceId,
+				requireCircleLeadRole: args.requireCircleLeadRole ?? true,
+				coreRoleTemplateIds: args.coreRoleTemplateIds ?? [],
+				allowQuickChanges: args.allowQuickChanges ?? false,
+				createdAt: now,
+				updatedAt: now
+			});
+		}
+	}
+});

@@ -151,6 +151,75 @@ This document defines global business rules that apply across the entire Synergy
 
 ---
 
+## CircleRole → RBAC Auto-Assignment
+
+### Organizational Roles Grant RBAC Permissions
+
+**Rule**: When a user fills an organizational role (CircleRole), they automatically receive the RBAC permissions mapped to that role template.
+
+**Rationale**: Certain organizational roles require specific capabilities. Circle Lead needs to assign users to roles; this shouldn't require manual RBAC configuration.
+
+### Key Behaviors
+
+1. **Auto-Assignment is Always Enabled**
+   - This is a DEFAULT BEHAVIOR of the CircleRole itself
+   - NOT tied to Quick Edit Mode (these are independent features)
+   - Quick Edit Mode = Org Designer can edit structure without governance
+   - Circle Lead assignment = Can assign members to roles in their circle (always ON)
+
+2. **Circle-Scoped Permissions**
+   - Auto-assigned RBAC permissions are scoped to the specific circle
+   - Circle Lead of Marketing can assign roles **in Marketing only**, not in Sales
+   - `circleId` field on `userRoles` enforces this scope
+
+3. **Source Tracking for Cleanup**
+   - `sourceCircleRoleId` field tracks which CircleRole granted the RBAC permission
+   - When user removed from CircleRole → Only that specific auto-assignment is revoked
+   - Prevents over-revoking if user has multiple roles in same circle
+
+### Permission Inheritance (Higher Scope Wins)
+
+**Rule**: Broader permission scope always wins over narrower scope.
+
+**Scope Priority**: System (no scope) > Workspace > Circle
+
+**Examples**:
+- User has system-level `users.change-roles` → Can assign roles anywhere
+- User has workspace-level `users.change-roles` → Can assign roles in any circle within that workspace
+- User has circle-level `users.change-roles` (Circle Lead) → Can assign roles only in that specific circle
+
+**Conflict Resolution**: If user has both workspace-scope (`all`) and circle-scope (`own`) for same permission, workspace-scope wins.
+
+### Default Role Template Mappings
+
+| Organizational Role | RBAC Permission | Scope |
+|---------------------|-----------------|-------|
+| Circle Lead | `users.change-roles` | `own` (within circle) |
+| Org Designer | `circles.quick-edit` | `all` (workspace-wide) |
+
+**Note**: Additional mappings can be configured by System Admin via admin UI.
+
+### Implementation Requirements
+
+1. **Schema Changes** (`convex/schema.ts`):
+   - `roleTemplates.rbacPermissions`: Array of `{ permissionSlug, scope }` mappings
+   - `userRoles.sourceCircleRoleId`: Links auto-assigned roles to their source
+
+2. **Backend Logic** (`convex/circleRoles.ts`):
+   - On user assigned to CircleRole → Check template for `rbacPermissions` → Auto-create `userRoles`
+   - On user removed from CircleRole → Query by `sourceCircleRoleId` → Revoke only those roles
+
+3. **Validation Test Case**:
+   - ✅ Circle Lead assigns user to role in their circle → Success
+   - ❌ Non-Circle Lead tries to assign → Permission denied
+   - ✅ Org Designer assigns (workspace-level permission) → Success
+
+**Implementation Ticket**: [SYOS-649](https://linear.app/younghumanclub/issue/SYOS-649)
+
+**Reference**: `src/lib/infrastructure/rbac/docs/essentials.md` for full RBAC documentation
+
+---
+
 ## Internationalization Considerations
 
 ### Workspace vs User-Level Preferences

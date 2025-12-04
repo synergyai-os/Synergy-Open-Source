@@ -1,13 +1,20 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
+	import { useConvexClient } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
+	import Text from '$lib/components/atoms/Text.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -21,6 +28,63 @@
 	const isOpen = $derived((orgChart?.selectedCircleId ?? null) !== null);
 	const isLoading = $derived(orgChart?.selectedCircleIsLoading ?? false);
 	const error = $derived(orgChart?.selectedCircleError ?? null);
+
+	// Convex client for mutations
+	const convexClient = browser ? useConvexClient() : null;
+	const sessionId = $derived($page.data.sessionId);
+
+	// Check quick edit permission
+	const canEditQuery =
+		browser && circle && sessionId
+			? useQuery(api.orgChartPermissions.canQuickEditQuery, () => {
+					const currentCircle = orgChart?.selectedCircle;
+					const currentSessionId = $page.data.sessionId;
+					if (!currentCircle || !currentSessionId) {
+						throw new Error('Circle and sessionId required');
+					}
+					return {
+						sessionId: currentSessionId,
+						circleId: currentCircle.circleId
+					};
+				})
+			: null;
+
+	const canEdit = $derived(canEditQuery?.data?.allowed ?? false);
+	const editReason = $derived(canEditQuery?.data?.reason);
+
+	// Quick update handlers
+	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
+		if (!convexClient || !circle || !sessionId) return;
+
+		try {
+			await convexClient.mutation(api.circles.quickUpdate, {
+				sessionId,
+				circleId: circle.circleId,
+				updates
+			});
+		} catch (error) {
+			// Error handling is done in InlineEditText component
+			throw error;
+		}
+	}
+
+	async function handleQuickUpdateRole(
+		roleId: Id<'circleRoles'>,
+		updates: { name?: string; purpose?: string }
+	) {
+		if (!convexClient || !sessionId) return;
+
+		try {
+			await convexClient.mutation(api.circleRoles.quickUpdate, {
+				sessionId,
+				circleRoleId: roleId,
+				updates
+			});
+		} catch (error) {
+			// Error handling is done in InlineEditText component
+			throw error;
+		}
+	}
 
 	// Check if this circle panel is the topmost layer
 	const isTopmost = () => {
@@ -201,6 +265,9 @@
 					onEdit={() => {
 						/* TODO: Implement edit circle */
 					}}
+					editable={canEdit}
+					{editReason}
+					onNameChange={(name) => handleQuickUpdateCircle({ name })}
 					addMenuItems={[
 						{ label: 'Add lead members', onclick: () => {} },
 						{ label: 'Add member', onclick: () => {} }
@@ -319,18 +386,41 @@
 									<!-- Left Column: Overview Details -->
 									<div class="flex min-w-0 flex-col gap-section overflow-hidden">
 										<!-- Purpose -->
-										{#if circle.purpose}
-											<div>
-												<h4
-													class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
-												>
-													Purpose
-												</h4>
+										<div>
+											<h4
+												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+											>
+												Purpose
+											</h4>
+											{#if canEdit}
+												<InlineEditText
+													value={circle.purpose || ''}
+													onSave={(purpose) => handleQuickUpdateCircle({ purpose })}
+													multiline={true}
+													placeholder="What's the purpose of this circle?"
+													maxRows={4}
+													size="md"
+												/>
+											{:else if editReason}
+												<EditPermissionTooltip reason={editReason}>
+													{#snippet children()}
+														<div class="text-button leading-relaxed break-words text-secondary">
+															{#if circle.purpose}
+																{circle.purpose}
+															{:else}
+																<Text variant="body" size="md" color="tertiary">
+																	No purpose set
+																</Text>
+															{/if}
+														</div>
+													{/snippet}
+												</EditPermissionTooltip>
+											{:else}
 												<p class="text-button leading-relaxed break-words text-secondary">
-													{circle.purpose}
+													{circle.purpose || 'No purpose set'}
 												</p>
-											</div>
-										{/if}
+											{/if}
+										</div>
 
 										<!-- Domains -->
 										<div>
@@ -489,6 +579,13 @@
 															name={role.name}
 															purpose={role.purpose}
 															status={roleStatus}
+															roleId={role.roleId}
+															circleId={circle.circleId}
+															{canEdit}
+															{editReason}
+															onNameChange={(name) => handleQuickUpdateRole(role.roleId, { name })}
+															onPurposeChange={(purpose) =>
+																handleQuickUpdateRole(role.roleId, { purpose })}
 															onClick={() => handleRoleClick(role.roleId)}
 															onEdit={() => {
 																/* TODO: Implement edit role */
@@ -532,6 +629,13 @@
 															name={role.name}
 															purpose={role.purpose}
 															status={roleStatus}
+															roleId={role.roleId}
+															circleId={circle.circleId}
+															{canEdit}
+															{editReason}
+															onNameChange={(name) => handleQuickUpdateRole(role.roleId, { name })}
+															onPurposeChange={(purpose) =>
+																handleQuickUpdateRole(role.roleId, { purpose })}
 															onClick={() => handleRoleClick(role.roleId)}
 															onEdit={() => {
 																/* TODO: Implement edit role */
