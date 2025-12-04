@@ -54,6 +54,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 || nested cards, rounded corners, container, list items, rounded-none, nested variant, visual hierarchy, container border, inner items | Nested Cards Without Rounded Corners | `design-system-patterns.md#L1450` |
 | preload, batch query, N+1 queries, performance, instant display, listByWorkspace, roles preloading, delay, sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
 | useQuery, hydration error, SSR, white screen, browser check, composable, component, $derived, conditional query, reactive query | useQuery Hydration Errors in Components vs Composables | `convex-integration.md#L140` |
+| useQuery, $derived, conditional query, null forever, ternary, circle selection, dependency changes, reactive query creation | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 
 ---
 
@@ -65,6 +66,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | TypeError: $.get(...) is not a function, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | Scroll area shows content at bottom, must scroll up | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | White screen on refresh with hydration error, useQuery in component | useQuery Hydration Errors | `convex-integration.md#L140` |
+| Query never fires after user selection, queryResult is null forever, conditional useQuery | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 
 ## 🟡 Important (Common Issues)
 

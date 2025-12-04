@@ -133,6 +133,17 @@ export function useOrgChart(options: {
 			})
 		: null;
 
+	// Query workspace org settings (includes allowQuickChanges for quick edit permission)
+	// Loaded once per workspace - provides instant "quick edits disabled" check
+	const orgSettingsQuery = browser
+		? useQuery(api.workspaceSettings.getOrgSettings, () => {
+				const sessionId = getSessionId();
+				const workspaceId = getWorkspaceId();
+				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
+			})
+		: null;
+
 	// Store roles in Map for O(1) lookup by circleId
 	const rolesByCircle = $derived.by(() => {
 		const data = rolesByWorkspaceQuery?.data ?? [];
@@ -563,6 +574,15 @@ export function useOrgChart(options: {
 		// Navigation stack - hierarchical panel navigation
 		get navigationStack() {
 			return navigationStack;
+		},
+
+		// Workspace org settings - includes allowQuickChanges
+		// Used for instant "quick edits disabled" determination (avoids backend round-trip)
+		get allowQuickChanges() {
+			return orgSettingsQuery?.data?.allowQuickChanges ?? false;
+		},
+		get orgSettingsLoading() {
+			return orgSettingsQuery?.isLoading ?? true;
 		},
 
 		// Actions

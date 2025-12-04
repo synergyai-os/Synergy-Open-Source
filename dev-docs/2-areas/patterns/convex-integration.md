@@ -243,5 +243,99 @@ const coreRoles = $derived(
 
 ---
 
+## #L250: Conditional Query Creation Must Be Wrapped in $derived [🔴 CRITICAL]
+
+**Keywords**: useQuery, $derived, conditional query, reactive query creation, null forever, circle selection, dependency changes, ternary evaluation
+
+**Symptom**: 
+- Query works when dependencies are available at component init
+- Query never fires when dependencies become available later (e.g., after user selection)
+- `queryResult` is permanently `null` even after selecting an item
+- UI doesn't update despite backend data being available
+
+**Root Cause**: When you write a ternary for conditional query creation **outside of a reactive context**, it's evaluated **once** at initialization. If the condition is `false` initially (e.g., no circle selected), the query is `null` and stays `null` forever - even when a circle is later selected.
+
+**Example of broken code**:
+```typescript
+// ❌ BROKEN: Ternary evaluated ONCE at init
+// If circle() returns null initially, canEditQuery stays null forever
+const canEditQuery =
+    browser && params.circle() && params.sessionId()
+        ? useQuery(api.permissions.check, () => ({
+              circleId: params.circle()!.circleId,
+              sessionId: params.sessionId()!
+          }))
+        : null;
+
+// When user selects circle, circle() now returns a value
+// BUT the ternary doesn't re-evaluate - canEditQuery is still null!
+```
+
+**Fix**: Wrap conditional query creation in `$derived()`:
+
+```typescript
+// ✅ CORRECT: $derived makes the ternary reactive
+const canEditQuery = $derived(
+    browser && params.circle() && params.sessionId()
+        ? useQuery(api.permissions.check, () => ({
+              circleId: params.circle()!.circleId,
+              sessionId: params.sessionId()!
+          }))
+        : null
+);
+
+// Now when circle changes from null → value, $derived re-evaluates
+// and creates the query subscription!
+```
+
+**Why This Works**:
+1. `$derived` tracks dependencies read inside it synchronously
+2. When `params.circle()` changes, `$derived` detects the change
+3. The entire expression (including ternary) re-evaluates
+4. `useQuery` is now called and the subscription is created
+
+**When to Use `$derived` Wrapper**:
+- Query depends on state that might be `null`/`undefined` initially
+- State comes from user interaction (selecting item, opening panel)
+- Condition uses function calls like `params.circle()`
+
+**When NOT Needed**:
+- Dependencies are always available at init (e.g., `sessionId` from page data)
+- Query is always created (no conditional)
+
+**Common Scenarios**:
+- Permission check after selecting item in list
+- Loading detail data after opening panel
+- Any query that depends on user-selected context
+
+**Anti-Patterns**:
+- ❌ Bare ternary for query creation: `const q = condition ? useQuery(...) : null`
+- ❌ Using `$effect` to create queries (creates subscription leaks)
+- ✅ `$derived` wrapper: `const q = $derived(condition ? useQuery(...) : null)`
+
+**Performance Optimization**: If you have a fast pre-check that can determine "no access" immediately, check it before the query:
+
+```typescript
+// Fast path: If workspace setting disables feature, skip backend call
+const isDisabledAtWorkspaceLevel = $derived(!allowFeature);
+
+const permissionQuery = $derived(
+    browser && !isDisabledAtWorkspaceLevel && params.item()
+        ? useQuery(api.permissions.check, () => ({ ... }))
+        : null
+);
+
+// Result: If feature disabled, no network call needed
+```
+
+**Real Example**: `useQuickEditPermission.svelte.ts` - fixed by wrapping query creation in `$derived`
+
+**Related**: 
+- #L140: useQuery Hydration Errors (composable vs component)
+- Composable Reactivity Break (svelte-reactivity.md#L10)
+- Svelte 5 `$derived` documentation
+
+---
+
 **Last Updated**: 2025-12-04
 

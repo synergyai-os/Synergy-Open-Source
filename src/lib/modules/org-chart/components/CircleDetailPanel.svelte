@@ -6,6 +6,7 @@
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
+	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
@@ -33,24 +34,19 @@
 	const convexClient = browser ? useConvexClient() : null;
 	const sessionId = $derived($page.data.sessionId);
 
-	// Check quick edit permission
-	const canEditQuery =
-		browser && circle && sessionId
-			? useQuery(api.orgChartPermissions.canQuickEditQuery, () => {
-					const currentCircle = orgChart?.selectedCircle;
-					const currentSessionId = $page.data.sessionId;
-					if (!currentCircle || !currentSessionId) {
-						throw new Error('Circle and sessionId required');
-					}
-					return {
-						sessionId: currentSessionId,
-						circleId: currentCircle.circleId
-					};
-				})
-			: null;
+	// Check quick edit permission using composable
+	// Pattern: Move query to composable for proper reactivity (matches usePermissions pattern)
+	// Composable uses function parameters which makes the condition reactive
+	// OPTIMIZATION: Pass allowQuickChanges for instant "no edit" determination
+	// If workspace disables quick edits, we don't need a backend call
+	const quickEditPermission = useQuickEditPermission({
+		circle: () => orgChart?.selectedCircle ?? null,
+		sessionId: () => $page.data.sessionId,
+		allowQuickChanges: () => orgChart?.allowQuickChanges ?? false
+	});
 
-	const canEdit = $derived(canEditQuery?.data?.allowed ?? false);
-	const editReason = $derived(canEditQuery?.data?.reason);
+	const canEdit = $derived(quickEditPermission.canEdit);
+	const editReason = $derived(quickEditPermission.editReason);
 
 	// Quick update handlers
 	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
