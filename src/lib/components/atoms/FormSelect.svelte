@@ -92,20 +92,22 @@
 		<Select.Portal>
 			<!--
 				Select Content
-				- z-50: Acceptable exception (z-index for dropdown overlay)
+				- z-[100]: Must be higher than StackedPanel backdrop (z-59+) when FormSelect is inside panels
+				- Panel layers use z-60, z-70, z-80... with backdrops at z-59, z-69, z-79...
+				- Portal renders at body level, so z-index competes with panel backdrops
 				- py-1: Acceptable exception (minimal dropdown container padding - 4px)
 				- See missing-styles.md for documentation
 			-->
 			<Select.Content
-				class="border-base z-50 min-w-[var(--bits-select-anchor-width)] rounded-modal border bg-elevated py-1 shadow-card"
+				class="border-base z-[100] min-w-[var(--bits-select-anchor-width)] rounded-modal border bg-elevated py-1 shadow-card"
 				sideOffset={4}
 			>
-				<!--
-					Select Viewport
-					- p-1: Acceptable exception (minimal dropdown viewport padding - 4px)
-					- See missing-styles.md for documentation
-				-->
-				<Select.Viewport class="p-1">
+		<!--
+			Select Viewport
+			- p-1: Acceptable exception (minimal dropdown viewport padding - 4px)
+			- See missing-styles.md for documentation
+		-->
+		<Select.Viewport class="p-1">
 					{#each options as option (option.value)}
 						<!--
 							Select Item
@@ -127,8 +129,8 @@
 								{/if}
 							{/snippet}
 						</Select.Item>
-					{/each}
-				</Select.Viewport>
+			{/each}
+		</Select.Viewport>
 			</Select.Content>
 		</Select.Portal>
 	</Select.Root>

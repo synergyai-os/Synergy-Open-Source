@@ -40,10 +40,32 @@ async function hasCircleRole(
 	circleId: Id<'circles'>,
 	roleNames: string[]
 ): Promise<boolean> {
-	// TODO: Implement role checking logic
-	// 1. Get all circle roles for this circle
-	// 2. Get user's role assignments for these roles
-	// 3. Check if any assignment matches the role names
+	// 1. Get all active circle roles for this circle
+	const circleRoles = await ctx.db
+		.query('circleRoles')
+		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
+		.collect();
+
+	// 2. Filter to roles matching the provided names
+	const matchingRoles = circleRoles.filter((role) => roleNames.includes(role.name));
+
+	if (matchingRoles.length === 0) {
+		return false;
+	}
+
+	// 3. Check if user has any of these roles assigned
+	for (const role of matchingRoles) {
+		const userAssignment = await ctx.db
+			.query('userCircleRoles')
+			.withIndex('by_user_role', (q) => q.eq('userId', userId).eq('circleRoleId', role._id))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.first();
+
+		if (userAssignment) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -69,6 +91,17 @@ export const canQuickEditQuery = query({
 });
 
 /**
+ * Get effective circle type (defaults to 'hierarchy' if null)
+ * @param circle - Circle document
+ * @returns Circle type, defaulting to 'hierarchy'
+ */
+function getEffectiveCircleType(
+	circle: Doc<'circles'>
+): 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid' {
+	return circle.circleType ?? 'hierarchy';
+}
+
+/**
  * Check if user is a member of a circle
  * @param ctx - Query or mutation context
  * @param userId - User ID to check
@@ -80,9 +113,6 @@ async function isCircleMember(
 	userId: Id<'users'>,
 	circleId: Id<'circles'>
 ): Promise<boolean> {
-	// TODO: Implement membership checking logic
-	// 1. Query circleMembers table for this circle and user
-	// 2. Check if member exists and is not archived
 	const member = await ctx.db
 		.query('circleMembers')
 		.withIndex('by_circle_user', (q) => q.eq('circleId', circleId).eq('userId', userId))
@@ -151,17 +181,31 @@ export async function canQuickEdit(
 		};
 	}
 
-	// 3. Circle type check - DEFER TO PHASE 3
-	// For now, if user passes 1+2, allow edit
+	// 3. Check circle type restrictions
+	// NOTE: Org Designer (workspace-level RBAC) overrides circle-level restrictions
+	// If user has Org Designer, they can edit regardless of circle type (except guilds)
+	const circleType = getEffectiveCircleType(circle);
+
+	// Guilds are a hard restriction - no quick edits even for Org Designer
+	// This is because guilds have no authority and are coordination-only
+	if (circleType === 'guild') {
+		return {
+			allowed: false,
+			reason: 'Guilds are coordination-only. Create a proposal in your home circle.'
+		};
+	}
+
+	// If user has Org Designer role, skip circle type restrictions
+	// Org Designer can edit hierarchy, empowered_team, and hybrid circles
+	// Circle type restrictions only apply to users WITHOUT Org Designer role
+	return { allowed: true };
+
 	return { allowed: true };
 }
 
 /**
  * Require quick edit permission (throws error if not allowed)
  * Use this in mutations that need quick edit permission
- * 
- * PHASE 2: Simplified check - only workspace setting + RBAC permission
- * Circle type checks deferred to Phase 3 (Operating Modes)
  */
 export async function requireQuickEditPermission(
 	ctx: MutationCtx,
@@ -193,8 +237,20 @@ export async function requireQuickEditPermission(
 		throw new Error('Quick edits require Org Designer role.');
 	}
 
-	// 3. Circle type check - DEFER TO PHASE 3
-	// For now, if user passes 1+2, allow edit
+	// 3. Check circle type restrictions
+	// NOTE: Org Designer (workspace-level RBAC) overrides circle-level restrictions
+	// If user has Org Designer, they can edit regardless of circle type (except guilds)
+	const circleType = getEffectiveCircleType(circle);
+
+	// Guilds are a hard restriction - no quick edits even for Org Designer
+	// This is because guilds have no authority and are coordination-only
+	if (circleType === 'guild') {
+		throw new Error('Guilds are coordination-only. Create a proposal in your home circle.');
+	}
+
+	// If user has Org Designer role, skip circle type restrictions
+	// Org Designer can edit hierarchy, empowered_team, and hybrid circles
+	// Circle type restrictions only apply to users WITHOUT Org Designer role
 }
 
 // ============================================================================

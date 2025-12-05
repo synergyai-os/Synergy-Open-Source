@@ -337,5 +337,119 @@ const permissionQuery = $derived(
 
 ---
 
-**Last Updated**: 2025-12-04
+---
+
+## #L340: Use Reactive useQuery Instead of Manual Queries for Auto-Refetch [🟡 IMPORTANT]
+
+**Keywords**: useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch
+
+**Symptom**: 
+- After mutations, UI doesn't update until page refresh
+- Need to manually call refetch functions after mutations
+- "Hard reload" feeling when data updates
+- Different behavior between similar entities (e.g., circles update smoothly but roles don't)
+
+**Root Cause**: Manual `convexClient.query()` calls in `$effect` don't automatically refetch after mutations. Convex pushes updates via WebSocket, but manual queries aren't subscribed to those updates. Only reactive `useQuery` automatically refetches when data changes.
+
+**Example of broken code**:
+```typescript
+// ❌ BROKEN: Manual query doesn't auto-refetch after mutations
+$effect(() => {
+  if (!browser || !convexClient || !state.selectedRoleId) return;
+  
+  convexClient
+    .query(api.circleRoles.get, {
+      sessionId: getSessionId(),
+      roleId: state.selectedRoleId
+    })
+    .then((result) => {
+      state.selectedRole = result;
+    });
+});
+
+// After mutation, need manual refetch:
+async function handleQuickUpdateRole(updates) {
+  await convexClient.mutation(api.circleRoles.quickUpdate, { ... });
+  await refetchSelectedRole(); // ❌ Manual refetch needed - causes "hard reload"
+}
+```
+
+**Fix**: Use reactive `useQuery` wrapped in `$derived`:
+
+```typescript
+// ✅ CORRECT: Reactive query auto-refetches after mutations
+const selectedRoleQuery = $derived(
+  browser && state.selectedRoleId
+    ? useQuery(api.circleRoles.get, () => {
+        const sessionId = getSessionId();
+        if (!sessionId || !state.selectedRoleId) {
+          throw new Error('sessionId and selectedRoleId required');
+        }
+        return { sessionId, roleId: state.selectedRoleId };
+      })
+    : null
+);
+
+// Sync query state to internal state
+$effect(() => {
+  if (selectedRoleQuery) {
+    state.selectedRole = selectedRoleQuery.data ?? null;
+    state.selectedRoleIsLoading = selectedRoleQuery.isLoading ?? false;
+    state.selectedRoleError = selectedRoleQuery.error ?? null;
+  } else {
+    state.selectedRole = null;
+    state.selectedRoleIsLoading = false;
+    state.selectedRoleError = null;
+  }
+});
+
+// After mutation, no manual refetch needed:
+async function handleQuickUpdateRole(updates) {
+  await convexClient.mutation(api.circleRoles.quickUpdate, { ... });
+  // ✅ No refetch needed - useQuery automatically refetches via WebSocket
+}
+```
+
+**Why This Works**:
+1. `useQuery` creates a reactive subscription to Convex data
+2. When mutations update the database, Convex pushes changes via WebSocket
+3. `useQuery` automatically receives updates and refetches
+4. UI updates smoothly without manual intervention
+
+**Key Principles**:
+1. **Always use `useQuery` for data displayed in UI** (not manual queries)
+2. **Wrap conditional queries in `$derived`** to make them reactive
+3. **No manual refetch needed** - Convex handles it automatically
+4. **Consistent pattern - use same pattern** (e.g., circles and roles should both use `useQuery`)
+
+**When to Use Manual Queries**:
+- One-time data fetch (no real-time needed)
+- Background data loading
+- Conditional queries that shouldn't subscribe (rare)
+
+**When to Use Reactive useQuery**:
+- Data displayed in UI
+- Data that changes via mutations
+- Related entities that should update together
+- Any query where you want automatic updates
+
+**Detection**:
+- Check if mutations require manual refetch calls
+- Check if similar entities behave differently (one smooth, one hard reload)
+- Check for `refetch*` methods being called after mutations
+- Check for manual `convexClient.query()` in `$effect`
+
+**Real Example**: 
+- Before: `useOrgChart` used manual `convexClient.query()` for `$effect
+- After: Converted to reactive `useQuery` wrapped in `$derived`
+- Result: Roles now update smoothly like circles do
+
+**Related**: 
+- #L250: Conditional Query Creation Must Be Wrapped in $derived
+- #L140: useQuery Hydration Errors
+- Convex real-time subscriptions
+
+---
+
+**Last Updated**: 2025-01-27
 

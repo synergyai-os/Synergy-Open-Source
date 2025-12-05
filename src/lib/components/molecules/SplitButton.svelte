@@ -56,7 +56,7 @@
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Portal>
 			<DropdownMenu.Content
-				class="border-base z-50 min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
+				class="border-base z-[100] min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
 				side="bottom"
 				align="end"
 				sideOffset={4}

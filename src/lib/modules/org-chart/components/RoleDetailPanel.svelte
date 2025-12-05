@@ -1,10 +1,20 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
+	import { useConvexClient } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
+	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
+	import { useCircleItems } from '../composables/useCircleItems.svelte';
 	import RoleDetailHeader from './RoleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
+	import CategoryItemsList from './CategoryItemsList.svelte';
 	import { Avatar } from '$lib/components/atoms';
+	import Text from '$lib/components/atoms/Text.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
@@ -24,6 +34,94 @@
 	const selectionSource = $derived(orgChart?.selectionSource ?? null);
 	const error = $derived(orgChart?.selectedRoleError ?? null);
 	const isLoading = $derived(orgChart?.selectedRoleIsLoading ?? false);
+
+	// Convex client for mutations
+	const convexClient = browser ? useConvexClient() : null;
+	const sessionId = $derived($page.data.sessionId);
+
+	// Query circle for permission checking (roles belong to circles)
+	const circleQuery = $derived(
+		browser && role?.circleId && sessionId
+			? useQuery(api.circles.get, () => {
+					if (!role?.circleId || !sessionId)
+						throw new Error('Role circleId and sessionId required');
+					return { sessionId, circleId: role.circleId };
+				})
+			: null
+	);
+
+	const circle = $derived(circleQuery?.data ?? null);
+	const circleQueryError = $derived(circleQuery?.error ?? null);
+
+	// Log circle query failures for debugging
+	$effect(() => {
+		if (circleQueryError && role?.roleId) {
+			console.error(
+				'[RoleDetailPanel] Circle query failed for role:',
+				role.roleId,
+				'circleId:',
+				role.circleId,
+				'error:',
+				circleQueryError
+			);
+		}
+	});
+
+	// Check if role is Lead role - Lead roles CANNOT be edited regardless of permissions
+	const isLeadRole = $derived(role?.isLeadRole ?? false);
+
+	// Check quick edit permission using composable (only if not Lead role)
+	const quickEditPermission = useQuickEditPermission({
+		circle: () => circle,
+		sessionId: () => sessionId,
+		allowQuickChanges: () => orgChart?.allowQuickChanges ?? false
+	});
+
+	// Combine permission checks: Lead roles are always blocked, otherwise use quickEditPermission
+	const canEdit = $derived(
+		isLeadRole
+			? false
+			: circleQueryError
+				? false // If circle query failed, don't allow editing
+				: quickEditPermission.canEdit
+	);
+
+	const editReason = $derived(
+		isLeadRole
+			? 'Lead roles cannot be edited directly. Edit the Lead role template instead to update all Lead roles across all circles.'
+			: circleQueryError
+				? 'Unable to verify edit permissions. Please refresh the page.'
+				: quickEditPermission.editReason
+	);
+
+	// Circle items composable for roles
+	const circleItems = useCircleItems({
+		sessionId: () => sessionId,
+		entityType: () => 'role',
+		entityId: () => role?.roleId ?? null
+	});
+
+	// Quick update handler for role (purpose and name)
+	async function handleQuickUpdateRole(updates: { name?: string; purpose?: string }) {
+		if (!convexClient || !role || !sessionId) return;
+
+		try {
+			await convexClient.mutation(api.circleRoles.quickUpdate, {
+				sessionId,
+				circleRoleId: role.roleId,
+				updates
+			});
+			// No manual refetch needed - useQuery automatically refetches after mutations
+		} catch (error) {
+			// Error handling is done in InlineEditText component
+			throw error;
+		}
+	}
+
+	// Quick update handler for role name (separate for header)
+	async function handleQuickUpdateRoleName(name: string) {
+		await handleQuickUpdateRole({ name });
+	}
 
 	// Check if this role panel is the topmost layer
 	const isTopmost = () => {
@@ -119,7 +217,9 @@
 	}
 
 	function handleEditRole() {
-		/* TODO: Implement edit role */
+		if (orgChart && role) {
+			orgChart.openEditRole(role.roleId);
+		}
 	}
 
 	// Icon renderer for breadcrumbs - modules define their own icons
@@ -193,6 +293,9 @@
 					<!-- Header -->
 					<RoleDetailHeader
 						roleName={role.name}
+						{canEdit}
+						{editReason}
+						onNameChange={handleQuickUpdateRoleName}
 						onClose={handleClose}
 						onBack={panelContext.onBack}
 						showBackButton={panelContext.isMobile && panelContext.canGoBack}
@@ -329,18 +432,41 @@
 										<!-- Left Column: Overview Details -->
 										<div class="flex min-w-0 flex-col gap-section overflow-hidden">
 											<!-- Purpose -->
-											{#if role.purpose}
-												<div>
-													<h4
-														class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
-													>
-														Purpose
-													</h4>
+											<div>
+												<h4
+													class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												>
+													Purpose
+												</h4>
+												{#if canEdit}
+													<InlineEditText
+														value={role.purpose || ''}
+														onSave={(purpose) => handleQuickUpdateRole({ purpose })}
+														multiline={true}
+														placeholder="What's the purpose of this role?"
+														maxRows={4}
+														size="md"
+													/>
+												{:else if editReason}
+													<EditPermissionTooltip reason={editReason}>
+														{#snippet children()}
+															<div class="text-button leading-relaxed break-words text-secondary">
+																{#if role.purpose}
+																	{role.purpose}
+																{:else}
+																	<Text variant="body" size="md" color="tertiary">
+																		No purpose set
+																	</Text>
+																{/if}
+															</div>
+														{/snippet}
+													</EditPermissionTooltip>
+												{:else}
 													<p class="text-button leading-relaxed break-words text-secondary">
-														{role.purpose}
+														{role.purpose || 'No purpose set'}
 													</p>
-												</div>
-											{/if}
+												{/if}
+											</div>
 
 											<!-- Domains -->
 											<div>
@@ -349,22 +475,16 @@
 												>
 													Domains
 												</h4>
-												<div class="text-button flex items-center gap-button text-secondary">
-													<svg
-														class="size-icon-sm"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span>Empty field</span>
-												</div>
+												<CategoryItemsList
+													categoryName="Domains"
+													items={circleItems.getItemsByCategory('Domains')}
+													{canEdit}
+													{editReason}
+													onCreate={(content) => circleItems.createItem('Domains', content)}
+													onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+													onDelete={(itemId) => circleItems.deleteItem(itemId)}
+													placeholder="What domains does this role own?"
+												/>
 											</div>
 
 											<!-- Accountabilities -->
@@ -374,22 +494,17 @@
 												>
 													Accountabilities
 												</h4>
-												<div class="text-button flex items-center gap-button text-secondary">
-													<svg
-														class="size-icon-sm"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span>Empty field</span>
-												</div>
+												<CategoryItemsList
+													categoryName="Accountabilities"
+													items={circleItems.getItemsByCategory('Accountabilities')}
+													{canEdit}
+													{editReason}
+													onCreate={(content) =>
+														circleItems.createItem('Accountabilities', content)}
+													onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+													onDelete={(itemId) => circleItems.deleteItem(itemId)}
+													placeholder="What is this role accountable for?"
+												/>
 											</div>
 
 											<!-- Policies -->
@@ -399,22 +514,16 @@
 												>
 													Policies
 												</h4>
-												<div class="text-button flex items-center gap-button text-secondary">
-													<svg
-														class="size-icon-sm"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span>Empty field</span>
-												</div>
+												<CategoryItemsList
+													categoryName="Policies"
+													items={circleItems.getItemsByCategory('Policies')}
+													{canEdit}
+													{editReason}
+													onCreate={(content) => circleItems.createItem('Policies', content)}
+													onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+													onDelete={(itemId) => circleItems.deleteItem(itemId)}
+													placeholder="What policies govern this role?"
+												/>
 											</div>
 
 											<!-- Decision Rights -->
@@ -424,22 +533,16 @@
 												>
 													Decision Rights
 												</h4>
-												<div class="text-button flex items-center gap-button text-secondary">
-													<svg
-														class="size-icon-sm"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span>Empty field</span>
-												</div>
+												<CategoryItemsList
+													categoryName="Decision Rights"
+													items={circleItems.getItemsByCategory('Decision Rights')}
+													{canEdit}
+													{editReason}
+													onCreate={(content) => circleItems.createItem('Decision Rights', content)}
+													onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+													onDelete={(itemId) => circleItems.deleteItem(itemId)}
+													placeholder="What decisions can this role make?"
+												/>
 											</div>
 
 											<!-- Notes -->
@@ -449,22 +552,16 @@
 												>
 													Notes
 												</h4>
-												<div class="text-button flex items-center gap-button text-secondary">
-													<svg
-														class="size-icon-sm"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-														/>
-													</svg>
-													<span>Empty field</span>
-												</div>
+												<CategoryItemsList
+													categoryName="Notes"
+													items={circleItems.getItemsByCategory('Notes')}
+													{canEdit}
+													{editReason}
+													onCreate={(content) => circleItems.createItem('Notes', content)}
+													onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+													onDelete={(itemId) => circleItems.deleteItem(itemId)}
+													placeholder="Additional notes about this role"
+												/>
 											</div>
 										</div>
 

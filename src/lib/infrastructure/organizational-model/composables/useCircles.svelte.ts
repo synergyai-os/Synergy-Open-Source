@@ -12,6 +12,8 @@ export type CircleSummary = {
 	parentCircleId?: Id<'circles'>;
 	parentName?: string | null;
 	memberCount: number;
+	circleType?: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+	decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
 	createdAt: number;
 	updatedAt: number;
 	archivedAt?: number;

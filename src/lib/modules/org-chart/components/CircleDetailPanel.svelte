@@ -7,15 +7,21 @@
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
+	import { useCircleItems } from '../composables/useCircleItems.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
 	import InlineEditText from './InlineEditText.svelte';
 	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
+	import CategoryItemsList from './CategoryItemsList.svelte';
+	import CircleTypeBadge from './CircleTypeBadge.svelte';
+	import CircleTypeSelector from './CircleTypeSelector.svelte';
+	import DecisionModelSelector from './DecisionModelSelector.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
+	import Heading from '$lib/components/atoms/Heading.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -47,6 +53,13 @@
 
 	const canEdit = $derived(quickEditPermission.canEdit);
 	const editReason = $derived(quickEditPermission.editReason);
+
+	// Circle items composable
+	const circleItems = useCircleItems({
+		sessionId: () => sessionId,
+		entityType: () => 'circle',
+		entityId: () => circle?.circleId ?? null
+	});
 
 	// Quick update handlers
 	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
@@ -259,7 +272,9 @@
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
 					onEdit={() => {
-						/* TODO: Implement edit circle */
+						if (orgChart && circle) {
+							orgChart.openEditCircle(circle.circleId);
+						}
 					}}
 					editable={canEdit}
 					{editReason}
@@ -280,6 +295,21 @@
 						{ label: 'Delete circle', onclick: () => {}, danger: true }
 					]}
 				/>
+
+				<!-- Operating Mode Section -->
+				{#if circle}
+					<div class="border-base mx-page rounded-card border bg-surface card-padding mb-section">
+						<div class="mb-fieldGroup flex items-center justify-between">
+							<Heading level={3}>Operating Mode</Heading>
+							<CircleTypeBadge circleType={circle.circleType} />
+						</div>
+
+						<div class="space-y-form">
+							<CircleTypeSelector {circle} {sessionId} {canEdit} />
+							<DecisionModelSelector {circle} {sessionId} {canEdit} />
+						</div>
+					</div>
+				{/if}
 
 				<!-- Content -->
 				<div class="flex-1 overflow-y-auto">
@@ -425,22 +455,16 @@
 											>
 												Domains
 											</h4>
-											<div class="text-button flex items-center gap-button text-secondary">
-												<svg
-													class="size-icon-sm"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-													/>
-												</svg>
-												<span>Empty field</span>
-											</div>
+											<CategoryItemsList
+												categoryName="Domains"
+												items={circleItems.getItemsByCategory('Domains')}
+												{canEdit}
+												{editReason}
+												onCreate={(content) => circleItems.createItem('Domains', content)}
+												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												placeholder="What domains does this circle own?"
+											/>
 										</div>
 
 										<!-- Accountabilities -->
@@ -450,22 +474,16 @@
 											>
 												Accountabilities
 											</h4>
-											<div class="text-button flex items-center gap-button text-secondary">
-												<svg
-													class="size-icon-sm"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-													/>
-												</svg>
-												<span>Empty field</span>
-											</div>
+											<CategoryItemsList
+												categoryName="Accountabilities"
+												items={circleItems.getItemsByCategory('Accountabilities')}
+												{canEdit}
+												{editReason}
+												onCreate={(content) => circleItems.createItem('Accountabilities', content)}
+												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												placeholder="What is this circle accountable for?"
+											/>
 										</div>
 
 										<!-- Policies -->
@@ -475,22 +493,16 @@
 											>
 												Policies
 											</h4>
-											<div class="text-button flex items-center gap-button text-secondary">
-												<svg
-													class="size-icon-sm"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-													/>
-												</svg>
-												<span>Empty field</span>
-											</div>
+											<CategoryItemsList
+												categoryName="Policies"
+												items={circleItems.getItemsByCategory('Policies')}
+												{canEdit}
+												{editReason}
+												onCreate={(content) => circleItems.createItem('Policies', content)}
+												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												placeholder="What policies govern this circle?"
+											/>
 										</div>
 
 										<!-- Decision Rights -->
@@ -500,22 +512,16 @@
 											>
 												Decision Rights
 											</h4>
-											<div class="text-button flex items-center gap-button text-secondary">
-												<svg
-													class="size-icon-sm"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-													/>
-												</svg>
-												<span>Empty field</span>
-											</div>
+											<CategoryItemsList
+												categoryName="Decision Rights"
+												items={circleItems.getItemsByCategory('Decision Rights')}
+												{canEdit}
+												{editReason}
+												onCreate={(content) => circleItems.createItem('Decision Rights', content)}
+												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												placeholder="What decisions can this circle make?"
+											/>
 										</div>
 
 										<!-- Notes -->
@@ -525,22 +531,16 @@
 											>
 												Notes
 											</h4>
-											<div class="text-button flex items-center gap-button text-secondary">
-												<svg
-													class="size-icon-sm"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-													/>
-												</svg>
-												<span>Empty field</span>
-											</div>
+											<CategoryItemsList
+												categoryName="Notes"
+												items={circleItems.getItemsByCategory('Notes')}
+												{canEdit}
+												{editReason}
+												onCreate={(content) => circleItems.createItem('Notes', content)}
+												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
+												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												placeholder="Additional notes about this circle"
+											/>
 										</div>
 									</div>
 

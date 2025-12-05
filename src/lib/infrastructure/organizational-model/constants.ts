@@ -1,0 +1,150 @@
+/**
+ * Operating Mode Constants
+ *
+ * System-defined values that must remain fixed for type safety and permission logic.
+ * Labels are customizable per workspace via workspaceOrgSettings.
+ *
+ * Location: Infrastructure layer (core organizational model data)
+ * - Used in backend: schema, permissions, mutations
+ * - Used in infrastructure: types (CircleSummary)
+ * - Used in modules: org-chart visualization UI (one consumer)
+ *
+ * Pattern: Similar to feature flags - constants defined here, used throughout codebase.
+ * Values are hardcoded (like RBAC permissions), labels are customizable (like role templates).
+ *
+ * @example
+ * ```typescript
+ * import { CIRCLE_TYPES, DEFAULT_CIRCLE_TYPE_LABELS } from '$lib/infrastructure/organizational-model/constants';
+ *
+ * const circleType = CIRCLE_TYPES.HIERARCHY;
+ * const label = DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY]; // "Hierarchy"
+ * ```
+ */
+
+// ============================================================================
+// Circle Types
+// ============================================================================
+
+export const CIRCLE_TYPES = {
+	HIERARCHY: 'hierarchy',
+	EMPOWERED_TEAM: 'empowered_team',
+	GUILD: 'guild',
+	HYBRID: 'hybrid'
+} as const;
+
+export type CircleType = (typeof CIRCLE_TYPES)[keyof typeof CIRCLE_TYPES];
+
+// Default labels (used when workspace labels not configured)
+export const DEFAULT_CIRCLE_TYPE_LABELS: Record<CircleType, string> = {
+	[CIRCLE_TYPES.HIERARCHY]: 'Hierarchy',
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Empowered Team',
+	[CIRCLE_TYPES.GUILD]: 'Guild',
+	[CIRCLE_TYPES.HYBRID]: 'Hybrid'
+} as const;
+
+export const DEFAULT_CIRCLE_TYPE_DESCRIPTIONS: Record<CircleType, string> = {
+	[CIRCLE_TYPES.HIERARCHY]: 'Traditional: manager decides',
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Agile: team consensus',
+	[CIRCLE_TYPES.GUILD]: 'Coordination only, no authority',
+	[CIRCLE_TYPES.HYBRID]: 'Mixed: depends on decision type'
+} as const;
+
+// ============================================================================
+// Decision Models
+// ============================================================================
+
+export const DECISION_MODELS = {
+	MANAGER_DECIDES: 'manager_decides',
+	TEAM_CONSENSUS: 'team_consensus',
+	CONSENT: 'consent',
+	COORDINATION_ONLY: 'coordination_only'
+} as const;
+
+export type DecisionModel = (typeof DECISION_MODELS)[keyof typeof DECISION_MODELS];
+
+// Default labels (used when workspace labels not configured)
+export const DEFAULT_DECISION_MODEL_LABELS: Record<DecisionModel, string> = {
+	[DECISION_MODELS.MANAGER_DECIDES]: 'Manager Decides',
+	[DECISION_MODELS.TEAM_CONSENSUS]: 'Team Consensus',
+	[DECISION_MODELS.CONSENT]: 'Consent',
+	[DECISION_MODELS.COORDINATION_ONLY]: 'Coordination Only'
+} as const;
+
+export const DEFAULT_DECISION_MODEL_DESCRIPTIONS: Record<DecisionModel, string> = {
+	[DECISION_MODELS.MANAGER_DECIDES]: 'Single approver (manager/lead)',
+	[DECISION_MODELS.TEAM_CONSENSUS]: 'All members must agree',
+	[DECISION_MODELS.CONSENT]: 'No valid objections (IDM)',
+	[DECISION_MODELS.COORDINATION_ONLY]: 'Guild: must approve in home circle'
+} as const;
+
+// ============================================================================
+// Circle Item Categories
+// ============================================================================
+
+/**
+ * Default category names created automatically for each workspace.
+ * These are system defaults - workspace admins can add custom categories.
+ *
+ * Note: Categories are workspace-specific and customizable, but these are
+ * the default names that are created on workspace creation.
+ */
+export const DEFAULT_CIRCLE_CATEGORY_NAMES = {
+	PURPOSE: 'Purpose',
+	DOMAINS: 'Domains',
+	ACCOUNTABILITIES: 'Accountabilities',
+	POLICIES: 'Policies',
+	DECISION_RIGHTS: 'Decision Rights',
+	NOTES: 'Notes'
+} as const;
+
+export const DEFAULT_ROLE_CATEGORY_NAMES = {
+	PURPOSE: 'Purpose',
+	DOMAINS: 'Domains',
+	ACCOUNTABILITIES: 'Accountabilities',
+	POLICIES: 'Policies',
+	DECISION_RIGHTS: 'Decision Rights',
+	NOTES: 'Notes'
+} as const;
+
+/**
+ * Categories that should be displayed as single text fields (not multiple items)
+ */
+export const SINGLE_FIELD_CATEGORIES = [
+	DEFAULT_CIRCLE_CATEGORY_NAMES.PURPOSE,
+	DEFAULT_CIRCLE_CATEGORY_NAMES.NOTES
+] as const;
+
+/**
+ * Categories that support multiple items (each item is separate)
+ */
+export const MULTIPLE_ITEM_CATEGORIES = [
+	DEFAULT_CIRCLE_CATEGORY_NAMES.DOMAINS,
+	DEFAULT_CIRCLE_CATEGORY_NAMES.ACCOUNTABILITIES,
+	DEFAULT_CIRCLE_CATEGORY_NAMES.POLICIES,
+	DEFAULT_CIRCLE_CATEGORY_NAMES.DECISION_RIGHTS
+] as const;
+
+/**
+ * Check if a category name should be displayed as a single field
+ */
+export function isSingleFieldCategory(categoryName: string): boolean {
+	return (SINGLE_FIELD_CATEGORIES as readonly string[]).includes(categoryName);
+}
+
+// ============================================================================
+// Type Guards
+// ============================================================================
+
+/**
+ * Type guard: Check if value is a valid CircleType
+ */
+export function isCircleType(value: string): value is CircleType {
+	return Object.values(CIRCLE_TYPES).includes(value as CircleType);
+}
+
+/**
+ * Type guard: Check if value is a valid DecisionModel
+ */
+export function isDecisionModel(value: string): value is DecisionModel {
+	return Object.values(DECISION_MODELS).includes(value as DecisionModel);
+}

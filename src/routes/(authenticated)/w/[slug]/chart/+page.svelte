@@ -4,11 +4,14 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
-	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
-	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
-	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
+import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
+import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
+import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
+import EditCirclePanel from '$lib/modules/org-chart/components/EditCirclePanel.svelte';
+import EditRolePanel from '$lib/modules/org-chart/components/EditRolePanel.svelte';
+import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
+import type { Id } from '$lib/convex/_generated/dataModel';
 
 	let { data: _data } = $props();
 
@@ -108,4 +111,14 @@
 {#if browser && orgChart}
 	<CircleDetailPanel {orgChart} />
 	<RoleDetailPanel {orgChart} />
+	
+	<!-- Edit Panels - Conditionally rendered based on navigation stack -->
+	{@const currentLayer = orgChart.navigationStack.currentLayer}
+	{#if currentLayer?.type === 'edit-circle'}
+		<EditCirclePanel {orgChart} circleId={currentLayer.id as Id<'circles'>} />
+	{/if}
+	
+	{#if currentLayer?.type === 'edit-role'}
+		<EditRolePanel {orgChart} roleId={currentLayer.id as Id<'circleRoles'>} />
+	{/if}
 {/if}

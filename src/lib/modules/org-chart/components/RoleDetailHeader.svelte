@@ -3,9 +3,14 @@
 	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { panelDetailHeaderRecipe } from '$lib/design-system/recipes';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 
 	type Props = {
 		roleName: string;
+		canEdit?: boolean;
+		editReason?: string;
+		onNameChange?: (name: string) => Promise<void>;
 		onClose: () => void;
 		onEdit?: () => void;
 		onBack?: () => void;
@@ -17,6 +22,9 @@
 
 	let {
 		roleName,
+		canEdit = false,
+		editReason,
+		onNameChange,
 		onClose,
 		onEdit,
 		onBack,
@@ -44,9 +52,27 @@
 				{/snippet}
 			</Button>
 		{/if}
-		<Heading level={3} color="primary">
-			{roleName}
-		</Heading>
+		{#if canEdit && onNameChange}
+			<InlineEditText
+				value={roleName}
+				onSave={onNameChange}
+				placeholder="Role name"
+				size="md"
+				className="font-medium"
+			/>
+		{:else if editReason && onNameChange}
+			<EditPermissionTooltip reason={editReason}>
+				{#snippet children()}
+					<Heading level={3} color="primary">
+						{roleName}
+					</Heading>
+				{/snippet}
+			</EditPermissionTooltip>
+		{:else}
+			<Heading level={3} color="primary">
+				{roleName}
+			</Heading>
+		{/if}
 	</div>
 	<div class="flex items-center gap-button">
 		{#if addMenuItems.length > 0}

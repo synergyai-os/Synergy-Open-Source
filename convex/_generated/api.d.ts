@@ -48,6 +48,7 @@ import type * as permissions from "../permissions.js";
 import type * as posthog from "../posthog.js";
 import type * as promptUtils from "../promptUtils.js";
 import type * as prompts_flashcardGeneration from "../prompts/flashcardGeneration.js";
+import type * as proposals from "../proposals.js";
 import type * as rbac_permissions from "../rbac/permissions.js";
 import type * as rbac_queries from "../rbac/queries.js";
 import type * as rbac_roles from "../rbac/roles.js";
@@ -121,6 +122,7 @@ declare const fullApi: ApiFromModules<{
   posthog: typeof posthog;
   promptUtils: typeof promptUtils;
   "prompts/flashcardGeneration": typeof prompts_flashcardGeneration;
+  proposals: typeof proposals;
   "rbac/permissions": typeof rbac_permissions;
   "rbac/queries": typeof rbac_queries;
   "rbac/roles": typeof rbac_roles;

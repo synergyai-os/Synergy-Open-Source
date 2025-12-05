@@ -134,6 +134,7 @@
 {:else}
 	<div
 		class={displayClasses}
+		data-inline-edit="true"
 		onclick={() => {
 			if (!disabled) {
 				isEditing = true;
@@ -147,6 +148,7 @@
 				isEditing = true;
 			}
 		}}
+		title={disabled ? undefined : 'Click to edit'}
 	>
 		{#if value || placeholder}
 			<Text variant="body" size={size} color="default">

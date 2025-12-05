@@ -348,6 +348,13 @@ export const get = query({
 			)
 			.collect();
 
+		// Check if this is a Lead role (template with isRequired: true)
+		let isLeadRole = false;
+		if (role.templateId) {
+			const template = await ctx.db.get(role.templateId);
+			isLeadRole = template?.isRequired === true;
+		}
+
 		return {
 			roleId: role._id,
 			name: role.name,
@@ -356,7 +363,9 @@ export const get = query({
 			circleName: circle.name,
 			workspaceId,
 			fillerCount: assignments.length,
-			createdAt: role.createdAt
+			createdAt: role.createdAt,
+			templateId: role.templateId,
+			isLeadRole
 		};
 	}
 });

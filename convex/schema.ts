@@ -646,6 +646,7 @@ const schema = defineSchema(
 			.index('by_entity', ['entityType', 'entityId'])
 			.index('by_circle', ['circleId'])
 			.index('by_meeting', ['meetingId'])
+			.index('by_agendaItem', ['agendaItemId']) // Loose coupling: meetings can query proposals by agenda item
 			.index('by_status', ['workspaceId', 'status'])
 			.index('by_creator', ['createdBy'])
 			.index('by_workspace_status', ['workspaceId', 'status', 'createdAt']),

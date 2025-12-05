@@ -284,6 +284,8 @@ export const get = query({
 			parentCircleId: circle.parentCircleId,
 			parentName,
 			memberCount: members.length,
+			circleType: circle.circleType,
+			decisionModel: circle.decisionModel,
 			createdAt: circle.createdAt,
 			updatedAt: circle.updatedAt,
 			archivedAt: circle.archivedAt
@@ -512,7 +514,23 @@ export const quickUpdate = mutation({
 		circleId: v.id('circles'),
 		updates: v.object({
 			name: v.optional(v.string()),
-			purpose: v.optional(v.string())
+			purpose: v.optional(v.string()),
+			circleType: v.optional(
+				v.union(
+					v.literal('hierarchy'),
+					v.literal('empowered_team'),
+					v.literal('guild'),
+					v.literal('hybrid')
+				)
+			),
+			decisionModel: v.optional(
+				v.union(
+					v.literal('manager_decides'),
+					v.literal('team_consensus'),
+					v.literal('consent'),
+					v.literal('coordination_only')
+				)
+			)
 		})
 	},
 	handler: async (ctx, args) => {
@@ -551,6 +569,14 @@ export const quickUpdate = mutation({
 
 		if (args.updates.purpose !== undefined) {
 			updateData.purpose = args.updates.purpose;
+		}
+
+		if (args.updates.circleType !== undefined) {
+			updateData.circleType = args.updates.circleType;
+		}
+
+		if (args.updates.decisionModel !== undefined) {
+			updateData.decisionModel = args.updates.decisionModel;
 		}
 
 		await ctx.db.patch(args.circleId, updateData);

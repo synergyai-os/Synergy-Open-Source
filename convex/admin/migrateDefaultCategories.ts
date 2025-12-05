@@ -5,7 +5,7 @@
  * that don't have them yet.
  *
  * Default circle categories: Purpose, Domains, Accountabilities, Policies, Decision Rights, Notes
- * Default role categories: Purpose, Domains, Accountabilities
+ * Default role categories: Purpose, Domains, Accountabilities, Policies, Decision Rights, Notes
  *
  * Run with: npx convex run admin/migrateDefaultCategories:migrateDefaultCategories
  */
@@ -67,7 +67,10 @@ export const migrateDefaultCategories = internalMutation({
 		const roleCategories = [
 			{ name: 'Purpose', order: 0 },
 			{ name: 'Domains', order: 1 },
-			{ name: 'Accountabilities', order: 2 }
+			{ name: 'Accountabilities', order: 2 },
+			{ name: 'Policies', order: 3 },
+			{ name: 'Decision Rights', order: 4 },
+			{ name: 'Notes', order: 5 }
 		];
 
 		for (const workspace of workspaces) {

@@ -31,6 +31,8 @@ type CircleRoleDetail = {
 	workspaceId: Id<'workspaces'>;
 	fillerCount: number;
 	createdAt: number;
+	templateId?: Id<'roleTemplates'>;
+	isLeadRole: boolean;
 };
 
 /**
@@ -86,7 +88,6 @@ export function useOrgChart(options: {
 	let currentCircleQueryId: Id<'circles'> | null = null;
 	let currentCircleMembersQueryId: Id<'circles'> | null = null;
 	let currentCircleMembersWithoutRolesQueryId: Id<'circles'> | null = null;
-	let currentRoleQueryId: Id<'circleRoles'> | null = null;
 	let currentRoleFillersQueryId: Id<'circleRoles'> | null = null;
 
 	// Query circles list - wait for org context before querying
@@ -357,61 +358,31 @@ export function useOrgChart(options: {
 		};
 	});
 
-	// Load selected role details with $effect pattern (proven pattern from useSelectedItem)
+	// Load selected role details with reactive useQuery (matches CircleDetailPanel pattern)
+	// CRITICAL: Use $derived to make query creation reactive - when selectedRoleId changes, query re-creates
+	const selectedRoleQuery = $derived(
+		browser && state.selectedRoleId
+			? useQuery(api.circleRoles.get, () => {
+					const sessionId = getSessionId();
+					if (!sessionId || !state.selectedRoleId) {
+						throw new Error('sessionId and selectedRoleId required');
+					}
+					return { sessionId, roleId: state.selectedRoleId };
+				})
+			: null
+	);
+
+	// Update state from reactive query (derived values update automatically)
 	$effect(() => {
-		if (!browser || !convexClient || !state.selectedRoleId) {
+		if (selectedRoleQuery) {
+			state.selectedRole = selectedRoleQuery.data ?? null;
+			state.selectedRoleIsLoading = selectedRoleQuery.isLoading ?? false;
+			state.selectedRoleError = selectedRoleQuery.error ?? null;
+		} else {
 			state.selectedRole = null;
 			state.selectedRoleIsLoading = false;
 			state.selectedRoleError = null;
-			currentRoleQueryId = null;
-			return;
 		}
-
-		const sessionId = getSessionId();
-		if (!sessionId) {
-			state.selectedRole = null;
-			state.selectedRoleIsLoading = false;
-			state.selectedRoleError = null;
-			currentRoleQueryId = null;
-			return;
-		}
-
-		// Generate unique ID for this query
-		const queryId = state.selectedRoleId;
-		currentRoleQueryId = queryId;
-		state.selectedRoleIsLoading = true;
-		state.selectedRoleError = null;
-
-		// Load role details
-		convexClient
-			.query(api.circleRoles.get, {
-				sessionId,
-				roleId: state.selectedRoleId
-			})
-			.then((result) => {
-				// Only update if this is still the current query (prevent race conditions)
-				if (currentRoleQueryId === queryId) {
-					state.selectedRole = result;
-					state.selectedRoleIsLoading = false;
-					state.selectedRoleError = null;
-				}
-			})
-			.catch((error) => {
-				// Only handle error if this is still the current query
-				if (currentRoleQueryId === queryId) {
-					console.error('[useOrgChart] Failed to load role:', error);
-					state.selectedRole = null;
-					state.selectedRoleIsLoading = false;
-					state.selectedRoleError = error;
-				}
-			});
-
-		// Cleanup function: mark query as stale when effect re-runs or component unmounts
-		return () => {
-			if (currentRoleQueryId === queryId) {
-				currentRoleQueryId = null;
-			}
-		};
 	});
 
 	// Load selected role fillers with $effect pattern
@@ -602,6 +573,26 @@ export function useOrgChart(options: {
 					name: circleName
 				});
 			}
+		},
+
+		// Edit panel navigation methods
+		openEditCircle: (circleId: Id<'circles'>) => {
+			const circle = circlesQuery?.data?.find((c) => c.circleId === circleId);
+			const circleName = circle?.name || 'Unknown';
+			navigationStack.push({
+				type: 'edit-circle',
+				id: circleId,
+				name: `Edit ${circleName}`
+			});
+		},
+
+		openEditRole: (roleId: Id<'circleRoles'>) => {
+			// Role name will be loaded asynchronously, use placeholder for now
+			navigationStack.push({
+				type: 'edit-role',
+				id: roleId,
+				name: 'Edit Role' // Will update when role data loads
+			});
 		},
 
 		selectRole: (

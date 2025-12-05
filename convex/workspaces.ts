@@ -516,7 +516,10 @@ export const createWorkspace = mutation({
 		const roleCategories = [
 			{ name: 'Purpose', order: 0 },
 			{ name: 'Domains', order: 1 },
-			{ name: 'Accountabilities', order: 2 }
+			{ name: 'Accountabilities', order: 2 },
+			{ name: 'Policies', order: 3 },
+			{ name: 'Decision Rights', order: 4 },
+			{ name: 'Notes', order: 5 }
 		];
 
 		for (const category of roleCategories) {
