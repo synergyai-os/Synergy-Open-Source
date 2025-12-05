@@ -148,3 +148,126 @@ export function isCircleType(value: string): value is CircleType {
 export function isDecisionModel(value: string): value is DecisionModel {
 	return Object.values(DECISION_MODELS).includes(value as DecisionModel);
 }
+
+// ============================================================================
+// Authority Levels (SYOS-670: Circle Lead Authority)
+// ============================================================================
+
+/**
+ * System-defined authority levels for Lead roles.
+ * Authority is computed at runtime from circle type, not stored on roles.
+ */
+export const AUTHORITY_LEVELS = {
+	AUTHORITY: 'authority',
+	FACILITATIVE: 'facilitative',
+	CONVENING: 'convening'
+} as const;
+
+export type AuthorityLevel = (typeof AUTHORITY_LEVELS)[keyof typeof AUTHORITY_LEVELS];
+
+/**
+ * Circle Type → Authority Level Mapping (system behavior)
+ * Lead authority adapts to circle type using hard-coded defaults.
+ */
+export const CIRCLE_TYPE_LEAD_AUTHORITY: Record<CircleType, AuthorityLevel> = {
+	[CIRCLE_TYPES.HIERARCHY]: AUTHORITY_LEVELS.AUTHORITY,
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: AUTHORITY_LEVELS.FACILITATIVE,
+	[CIRCLE_TYPES.GUILD]: AUTHORITY_LEVELS.CONVENING,
+	[CIRCLE_TYPES.HYBRID]: AUTHORITY_LEVELS.AUTHORITY
+} as const;
+
+/**
+ * Lead Requirement by Circle Type (system behavior)
+ * Determines if a Lead role is required when creating a circle.
+ */
+export const DEFAULT_LEAD_REQUIRED: Record<CircleType, boolean> = {
+	[CIRCLE_TYPES.HIERARCHY]: true,
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: false,
+	[CIRCLE_TYPES.GUILD]: false,
+	[CIRCLE_TYPES.HYBRID]: true
+} as const;
+
+// ============================================================================
+// Default Labels (Fallback when workspace doesn't customize)
+// ============================================================================
+
+/**
+ * Default Lead role labels by circle type
+ * MVP: Returns default label
+ * Phase 4+: Will check workspaceOrgSettings.leadLabelByCircleType first
+ */
+export const DEFAULT_LEAD_LABELS: Record<CircleType, string> = {
+	[CIRCLE_TYPES.HIERARCHY]: 'Manager',
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Coordinator',
+	[CIRCLE_TYPES.GUILD]: 'Steward',
+	[CIRCLE_TYPES.HYBRID]: 'Lead'
+} as const;
+
+/**
+ * Default Lead role descriptions by circle type
+ * MVP: Returns default description
+ * Phase 4+: Will check workspaceOrgSettings first
+ */
+export const DEFAULT_LEAD_DESCRIPTIONS: Record<CircleType, string> = {
+	[CIRCLE_TYPES.HIERARCHY]: 'Makes final decisions for this circle',
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Coordinates the team. Team decides together using consent.',
+	[CIRCLE_TYPES.GUILD]: 'Organizes gatherings. Decisions are made in home circles.',
+	[CIRCLE_TYPES.HYBRID]: 'Authority varies by decision type'
+} as const;
+
+/**
+ * UI configuration for authority levels (emoji + badge text)
+ */
+export const AUTHORITY_LEVEL_UI: Record<AuthorityLevel, { emoji: string; badge: string }> = {
+	[AUTHORITY_LEVELS.AUTHORITY]: { emoji: '👔', badge: 'Authority Role' },
+	[AUTHORITY_LEVELS.FACILITATIVE]: { emoji: '🤝', badge: 'Facilitative Role' },
+	[AUTHORITY_LEVELS.CONVENING]: { emoji: '🌱', badge: 'Convening Role' }
+} as const;
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get Lead authority level for a circle type
+ * @returns System-defined authority level (constant lookup, no DB query)
+ */
+export function getLeadAuthorityLevel(circleType: CircleType | null | undefined): AuthorityLevel {
+	return CIRCLE_TYPE_LEAD_AUTHORITY[circleType ?? CIRCLE_TYPES.HIERARCHY];
+}
+
+/**
+ * Get Lead label for display in UI
+ * MVP: Returns default label
+ * Phase 4+: Will check workspaceOrgSettings.leadLabelByCircleType first
+ */
+export function getLeadLabel(
+	circleType: CircleType | null | undefined,
+	_workspaceLabels?: Record<CircleType, string> // Unused in MVP, ready for Phase 4+
+): string {
+	// MVP: Just return default
+	return DEFAULT_LEAD_LABELS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+
+	// Phase 4+: Uncomment to enable workspace customization
+	// const customLabel = workspaceLabels?.[circleType ?? CIRCLE_TYPES.HIERARCHY];
+	// return customLabel ?? DEFAULT_LEAD_LABELS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+}
+
+/**
+ * Get Lead description for display in UI
+ * MVP: Returns default description
+ * Phase 4+: Will check workspaceOrgSettings first
+ */
+export function getLeadDescription(
+	circleType: CircleType | null | undefined,
+	_workspaceDescriptions?: Record<CircleType, string> // Unused in MVP, ready for Phase 4+
+): string {
+	return DEFAULT_LEAD_DESCRIPTIONS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+}
+
+/**
+ * Get UI config (emoji, badge) for authority level
+ */
+export function getAuthorityUI(authorityLevel: AuthorityLevel): { emoji: string; badge: string } {
+	return AUTHORITY_LEVEL_UI[authorityLevel];
+}

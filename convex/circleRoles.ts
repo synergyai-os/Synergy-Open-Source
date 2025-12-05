@@ -365,7 +365,8 @@ export const get = query({
 			fillerCount: assignments.length,
 			createdAt: role.createdAt,
 			templateId: role.templateId,
-			isLeadRole
+			isLeadRole,
+			representsToParent: role.representsToParent ?? false
 		};
 	}
 });
@@ -672,7 +673,8 @@ export const update = mutation({
 		sessionId: v.string(),
 		circleRoleId: v.id('circleRoles'),
 		name: v.optional(v.string()),
-		purpose: v.optional(v.string())
+		purpose: v.optional(v.string()),
+		representsToParent: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx, args.sessionId);
@@ -707,6 +709,7 @@ export const update = mutation({
 		const updates: {
 			name?: string;
 			purpose?: string;
+			representsToParent?: boolean;
 			updatedAt: number;
 			updatedBy: Id<'users'>;
 		} = {
@@ -741,6 +744,10 @@ export const update = mutation({
 			updates.purpose = args.purpose;
 		}
 
+		if (args.representsToParent !== undefined) {
+			updates.representsToParent = args.representsToParent;
+		}
+
 		await ctx.db.patch(args.circleRoleId, updates);
 
 		// Capture version history
@@ -764,7 +771,8 @@ export const quickUpdate = mutation({
 		circleRoleId: v.id('circleRoles'),
 		updates: v.object({
 			name: v.optional(v.string()),
-			purpose: v.optional(v.string())
+			purpose: v.optional(v.string()),
+			representsToParent: v.optional(v.boolean())
 		})
 	},
 	handler: async (ctx, args) => {
@@ -829,6 +837,10 @@ export const quickUpdate = mutation({
 			updateData.purpose = args.updates.purpose;
 		}
 
+		if (args.updates.representsToParent !== undefined) {
+			updateData.representsToParent = args.updates.representsToParent;
+		}
+
 		await ctx.db.patch(args.circleRoleId, updateData);
 
 		// 6. Capture version history
@@ -861,18 +873,54 @@ async function archiveRoleHelper(
 		return; // Already archived, skip
 	}
 
-	// Circle Lead Protection: Block archiving Lead roles (unless cascading from circle archive)
+	// Circle Lead Protection: Block archiving last Lead role (unless cascading from circle archive)
+	// SYOS-674: Only block for hierarchy and hybrid circles (empowered_team and guild can operate without Lead)
 	if (reason === 'direct' && role.templateId) {
 		const template = await ctx.db.get(role.templateId);
 		if (template?.isRequired) {
-			// Check if this is the last Lead role in the circle
-			const leadCount = await countLeadRolesInCircle(ctx, role.circleId);
-			if (leadCount <= 1) {
-				throw new Error(
-					'ERR_CIRCLE_LEAD_REQUIRED: Cannot archive the last Lead role in a circle. Every circle must have at least one Lead role.'
-				);
+			// Get circle to check circle type
+			const circle = await ctx.db.get(role.circleId);
+			if (!circle) {
+				throw new Error('Circle not found');
 			}
-			// If there are multiple Lead roles, allow archiving (but warn that at least one must remain)
+
+			// Get workspace org settings to check Lead requirement
+			const orgSettings = await ctx.db
+				.query('workspaceOrgSettings')
+				.withIndex('by_workspace', (q) => q.eq('workspaceId', circle.workspaceId))
+				.first();
+
+			// Determine if Lead is required for this circle type
+			const circleType = circle.circleType ?? 'hierarchy'; // Default to hierarchy for backward compat
+			let leadRequired: boolean;
+			if (orgSettings?.leadRequirementByCircleType) {
+				leadRequired = orgSettings.leadRequirementByCircleType[circleType];
+			} else {
+				// Fallback to system defaults
+				const DEFAULT_LEAD_REQUIRED: Record<
+					'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
+					boolean
+				> = {
+					hierarchy: true,
+					empowered_team: false,
+					guild: false,
+					hybrid: true
+				};
+				leadRequired = DEFAULT_LEAD_REQUIRED[circleType];
+			}
+
+			// Only block archiving if Lead is required for this circle type
+			if (leadRequired) {
+				// Check if this is the last Lead role in the circle
+				const leadCount = await countLeadRolesInCircle(ctx, role.circleId);
+				if (leadCount <= 1) {
+					throw new Error(
+						`ERR_CIRCLE_LEAD_REQUIRED: Cannot archive the last Lead role in a ${circleType} circle. ${circleType} circles require at least one Lead role.`
+					);
+				}
+				// If there are multiple Lead roles, allow archiving (but warn that at least one must remain)
+			}
+			// If Lead is not required for this circle type, allow archiving without restriction
 		}
 	}
 

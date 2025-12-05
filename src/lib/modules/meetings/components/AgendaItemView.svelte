@@ -8,14 +8,17 @@
 	 * - Markdown notes editor with auto-save (SYOS-222)
 	 * - "Mark as Processed" button
 	 * - Empty state when no item selected
+	 * - Proposal support: Shows ProposalAgendaItem if item is linked to a proposal
 	 */
 
 	import { browser } from '$app/environment';
 	import { onDestroy } from 'svelte';
 	import NoteEditor from '$lib/modules/core/components/notes/NoteEditor.svelte';
 	import ActionItemsList from './ActionItemsList.svelte';
+	import ProposalAgendaItem from './ProposalAgendaItem.svelte';
 	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
-	import type { Id } from '$lib/convex';
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api, type Id } from '$lib/convex';
 	import { Button, Text, Heading, Icon } from '$lib/components/atoms';
 
 	interface Props {
@@ -46,7 +49,26 @@
 		isRecorder
 	}: Props = $props();
 
-	// Notes composable - editable for all users
+	// Check if this agenda item is linked to a proposal
+	// Wrap in $derived to make query creation reactive
+	const proposalQuery = $derived(
+		browser && item?._id && sessionId
+			? useQuery(api.proposals.getByAgendaItem, () => {
+					if (!item?._id || !sessionId) {
+						throw new Error('Agenda item ID and sessionId required');
+					}
+					return {
+						sessionId,
+						agendaItemId: item._id
+					};
+				})
+			: null
+	);
+
+	const linkedProposal = $derived(proposalQuery?.data ?? null);
+	const isProposal = $derived(linkedProposal !== null);
+
+	// Notes composable - editable for all users (only used for non-proposal items)
 	const notes = useAgendaNotes({
 		agendaItemId: () => (item?._id ? item._id : ('' as Id<'meetingAgendaItems'>)),
 		initialNotes: () => item?.notes,
@@ -59,6 +81,17 @@
 			void notes.saveImmediately();
 		}
 	});
+
+	// Handlers for proposal actions
+	function handleProposalApprove() {
+		// ProposalAgendaItem handles the mutation, this is just for callback
+		// The agenda item status will be updated by ProposalAgendaItem
+	}
+
+	function handleProposalReject() {
+		// ProposalAgendaItem handles the mutation, this is just for callback
+		// The agenda item status will be updated by ProposalAgendaItem
+	}
 </script>
 
 {#if !item}
@@ -74,6 +107,18 @@
 			</Text>
 		</div>
 	</div>
+{:else if isProposal && linkedProposal}
+	<!-- Proposal Agenda Item - Show ProposalAgendaItem component -->
+	<ProposalAgendaItem
+		proposalId={linkedProposal._id}
+		agendaItemId={item._id}
+		meetingId={meetingId!}
+		sessionId={sessionId!}
+		{isRecorder}
+		{isClosed}
+		onApprove={handleProposalApprove}
+		onReject={handleProposalReject}
+	/>
 {:else}
 	<!-- Active Agenda Item -->
 	<div class="flex h-full flex-col">

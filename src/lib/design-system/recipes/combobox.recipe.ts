@@ -40,7 +40,7 @@ export const comboboxInputRecipe = cva([formInputRecipe(), 'w-full'], {
  * - Gradient overlay added in component (not recipe - component handles content)
  */
 export const comboboxContentRecipe = cva(
-	'relative z-50 min-w-[var(--bits-combobox-anchor-width)] overflow-hidden rounded-modal border border-base bg-surface py-inset-sm shadow-md',
+	'relative z-[100] min-w-[var(--bits-combobox-anchor-width)] overflow-hidden rounded-modal border border-base bg-surface py-inset-sm shadow-md',
 	{
 		variants: {},
 		defaultVariants: {}

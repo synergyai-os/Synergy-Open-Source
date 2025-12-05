@@ -639,6 +639,17 @@
 									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 								/>
 							{/if}
+
+							<!-- Proposals -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/inbox'
+								)}
+								iconType="document"
+								label="Proposals"
+								title="My Proposals"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
 						</div>
 					</section>
 
@@ -1005,6 +1016,17 @@
 								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 							/>
 						{/if}
+
+						<!-- Proposals -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/inbox'
+							)}
+							iconType="document"
+							label="Proposals"
+							title="My Proposals"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
 					</div>
 				</section>
 

@@ -27,7 +27,53 @@ export interface QuickEditResult {
 // ============================================================================
 
 /**
- * Check if user has a specific role in a circle
+ * Check if user has a Lead role in a circle (template-based detection)
+ * Lead role = role where template.isRequired === true
+ *
+ * SYOS-672: Refactored from name-matching to template-based detection
+ * @param ctx - Query or mutation context
+ * @param userId - User ID to check
+ * @param circleId - Circle ID
+ * @returns true if user has a Lead role (template.isRequired === true)
+ */
+async function hasLeadRole(
+	ctx: QueryCtx | MutationCtx,
+	userId: Id<'users'>,
+	circleId: Id<'circles'>
+): Promise<boolean> {
+	// 1. Get all active circle roles for this circle
+	const circleRoles = await ctx.db
+		.query('circleRoles')
+		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
+		.collect();
+
+	// 2. Check if user has any Lead role (template.isRequired === true)
+	for (const role of circleRoles) {
+		// Skip roles without templates (not Lead roles)
+		if (!role.templateId) continue;
+
+		// Check if template is a Lead template
+		const template = await ctx.db.get(role.templateId);
+		if (!template || template.isRequired !== true) continue;
+
+		// Check if user has this role assigned
+		const userAssignment = await ctx.db
+			.query('userCircleRoles')
+			.withIndex('by_user_role', (q) => q.eq('userId', userId).eq('circleRoleId', role._id))
+			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.first();
+
+		if (userAssignment) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Check if user has a specific role in a circle (by name)
+ * @deprecated Use hasLeadRole() for Lead role detection (template-based)
  * @param ctx - Query or mutation context
  * @param userId - User ID to check
  * @param circleId - Circle ID
@@ -258,7 +304,13 @@ export async function requireQuickEditPermission(
 // ============================================================================
 
 /**
- * Check if user has authority to approve proposals based on circle's decision model
+ * Check if user has authority to approve proposals based on circle type and authority level
+ *
+ * SYOS-672: Updated to use authority levels computed from circle type
+ * Authority levels:
+ * - authority: Lead can approve proposals directly (hierarchy, hybrid)
+ * - facilitative: Team approves via consent process (empowered_team)
+ * - convening: No approval authority (guild)
  *
  * @param ctx - Query or mutation context
  * @param userId - User ID to check
@@ -272,28 +324,32 @@ export async function checkApprovalAuthority(
 	circle: Doc<'circles'>,
 	meeting: Doc<'meetings'> | null
 ): Promise<boolean> {
-	const decisionModel = circle.decisionModel ?? 'manager_decides';
+	const circleType = circle.circleType ?? 'hierarchy';
 
-	switch (decisionModel) {
-		case 'manager_decides':
-			// Only Circle Lead/Manager can approve
-			return await hasCircleRole(ctx, userId, circle._id, ['Circle Lead', 'Manager']);
+	// Map circle type to authority level (hard-coded defaults)
+	// This matches CIRCLE_TYPE_LEAD_AUTHORITY from constants.ts
+	const authorityLevel =
+		circleType === 'empowered_team'
+			? 'facilitative'
+			: circleType === 'guild'
+				? 'convening'
+				: 'authority'; // hierarchy, hybrid, or default
 
-		case 'team_consensus':
-			// Meeting recorder can approve after consensus reached
-			// (UI handles collecting all votes)
-			return meeting?.recorderId === userId;
-
-		case 'consent':
-			// Meeting recorder can approve when no valid objections
-			return meeting?.recorderId === userId;
-
-		case 'coordination_only':
-			// Guild - proposals must be approved in home circle
-			// This should be handled differently (redirect to home circle)
-			return false;
-
-		default:
-			return false;
+	// Convening (guild): Never approve here - decisions made in home circles
+	if (authorityLevel === 'convening') {
+		return false;
 	}
+
+	// Facilitative (empowered_team): Consent process - recorder can finalize after consent
+	if (authorityLevel === 'facilitative') {
+		// Meeting recorder can approve when no valid objections (consent reached)
+		return meeting?.recorderId === userId;
+	}
+
+	// Authority (hierarchy, hybrid): Lead decides directly
+	if (authorityLevel === 'authority') {
+		return await hasLeadRole(ctx, userId, circle._id);
+	}
+
+	return false;
 }

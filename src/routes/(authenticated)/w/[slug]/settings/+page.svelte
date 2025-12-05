@@ -122,9 +122,15 @@
 
 		// Create action functions for API key updates
 		updateClaudeApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
-			convexClient!.action(settingsApiFunctions.updateClaudeApiKey, args)) as typeof updateClaudeApiKeyFn;
+			convexClient!.action(
+				settingsApiFunctions.updateClaudeApiKey,
+				args
+			)) as typeof updateClaudeApiKeyFn;
 		updateReadwiseApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
-			convexClient!.action(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+			convexClient!.action(
+				settingsApiFunctions.updateReadwiseApiKey,
+				args
+			)) as typeof updateReadwiseApiKeyFn;
 		// Delete functions are actions
 		deleteClaudeApiKeyFn = ((sessionId: string) =>
 			convexClient!.action(settingsApiFunctions.deleteClaudeApiKey, {
@@ -331,8 +337,8 @@
 						Workspace Settings: {workspaceName()}
 					</Text>
 					<Text variant="body" size="sm" color="secondary" class="mb-fieldGroup">
-						These settings apply to {workspaceName()} workspace. Personal settings (theme, API keys) are
-						managed within this workspace context.
+						These settings apply to {workspaceName()} workspace. Personal settings (theme, API keys)
+						are managed within this workspace context.
 					</Text>
 				</div>
 			</div>
@@ -738,4 +744,3 @@
 		</div>
 	</div>
 </div>
-

@@ -45,6 +45,25 @@
 		return form.templates.map((t) => ({ value: t._id, label: t.name }));
 	});
 
+	// Prepare circle options for Combobox
+	const circleOptions = $derived(() => {
+		return circles.map((c) => ({ value: c._id, label: c.name }));
+	});
+
+	// Get selected circle name for display
+	const selectedCircleName = $derived(() => {
+		if (!form.circleId) return null;
+		return circles.find((c) => c._id === form.circleId)?.name ?? null;
+	});
+
+	// Check if governance template is selected without circle (soft validation hint)
+	const showGovernanceHint = $derived(() => {
+		if (!form.selectedTemplateId || form.circleId) return false;
+		const selectedTemplate = form.templates.find((t) => t._id === form.selectedTemplateId);
+		// Check for "Governance" or "Consent Meeting" template names (per AD-8)
+		return selectedTemplate?.name === 'Governance' || selectedTemplate?.name === 'Consent Meeting';
+	});
+
 	// Stepper steps configuration
 	const steps = [
 		{ id: 'attendees-type', label: 'Attendees & Type' },
@@ -119,6 +138,30 @@
 								{#if form.stepErrors[0].length > 0 && form.stepErrors[0].some( (e) => e.includes('type') )}
 									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
 										{form.stepErrors[0].find((e) => e.includes('type'))}
+									</Text>
+								{/if}
+							</div>
+
+							<!-- Circle (Optional - for governance meetings) -->
+							<div>
+								<Combobox
+									id="meeting-circle"
+									label="Circle"
+									bind:value={form.circleId}
+									options={circleOptions()}
+									size="md"
+									allowDeselect={true}
+									showLabel={true}
+									required={false}
+									placeholder="Select a circle (optional)"
+								/>
+								<Text variant="label" color="secondary" as="p" class="mt-fieldGroup">
+									Link this meeting to a circle for governance features (e.g., proposal import).
+									Leave empty for ad-hoc meetings.
+								</Text>
+								{#if showGovernanceHint()}
+									<Text variant="label" color="warning" as="p" class="mt-fieldGroup">
+										⚠️ Governance meetings typically require a circle for proposal import.
 									</Text>
 								{/if}
 							</div>
@@ -275,6 +318,12 @@
 										<Text variant="body" size="sm" color="default" as="span">
 											{form.templates.find((t) => t._id === form.selectedTemplateId)?.name ||
 												'Not selected'}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Circle:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{selectedCircleName() ?? 'None (ad-hoc meeting)'}
 										</Text>
 									</div>
 									<div>

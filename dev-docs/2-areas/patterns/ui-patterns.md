@@ -533,5 +533,75 @@ interface Props {
 
 ---
 
-**Last Updated**: 2025-12-01
+## #L460: StackedPanel Close Handler Must Check for Previous Layer [🔴 CRITICAL]
+
+**Keywords**: StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen
+
+**Symptom**: Panel/modal cannot be closed - ESC key, backdrop click, and close button don't work. User must reload page to escape.
+
+**Root Cause**: `closePanel()` function assumes there's always a previous layer (e.g., detail panel) to return to. When panel is opened directly (no previous layer), calling `selectCircle()` or similar doesn't properly close the panel, leaving it stuck.
+
+**Wrong approach:**
+```svelte
+function closePanel() {
+    if (!orgChart) return;
+    orgChart.navigationStack.pop();
+    // ❌ WRONG: Assumes previous layer always exists
+    orgChart.selectCircle(circleId, { skipStackPush: true });
+}
+```
+
+**Fix**: Always check for `previousLayer` before navigating:
+
+```svelte
+function closePanel() {
+    if (!orgChart) return;
+    const previousLayer = orgChart.navigationStack.previousLayer;
+    
+    // Pop current layer first
+    orgChart.navigationStack.pop();
+    
+    if (previousLayer) {
+        // Navigate to previous layer WITHOUT pushing (we're already there after pop)
+        if (previousLayer.type === 'circle') {
+            orgChart.selectCircle(previousLayer.id as Id<'circles'>, { skipStackPush: true });
+        } else if (previousLayer.type === 'role') {
+            orgChart.selectRole(previousLayer.id as Id<'circleRoles'>, 'circle-panel', {
+                skipStackPush: true
+            });
+        }
+    } else {
+        // No previous layer - close everything
+        orgChart.selectCircle(null);
+    }
+}
+```
+
+**Key principles:**
+1. **Always check `previousLayer`** - Don't assume it exists
+2. **Pop first, then navigate** - Navigation stack state must be updated before navigation
+3. **Handle null case** - When no previous layer, explicitly close by setting selection to `null`
+4. **Use `skipStackPush: true`** - When navigating to previous layer, don't push again (already there after pop)
+
+**Pattern used in:**
+- `EditCirclePanel.closePanel()` - Fixed in SYOS-676
+- `CircleDetailPanel.handleClose()` - Already correct
+- `RoleDetailPanel.handleClose()` - Already correct
+
+**Apply when**: 
+- Building panels/modals with navigation stack
+- Panel can be opened directly (not always from another panel)
+- ESC/backdrop/close button handlers call `closePanel()`
+- Panel gets stuck and can't be closed
+
+**Anti-patterns:**
+- ❌ Assuming previous layer always exists
+- ❌ Calling `selectCircle()` without checking `previousLayer`
+- ❌ Not handling the case when navigation stack is empty
+
+**Related**: #L350 (Mobile-First Panel Pattern), `useNavigationStack` composable
+
+---
+
+**Last Updated**: 2025-12-05
 

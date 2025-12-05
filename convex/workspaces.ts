@@ -469,11 +469,14 @@ export const createWorkspace = mutation({
 
 		// Create root circle (required - every workspace must have exactly one root circle)
 		// Root circle is identified by parentCircleId = undefined
+		// Default to hierarchy circle type (SYOS-675)
 		const rootCircleId = await ctx.db.insert('circles', {
 			workspaceId,
 			name: 'General Circle',
 			slug: 'general-circle',
 			parentCircleId: undefined, // undefined = root circle
+			circleType: 'hierarchy', // Default circle type (SYOS-675)
+			decisionModel: 'manager_decides', // Default decision model (SYOS-675)
 			status: 'active',
 			createdAt: now,
 			updatedAt: now,
@@ -486,8 +489,8 @@ export const createWorkspace = mutation({
 			await captureCreate(ctx, 'circle', rootCircle);
 		}
 
-		// Auto-create core roles from templates for root circle
-		await createCoreRolesForCircle(ctx, rootCircleId, workspaceId, userId);
+		// Auto-create core roles from templates for root circle (SYOS-675: respects circleType)
+		await createCoreRolesForCircle(ctx, rootCircleId, workspaceId, userId, 'hierarchy');
 
 		// Create default circle item categories
 		const circleCategories = [

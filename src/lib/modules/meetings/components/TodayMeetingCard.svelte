@@ -4,7 +4,7 @@
 	 * Matches Holaspirit design with large layout and orange Start button
 	 */
 
-	import { Button, Text, Heading, Icon, Avatar, Card } from '$lib/components/atoms';
+	import { Button, Text, Heading, Icon, Avatar, Card, Badge } from '$lib/components/atoms';
 	import { todayMeetingCardRecipe } from '$lib/design-system/recipes';
 	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
@@ -19,13 +19,21 @@
 
 	interface Props {
 		meeting: Meeting;
+		templateName?: string;
 		circleName?: string;
 		attendeeAvatars?: Array<{ name: string; color: string }>;
 		onStart?: () => void;
 		onAddAgendaItem?: () => void;
 	}
 
-	let { meeting, circleName, attendeeAvatars = [], onStart, onAddAgendaItem }: Props = $props();
+	let {
+		meeting,
+		templateName,
+		circleName,
+		attendeeAvatars = [],
+		onStart,
+		onAddAgendaItem
+	}: Props = $props();
 
 	// Use recipe for variant-specific styling (applied to wrapper, not Card atom)
 	const cardClasses = $derived([todayMeetingCardRecipe()]);
@@ -91,8 +99,13 @@
 					{/if}
 					<Heading level={3}>{meeting.title}</Heading>
 				</div>
-				<!-- Time (8px spacing below title) -->
-				<div class="mt-fieldGroup">
+				<!-- Template Badge + Time (8px spacing below title) -->
+				<div class="flex items-center gap-fieldGroup mt-fieldGroup">
+					{#if templateName}
+						<Badge variant="default" size="sm">
+							{templateName}
+						</Badge>
+					{/if}
 					<Text variant="body" size="sm" color="secondary" weight="medium" as="div">
 						{startTimeStr} - {endTimeStr}
 					</Text>

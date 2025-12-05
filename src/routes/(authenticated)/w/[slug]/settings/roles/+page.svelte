@@ -98,7 +98,7 @@
 <div class="h-full overflow-y-auto bg-base">
 	<div class="mx-auto max-w-4xl px-page py-page">
 		<!-- Header -->
-		<div class="mb-section flex items-center justify-between">
+		<div class="flex items-center justify-between mb-section">
 			<div>
 				<Heading level={1}>Role Management</Heading>
 				<Text variant="body" size="sm" color="secondary" class="mt-fieldGroup">
@@ -133,12 +133,10 @@
 
 							<!-- User's Roles -->
 							{#if member.roles.length > 0}
-								<div class="mt-fieldGroup flex flex-wrap gap-fieldGroup">
+								<div class="flex flex-wrap gap-fieldGroup mt-fieldGroup">
 									{#each member.roles as role (role.userRoleId)}
 										<div class="flex items-center gap-1">
-											<Badge
-												variant={role.scope === 'system' ? 'primary' : 'default'}
-											>
+											<Badge variant={role.scope === 'system' ? 'primary' : 'default'}>
 												{role.roleName}
 												{#if role.scope === 'workspace'}
 													<span class="opacity-70">(Workspace)</span>
@@ -173,10 +171,7 @@
 							{/if}
 						</div>
 
-						<Button
-							variant="secondary"
-							onclick={() => openAssignModalForUser(member.userId)}
-						>
+						<Button variant="secondary" onclick={() => openAssignModalForUser(member.userId)}>
 							Add Role
 						</Button>
 					</div>
@@ -201,101 +196,106 @@
 		<Dialog.Content
 			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border-base shadow-card-hover fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(500px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-card border bg-surface text-primary"
 		>
-		<div class="space-y-form px-page py-page">
-			<div>
-				<Dialog.Title class="text-h3 font-semibold text-primary">Assign Role</Dialog.Title>
-				<Dialog.Description class="text-small text-secondary mt-fieldGroup">
-					Assign an RBAC role to a workspace member
-				</Dialog.Description>
-			</div>
-
-			<div class="space-y-form">
-				<!-- User Selector -->
+			<div class="space-y-form px-page py-page">
 				<div>
-					<label for="user-select" class="text-small mb-fieldGroup block font-medium text-primary">
-						User
-					</label>
-					<select
-						id="user-select"
-						bind:value={selectedUserId}
-						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input py-input text-primary focus:ring-2 focus:outline-none"
-					>
-						<option value="">Select a user...</option>
-						{#each members as member (member.userId)}
-							<option value={member.userId}>
-								{member.userName || member.userEmail}
-							</option>
-						{/each}
-					</select>
+					<Dialog.Title class="text-h3 font-semibold text-primary">Assign Role</Dialog.Title>
+					<Dialog.Description class="text-small text-secondary mt-fieldGroup">
+						Assign an RBAC role to a workspace member
+					</Dialog.Description>
 				</div>
 
-				<!-- Role Selector -->
-				<div>
-					<label for="role-select" class="text-small mb-fieldGroup block font-medium text-primary">
-						Role
-					</label>
-					<select
-						id="role-select"
-						bind:value={selectedRoleId}
-						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input py-input text-primary focus:ring-2 focus:outline-none"
-					>
-						<option value="">Select a role...</option>
-						{#each availableRoles as role (role._id)}
-							<option value={role._id}>
-								{role.name} ({role.slug})
-							</option>
-						{/each}
-					</select>
-				</div>
-
-				<!-- Scope Selector -->
-				<div>
-					<label class="text-small mb-fieldGroup block font-medium text-primary"> Scope </label>
-					<div class="space-y-fieldGroup">
-						<label class="flex items-center gap-fieldGroup">
-							<input
-								type="radio"
-								name="scope"
-								value="workspace"
-								bind:group={scopeType}
-								class="focus:ring-accent-primary text-accent-primary"
-							/>
-							<span class="text-small text-primary">This workspace only</span>
+				<div class="space-y-form">
+					<!-- User Selector -->
+					<div>
+						<label
+							for="user-select"
+							class="text-small mb-fieldGroup block font-medium text-primary"
+						>
+							User
 						</label>
-						<label class="flex items-center gap-fieldGroup">
-							<input
-								type="radio"
-								name="scope"
-								value="circle"
-								bind:group={scopeType}
-								class="focus:ring-accent-primary text-accent-primary"
-								disabled
-							/>
-							<span class="text-small text-tertiary">Specific circle (coming soon)</span>
-						</label>
+						<select
+							id="user-select"
+							bind:value={selectedUserId}
+							class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input py-input text-primary focus:ring-2 focus:outline-none"
+						>
+							<option value="">Select a user...</option>
+							{#each members as member (member.userId)}
+								<option value={member.userId}>
+									{member.userName || member.userEmail}
+								</option>
+							{/each}
+						</select>
 					</div>
+
+					<!-- Role Selector -->
+					<div>
+						<label
+							for="role-select"
+							class="text-small mb-fieldGroup block font-medium text-primary"
+						>
+							Role
+						</label>
+						<select
+							id="role-select"
+							bind:value={selectedRoleId}
+							class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input py-input text-primary focus:ring-2 focus:outline-none"
+						>
+							<option value="">Select a role...</option>
+							{#each availableRoles as role (role._id)}
+								<option value={role._id}>
+									{role.name} ({role.slug})
+								</option>
+							{/each}
+						</select>
+					</div>
+
+					<!-- Scope Selector -->
+					<div>
+						<label class="text-small mb-fieldGroup block font-medium text-primary"> Scope </label>
+						<div class="space-y-fieldGroup">
+							<label class="flex items-center gap-fieldGroup">
+								<input
+									type="radio"
+									name="scope"
+									value="workspace"
+									bind:group={scopeType}
+									class="focus:ring-accent-primary text-accent-primary"
+								/>
+								<span class="text-small text-primary">This workspace only</span>
+							</label>
+							<label class="flex items-center gap-fieldGroup">
+								<input
+									type="radio"
+									name="scope"
+									value="circle"
+									bind:group={scopeType}
+									class="focus:ring-accent-primary text-accent-primary"
+									disabled
+								/>
+								<span class="text-small text-tertiary">Specific circle (coming soon)</span>
+							</label>
+						</div>
+					</div>
+
+					{#if assignError}
+						<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
+							<Text variant="body" size="sm" color="error">{assignError}</Text>
+						</div>
+					{/if}
 				</div>
 
-				{#if assignError}
-					<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
-						<Text variant="body" size="sm" color="error">{assignError}</Text>
-					</div>
-				{/if}
+				<div class="pt-form flex items-center justify-end gap-2">
+					<Dialog.Close
+						type="button"
+						class="border-base text-small rounded-button border px-button py-button font-medium text-secondary hover:text-primary"
+					>
+						Cancel
+					</Dialog.Close>
+					<Button variant="primary" onclick={handleAssignRole} disabled={assignLoading}>
+						{assignLoading ? 'Assigning...' : 'Assign Role'}
+					</Button>
+				</div>
 			</div>
-
-			<div class="pt-form flex items-center justify-end gap-2">
-				<Dialog.Close
-					type="button"
-					class="border-base text-small rounded-button border px-button py-button font-medium text-secondary hover:text-primary"
-				>
-					Cancel
-				</Dialog.Close>
-				<Button variant="primary" onclick={handleAssignRole} disabled={assignLoading}>
-					{assignLoading ? 'Assigning...' : 'Assign Role'}
-				</Button>
-			</div>
-		</div>
-	</Dialog.Content>
+		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
-

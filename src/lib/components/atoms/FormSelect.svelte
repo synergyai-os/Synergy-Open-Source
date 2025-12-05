@@ -102,12 +102,12 @@
 				class="border-base z-[100] min-w-[var(--bits-select-anchor-width)] rounded-modal border bg-elevated py-1 shadow-card"
 				sideOffset={4}
 			>
-		<!--
+				<!--
 			Select Viewport
 			- p-1: Acceptable exception (minimal dropdown viewport padding - 4px)
 			- See missing-styles.md for documentation
 		-->
-		<Select.Viewport class="p-1">
+				<Select.Viewport class="p-1">
 					{#each options as option (option.value)}
 						<!--
 							Select Item
@@ -129,8 +129,8 @@
 								{/if}
 							{/snippet}
 						</Select.Item>
-			{/each}
-		</Select.Viewport>
+					{/each}
+				</Select.Viewport>
 			</Select.Content>
 		</Select.Portal>
 	</Select.Root>

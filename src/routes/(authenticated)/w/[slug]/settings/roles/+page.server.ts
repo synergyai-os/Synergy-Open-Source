@@ -19,4 +19,3 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 		workspaceId
 	};
 };
-

@@ -26,17 +26,17 @@
 
 ## Glossary
 
-| Term | Definition |
-|------|------------|
-| **RBAC Role** | A named collection of permissions (e.g., "Org Designer", "Viewer"). Defined in `roles` table. |
-| **Permission** | A specific capability (e.g., `users.change-roles`, `circles.update`). Defined in `permissions` table. |
-| **Permission Scope** | How broadly a permission applies: `all` (any resource), `own` (own resources only), `none` (denied). |
-| **Role Scope** | Where a role applies: system-wide (no workspaceId/circleId), workspace-scoped, or circle-scoped. |
-| **User Role Assignment** | Links a user to a role with optional scope. Stored in `userRoles` table. |
-| **CircleRole** | An organizational role within a circle (e.g., "Circle Lead", "Secretary"). Distinct from RBAC roles. |
-| **Role Template** | A template for organizational roles that can map to RBAC permissions. Stored in `roleTemplates` table. |
-| **Auto-Assignment** | Automatic granting of RBAC permissions when user fills an organizational role (e.g., Circle Lead). |
-| **Source Tracking** | Using `sourceCircleRoleId` to track which CircleRole granted an auto-assigned RBAC role. |
+| Term                     | Definition                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **RBAC Role**            | A named collection of permissions (e.g., "Org Designer", "Viewer"). Defined in `roles` table.          |
+| **Permission**           | A specific capability (e.g., `users.change-roles`, `circles.update`). Defined in `permissions` table.  |
+| **Permission Scope**     | How broadly a permission applies: `all` (any resource), `own` (own resources only), `none` (denied).   |
+| **Role Scope**           | Where a role applies: system-wide (no workspaceId/circleId), workspace-scoped, or circle-scoped.       |
+| **User Role Assignment** | Links a user to a role with optional scope. Stored in `userRoles` table.                               |
+| **CircleRole**           | An organizational role within a circle (e.g., "Circle Lead", "Secretary"). Distinct from RBAC roles.   |
+| **Role Template**        | A template for organizational roles that can map to RBAC permissions. Stored in `roleTemplates` table. |
+| **Auto-Assignment**      | Automatic granting of RBAC permissions when user fills an organizational role (e.g., Circle Lead).     |
+| **Source Tracking**      | Using `sourceCircleRoleId` to track which CircleRole granted an auto-assigned RBAC role.               |
 
 ## Data Entities
 
@@ -137,16 +137,16 @@ return hasPermission(permissions, permissionSlug);
 
 ```svelte
 <script lang="ts">
-  import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
-  const permissions = usePermissions({
-    sessionId: () => $page.data.sessionId,
-    workspaceId: () => activeWorkspaceId,
-    circleId: () => selectedCircleId  // Optional: for circle-scoped checks
-  });
+	const permissions = usePermissions({
+		sessionId: () => $page.data.sessionId,
+		workspaceId: () => activeWorkspaceId,
+		circleId: () => selectedCircleId // Optional: for circle-scoped checks
+	});
 
-  // Check permission
-  const canAssignRoles = $derived(permissions.can('users.change-roles'));
+	// Check permission
+	const canAssignRoles = $derived(permissions.can('users.change-roles'));
 </script>
 ```
 
@@ -154,14 +154,14 @@ return hasPermission(permissions, permissionSlug);
 
 ### Permission Inheritance (Higher Scope Wins)
 
-| User Has | Check Context | Result |
-|----------|---------------|--------|
-| System role (`users.change-roles`) | Any workspace | ✅ Has permission |
-| Workspace role (`users.change-roles` for workspace A) | Workspace A | ✅ Has permission |
-| Workspace role (`users.change-roles` for workspace A) | Workspace B | ❌ No permission |
-| Circle role (`users.change-roles` for circle X) | Circle X | ✅ Has permission |
-| Circle role (`users.change-roles` for circle X) | Circle Y | ❌ No permission |
-| Both workspace AND circle role | Any circle in workspace | ✅ Workspace wins |
+| User Has                                              | Check Context           | Result            |
+| ----------------------------------------------------- | ----------------------- | ----------------- |
+| System role (`users.change-roles`)                    | Any workspace           | ✅ Has permission |
+| Workspace role (`users.change-roles` for workspace A) | Workspace A             | ✅ Has permission |
+| Workspace role (`users.change-roles` for workspace A) | Workspace B             | ❌ No permission  |
+| Circle role (`users.change-roles` for circle X)       | Circle X                | ✅ Has permission |
+| Circle role (`users.change-roles` for circle X)       | Circle Y                | ❌ No permission  |
+| Both workspace AND circle role                        | Any circle in workspace | ✅ Workspace wins |
 
 **Rule**: Broader scope always grants permission. Workspace-level permission applies to all circles within that workspace.
 
@@ -218,12 +218,14 @@ If user has conflicting scopes (e.g., workspace says `all`, circle says `own`), 
 ## Common Permission Slugs
 
 ### User Management
+
 - `users.view` - View user profiles
 - `users.invite` - Invite new users to workspace
 - `users.remove` - Remove users from workspace
 - `users.change-roles` - Assign/revoke RBAC roles
 
 ### Circle Management
+
 - `circles.view` - View circle details
 - `circles.create` - Create new circles
 - `circles.update` - Edit circle settings (name, purpose)
@@ -231,6 +233,7 @@ If user has conflicting scopes (e.g., workspace says `all`, circle says `own`), 
 - `circles.quick-edit` - Make quick edits without governance (Org Designer feature)
 
 ### Workspace Management
+
 - `workspaces.view-settings` - View workspace settings
 - `workspaces.update-settings` - Update workspace settings
 - `workspaces.manage-members` - Manage workspace membership
@@ -266,4 +269,3 @@ convex/rbac/
 
 **Last Updated**: 2025-12-04
 **Linear Ticket**: [SYOS-649](https://linear.app/younghumanclub/issue/SYOS-649)
-

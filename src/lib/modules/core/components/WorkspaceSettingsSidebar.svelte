@@ -77,17 +77,25 @@
 	</div>
 
 	<!-- Navigation - Scrollable area -->
-	<nav class="flex-1 overflow-y-auto" style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);">
+	<nav
+		class="flex-1 overflow-y-auto"
+		style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+	>
 		<!-- Settings Section -->
 		<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
-			<Text variant="label" size="sm" color="tertiary" class="mb-fieldGroup font-medium tracking-wider uppercase">
+			<Text
+				variant="label"
+				size="sm"
+				color="tertiary"
+				class="mb-fieldGroup font-medium tracking-wider uppercase"
+			>
 				Settings
 			</Text>
 			<div class="space-y-form-field-gap">
 				<!-- General Settings -->
 				<a
 					href={generalPath}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive(generalPath)}
 				>
 					<Icon type="settings" size="sm" color="default" class="flex-shrink-0" />
@@ -99,7 +107,7 @@
 				<!-- Org Chart Settings -->
 				<a
 					href={orgChartPath}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive(orgChartPath)}
 				>
 					<Icon type="orgChart" size="sm" color="default" class="flex-shrink-0" />
@@ -111,16 +119,13 @@
 				<!-- Roles Settings -->
 				<a
 					href={rolesPath}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive(rolesPath)}
 				>
 					<Icon type="lock" size="sm" color="default" class="flex-shrink-0" />
-					<Text variant="body" size="sm" color="inherit" as="span" class="font-normal">
-						Roles
-					</Text>
+					<Text variant="body" size="sm" color="inherit" as="span" class="font-normal">Roles</Text>
 				</a>
 			</div>
 		</div>
 	</nav>
 </aside>
-

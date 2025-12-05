@@ -252,6 +252,8 @@ export const importOrgStructure = mutation({
 					slug,
 					purpose: node.purpose?.trim(),
 					parentCircleId,
+					circleType: 'hierarchy', // Default circle type (SYOS-675)
+					decisionModel: 'manager_decides', // Default decision model (SYOS-675)
 					status: 'draft', // All imports start as draft
 					createdAt: now,
 					updatedAt: now,
@@ -264,8 +266,8 @@ export const importOrgStructure = mutation({
 					await captureCreate(ctx, 'circle', newCircle);
 				}
 
-				// Auto-create core roles (Circle Lead, etc.)
-				await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId);
+				// Auto-create core roles (Circle Lead, etc.) - respects circleType (SYOS-675)
+				await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId, 'hierarchy');
 
 				// Recursively create children
 				for (const child of node.children) {

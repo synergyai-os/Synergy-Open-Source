@@ -40,6 +40,7 @@
 	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import CircleContextMenu from './CircleContextMenu.svelte';
+	import RoleContextMenu from './RoleContextMenu.svelte';
 	import { Badge } from '$lib/components/atoms';
 
 	let {
@@ -1205,6 +1206,38 @@
 								/>
 							</div>
 						</foreignObject>
+					{/if}
+
+					<!-- Role Context Menus: Render AFTER circle context menu so they appear on top -->
+					{#if browser && showRoles && node.data.packedRoles && node.data.workspaceId}
+						{#each node.data.packedRoles as role (role.roleId)}
+							{@const roleDiameter = role.r * 2}
+							<!-- Context Menu Overlay for Role: foreignObject positioned at role location -->
+							<!-- Positioned relative to circle center (already in circle's group transform) -->
+							<g transform="translate({role.x},{role.y})">
+								<foreignObject
+									x={-role.r}
+									y={-role.r}
+									width={roleDiameter}
+									height={roleDiameter}
+									class="pointer-events-all"
+									style="overflow: visible;"
+								>
+									<div xmlns="http://www.w3.org/1999/xhtml" class="h-full w-full">
+										<RoleContextMenu
+											roleId={role.roleId}
+											roleName={role.name}
+											workspaceId={node.data.workspaceId}
+											onLeftClick={(e) => {
+												// Forward left-click to role's click handler
+												e.stopPropagation();
+												handleRoleClick(e, role, node);
+											}}
+										/>
+									</div>
+								</foreignObject>
+							</g>
+						{/each}
 					{/if}
 				</g>
 			{/each}

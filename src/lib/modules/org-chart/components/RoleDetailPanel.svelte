@@ -13,12 +13,17 @@
 	import InlineEditText from './InlineEditText.svelte';
 	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 	import CategoryItemsList from './CategoryItemsList.svelte';
-	import { Avatar } from '$lib/components/atoms';
+	import { Avatar, Badge } from '$lib/components/atoms';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
+	import {
+		getLeadAuthorityLevel,
+		getAuthorityUI,
+		type AuthorityLevel
+	} from '$lib/infrastructure/organizational-model/constants';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -69,6 +74,12 @@
 
 	// Check if role is Lead role - Lead roles CANNOT be edited regardless of permissions
 	const isLeadRole = $derived(role?.isLeadRole ?? false);
+
+	// Get authority level for Lead role (SYOS-672)
+	const authorityLevel = $derived(
+		isLeadRole && circle ? getLeadAuthorityLevel(circle.circleType) : null
+	);
+	const authorityUI = $derived(authorityLevel ? getAuthorityUI(authorityLevel) : null);
 
 	// Check quick edit permission using composable (only if not Lead role)
 	const quickEditPermission = useQuickEditPermission({
@@ -467,6 +478,38 @@
 													</p>
 												{/if}
 											</div>
+
+											<!-- Authority Badge (SYOS-672) -->
+											{#if isLeadRole && authorityUI}
+												<div>
+													<h4
+														class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+													>
+														Authority
+													</h4>
+													<div class="flex items-center gap-button">
+														<span class="text-button">{authorityUI.emoji}</span>
+														<Badge variant="default" size="md">
+															{#snippet children()}
+																{authorityUI.badge}
+															{/snippet}
+														</Badge>
+													</div>
+													{#if authorityLevel === 'authority'}
+														<p class="text-label text-secondary mt-fieldGroup">
+															This role makes final decisions for this circle.
+														</p>
+													{:else if authorityLevel === 'facilitative'}
+														<p class="text-label text-secondary mt-fieldGroup">
+															This role coordinates the team. Team decides together using consent.
+														</p>
+													{:else if authorityLevel === 'convening'}
+														<p class="text-label text-secondary mt-fieldGroup">
+															This role schedules meetings. Decisions are made in home circles.
+														</p>
+													{/if}
+												</div>
+											{/if}
 
 											<!-- Domains -->
 											<div>

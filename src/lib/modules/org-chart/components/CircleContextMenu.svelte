@@ -9,6 +9,7 @@
 	} from '$lib/design-system/recipes';
 	import AddRoleDialog from './AddRoleDialog.svelte';
 	import AddCircleDialog from './AddCircleDialog.svelte';
+	import AssignUserDialog from './AssignUserDialog.svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -34,6 +35,7 @@
 
 	let showAddRoleDialog = $state(false);
 	let showAddCircleDialog = $state(false);
+	let showAssignUserDialog = $state(false);
 
 	function handleImportToCircle() {
 		// Navigate to import page with targetCircleId query param
@@ -96,6 +98,18 @@
 
 					<ContextMenu.Separator class={contextMenuSeparatorRecipe()} />
 
+					<ContextMenu.Item
+						class={contextMenuItemRecipe()}
+						onSelect={() => {
+							showAssignUserDialog = true;
+						}}
+					>
+						<span class="mr-2">👤</span>
+						<span>Add User to Circle</span>
+					</ContextMenu.Item>
+
+					<ContextMenu.Separator class={contextMenuSeparatorRecipe()} />
+
 					<ContextMenu.Item class={contextMenuItemRecipe()} onSelect={handleImportToCircle}>
 						<span class="mr-2">📤</span>
 						<span>Import to This Circle</span>
@@ -119,5 +133,16 @@
 		parentCircleName={circleName}
 		{workspaceId}
 		onSuccess={onCircleCreated}
+	/>
+
+	<AssignUserDialog
+		bind:open={showAssignUserDialog}
+		type="circle"
+		entityId={circleId}
+		entityName={circleName}
+		{workspaceId}
+		onSuccess={() => {
+			// Refresh org chart data - circles query will auto-refresh
+		}}
 	/>
 {/if}

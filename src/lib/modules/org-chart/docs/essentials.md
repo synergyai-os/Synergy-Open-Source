@@ -32,7 +32,8 @@
 | **Circle**               | A work unit within a workspace, organized hierarchically. All circles descend from the root circle.                                                                           |
 | **Circle Item**          | A draggable content item within a circle category (e.g., a specific domain or accountability). Stored as DB records for ordering, and vectorized for AI/RAG access.           |
 | **Circle Item Category** | A container for circle items (e.g., "Domains", "Accountabilities"). Workspace admin can customize which categories exist.                                                     |
-| **Circle Lead**          | A must-have role that every circle requires (default setup). Workspace admin can configure this requirement.                                                                  |
+| **Circle Lead**          | The Lead role for a circle. Required by default for `hierarchy` and `hybrid` circles, optional for `empowered_team` and `guild`. Authority level adapts to circle type.       |
+| **Authority Level**      | Lead role authority: `authority` (👔 makes decisions), `facilitative` (🤝 coordinates, team decides), `convening` (🌱 schedules only). Derived from circle type at runtime.   |
 | **Circle Member**        | A user who belongs to a circle. Many-to-many relationship between users and circles.                                                                                          |
 | **Circle Role**          | An organizational role within a circle (e.g., "Circle Lead", "Facilitator"). Belongs to a specific circle. NOT RBAC permissions - these define who does what work.            |
 | **Core Role**            | A role that is automatically created in existing and future circles based on role templates marked as core.                                                                   |
@@ -92,10 +93,11 @@
 - **Circle Roles** - Organizational roles within circles
   - Belong to a specific circle (`circleId`)
   - Examples: "Circle Lead", "Dev Lead", "Facilitator"
-  - Has `name`, optional `purpose`, `createdAt`, `updatedAt`, `archivedAt`, `archivedBy`
+  - Has `name`, optional `purpose`, `representsToParent`, `createdAt`, `updatedAt`, `archivedAt`, `archivedBy`
   - Linked to role templates via `templateId` (for core roles)
   - **Note**: These are NOT RBAC permissions - they define organizational accountabilities
-  - **Circle Lead Requirement**: Every circle must have a "Circle Lead" role (default setup, configurable by workspace admin)
+  - **Circle Lead Requirement**: Depends on circle type - required for `hierarchy`/`hybrid`, optional for `empowered_team`/`guild`
+  - **Represents to Parent**: Optional flag indicating role interfaces with parent circle (attends parent meetings)
   - **Core Roles**: Automatically created from role templates marked as core
 
 - **User Circle Roles** - Many-to-many assignments of users to circle roles
@@ -151,13 +153,19 @@
 - **Protection**: Can be renamed, but cannot be archived or deleted
 - **Default Name**: "General Circle" (or workspace name)
 
-### Circle Lead Requirement
+### Circle Lead Requirement (SYOS-670)
 
-- **Default Behavior**: Every circle must have a "Circle Lead" role
-- **Configuration**: Workspace admin can configure this requirement via workspace settings
-- **Enforcement**: System automatically creates Circle Lead role when circle is created (if required)
-- **Deletion Protection**: Circle Lead role cannot be deleted if marked as required
-- **Assignment Protection**: Last Circle Lead assignment cannot be removed if role is required
+- **Circle Type Determines Requirement**:
+  | Circle Type | Lead Required | Lead Authority | Approval Rights |
+  |-------------|---------------|----------------|-----------------|
+  | `hierarchy` | Yes | 👔 Authority | Lead approves directly |
+  | `empowered_team` | No | 🤝 Facilitative | Team approves via consent |
+  | `guild` | No | 🌱 Convening | No approvals (home circle) |
+  | `hybrid` | Yes | 👔 Authority | Lead approves directly |
+- **Authority at Runtime**: Lead authority derived from `circle.circleType`, not stored on role
+- **Enforcement**: System creates Lead role only for `hierarchy` and `hybrid` circles
+- **Workspace Override**: `leadRequirementByCircleType` setting can customize defaults
+- **Deletion Protection**: Lead role cannot be archived if required for that circle type
 
 ### Core Roles
 
@@ -233,7 +241,8 @@
 
 - **Purpose**: Workspace-level configuration for org chart behavior
 - **Settings**:
-  - `requireCircleLeadRole`: Whether every circle must have a Circle Lead role
+  - `requireCircleLeadRole`: (Deprecated) Use `leadRequirementByCircleType` instead
+  - `leadRequirementByCircleType`: Per-type override for Lead role requirement (hierarchy: true, empowered_team: false, guild: false, hybrid: true)
   - `coreRoleTemplateIds`: Which role templates auto-create roles in new circles
   - `allowQuickChanges`: Whether Org Designers can use quick edit mode (default: false)
 - **Defaults**: System provides sensible defaults, workspace admin can override

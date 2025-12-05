@@ -261,17 +261,35 @@ export const getOrgSettings = query({
 
 		// Return defaults if no settings exist
 		if (!orgSettings) {
+			// Default Lead requirement by circle type (SYOS-674)
+			const defaultLeadRequirement = {
+				hierarchy: true,
+				empowered_team: false,
+				guild: false,
+				hybrid: true
+			};
+
 			return {
 				workspaceId: args.workspaceId,
-				requireCircleLeadRole: true,
+				requireCircleLeadRole: true, // Deprecated, kept for backward compat
+				leadRequirementByCircleType: defaultLeadRequirement,
 				coreRoleTemplateIds: [],
 				allowQuickChanges: false,
 				isAdmin: membership.role === 'owner' || membership.role === 'admin'
 			};
 		}
 
+		// Ensure leadRequirementByCircleType exists (migration support)
+		const leadRequirementByCircleType = orgSettings.leadRequirementByCircleType ?? {
+			hierarchy: orgSettings.requireCircleLeadRole ?? true,
+			empowered_team: false,
+			guild: false,
+			hybrid: orgSettings.requireCircleLeadRole ?? true
+		};
+
 		return {
 			...orgSettings,
+			leadRequirementByCircleType,
 			isAdmin: membership.role === 'owner' || membership.role === 'admin'
 		};
 	}
@@ -286,7 +304,15 @@ export const updateOrgSettings = mutation({
 		sessionId: v.string(),
 		workspaceId: v.id('workspaces'),
 		allowQuickChanges: v.optional(v.boolean()),
-		requireCircleLeadRole: v.optional(v.boolean()),
+		requireCircleLeadRole: v.optional(v.boolean()), // Deprecated, kept for backward compat
+		leadRequirementByCircleType: v.optional(
+			v.object({
+				hierarchy: v.boolean(),
+				empowered_team: v.boolean(),
+				guild: v.boolean(),
+				hybrid: v.boolean()
+			})
+		),
 		coreRoleTemplateIds: v.optional(v.array(v.id('roleTemplates')))
 	},
 	handler: async (ctx, args) => {
@@ -311,6 +337,12 @@ export const updateOrgSettings = mutation({
 		const updateData: {
 			allowQuickChanges?: boolean;
 			requireCircleLeadRole?: boolean;
+			leadRequirementByCircleType?: {
+				hierarchy: boolean;
+				empowered_team: boolean;
+				guild: boolean;
+				hybrid: boolean;
+			};
 			coreRoleTemplateIds?: Id<'roleTemplates'>[];
 			updatedAt: number;
 		} = {
@@ -323,9 +355,20 @@ export const updateOrgSettings = mutation({
 		if (args.requireCircleLeadRole !== undefined) {
 			updateData.requireCircleLeadRole = args.requireCircleLeadRole;
 		}
+		if (args.leadRequirementByCircleType !== undefined) {
+			updateData.leadRequirementByCircleType = args.leadRequirementByCircleType;
+		}
 		if (args.coreRoleTemplateIds !== undefined) {
 			updateData.coreRoleTemplateIds = args.coreRoleTemplateIds;
 		}
+
+		// Default Lead requirement by circle type
+		const defaultLeadRequirement = {
+			hierarchy: true,
+			empowered_team: false,
+			guild: false,
+			hybrid: true
+		};
 
 		if (existing) {
 			// Update existing
@@ -336,6 +379,7 @@ export const updateOrgSettings = mutation({
 			return await ctx.db.insert('workspaceOrgSettings', {
 				workspaceId: args.workspaceId,
 				requireCircleLeadRole: args.requireCircleLeadRole ?? true,
+				leadRequirementByCircleType: args.leadRequirementByCircleType ?? defaultLeadRequirement,
 				coreRoleTemplateIds: args.coreRoleTemplateIds ?? [],
 				allowQuickChanges: args.allowQuickChanges ?? false,
 				createdAt: now,

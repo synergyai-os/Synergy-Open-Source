@@ -62,13 +62,14 @@
 	// Fix: Use function to avoid state reference warning
 	const getDialogClasses = () => {
 		if (isFullscreen) {
-			return `fixed inset-0 z-50 w-full h-full rounded-dialog-fullscreen overflow-y-auto bg-elevated border border-base shadow-card-hover p-modal ${className}`;
+			return `fixed inset-0 z-[100] w-full h-full rounded-dialog-fullscreen overflow-y-auto bg-elevated border border-base shadow-card-hover p-modal ${className}`;
 		}
 
 		const variantClass = variant === 'wide' ? 'max-w-dialog-wide' : 'max-w-dialog-default';
 
 		// BitsDialog.Content needs positioning for centered dialogs
-		return `fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(100%,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-dialog ${variantClass} bg-elevated border border-base shadow-card-hover p-modal ${className}`;
+		// z-[100] ensures dialog is above StackedPanel (which uses z-60+)
+		return `fixed top-[50%] left-[50%] z-[100] max-h-[90vh] w-[min(100%,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-dialog ${variantClass} bg-elevated border border-base shadow-card-hover p-modal ${className}`;
 	};
 </script>
 

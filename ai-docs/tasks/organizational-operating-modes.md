@@ -1,8 +1,28 @@
 # Organizational Operating Modes - BDD Specification
 
 **Feature**: Circle Operating Modes & Decision Models  
-**Status**: 🚧 Planning - Nothing built yet  
-**Last Updated**: 2025-12-04
+**Status**: ⚠️ SUPERSEDED by SYOS-670  
+**Last Updated**: 2025-12-05
+
+---
+
+> ## ⚠️ THIS DOCUMENT IS SUPERSEDED
+>
+> **This document has been replaced by**: `ai-docs/tasks/SYOS-670-circle-lead-authority-design.md`
+>
+> The SYOS-670 design includes:
+>
+> - Evidence-based decisions from product discovery session
+> - Simplified MVP scope (hard-coded defaults, no complex overrides)
+> - Authority levels by circle type
+> - Lead optionality for empowered teams and guilds
+> - Consent-based decision process
+>
+> **Do not use this document for implementation.** Reference SYOS-670 instead.
+
+---
+
+## Original Document (Historical Reference)
 
 ---
 

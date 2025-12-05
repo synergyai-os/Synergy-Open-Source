@@ -69,9 +69,9 @@
 				{/snippet}
 			</EditPermissionTooltip>
 		{:else}
-		<Heading level={3} color="primary">
-			{circleName}
-		</Heading>
+			<Heading level={3} color="primary">
+				{circleName}
+			</Heading>
 		{/if}
 	</div>
 	<div class="flex items-center gap-button">

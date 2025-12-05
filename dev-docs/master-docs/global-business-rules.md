@@ -65,19 +65,30 @@ This document defines global business rules that apply across the entire Synergy
 
 ## Circle Lead Role Requirement
 
-### Every Circle Must Have a Lead Role
+### Lead Role Requirement Varies by Circle Type
 
-**Rule**: Every circle MUST have exactly one Lead role. This requirement can NEVER be false.
+**Rule**: Lead role requirement depends on circle type. Not all circles require a Lead.
 
-**Rationale**: The Lead role is fundamental to circle governance and accountability. Every circle needs a designated leader who is responsible for coordinating work and making decisions. The Lead role is a **standard organizational role** (not circle-specific), so it must remain consistent across all circles.
+**Rationale**: Different organizational models have different leadership needs. Hierarchy circles need clear authority; empowered teams operate as peers; guilds are coordination-only spaces.
+
+**Circle Type → Lead Requirement**:
+
+| Circle Type | Lead Required | Lead Authority | Lead Label (Default) |
+|-------------|---------------|----------------|---------------------|
+| `hierarchy` | ✅ YES | Authority (makes decisions) | "Manager" |
+| `empowered_team` | ❌ NO | Facilitative (coordinates, no authority) | "Coordinator" |
+| `guild` | ❌ NO | Convening (schedules only) | "Steward" |
+| `hybrid` | ✅ YES | Authority (default) | "Lead" |
 
 **Key Points**:
-- **Default Name**: "Circle Lead" (system default)
-- **Configurable**: Workspace admin can rename this role (e.g., "Team Lead", "Manager", "Coordinator")
-- **Always Required**: This is the ONLY required role - all other roles are optional
-- **Identification**: Lead role is identified by having a `templateId` pointing to a role template with `isRequired: true`
+- **Default Name**: Varies by circle type (see table above)
+- **Customizable Labels**: Workspace admin can customize labels per circle type (Phase 4+)
+- **Authority Computed at Runtime**: Authority level derived from `circle.circleType`, not stored on role
+- **Identification**: Lead role is identified by `templateId` → `template.isRequired === true`
 - **Only One Lead Template**: Only one template per workspace can have `isRequired: true` (enforced)
-- **Display**: Lead role should be prominently displayed in `CircleDetailPanel` for sub-circles
+- **Display**: Lead role displays authority badge based on circle type (👔 Authority, 🤝 Facilitative, 🌱 Convening)
+
+**Design Reference**: See `ai-docs/tasks/SYOS-670-circle-lead-authority-design.md` for full specification.
 
 ### Lead Role Template: Live Sync Pattern
 
@@ -95,59 +106,86 @@ This document defines global business rules that apply across the entire Synergy
 2. **Direct Role Edits Are Blocked**:
    - Users CANNOT directly edit Lead roles (name or purpose)
    - Only workspace admin can edit Lead roles via the template
-   - Attempting to edit a Lead role directly throws error: "Circle roles created from Lead template cannot be edited directly. Edit the role template instead.`
+   - Attempting to edit a Lead role directly throws error: "Circle roles created from Lead template cannot be edited directly. Edit the role template instead."
 
 3. **Template-Based Identification**:
    - Lead Role = role where `role.templateId` → `template.isRequired === true`
    - Only roles created from templates can be Lead roles
    - Existing roles without `templateId` are NOT Lead roles
 
+4. **Authority Computed at Runtime** (NEW - SYOS-670):
+   - Lead authority is NOT stored on the role or template
+   - Authority derived from `circle.circleType` using constant lookup
+   - Enables circles to change type without data migration
+
+### Lead Authority by Circle Type (NEW - SYOS-670)
+
+**Rule**: Lead authority adapts to circle type using hard-coded defaults.
+
+**Implementation** (`src/lib/infrastructure/organizational-model/constants.ts`):
+
+```typescript
+// System values (never change)
+export const CIRCLE_TYPE_LEAD_AUTHORITY = {
+  hierarchy: 'authority',      // Lead makes decisions
+  empowered_team: 'facilitative', // Lead coordinates, team decides via consent
+  guild: 'convening',          // Lead schedules only, no authority
+  hybrid: 'authority'          // Default to authority
+};
+
+// Simple constant lookup (no database queries)
+export function getLeadAuthorityLevel(circleType) {
+  return CIRCLE_TYPE_LEAD_AUTHORITY[circleType ?? 'hierarchy'];
+}
+```
+
+**Authority Levels**:
+
+| Level | Permissions | UI Badge |
+|-------|-------------|----------|
+| `authority` | Approve proposals, assign roles | 👔 Authority Role |
+| `facilitative` | Facilitate meetings, no approval | 🤝 Facilitative Role |
+| `convening` | Schedule meetings only | 🌱 Convening Role |
+
+**Consent vs Manager Decides**:
+- **hierarchy** circles: Lead approves proposals directly (`manager_decides`)
+- **empowered_team** circles: Team approves via consent ("no valid objections")
+- **guild** circles: No approval here - decisions made in home circles
+
 **Current State**:
 - ✅ System-level template exists: "Circle Lead" with `isCore: true` and `isRequired: true`
-- ✅ Core roles auto-created when circles are created
+- ✅ Core roles auto-created when circles are created (for hierarchy/hybrid only)
 - ✅ Protection against archiving required roles (if `template.isRequired === true`)
-- ❌ **Missing**: Live sync from template to all Lead roles
-- ❌ **Missing**: Block direct edits to Lead roles
-- ❌ **Missing**: Validation that only one template per workspace can have `isRequired: true`
-- ❌ **Missing**: Validation preventing archiving the last Lead role in a circle
-- ❌ **Missing**: UI display of Lead role for sub-circles in CircleDetailPanel
+- ✅ `circleType` and `decisionModel` fields exist in schema
+- ❌ **Missing**: Authority level constants and helpers (SYOS-670 Phase 1)
+- ❌ **Missing**: Authority-aware permission checks (SYOS-670 Phase 1)
+- ❌ **Missing**: UI authority badges (SYOS-670 Phase 1)
+- ❌ **Missing**: Lead optionality by circle type (SYOS-670 Phase 3)
 
 **Enforcement Requirements**:
 
 1. **Backend Validation** (`convex/circleRoles.ts`):
    - **Block direct edits**: In `circleRoles.update()`, check if role is Lead role → throw error if user tries to edit
-   - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error
-   - **Ensure Lead exists**: On circle creation, ensure Lead role is created (already handled via `createCoreRolesForCircle`)
+   - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error (for hierarchy/hybrid only)
+   - **Conditional Lead creation**: On circle creation, only create Lead for `hierarchy` and `hybrid` types
 
-2. **Template Sync** (`convex/roleTemplates.ts` - to be created):
-   - **Sync helper**: `syncLeadRolesFromTemplate(templateId)` - updates all roles with matching `templateId`
-   - **On template update**: If `isRequired === true`, call sync helper to propagate changes
-   - **Validation**: Only one template per workspace can have `isRequired: true`
+2. **Authority Resolution** (`convex/orgChartPermissions.ts`):
+   - **Simple constant lookup**: `getLeadAuthorityLevel(circle.circleType)` - no database queries
+   - **Permission check**: `canApproveProposal()` uses authority level to determine approval rights
+   - **Quick edit check**: `canQuickEdit()` respects authority levels
 
-3. **UI Display** (`src/lib/modules/org-chart/components/CircleDetailPanel.svelte`):
-   - Identify Lead role: Role with `templateId` pointing to template with `isRequired: true`
-   - Display Lead role prominently for sub-circles (e.g., in child circles list or separate section)
-   - Show Lead role information when viewing a circle that has sub-circles
+3. **UI Display** (`src/lib/modules/org-chart/components/RoleDetailPanel.svelte`):
+   - Display authority badge based on circle type
+   - Show contextual description of Lead authority
    - Disable edit button for Lead roles (only workspace admin can edit via template)
 
 **Implementation Notes**:
 - Lead role identification: Query role's `templateId`, then check `template.isRequired === true`
+- Authority is NOT stored anywhere - computed from `circle.circleType` at runtime
 - Workspace-level templates can override system templates (workspace admin can create their own Lead role template)
-- When workspace admin creates new Lead template: Must unset `isRequired` on old template first (enforced)
-- Template sync updates: `name` and `purpose` (from template `description`) fields
-- Version history: Capture update events for each synced role
+- Labels are customizable per workspace (Phase 4+), values are fixed
 
-**Files Requiring Updates**:
-- `convex/circleRoles.ts`:
-  - Block direct edits to Lead roles in `update()` mutation
-  - Add validation in `archiveRoleHelper()` to prevent archiving last Lead role
-  - Add helper: `isLeadRole(role)` to check if role is Lead role
-- `convex/roleTemplates.ts` (new file or existing):
-  - Create `syncLeadRolesFromTemplate()` helper function
-  - Add validation: Only one template per workspace can have `isRequired: true`
-  - Update template mutation to sync Lead roles when template changes
-- `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` - Display Lead role for sub-circles
-- `src/lib/modules/org-chart/composables/useOrgChart.svelte.ts` - Helper function to identify Lead role
+**Design Reference**: See `ai-docs/tasks/SYOS-670-circle-lead-authority-design.md` for full specification.
 
 ---
 

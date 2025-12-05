@@ -43,6 +43,10 @@
 		const org = activeWorkspace();
 		return org?.workspaceId ?? undefined;
 	});
+	const workspaceSlug = $derived(() => {
+		const org = activeWorkspace();
+		return org?.slug ?? undefined;
+	});
 
 	// Check feature flag (SYOS-226: workspace-based targeting)
 	const getWorkspaceId = () => workspaceId();
@@ -77,6 +81,30 @@
 	const circles = $derived(
 		(circlesQuery?.data ?? []).map((c) => ({ _id: c.circleId, name: c.name }))
 	);
+
+	// Fetch meeting templates for template name lookup
+	const templatesQuery =
+		browser && getWorkspaceId() && getSessionId()
+			? useQuery(api.meetingTemplates.list, () => {
+					const orgId = getWorkspaceId();
+					const session = getSessionId();
+					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
+					return {
+						workspaceId: orgId as Id<'workspaces'>,
+						sessionId: session
+					};
+				})
+			: null;
+
+	// Create templateId -> templateName map
+	const templateNameMap = $derived(() => {
+		const templates = templatesQuery?.data ?? [];
+		const map = new Map<string, string>();
+		for (const template of templates) {
+			map.set(template._id, template.name);
+		}
+		return map;
+	});
 
 	// Fetch meetings
 	const meetings = useMeetings({
@@ -136,7 +164,13 @@
 		originalMeetingId?: Id<'meetings'>;
 	}) {
 		const realId = getRealMeetingId(meeting);
-		goto(resolveRoute(`/meetings/${realId}`));
+		// Use page params slug (most reliable) or fallback to workspace context
+		const slug = $page.params.slug || workspaceSlug();
+		if (!slug) {
+			console.error('Cannot navigate to meeting: workspace slug not available');
+			return;
+		}
+		goto(resolveRoute(`/w/${slug}/meetings/${realId}`));
 	}
 
 	// Navigate to meeting report (for closed meetings)
@@ -145,7 +179,13 @@
 		originalMeetingId?: Id<'meetings'>;
 	}) {
 		const realId = getRealMeetingId(meeting);
-		goto(resolveRoute(`/meetings/${realId}`));
+		// Use page params slug (most reliable) or fallback to workspace context
+		const slug = $page.params.slug || workspaceSlug();
+		if (!slug) {
+			console.error('Cannot navigate to meeting: workspace slug not available');
+			return;
+		}
+		goto(resolveRoute(`/w/${slug}/meetings/${realId}`));
 	}
 
 	function handleAddAgendaItem(meeting: {
@@ -258,12 +298,15 @@
 										<div class="flex-shrink-0">
 											<TodayMeetingCard
 												{meeting}
+												templateName={meeting.templateId
+													? templateNameMap().get(meeting.templateId)
+													: undefined}
 												attendeeAvatars={meeting.invitedUsers?.map((user) => ({
 													name: user.name,
 													color: '' // Not used - card uses variant="brand"
 												})) ?? []}
 												onStart={() => handleStart(meeting)}
-												onAddAgendaItem={() => handleAddAgendaItem(getRealMeetingId(meeting))}
+												onAddAgendaItem={() => handleAddAgendaItem(meeting)}
 											/>
 										</div>
 									{/each}
@@ -289,6 +332,9 @@
 									{#each meetings.thisWeekMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
+											templateName={meeting.templateId
+												? templateNameMap().get(meeting.templateId)
+												: undefined}
 											organizationName={activeWorkspace()?.name}
 											onStart={() => handleStart(meeting)}
 											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
@@ -316,6 +362,9 @@
 									{#each meetings.futureMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
+											templateName={meeting.templateId
+												? templateNameMap().get(meeting.templateId)
+												: undefined}
 											organizationName={activeWorkspace()?.name}
 											onStart={() => handleStart(meeting)}
 											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
@@ -351,6 +400,9 @@
 									{#each meetings.closedMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
+											templateName={meeting.templateId
+												? templateNameMap().get(meeting.templateId)
+												: undefined}
 											organizationName={activeWorkspace()?.name}
 											onShowReport={() => handleShowReport(meeting)}
 										/>

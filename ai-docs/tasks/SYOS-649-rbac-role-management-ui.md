@@ -34,17 +34,17 @@ Our RBAC system supports **role scoping** (system-level, workspace-scoped, circl
 ```typescript
 // userRoles table - ALREADY supports scoping
 userRoles: defineTable({
-  userId: v.id('users'),
-  roleId: v.id('roles'),
-  workspaceId: v.optional(v.id('workspaces')),  // ✅ Workspace scope
-  circleId: v.optional(v.id('circles')),         // ✅ Circle scope
-  resourceType: v.optional(v.string()),
-  resourceId: v.optional(v.string()),
-  assignedBy: v.id('users'),
-  assignedAt: v.number(),
-  expiresAt: v.optional(v.number()),
-  revokedAt: v.optional(v.number())
-})
+	userId: v.id('users'),
+	roleId: v.id('roles'),
+	workspaceId: v.optional(v.id('workspaces')), // ✅ Workspace scope
+	circleId: v.optional(v.id('circles')), // ✅ Circle scope
+	resourceType: v.optional(v.string()),
+	resourceId: v.optional(v.string()),
+	assignedBy: v.id('users'),
+	assignedAt: v.number(),
+	expiresAt: v.optional(v.number()),
+	revokedAt: v.optional(v.number())
+});
 ```
 
 #### Existing Mutations (`convex/rbac/roles.ts`)
@@ -52,23 +52,27 @@ userRoles: defineTable({
 ```typescript
 // ✅ assignRole - ALREADY supports workspaceId and circleId
 export const assignRole = mutation({
-  args: {
-    sessionId: v.string(),
-    userId: v.id('users'),
-    roleSlug: v.string(),
-    workspaceId: v.optional(v.id('workspaces')),  // ✅ UI doesn't expose
-    circleId: v.optional(v.id('circles')),        // ✅ UI doesn't expose
-    resourceType: v.optional(v.string()),
-    resourceId: v.optional(v.string()),
-    expiresAt: v.optional(v.number())
-  },
-  handler: async (ctx, args) => { /* ... */ }
+	args: {
+		sessionId: v.string(),
+		userId: v.id('users'),
+		roleSlug: v.string(),
+		workspaceId: v.optional(v.id('workspaces')), // ✅ UI doesn't expose
+		circleId: v.optional(v.id('circles')), // ✅ UI doesn't expose
+		resourceType: v.optional(v.string()),
+		resourceId: v.optional(v.string()),
+		expiresAt: v.optional(v.number())
+	},
+	handler: async (ctx, args) => {
+		/* ... */
+	}
 });
 
 // ✅ revokeRole - Exists
 export const revokeRole = mutation({
-  args: { sessionId: v.string(), userRoleId: v.id('userRoles') },
-  handler: async (ctx, args) => { /* ... */ }
+	args: { sessionId: v.string(), userRoleId: v.id('userRoles') },
+	handler: async (ctx, args) => {
+		/* ... */
+	}
 });
 ```
 
@@ -77,13 +81,13 @@ export const revokeRole = mutation({
 ```typescript
 // ✅ getUserRBACDetails - Returns system + workspace roles
 export const getUserRBACDetails = query({
-  args: {
-    sessionId: v.string(),
-    workspaceId: v.optional(v.id('workspaces'))
-  },
-  handler: async (ctx, args) => {
-    // Returns: { systemRoles, workspaceRoles, activeWorkspaceRoles }
-  }
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.optional(v.id('workspaces'))
+	},
+	handler: async (ctx, args) => {
+		// Returns: { systemRoles, workspaceRoles, activeWorkspaceRoles }
+	}
 });
 ```
 
@@ -107,20 +111,20 @@ src/lib/infrastructure/rbac/
 ```typescript
 // src/lib/infrastructure/rbac/composables/usePermissions.svelte.ts
 export interface UsePermissionsParams {
-  sessionId: () => string | null;
-  userId?: () => Id<'users'> | null;
-  workspaceId?: () => Id<'workspaces'> | null;  // ✅ Supports workspace context
-  circleId?: () => Id<'circles'> | null;        // ✅ Supports circle context
-  initialPermissions?: Array<{ permissionSlug, scope, roleSlug, roleName }>;
+	sessionId: () => string | null;
+	userId?: () => Id<'users'> | null;
+	workspaceId?: () => Id<'workspaces'> | null; // ✅ Supports workspace context
+	circleId?: () => Id<'circles'> | null; // ✅ Supports circle context
+	initialPermissions?: Array<{ permissionSlug; scope; roleSlug; roleName }>;
 }
 
 // Usage
 const permissions = usePermissions({
-  sessionId: () => $page.data.sessionId,
-  workspaceId: () => activeWorkspaceId
+	sessionId: () => $page.data.sessionId,
+	workspaceId: () => activeWorkspaceId
 });
 
-permissions.can('users.change-roles')  // ✅ Check permission
+permissions.can('users.change-roles'); // ✅ Check permission
 ```
 
 ### ✅ UI Patterns (Validated from Admin RBAC Page)
@@ -222,104 +226,104 @@ import type { Id } from './_generated/dataModel';
 
 // Return type for workspace role assignments
 interface WorkspaceMemberWithRoles {
-  userId: Id<'users'>;
-  userName: string | null;
-  userEmail: string;
-  roles: Array<{
-    userRoleId: Id<'userRoles'>;
-    roleId: Id<'roles'>;
-    roleSlug: string;
-    roleName: string;
-    scope: 'system' | 'workspace' | 'circle';
-    circleId?: Id<'circles'>;
-    circleName?: string;
-    assignedAt: number;
-    expiresAt?: number;
-  }>;
+	userId: Id<'users'>;
+	userName: string | null;
+	userEmail: string;
+	roles: Array<{
+		userRoleId: Id<'userRoles'>;
+		roleId: Id<'roles'>;
+		roleSlug: string;
+		roleName: string;
+		scope: 'system' | 'workspace' | 'circle';
+		circleId?: Id<'circles'>;
+		circleName?: string;
+		assignedAt: number;
+		expiresAt?: number;
+	}>;
 }
 
 /**
  * Get all workspace members with their role assignments
  */
 export const getWorkspaceMembersWithRoles = query({
-  args: {
-    sessionId: v.string(),
-    workspaceId: v.id('workspaces')
-  },
-  handler: async (ctx, args): Promise<WorkspaceMemberWithRoles[]> => {
-    // 1. Validate session
-    await validateSessionAndGetUserId(ctx, args.sessionId);
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args): Promise<WorkspaceMemberWithRoles[]> => {
+		// 1. Validate session
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 
-    // 2. Get workspace members
-    const members = await ctx.db
-      .query('workspaceMembers')
-      .withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
-      .collect();
+		// 2. Get workspace members
+		const members = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect();
 
-    // 3. For each member, get their roles (system + workspace-scoped)
-    const result: WorkspaceMemberWithRoles[] = [];
-    const now = Date.now();
+		// 3. For each member, get their roles (system + workspace-scoped)
+		const result: WorkspaceMemberWithRoles[] = [];
+		const now = Date.now();
 
-    for (const member of members) {
-      const user = await ctx.db.get(member.userId);
-      if (!user) continue;
+		for (const member of members) {
+			const user = await ctx.db.get(member.userId);
+			if (!user) continue;
 
-      // Get all active user roles
-      const userRoles = await ctx.db
-        .query('userRoles')
-        .withIndex('by_user', (q) => q.eq('userId', member.userId))
-        .collect();
+			// Get all active user roles
+			const userRoles = await ctx.db
+				.query('userRoles')
+				.withIndex('by_user', (q) => q.eq('userId', member.userId))
+				.collect();
 
-      // Filter active roles and enrich with details
-      const roles: WorkspaceMemberWithRoles['roles'] = [];
+			// Filter active roles and enrich with details
+			const roles: WorkspaceMemberWithRoles['roles'] = [];
 
-      for (const ur of userRoles) {
-        // Skip revoked or expired
-        if (ur.revokedAt) continue;
-        if (ur.expiresAt && ur.expiresAt < now) continue;
+			for (const ur of userRoles) {
+				// Skip revoked or expired
+				if (ur.revokedAt) continue;
+				if (ur.expiresAt && ur.expiresAt < now) continue;
 
-        // Skip if workspace-scoped but different workspace
-        if (ur.workspaceId && ur.workspaceId !== args.workspaceId) continue;
+				// Skip if workspace-scoped but different workspace
+				if (ur.workspaceId && ur.workspaceId !== args.workspaceId) continue;
 
-        // Get role details
-        const role = await ctx.db.get(ur.roleId);
-        if (!role) continue;
+				// Get role details
+				const role = await ctx.db.get(ur.roleId);
+				if (!role) continue;
 
-        // Determine scope type
-        let scope: 'system' | 'workspace' | 'circle' = 'system';
-        let circleName: string | undefined;
+				// Determine scope type
+				let scope: 'system' | 'workspace' | 'circle' = 'system';
+				let circleName: string | undefined;
 
-        if (ur.circleId) {
-          scope = 'circle';
-          const circle = await ctx.db.get(ur.circleId);
-          circleName = circle?.name;
-        } else if (ur.workspaceId) {
-          scope = 'workspace';
-        }
+				if (ur.circleId) {
+					scope = 'circle';
+					const circle = await ctx.db.get(ur.circleId);
+					circleName = circle?.name;
+				} else if (ur.workspaceId) {
+					scope = 'workspace';
+				}
 
-        roles.push({
-          userRoleId: ur._id,
-          roleId: role._id,
-          roleSlug: role.slug,
-          roleName: role.name,
-          scope,
-          circleId: ur.circleId,
-          circleName,
-          assignedAt: ur.assignedAt,
-          expiresAt: ur.expiresAt
-        });
-      }
+				roles.push({
+					userRoleId: ur._id,
+					roleId: role._id,
+					roleSlug: role.slug,
+					roleName: role.name,
+					scope,
+					circleId: ur.circleId,
+					circleName,
+					assignedAt: ur.assignedAt,
+					expiresAt: ur.expiresAt
+				});
+			}
 
-      result.push({
-        userId: member.userId,
-        userName: user.name ?? null,
-        userEmail: user.email,
-        roles
-      });
-    }
+			result.push({
+				userId: member.userId,
+				userName: user.name ?? null,
+				userEmail: user.email,
+				roles
+			});
+		}
 
-    return result;
-  }
+		return result;
+	}
 });
 
 /**
@@ -327,22 +331,22 @@ export const getWorkspaceMembersWithRoles = query({
  * Excludes system-only roles
  */
 export const getAssignableRoles = query({
-  args: {
-    sessionId: v.string()
-  },
-  handler: async (ctx, args) => {
-    await validateSessionAndGetUserId(ctx, args.sessionId);
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 
-    const roles = await ctx.db.query('roles').collect();
+		const roles = await ctx.db.query('roles').collect();
 
-    return roles.map((role) => ({
-      _id: role._id,
-      slug: role.slug,
-      name: role.name,
-      description: role.description,
-      isSystem: role.isSystem
-    }));
-  }
+		return roles.map((role) => ({
+			_id: role._id,
+			slug: role.slug,
+			name: role.name,
+			description: role.description,
+			isSystem: role.isSystem
+		}));
+	}
 });
 ```
 
@@ -359,11 +363,11 @@ export const getAssignableRoles = query({
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ parent }) => {
-  const parentData = await parent();
-  return {
-    sessionId: parentData.sessionId,
-    workspaceId: parentData.workspaceId
-  };
+	const parentData = await parent();
+	return {
+		sessionId: parentData.sessionId,
+		workspaceId: parentData.workspaceId
+	};
 };
 ```
 
@@ -773,26 +777,26 @@ Enhance `/admin/rbac/+page.svelte` lines 1191-1261 to add:
 ```typescript
 // Add: List all workspaces (for admin dropdown)
 export const listWorkspaces = query({
-  args: { sessionId: v.string() },
-  handler: async (ctx, args) => {
-    await requireSystemAdmin(ctx, args.sessionId);
-    return ctx.db.query('workspaces').collect();
-  }
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+		return ctx.db.query('workspaces').collect();
+	}
 });
 
 // Add: List circles by workspace (for admin dropdown)
 export const listCirclesByWorkspace = query({
-  args: {
-    sessionId: v.string(),
-    workspaceId: v.id('workspaces')
-  },
-  handler: async (ctx, args) => {
-    await requireSystemAdmin(ctx, args.sessionId);
-    return ctx.db
-      .query('circles')
-      .withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
-      .collect();
-  }
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+		return ctx.db
+			.query('circles')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect();
+	}
 });
 
 // Update: assignRoleToUser to accept scope parameters
@@ -814,18 +818,22 @@ export const listCirclesByWorkspace = query({
 ```typescript
 // Add to roleTemplates table
 roleTemplates: defineTable({
-  // ... existing fields
-  rbacPermissions: v.optional(v.array(v.object({
-    permissionSlug: v.string(),  // e.g., "users.change-roles"
-    scope: v.union(v.literal('all'), v.literal('own'))
-  }))),  // NEW: Maps organizational role → RBAC permissions
-})
+	// ... existing fields
+	rbacPermissions: v.optional(
+		v.array(
+			v.object({
+				permissionSlug: v.string(), // e.g., "users.change-roles"
+				scope: v.union(v.literal('all'), v.literal('own'))
+			})
+		)
+	) // NEW: Maps organizational role → RBAC permissions
+});
 
 // Add to userRoles table (for tracking source of auto-assigned roles)
 userRoles: defineTable({
-  // ... existing fields
-  sourceCircleRoleId: v.optional(v.id('userCircleRoles')),  // NEW: Track which circleRole granted this
-}).index('by_source_circle_role', ['sourceCircleRoleId'])  // NEW: For efficient cleanup
+	// ... existing fields
+	sourceCircleRoleId: v.optional(v.id('userCircleRoles')) // NEW: Track which circleRole granted this
+}).index('by_source_circle_role', ['sourceCircleRoleId']); // NEW: For efficient cleanup
 ```
 
 #### 3.2 Backend Trigger (Auto-Assignment)
@@ -835,61 +843,60 @@ userRoles: defineTable({
 ```typescript
 // In circleRoles.assignUserToRole mutation
 async function handleUserCircleRoleCreated(
-  ctx: MutationCtx,
-  userCircleRole: { userId, circleRoleId, assignedBy },
-  circleRole: { templateId, circleId, workspaceId }
+	ctx: MutationCtx,
+	userCircleRole: { userId; circleRoleId; assignedBy },
+	circleRole: { templateId; circleId; workspaceId }
 ) {
-  if (!circleRole.templateId) return;
+	if (!circleRole.templateId) return;
 
-  // Get template with RBAC permissions
-  const template = await ctx.db.get(circleRole.templateId);
-  if (!template?.rbacPermissions?.length) return;
+	// Get template with RBAC permissions
+	const template = await ctx.db.get(circleRole.templateId);
+	if (!template?.rbacPermissions?.length) return;
 
-  // CircleRole → RBAC is ALWAYS enabled (default behavior)
-  // This is independent of Quick Edit Mode
+	// CircleRole → RBAC is ALWAYS enabled (default behavior)
+	// This is independent of Quick Edit Mode
 
-  // Auto-assign RBAC permissions for this role
-  for (const perm of template.rbacPermissions) {
-    // Find permission by slug
-    const permission = await ctx.db
-      .query('permissions')
-      .withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
-      .first();
-    if (!permission) continue;
+	// Auto-assign RBAC permissions for this role
+	for (const perm of template.rbacPermissions) {
+		// Find permission by slug
+		const permission = await ctx.db
+			.query('permissions')
+			.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+			.first();
+		if (!permission) continue;
 
-    // Find the corresponding RBAC role (e.g., "circle-lead" role)
-    const rbacRole = await ctx.db
-      .query('roles')
-      .withIndex('by_slug', (q) => q.eq('slug', 'circle-lead'))
-      .first();
-    if (!rbacRole) continue;
+		// Find the corresponding RBAC role (e.g., "circle-lead" role)
+		const rbacRole = await ctx.db
+			.query('roles')
+			.withIndex('by_slug', (q) => q.eq('slug', 'circle-lead'))
+			.first();
+		if (!rbacRole) continue;
 
-    // Check if user already has this role with this scope
-    const existingRole = await ctx.db
-      .query('userRoles')
-      .withIndex('by_user_role', (q) =>
-        q.eq('userId', userCircleRole.userId).eq('roleId', rbacRole._id)
-      )
-      .filter((q) => q.and(
-        q.eq(q.field('circleId'), circleRole.circleId),
-        q.eq(q.field('revokedAt'), undefined)
-      ))
-      .first();
+		// Check if user already has this role with this scope
+		const existingRole = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user_role', (q) =>
+				q.eq('userId', userCircleRole.userId).eq('roleId', rbacRole._id)
+			)
+			.filter((q) =>
+				q.and(q.eq(q.field('circleId'), circleRole.circleId), q.eq(q.field('revokedAt'), undefined))
+			)
+			.first();
 
-    if (!existingRole) {
-      // Auto-assign RBAC role with circle scope
-      // Track sourceCircleRoleId for precise cleanup when user is removed
-      await ctx.db.insert('userRoles', {
-        userId: userCircleRole.userId,
-        roleId: rbacRole._id,
-        workspaceId: circleRole.workspaceId,
-        circleId: circleRole.circleId,
-        sourceCircleRoleId: userCircleRole._id,  // Track source for cleanup
-        assignedBy: userCircleRole.assignedBy,
-        assignedAt: Date.now()
-      });
-    }
-  }
+		if (!existingRole) {
+			// Auto-assign RBAC role with circle scope
+			// Track sourceCircleRoleId for precise cleanup when user is removed
+			await ctx.db.insert('userRoles', {
+				userId: userCircleRole.userId,
+				roleId: rbacRole._id,
+				workspaceId: circleRole.workspaceId,
+				circleId: circleRole.circleId,
+				sourceCircleRoleId: userCircleRole._id, // Track source for cleanup
+				assignedBy: userCircleRole.assignedBy,
+				assignedAt: Date.now()
+			});
+		}
+	}
 }
 ```
 
@@ -900,23 +907,21 @@ When user is removed from circleRole, revoke ONLY the RBAC roles that came from 
 ```typescript
 // In circleRoles.removeUserFromRole mutation
 async function handleUserCircleRoleRemoved(
-  ctx: MutationCtx,
-  userCircleRoleId: Id<'userCircleRoles'>  // The record being removed
+	ctx: MutationCtx,
+	userCircleRoleId: Id<'userCircleRoles'> // The record being removed
 ) {
-  // Find ONLY the RBAC roles that were auto-assigned from THIS circleRole
-  // This prevents over-revoking if user has multiple roles in same circle
-  const autoAssignedRoles = await ctx.db
-    .query('userRoles')
-    .withIndex('by_source_circle_role', (q) =>
-      q.eq('sourceCircleRoleId', userCircleRoleId)
-    )
-    .filter((q) => q.eq(q.field('revokedAt'), undefined))
-    .collect();
+	// Find ONLY the RBAC roles that were auto-assigned from THIS circleRole
+	// This prevents over-revoking if user has multiple roles in same circle
+	const autoAssignedRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_source_circle_role', (q) => q.eq('sourceCircleRoleId', userCircleRoleId))
+		.filter((q) => q.eq(q.field('revokedAt'), undefined))
+		.collect();
 
-  // Revoke only the roles that came from this specific circleRole
-  for (const ur of autoAssignedRoles) {
-    await ctx.db.patch(ur._id, { revokedAt: Date.now() });
-  }
+	// Revoke only the roles that came from this specific circleRole
+	for (const ur of autoAssignedRoles) {
+		await ctx.db.patch(ur._id, { revokedAt: Date.now() });
+	}
 }
 ```
 

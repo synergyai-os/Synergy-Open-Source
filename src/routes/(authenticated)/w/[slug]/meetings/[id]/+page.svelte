@@ -17,6 +17,7 @@
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { browser } from '$app/environment';
 	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
+	import ImportProposalButton from '$lib/modules/org-chart/components/proposals/ImportProposalButton.svelte';
 	import { Icon, Heading, Text, Button } from '$lib/components/atoms';
 
 	interface Props {
@@ -42,6 +43,43 @@
 		meetingId,
 		sessionId,
 		userId
+	});
+
+	// Query template to check if it's a governance meeting
+	// Wrap in $derived to make query creation reactive
+	const templateQuery = $derived(
+		browser && session.meeting?.templateId && sessionId()
+			? useQuery(api.meetingTemplates.get, () => {
+					const meeting = session.meeting;
+					const sid = sessionId();
+					if (!meeting?.templateId || !sid) {
+						throw new Error('Meeting templateId and sessionId required');
+					}
+					return {
+						sessionId: sid,
+						templateId: meeting.templateId
+					};
+				})
+			: null
+	);
+
+	const isGovernanceMeeting = $derived(templateQuery?.data?.name === 'Governance' || false);
+	const hasCircleId = $derived(!!session.meeting?.circleId);
+	const shouldShowImportButton = $derived(hasCircleId || isGovernanceMeeting);
+
+	// Debug log (dev only)
+	$effect(() => {
+		if (import.meta.env.DEV && session.meeting) {
+			console.log('🔍 Meeting Debug:', {
+				meetingId: session.meeting._id,
+				circleId: session.meeting.circleId,
+				templateId: session.meeting.templateId,
+				templateName: templateQuery?.data?.name,
+				isGovernanceMeeting,
+				hasCircleId,
+				shouldShowImportButton
+			});
+		}
 	});
 
 	// Real-time presence tracking (SYOS-227)
@@ -284,9 +322,18 @@
 					<div class="flex items-center justify-between mb-header">
 						<Heading level="h2" size="h3" class="font-semibold">Agenda</Heading>
 						{#if !session.isClosed}
-							<Button variant="ghost" size="sm" onclick={() => (state.isAddingAgenda = true)}>
-								+ Add
-							</Button>
+							<div class="flex items-center gap-button">
+								{#if shouldShowImportButton}
+									<ImportProposalButton
+										meetingId={session.meeting._id}
+										sessionId={sessionId()}
+										workspaceId={session.meeting.workspaceId}
+									/>
+								{/if}
+								<Button variant="ghost" size="sm" onclick={() => (state.isAddingAgenda = true)}>
+									+ Add
+								</Button>
+							</div>
 						{/if}
 					</div>
 

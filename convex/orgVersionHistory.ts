@@ -93,6 +93,8 @@ function extractEntityFields(entityType: EntityType, doc: any): any {
 				purpose: doc.purpose,
 				parentCircleId: doc.parentCircleId,
 				status: doc.status,
+				circleType: doc.circleType,
+				decisionModel: doc.decisionModel,
 				archivedAt: doc.archivedAt
 			};
 		case 'circleRole':

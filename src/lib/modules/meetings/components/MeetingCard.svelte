@@ -6,7 +6,7 @@
 
 	import type { Id } from '$lib/convex';
 	import { downloadICS } from '$lib/utils/calendar';
-	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
+	import { Button, Text, Icon, Avatar, Badge } from '$lib/components/atoms';
 	import { meetingCardRecipe } from '$lib/design-system/recipes';
 	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
@@ -29,6 +29,7 @@
 
 	interface Props {
 		meeting: Meeting;
+		templateName?: string;
 		circleName?: string;
 		organizationName?: string;
 		attendeeAvatars?: Array<{ name: string; color: string }>;
@@ -39,6 +40,7 @@
 
 	let {
 		meeting,
+		templateName,
 		circleName,
 		organizationName,
 		attendeeAvatars = [],
@@ -116,10 +118,17 @@
 			{/if}
 		</div>
 
-		<!-- Time -->
-		<Text variant="body" size="sm" color="secondary" as="div">
-			{startTimeStr} - {endTimeStr}
-		</Text>
+		<!-- Template Badge + Time -->
+		<div class="flex items-center gap-fieldGroup">
+			{#if templateName}
+				<Badge variant="default" size="sm">
+					{templateName}
+				</Badge>
+			{/if}
+			<Text variant="body" size="sm" color="secondary" as="div">
+				{startTimeStr} - {endTimeStr}
+			</Text>
+		</div>
 
 		<!-- Circle Badge (if exists) -->
 		{#if circleName}

@@ -194,6 +194,7 @@ const schema = defineSchema(
 			templateId: v.optional(v.id('roleTemplates')), // Which template this role is based on
 			status: v.union(v.literal('draft'), v.literal('active')), // Draft status for imports
 			isHiring: v.boolean(), // Open position flag
+			representsToParent: v.optional(v.boolean()), // Whether this role represents the circle to its parent (default: false)
 			createdAt: v.number(),
 			updatedAt: v.number(), // Last modification timestamp
 			updatedBy: v.optional(v.id('users')), // Who last modified
@@ -321,6 +322,22 @@ const schema = defineSchema(
 							purpose: v.optional(v.string()),
 							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
 							status: v.union(v.literal('draft'), v.literal('active')),
+							circleType: v.optional(
+								v.union(
+									v.literal('hierarchy'),
+									v.literal('empowered_team'),
+									v.literal('guild'),
+									v.literal('hybrid')
+								)
+							),
+							decisionModel: v.optional(
+								v.union(
+									v.literal('manager_decides'),
+									v.literal('team_consensus'),
+									v.literal('consent'),
+									v.literal('coordination_only')
+								)
+							),
 							archivedAt: v.optional(v.number())
 						})
 					),
@@ -331,6 +348,22 @@ const schema = defineSchema(
 							purpose: v.optional(v.string()),
 							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
 							status: v.union(v.literal('draft'), v.literal('active')),
+							circleType: v.optional(
+								v.union(
+									v.literal('hierarchy'),
+									v.literal('empowered_team'),
+									v.literal('guild'),
+									v.literal('hybrid')
+								)
+							),
+							decisionModel: v.optional(
+								v.union(
+									v.literal('manager_decides'),
+									v.literal('team_consensus'),
+									v.literal('consent'),
+									v.literal('coordination_only')
+								)
+							),
 							archivedAt: v.optional(v.number())
 						})
 					)
@@ -851,8 +884,17 @@ const schema = defineSchema(
 		// Workspace Org Settings - Workspace-level configuration for org chart behavior
 		workspaceOrgSettings: defineTable({
 			workspaceId: v.id('workspaces'),
-			// Circle Lead enforcement
-			requireCircleLeadRole: v.boolean(), // Default: true
+			// Circle Lead enforcement (deprecated - use leadRequirementByCircleType instead)
+			requireCircleLeadRole: v.optional(v.boolean()), // Default: true (for backward compat)
+			// Lead requirement by circle type (SYOS-674: Phase 3)
+			leadRequirementByCircleType: v.optional(
+				v.object({
+					hierarchy: v.boolean(),
+					empowered_team: v.boolean(),
+					guild: v.boolean(),
+					hybrid: v.boolean()
+				})
+			),
 			// Core role template IDs for this workspace
 			coreRoleTemplateIds: v.array(v.id('roleTemplates')),
 			// Quick edit mode control

@@ -16,6 +16,7 @@
 
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
@@ -84,7 +85,13 @@
 
 	// Navigate to meeting
 	function handleNavigateToMeeting(meetingId: Id<'meetings'>) {
-		goto(resolveRoute(`/meetings/${meetingId}`));
+		// Get workspace slug from page params (component is used in /w/[slug]/dashboard)
+		const slug = $page.params.slug;
+		if (!slug) {
+			console.error('Cannot navigate to meeting: workspace slug not available');
+			return;
+		}
+		goto(resolveRoute(`/w/${slug}/meetings/${meetingId}`));
 	}
 
 	// Format date

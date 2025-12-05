@@ -17,6 +17,7 @@
 	import CircleTypeBadge from './CircleTypeBadge.svelte';
 	import CircleTypeSelector from './CircleTypeSelector.svelte';
 	import DecisionModelSelector from './DecisionModelSelector.svelte';
+	import AssignUserDialog from './AssignUserDialog.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
@@ -154,6 +155,31 @@
 		checklists: 0,
 		projects: 0
 	});
+
+	// Assign user dialog state
+	let assignUserDialogOpen = $state(false);
+	let assignUserDialogType = $state<'role' | 'circle'>('role');
+	let assignUserDialogEntityId = $state<Id<'circleRoles'> | Id<'circles'> | null>(null);
+	let assignUserDialogEntityName = $state('');
+
+	function openAssignUserDialog(
+		type: 'role' | 'circle',
+		entityId: Id<'circleRoles'> | Id<'circles'>,
+		entityName: string
+	) {
+		assignUserDialogType = type;
+		assignUserDialogEntityId = entityId;
+		assignUserDialogEntityName = entityName;
+		assignUserDialogOpen = true;
+	}
+
+	function handleAssignUserSuccess() {
+		// Refresh org chart data - queries will auto-refresh
+		if (orgChart && circle) {
+			// Trigger a refresh by re-selecting the circle
+			orgChart.selectCircle(circle.circleId, { skipStackPush: true });
+		}
+	}
 
 	function handleClose() {
 		if (!orgChart) return;
@@ -587,7 +613,7 @@
 																/* TODO: Implement edit role */
 															}}
 															onAddMember={() => {
-																/* TODO: Implement add member to role */
+																openAssignUserDialog('role', role.roleId, role.name);
 															}}
 															menuItems={[
 																{ label: 'Edit role', onclick: () => {} },
@@ -637,7 +663,7 @@
 																/* TODO: Implement edit role */
 															}}
 															onAddMember={() => {
-																/* TODO: Implement add member to role */
+																openAssignUserDialog('role', role.roleId, role.name);
 															}}
 															menuItems={[
 																{ label: 'Edit role', onclick: () => {} },
@@ -671,7 +697,11 @@
 																/* TODO: Implement edit circle */
 															}}
 															onAddMember={() => {
-																/* TODO: Implement add member to circle */
+																openAssignUserDialog(
+																	'circle',
+																	childCircle.circleId,
+																	childCircle.name
+																);
 															}}
 															menuItems={[
 																{ label: 'Edit circle', onclick: () => {} },
@@ -700,7 +730,9 @@
 														isCircle={false}
 														onClick={() => {}}
 														onAddMember={() => {
-															/* TODO: Implement add member */
+															if (circle) {
+																openAssignUserDialog('circle', circle.circleId, circle.name);
+															}
 														}}
 														members={membersWithoutRoles.map((m) => ({
 															userId: m.userId,
@@ -868,4 +900,16 @@
 			{/if}
 		{/snippet}
 	</StackedPanel>
+
+	<!-- Assign User Dialog -->
+	{#if assignUserDialogEntityId && circle}
+		<AssignUserDialog
+			bind:open={assignUserDialogOpen}
+			type={assignUserDialogType}
+			entityId={assignUserDialogEntityId}
+			entityName={assignUserDialogEntityName}
+			workspaceId={circle.workspaceId}
+			onSuccess={handleAssignUserSuccess}
+		/>
+	{/if}
 {/if}

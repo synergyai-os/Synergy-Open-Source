@@ -34,16 +34,24 @@
 	/>
 
 	<!-- Navigation - Scrollable area -->
-	<nav class="flex-1 overflow-y-auto" style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);">
+	<nav
+		class="flex-1 overflow-y-auto"
+		style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+	>
 		<!-- Settings Section -->
 		<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
-			<Text variant="label" size="sm" color="tertiary" class="mb-fieldGroup font-medium tracking-wider uppercase">
+			<Text
+				variant="label"
+				size="sm"
+				color="tertiary"
+				class="mb-fieldGroup font-medium tracking-wider uppercase"
+			>
 				Settings
 			</Text>
 			<div class="space-y-form-field-gap">
 				<a
 					href={resolveRoute('/settings')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings')}
 				>
 					<Icon type="settings" size="sm" color="default" class="flex-shrink-0" />
@@ -54,7 +62,7 @@
 
 				<a
 					href={resolveRoute('/settings/account')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/account')}
 				>
 					<Icon type="user" size="sm" color="default" class="flex-shrink-0" />
@@ -65,7 +73,7 @@
 
 				<a
 					href={resolveRoute('/settings/integrations')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/integrations')}
 				>
 					<Icon type="code" size="sm" color="default" class="flex-shrink-0" />
@@ -76,7 +84,7 @@
 
 				<a
 					href={resolveRoute('/settings/notifications')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/notifications')}
 				>
 					<Icon type="bell" size="sm" color="default" class="flex-shrink-0" />
@@ -87,7 +95,7 @@
 
 				<a
 					href={resolveRoute('/settings/privacy')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/privacy')}
 				>
 					<Icon type="lock" size="sm" color="default" class="flex-shrink-0" />
@@ -101,13 +109,18 @@
 		<!-- Preferences Section -->
 		<div class="my-section-divider border-sidebar border-t"></div>
 		<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
-			<Text variant="label" size="sm" color="tertiary" class="mb-fieldGroup font-medium tracking-wider uppercase">
+			<Text
+				variant="label"
+				size="sm"
+				color="tertiary"
+				class="mb-fieldGroup font-medium tracking-wider uppercase"
+			>
 				Preferences
 			</Text>
 			<div class="space-y-form-field-gap">
 				<a
 					href={resolveRoute('/settings/appearance')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/appearance')}
 				>
 					<Icon type="sun" size="sm" color="default" class="flex-shrink-0" />
@@ -118,7 +131,7 @@
 
 				<a
 					href={resolveRoute('/settings/keyboard')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/keyboard')}
 				>
 					<Icon type="keyboard" size="sm" color="default" class="flex-shrink-0" />
@@ -129,7 +142,7 @@
 
 				<a
 					href={resolveRoute('/settings/data')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/data')}
 				>
 					<Icon type="database" size="sm" color="default" class="flex-shrink-0" />
@@ -143,13 +156,18 @@
 		<!-- Advanced Section -->
 		<div class="my-section-divider border-sidebar border-t"></div>
 		<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
-			<Text variant="label" size="sm" color="tertiary" class="mb-fieldGroup font-medium tracking-wider uppercase">
+			<Text
+				variant="label"
+				size="sm"
+				color="tertiary"
+				class="mb-fieldGroup font-medium tracking-wider uppercase"
+			>
 				Advanced
 			</Text>
 			<div class="space-y-form-field-gap">
 				<a
 					href={resolveRoute('/settings/billing')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/billing')}
 				>
 					<Icon type="payment" size="sm" color="default" class="flex-shrink-0" />
@@ -160,7 +178,7 @@
 
 				<a
 					href={resolveRoute('/settings/api')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/api')}
 				>
 					<Icon type="code" size="sm" color="default" class="flex-shrink-0" />
@@ -171,7 +189,7 @@
 
 				<a
 					href={resolveRoute('/settings/permissions-test')}
-					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary flex items-center gap-fieldGroup rounded-card px-nav-item transition-all duration-150"
+					class="group py-nav-item text-small text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary px-nav-item flex items-center gap-fieldGroup rounded-card transition-all duration-150"
 					class:bg-sidebar-hover={isActive('/settings/permissions-test')}
 				>
 					<Icon type="lock" size="sm" color="default" class="flex-shrink-0" />

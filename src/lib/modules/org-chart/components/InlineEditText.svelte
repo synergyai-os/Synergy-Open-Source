@@ -128,7 +128,7 @@
 			/>
 		{/if}
 		{#if isSaving}
-			<div class="absolute right-2 top-2 text-secondary text-xs">Saving...</div>
+			<div class="absolute top-2 right-2 text-xs text-secondary">Saving...</div>
 		{/if}
 	</div>
 {:else}
@@ -151,14 +151,13 @@
 		title={disabled ? undefined : 'Click to edit'}
 	>
 		{#if value || placeholder}
-			<Text variant="body" size={size} color="default">
+			<Text variant="body" {size} color="default">
 				{value || placeholder}
 			</Text>
 		{:else}
-			<Text variant="body" size={size} color="tertiary">
+			<Text variant="body" {size} color="tertiary">
 				{placeholder || 'Click to edit'}
 			</Text>
 		{/if}
 	</div>
 {/if}
-

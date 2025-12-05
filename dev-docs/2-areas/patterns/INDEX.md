@@ -56,6 +56,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | useQuery, hydration error, SSR, white screen, browser check, composable, component, $derived, conditional query, reactive query | useQuery Hydration Errors in Components vs Composables | `convex-integration.md#L140` |
 | useQuery, $derived, conditional query, null forever, ternary, circle selection, dependency changes, reactive query creation | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 | useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch, circles vs roles | Use Reactive useQuery Instead of Manual Queries for Auto-Refetch | `convex-integration.md#L340` |
+| StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
 
 ---
 
@@ -69,6 +70,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | White screen on refresh with hydration error, useQuery in component | useQuery Hydration Errors | `convex-integration.md#L140` |
 | Query never fires after user selection, queryResult is null forever, conditional useQuery | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 | After mutations UI doesn't update, need manual refetch, hard reload feeling, circles update but roles don't | Use Reactive useQuery Instead of Manual Queries | `convex-integration.md#L340` |
+| Panel cannot be closed, ESC key doesn't work, backdrop click doesn't work, app stuck, must reload | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
 
 ## 🟡 Important (Common Issues)
 
@@ -130,7 +132,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2025-12-05
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
 
 ## Recent Additions (2025-12-01)

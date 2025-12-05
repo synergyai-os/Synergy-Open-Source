@@ -69,12 +69,14 @@ async function ensureWorkspaceMembership(
  * 3. Creates roles from templates, skipping duplicates (idempotent)
  * 4. Links roles to templates via templateId
  * 5. Captures version history for each role created
+ * 6. Respects circleType - skips Lead role for empowered_team and guild circles (SYOS-675)
  *
  * Design decisions:
  * - Skip silently if role with same name already exists (idempotent)
  * - Only active templates are used (archived templates are skipped)
  * - Template description becomes role purpose if available
  * - Roles are "stamped out" from templates (blueprint pattern - no auto-sync)
+ * - Lead role (isRequired: true) is only created for hierarchy and hybrid circles
  *
  * @export - Exported for use in workspace creation and other circle creation flows
  */
@@ -82,7 +84,8 @@ export async function createCoreRolesForCircle(
 	ctx: MutationCtx,
 	circleId: Id<'circles'>,
 	workspaceId: Id<'workspaces'>,
-	userId: Id<'users'>
+	userId: Id<'users'>,
+	circleType: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid' = 'hierarchy'
 ): Promise<void> {
 	const now = Date.now();
 
@@ -125,6 +128,40 @@ export async function createCoreRolesForCircle(
 		if (existingRoleNames.has(templateNameLower)) {
 			// Role already exists - skip silently
 			continue;
+		}
+
+		// SYOS-674: Skip Lead role (isRequired: true) based on workspace settings or defaults
+		// Check workspace settings first, fallback to DEFAULT_LEAD_REQUIRED
+		if (template.isRequired === true) {
+			// Get workspace org settings
+			const orgSettings = await ctx.db
+				.query('workspaceOrgSettings')
+				.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
+				.first();
+
+			// Determine if Lead is required for this circle type
+			let leadRequired: boolean;
+			if (orgSettings?.leadRequirementByCircleType) {
+				// Use workspace-specific setting
+				leadRequired = orgSettings.leadRequirementByCircleType[circleType];
+			} else {
+				// Fallback to system defaults
+				const DEFAULT_LEAD_REQUIRED: Record<
+					'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
+					boolean
+				> = {
+					hierarchy: true,
+					empowered_team: false,
+					guild: false,
+					hybrid: true
+				};
+				leadRequired = DEFAULT_LEAD_REQUIRED[circleType];
+			}
+
+			if (!leadRequired) {
+				// Skip Lead role creation for this circle type
+				continue;
+			}
 		}
 
 		// Create role from template
@@ -347,6 +384,7 @@ export const getMembers = query({
 
 /**
  * Create a new circle
+ * SYOS-675: Respects circleType and decisionModel arguments
  */
 export const create = mutation({
 	args: {
@@ -354,7 +392,23 @@ export const create = mutation({
 		workspaceId: v.id('workspaces'),
 		name: v.string(),
 		purpose: v.optional(v.string()),
-		parentCircleId: v.optional(v.id('circles'))
+		parentCircleId: v.optional(v.id('circles')),
+		circleType: v.optional(
+			v.union(
+				v.literal('hierarchy'),
+				v.literal('empowered_team'),
+				v.literal('guild'),
+				v.literal('hybrid')
+			)
+		),
+		decisionModel: v.optional(
+			v.union(
+				v.literal('manager_decides'),
+				v.literal('team_consensus'),
+				v.literal('consent'),
+				v.literal('coordination_only')
+			)
+		)
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx, args.sessionId);
@@ -400,12 +454,18 @@ export const create = mutation({
 		const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugBase);
 		const now = Date.now();
 
+		// Default values: hierarchy and manager_decides (SYOS-675)
+		const circleType = args.circleType ?? 'hierarchy';
+		const decisionModel = args.decisionModel ?? 'manager_decides';
+
 		const circleId = await ctx.db.insert('circles', {
 			workspaceId: args.workspaceId,
 			name: trimmedName,
 			slug,
 			purpose: args.purpose,
 			parentCircleId: args.parentCircleId,
+			circleType,
+			decisionModel,
 			status: 'active',
 			createdAt: now,
 			updatedAt: now,
@@ -418,8 +478,8 @@ export const create = mutation({
 			await captureCreate(ctx, 'circle', newCircle);
 		}
 
-		// Auto-create core roles from templates
-		await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId);
+		// Auto-create core roles from templates (respects circleType - SYOS-675)
+		await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId, circleType);
 
 		return {
 			circleId,
