@@ -19,6 +19,8 @@ Quick lookup for common issues. Find your symptom → go to line number.
 |----------|-------------------|------|
 | reactivity, props, stale, composable, $derived, updates | Composable Reactivity Break | `svelte-reactivity.md#L10` |
 | $derived, function call, TypeError, $.get is not a function, reactive values, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
+| $effect, infinite loop, freeze, frozen, bidirectional sync, two-way binding, form state, composable state, setField, formValues, untrack, controlled input | Bidirectional $effect Sync Causes Infinite Loop | `svelte-reactivity.md#L120` |
+| convex core, pure functions, lead detection, duplicate role name, template isRequired, archive guard | Core Domain Logic in convex/core (Pure + Tests) | `architecture-modularity.md#L70` |
 | scroll, bottom, position, viewport, scrollTop | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | overflow, max-height, scroll, dropdown, full-page, parent height, h-full, Tabs.Root, height constraint | ScrollArea Max Height | `ui-patterns.md#L60` |
 | border, harsh, contrast, subtle, soft | Border Contrast | `design-system-patterns.md#L60` |
@@ -56,6 +58,8 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | useQuery, hydration error, SSR, white screen, browser check, composable, component, $derived, conditional query, reactive query | useQuery Hydration Errors in Components vs Composables | `convex-integration.md#L140` |
 | useQuery, $derived, conditional query, null forever, ternary, circle selection, dependency changes, reactive query creation | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 | useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch, circles vs roles | Use Reactive useQuery Instead of Manual Queries for Auto-Refetch | `convex-integration.md#L340` |
+| proposals, state machine, transitions, terminal states, assertTransition, isTerminalState | Convex State Machine in Core | `convex-integration.md#L470` |
+| cross-module imports, module api, context, dependency injection, createContext, setContext, getContext, lint, no-cross-module-imports | Module APIs via Context (No Cross-Module Imports) | `architecture-modularity.md#L10` |
 | StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
 
 ---
@@ -66,6 +70,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 |---------|---------|------|
 | Props not updating in composable/helper function | Composable Reactivity Break | `svelte-reactivity.md#L10` |
 | TypeError: $.get(...) is not a function, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
+| App freezes completely, must reload page, infinite loop with form/composable | Bidirectional $effect Sync Causes Infinite Loop | `svelte-reactivity.md#L120` |
 | Scroll area shows content at bottom, must scroll up | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | White screen on refresh with hydration error, useQuery in component | useQuery Hydration Errors | `convex-integration.md#L140` |
 | Query never fires after user selection, queryResult is null forever, conditional useQuery | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
@@ -76,6 +81,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 | Symptom | Pattern | File |
 |---------|---------|------|
+| Domain logic mixed with Convex DB code; untestable rules; duplicate lead/dedup logic scattered | Core Domain Logic in convex/core (Pure + Tests) | `architecture-modularity.md#L70` |
 | Dropdown content overflows instead of scrolling | ScrollArea Max Height | `ui-patterns.md#L60` |
 | Full-page ScrollArea doesn't scroll (no scrollbar) | ScrollArea Max Height | `ui-patterns.md#L60` |
 | Borders look too harsh/dark | Border Contrast (Subtle vs Base) | `design-system-patterns.md#L60` |
@@ -87,6 +93,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Circle cropped when zooming to focus, element clipped at top/bottom, zoom-to-fit ignores viewport aspect ratio | Viewport-Aware Zoom-to-Fit | `design-system-patterns.md#L1250` |
 | Browser zoom takes over at D3 zoom limits, pinch zoom triggers browser zoom, trackpad zoom escapes app | Prevent Browser Zoom Takeover | `design-system-patterns.md#L1300` |
 | Data loads with delay after user interaction, roles appear after circle selection, multiple sequential queries | Preload Related Data to Avoid N+1 Queries | `convex-integration.md#L10` |
+| Lint fails on cross-module imports; eslint-disable added to bypass no-cross-module rule | Module APIs via Context (No Cross-Module Imports) | `architecture-modularity.md#L10` |
 
 ## 🟢 Reference (Best Practices)
 
@@ -125,6 +132,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 - `design-system-patterns.md` - Design tokens, CVA recipes, layout patterns, **data visualization colors**
 - `convex-integration.md` - Convex queries, mutations, real-time updates, **performance optimization**
 - `analytics.md` - PostHog integration, events, feature flags
+- `architecture-modularity.md` - Module boundaries, context-provided APIs, lint guardrails
 
 ## Module-Specific Docs
 
@@ -134,6 +142,12 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 **Last Updated**: 2025-12-05
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
+
+## Recent Additions (2025-12-05)
+
+| Pattern | File | Keywords |
+|---------|------|----------|
+| Bidirectional $effect Sync Causes Infinite Loop | `svelte-reactivity.md#L120` | $effect, infinite loop, freeze, bidirectional sync, form state, composable, untrack |
 
 ## Recent Additions (2025-12-01)
 

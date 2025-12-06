@@ -451,5 +451,72 @@ async function handleQuickUpdateRole(updates) {
 
 ---
 
-**Last Updated**: 2025-01-27
+## #L470: Enforce Convex State Machines in Core (Pure + Tested) [🟢 REFERENCE]
+
+**Keywords**: proposals, state machine, status transitions, terminal states, `assertTransition`, `isTerminalState`, pure functions, core/app separation
+
+**Symptom**:
+- Status drift (e.g., skipping required steps) because transitions are scattered across mutations
+- Inconsistent terminal handling (approve → withdraw allowed)
+- No single source of truth; hard to test or evolve states
+
+**Root Cause**:
+- Transition rules embedded ad hoc in mutations, mixed with DB side effects, and untested. No centralized map of allowed transitions or terminal states.
+
+**Fix**:
+1) Define the status contract and transitions in **core** as pure functions.  
+2) Gate all status changes in the application layer with those helpers.  
+3) Unit test the pure state machine (no DB).  
+
+```typescript
+// core: convex/core/proposals/stateMachine.ts
+export const VALID_TRANSITIONS = {
+  draft: ['submitted', 'withdrawn'],
+  submitted: ['in_meeting', 'withdrawn'],
+  in_meeting: ['objections', 'integrated', 'approved', 'rejected', 'withdrawn'],
+  objections: ['integrated', 'rejected', 'withdrawn'],
+  integrated: ['approved', 'rejected', 'withdrawn'],
+  approved: [],
+  rejected: [],
+  withdrawn: []
+};
+
+export function assertTransition(current: ProposalStatus, next: ProposalStatus, ctx: string) {
+  if (!canTransition(current, next)) {
+    throw new Error(`Invalid proposal status transition (${ctx}): ${current} -> ${next}`);
+  }
+}
+export function isTerminalState(status: ProposalStatus) {
+  return TERMINAL_STATUSES.includes(status);
+}
+```
+
+```typescript
+// app layer: convex/proposals.ts
+assertTransition(proposal.status as ProposalStatus, 'in_meeting', 'import proposal to meeting');
+assertHasEvolutions(evolutions ? 1 : 0, 'Proposal');
+// ...then perform DB writes
+```
+
+**Testing**:
+- Add a dedicated unit test file in core (mirrors `authority/calculator.test.ts`) that:
+  - Covers all valid paths (draft → submitted → in_meeting → objections/integrated → approved/rejected)
+  - Asserts invalid transitions fail
+  - Confirms terminal states block further transitions
+
+**Key Principles**:
+1. Core = pure, testable rules; no DB.  
+2. Application layer = DB + side effects; must call core guards before writes.  
+3. Terminal awareness lives in core (`isTerminalState` / `TERMINAL_STATUSES`).  
+4. Expand states by editing one map and one test file (single source of truth).  
+
+**Applies To**:
+- Proposals (implemented)
+- Any Convex domain with state machines (e.g., objections, workflows, approvals): replicate this pattern.
+
+**Related**:
+- Authority module pattern (core/authority)
+- Tests in `convex/core/proposals/stateMachine.test.ts`
+
+**Last Updated**: 2025-12-06
 
