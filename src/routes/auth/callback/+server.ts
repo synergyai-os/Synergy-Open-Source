@@ -6,6 +6,8 @@ import { api } from '$convex/_generated/api';
 import { consumeLoginState } from '$lib/infrastructure/auth/server/sessionStore';
 import { exchangeAuthorizationCode } from '$lib/infrastructure/auth/server/workos';
 import { establishSession } from '$lib/infrastructure/auth/server/session';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async (event) => {
 	const code = event.url.searchParams.get('code');
@@ -107,7 +109,7 @@ export const GET: RequestHandler = async (event) => {
 				});
 
 				// Stay on primary account - redirect with success message
-				const successUrl = new URL(redirectTo ?? '/inbox', event.url.origin);
+				const successUrl = new URL(redirectTo ?? '/auth/redirect', event.url.origin);
 				successUrl.searchParams.set('linked', '1');
 				throw redirect(302, successUrl.pathname + successUrl.search);
 			} catch (linkError) {
@@ -117,7 +119,7 @@ export const GET: RequestHandler = async (event) => {
 		}
 
 		// Normal login/signup flow - establish session for the account that just logged in
-		await establishSession({
+		const sessionId = await establishSession({
 			event,
 			convexUserId,
 			workosUserId: authResponse.user.id,
@@ -138,7 +140,27 @@ export const GET: RequestHandler = async (event) => {
 			}
 		});
 
-		throw redirect(302, redirectTo ?? '/inbox');
+		try {
+			const computedRedirect =
+				redirectTo ??
+				(await resolveWorkspaceRedirect({
+					client: convex,
+					sessionId,
+					activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+				}));
+
+			throw redirect(302, computedRedirect);
+		} catch (resolveError) {
+			logger.warn(
+				'auth.callback',
+				'Failed to resolve workspace redirect after callback, sending to onboarding',
+				{
+					error: String(resolveError),
+					userId: event.locals.auth.user?.userId
+				}
+			);
+			throw redirect(302, '/onboarding?auth_fallback=callback_resolve_failed');
+		}
 	} catch (err) {
 		if (err instanceof Response) {
 			throw err;

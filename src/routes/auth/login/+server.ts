@@ -11,6 +11,8 @@ import {
 	encryptSecret
 } from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { logger } from '$lib/utils/logger';
 
 /**
  * Headless password authentication endpoint
@@ -152,7 +154,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				// Redirect with linked=1 flag to show success toast
 				return json({
 					success: true,
-					redirectTo: `${redirect ?? '/inbox'}?linked=1`
+					redirectTo: `${redirect ?? '/auth/redirect'}?linked=1`
 				});
 			} catch (linkError: unknown) {
 				console.error('❌ Account linking failed:', linkError);
@@ -212,8 +214,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		console.log('✅ Session established successfully');
 
 		// Check if user logged in from invite link - accept invite automatically
-		let redirectTo = redirect ?? '/inbox';
-		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+		let redirectTo: string | undefined = redirect ?? undefined;
+		const inviteMatch = redirectTo?.match(/^\/invite\?code=([^&]+)/);
 
 		if (inviteMatch) {
 			const inviteCode = inviteMatch[1];
@@ -227,7 +229,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
-					redirectTo = '/inbox';
+					redirectTo = undefined;
 				} else if (inviteDetails.type === 'organization') {
 					// Accept organization invite
 					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
@@ -243,19 +245,45 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);
-					redirectTo = '/inbox';
+					redirectTo = undefined;
 				}
 			} catch (inviteError) {
 				console.error('❌ Failed to accept invite:', inviteError);
-				// If invite acceptance fails, redirect to inbox instead
-				// User can manually accept invite later if needed
-				redirectTo = '/inbox';
+				// If invite acceptance fails, fall back to default workspace redirect
+				redirectTo = undefined;
 			}
 		}
 
+		// Default to workspace-scoped inbox if no explicit redirect
+		if (!redirectTo) {
+			try {
+				redirectTo = await resolveWorkspaceRedirect({
+					client: convex,
+					sessionId: event.locals.auth.sessionId!,
+					activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+				});
+			} catch (resolveError) {
+				logger.warn(
+					'auth.login',
+					'Failed to resolve workspace redirect after login, sending to onboarding',
+					{
+						error: String(resolveError),
+						userId: event.locals.auth.user?.userId
+					}
+				);
+				redirectTo = '/onboarding?auth_fallback=login_resolve_failed';
+			}
+		}
+
+		const finalRedirect =
+			redirectTo ??
+			(() => {
+				throw new Error('Failed to resolve post-login redirect');
+			})();
+
 		return json({
 			success: true,
-			redirectTo
+			redirectTo: finalRedirect
 		});
 	} catch (err) {
 		console.error('❌ Login error:', err);

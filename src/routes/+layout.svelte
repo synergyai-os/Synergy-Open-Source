@@ -32,7 +32,18 @@
 			});
 
 			beforeNavigate(() => posthog.capture('$pageleave'));
-			afterNavigate(() => posthog.capture('$pageview'));
+			afterNavigate(() => {
+				posthog.capture('$pageview');
+
+				const params = new URLSearchParams(window.location.search);
+				const fallbackReason = params.get('auth_fallback');
+				if (fallbackReason) {
+					posthog.capture('auth_redirect_fallback', {
+						reason: fallbackReason,
+						path: window.location.pathname
+					});
+				}
+			});
 
 			posthogReady = true;
 		});

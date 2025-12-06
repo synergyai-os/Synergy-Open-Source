@@ -7,6 +7,7 @@ import type { Id } from '$lib/convex';
 import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
 import { establishSession } from '$lib/infrastructure/auth/server/session';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { logger } from '$lib/utils/logger';
 
 function sanitizeRedirect(target: unknown, origin: string): string | undefined {
 	if (typeof target !== 'string' || target.length === 0) {
@@ -58,7 +59,15 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 	const currentUserId = event.locals.auth.user.userId as Id<'users'>;
 
 	if (targetUserId === currentUserId) {
-		return json({ success: true, redirect: redirectHint ?? '/inbox' });
+		try {
+			return json({ success: true, redirect: redirectHint ?? '/auth/redirect' });
+		} catch (err) {
+			logger.warn('auth.switch', 'Failed to resolve switch redirect, sending to onboarding', {
+				error: String(err),
+				userId: currentUserId
+			});
+			return json({ success: true, redirect: '/onboarding?auth_fallback=switch_resolve_failed' });
+		}
 	}
 
 	if (!publicEnv.PUBLIC_CONVEX_URL) {
@@ -111,5 +120,13 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 	console.log('✅ Account switch successful');
 
 	// Note: Multi-session support - session is preserved in Convex and client localStorage
-	return json({ success: true, redirect: redirectHint ?? '/inbox' });
+	try {
+		return json({ success: true, redirect: redirectHint ?? '/auth/redirect' });
+	} catch (err) {
+		logger.warn('auth.switch', 'Failed to resolve switch redirect, sending to onboarding', {
+			error: String(err),
+			userId: currentUserId
+		});
+		return json({ success: true, redirect: '/onboarding?auth_fallback=switch_resolve_failed' });
+	}
 });
