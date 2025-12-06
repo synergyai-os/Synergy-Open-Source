@@ -6,6 +6,12 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { captureCreate, captureUpdate, captureArchive, captureRestore } from './orgVersionHistory';
 import { requireQuickEditPermission } from './orgChartPermissions';
+import {
+	countLeadRoles,
+	hasDuplicateRoleName,
+	isLeadRequiredForCircleType,
+	isLeadTemplate
+} from './core/roles';
 
 /**
  * Circle Roles represent organizational accountabilities within circles
@@ -56,7 +62,7 @@ async function isLeadRole(
 	}
 
 	const template = await ctx.db.get(role.templateId);
-	return template?.isRequired === true;
+	return isLeadTemplate(template);
 }
 
 /**
@@ -91,17 +97,23 @@ async function countLeadRolesInCircle(
 		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
 		.collect();
 
-	let leadCount = 0;
-	for (const role of roles) {
-		if (role.templateId) {
-			const template = await ctx.db.get(role.templateId);
-			if (template?.isRequired === true) {
-				leadCount++;
-			}
-		}
-	}
+	// Fetch templates once to avoid redundant lookups
+	const templateIds = Array.from(
+		new Set(roles.map((role) => role.templateId).filter((id): id is Id<'roleTemplates'> => !!id))
+	);
 
-	return leadCount;
+	const templates = await Promise.all(
+		templateIds.map(async (templateId) => ({
+			templateId,
+			template: await ctx.db.get(templateId)
+		}))
+	);
+
+	const templateMap = new Map<Id<'roleTemplates'>, Doc<'roleTemplates'> | null>(
+		templates.map(({ templateId, template }) => [templateId, template])
+	);
+
+	return countLeadRoles(roles, (templateId) => templateMap.get(templateId));
 }
 
 /**
@@ -634,12 +646,12 @@ export const create = mutation({
 		}
 
 		// Check for duplicate role name in circle
-		const existingRole = await ctx.db
+	const existingRoles = await ctx.db
 			.query('circleRoles')
 			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
 			.collect();
 
-		if (existingRole.some((role) => role.name.toLowerCase() === trimmedName.toLowerCase())) {
+	if (hasDuplicateRoleName(trimmedName, existingRoles)) {
 			throw new Error('A role with this name already exists in this circle');
 		}
 
@@ -729,11 +741,7 @@ export const update = mutation({
 				.withIndex('by_circle', (q) => q.eq('circleId', role.circleId))
 				.collect();
 
-			const duplicate = existingRoles.find(
-				(r) => r._id !== args.circleRoleId && r.name.toLowerCase() === trimmedName.toLowerCase()
-			);
-
-			if (duplicate) {
+			if (hasDuplicateRoleName(trimmedName, existingRoles, args.circleRoleId)) {
 				throw new Error('A role with this name already exists in this circle');
 			}
 
@@ -822,11 +830,7 @@ export const quickUpdate = mutation({
 				.withIndex('by_circle', (q) => q.eq('circleId', role.circleId))
 				.collect();
 
-			const duplicate = existingRoles.find(
-				(r) => r._id !== args.circleRoleId && r.name.toLowerCase() === trimmedName.toLowerCase()
-			);
-
-			if (duplicate) {
+			if (hasDuplicateRoleName(trimmedName, existingRoles, args.circleRoleId)) {
 				throw new Error('A role with this name already exists in this circle');
 			}
 
@@ -877,7 +881,7 @@ async function archiveRoleHelper(
 	// SYOS-674: Only block for hierarchy and hybrid circles (empowered_team and guild can operate without Lead)
 	if (reason === 'direct' && role.templateId) {
 		const template = await ctx.db.get(role.templateId);
-		if (template?.isRequired) {
+		if (isLeadTemplate(template)) {
 			// Get circle to check circle type
 			const circle = await ctx.db.get(role.circleId);
 			if (!circle) {
@@ -892,22 +896,10 @@ async function archiveRoleHelper(
 
 			// Determine if Lead is required for this circle type
 			const circleType = circle.circleType ?? 'hierarchy'; // Default to hierarchy for backward compat
-			let leadRequired: boolean;
-			if (orgSettings?.leadRequirementByCircleType) {
-				leadRequired = orgSettings.leadRequirementByCircleType[circleType];
-			} else {
-				// Fallback to system defaults
-				const DEFAULT_LEAD_REQUIRED: Record<
-					'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
-					boolean
-				> = {
-					hierarchy: true,
-					empowered_team: false,
-					guild: false,
-					hybrid: true
-				};
-				leadRequired = DEFAULT_LEAD_REQUIRED[circleType];
-			}
+			const leadRequired = isLeadRequiredForCircleType(
+				circleType,
+				orgSettings?.leadRequirementByCircleType
+			);
 
 			// Only block archiving if Lead is required for this circle type
 			if (leadRequired) {
