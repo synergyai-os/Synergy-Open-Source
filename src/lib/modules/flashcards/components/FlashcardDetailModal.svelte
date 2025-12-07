@@ -3,11 +3,12 @@
 	import { page } from '$app/stores';
 	import { Dialog } from 'bits-ui';
 	import { useConvexClient } from 'convex-svelte';
-	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 	import FlashcardMetadata from './FlashcardMetadata.svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
+import { getContext } from 'svelte';
+import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -37,6 +38,9 @@
 	// TODO: Re-enable when needed
 	// const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
+
+const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+const FlashcardComponent = coreAPI?.Flashcard;
 
 	// State
 	let currentIndex = $state(initialIndex);
@@ -352,15 +356,19 @@
 								</div>
 							{:else}
 								<!-- View Mode -->
-								<FlashcardComponent
-									flashcard={{
-										question: currentCard.question,
-										answer: currentCard.answer
-									}}
-									{isFlipped}
-									onFlip={flipCard}
-									editable={false}
-								/>
+								{#if FlashcardComponent}
+									<FlashcardComponent
+										flashcard={{
+											question: currentCard.question,
+											answer: currentCard.answer
+										}}
+										{isFlipped}
+										onFlip={flipCard}
+										editable={false}
+									/>
+								{:else}
+									<p class="text-secondary text-small">Flashcard component unavailable</p>
+								{/if}
 							{/if}
 						</div>
 					{:else}

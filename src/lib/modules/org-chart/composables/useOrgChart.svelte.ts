@@ -3,12 +3,13 @@ import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { SvelteMap } from 'svelte/reactivity';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
-import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+import { getContext } from 'svelte';
 import type {
 	CircleSummary,
 	CircleMember,
 	RoleFiller
 } from '$lib/infrastructure/organizational-model';
+import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 // Type for role template (from api.roleTemplates.list)
 type RoleTemplate = {
@@ -45,8 +46,13 @@ export function useOrgChart(options: {
 	const getSessionId = options.sessionId;
 	const getWorkspaceId = options.workspaceId;
 
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	if (!coreAPI?.useNavigationStack) {
+		throw new Error('Core navigation stack API unavailable');
+	}
+
 	// Navigation stack for hierarchical panel navigation
-	const navigationStack = useNavigationStack();
+	const navigationStack = coreAPI.useNavigationStack();
 
 	const state = $state({
 		// Selected circle for detail panel

@@ -12,14 +12,14 @@
 	 */
 
 	import { browser } from '$app/environment';
-	import { onDestroy } from 'svelte';
-	import NoteEditor from '$lib/modules/core/components/notes/NoteEditor.svelte';
+import { getContext, onDestroy } from 'svelte';
 	import ActionItemsList from './ActionItemsList.svelte';
 	import ProposalAgendaItem from './ProposalAgendaItem.svelte';
-	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
-	import { useQuery, useConvexClient } from 'convex-svelte';
+import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
+import { useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { Button, Text, Heading, Icon } from '$lib/components/atoms';
+import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	interface Props {
 		item?: {
@@ -48,6 +48,9 @@
 		isClosed,
 		isRecorder
 	}: Props = $props();
+
+const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+const NoteEditor = coreAPI?.NoteEditor;
 
 	// Check if this agenda item is linked to a proposal
 	// Wrap in $derived to make query creation reactive
@@ -187,15 +190,21 @@
 					{/if}
 
 					<!-- Editor: Local state with auto-save -->
-					<NoteEditor
-						content={notes.localNotes}
-						title={item.title}
-						onContentChange={notes.handleNotesChange}
-						placeholder="Take notes for this agenda item..."
-						readonly={isClosed}
-						showToolbar={!isClosed}
-						compact={false}
-					/>
+					{#if NoteEditor}
+						<NoteEditor
+							content={notes.localNotes}
+							title={item.title}
+							onContentChange={notes.handleNotesChange}
+							placeholder="Take notes for this agenda item..."
+							readonly={isClosed}
+							showToolbar={!isClosed}
+							compact={false}
+						/>
+					{:else}
+						<Text variant="body" size="sm" color="tertiary" as="p" class="italic"
+							>Note editor unavailable</Text
+						>
+					{/if}
 
 					<!-- Action Items List (SYOS-223) -->
 					{#if meetingId && workspaceId && sessionId}

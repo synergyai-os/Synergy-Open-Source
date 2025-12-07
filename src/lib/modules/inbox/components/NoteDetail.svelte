@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { useConvexClient } from 'convex-svelte';
-	import NoteEditorWithDetection from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
-	import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
-	import { api } from '$lib/convex';
-	import type { InboxItemWithDetails } from '$lib/types/convex';
-	import type NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
-	import type { Id } from '$lib/convex';
-	import { Button } from '$lib/components/atoms';
+import { useConvexClient } from 'convex-svelte';
+import { getContext } from 'svelte';
+import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
+import { api } from '$lib/convex';
+import type { InboxItemWithDetails } from '$lib/types/convex';
+import type { Id } from '$lib/convex';
+import { Button } from '$lib/components/atoms';
+import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
@@ -21,7 +21,14 @@
 	const getSessionId = () => $page.data.sessionId;
 	const note = useNote(convexClient, getSessionId);
 
-	let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
+const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+const NoteEditorWithDetection = coreAPI?.NoteEditorWithDetection;
+
+type NoteEditorWithDetectionComponent = InstanceType<
+	NonNullable<CoreModuleAPI['NoteEditorWithDetection']>
+>;
+
+let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 	let editMode = $state(false);
 
 	// Handle Enter key to activate edit mode
@@ -199,17 +206,21 @@
 
 	<!-- Note Editor -->
 	<div class="flex-1 overflow-y-auto">
-		<NoteEditorWithDetection
-			bind:this={editorRef}
-			content={inboxItem.content}
-			title={inboxItem.title}
-			onContentChange={handleContentChange}
-			onTitleChange={handleTitleChange}
-			onAIFlagged={handleAIFlagged}
-			isAIGenerated={inboxItem.isAIGenerated}
-			enableAIDetection={true}
-			autoFocus={false}
-		/>
+		{#if NoteEditorWithDetection}
+			<NoteEditorWithDetection
+				bind:this={editorRef}
+				content={inboxItem.content}
+				title={inboxItem.title}
+				onContentChange={handleContentChange}
+				onTitleChange={handleTitleChange}
+				onAIFlagged={handleAIFlagged}
+				isAIGenerated={inboxItem.isAIGenerated}
+				enableAIDetection={true}
+				autoFocus={false}
+			/>
+		{:else}
+			<p class="text-secondary text-small">Note editor unavailable</p>
+		{/if}
 	</div>
 
 	<!-- Footer with metadata -->

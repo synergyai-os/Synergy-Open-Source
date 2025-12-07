@@ -17,6 +17,13 @@
 import type { Id } from '$lib/convex';
 import { useTagging as useTaggingComposable } from './composables/useTagging.svelte';
 import { useGlobalShortcuts as useGlobalShortcutsComposable } from './composables/useGlobalShortcuts.svelte';
+import { useNavigationStack as useNavigationStackComposable } from './composables/useNavigationStack.svelte';
+
+export type {
+	NavigationLayer,
+	NavigationLayerType,
+	UseNavigationStack
+} from './composables/useNavigationStack.svelte';
 
 /**
  * Tag type used by TagSelector component
@@ -104,6 +111,7 @@ export interface TaggingAPI {
  *   - Returns: `TaggingAPI` interface
  * - `useGlobalShortcuts` - Factory function for global keyboard shortcuts
  *   - Returns: Global shortcuts API with register/unregister/enable/disable methods
+ * - `useNavigationStack` - Factory function for panel navigation stacks
  *
  * **Usage Pattern (Dependency Injection):**
  * ```typescript
@@ -113,6 +121,7 @@ export interface TaggingAPI {
  * // Get core API from context
  * const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
  * const TagSelector = coreAPI?.TagSelector;
+ * const NoteEditor = coreAPI?.NoteEditor;
  *
  * // Component usage:
  * {#if TagSelector}
@@ -126,6 +135,9 @@ export interface TaggingAPI {
  * // Composable usage:
  * const tagging = coreAPI?.useTagging('flashcard', getUserId, getSessionId, getOrgId);
  * await tagging?.assignTags(flashcardId, [tag1Id, tag2Id]);
+ *
+ * const navigation = coreAPI?.useNavigationStack();
+ * navigation?.push({ type: 'panel', id: 'detail', name: 'Detail' });
  * ```
  *
  * **Migration Path:**
@@ -176,6 +188,30 @@ export interface CoreModuleAPI {
 	GlobalActivityTracker: typeof import('$lib/modules/core/components/GlobalActivityTracker.svelte').default;
 
 	/**
+	 * Note editor component for rich text editing
+	 *
+	 * Exposed via module API to allow other modules to use the shared editor
+	 * without importing core internals directly.
+	 */
+	NoteEditor: typeof import('$lib/modules/core/components/notes/NoteEditor.svelte').default;
+
+	/**
+	 * Note editor with AI detection support
+	 *
+	 * Exposed via module API to keep AI-augmented editing reusable without
+	 * cross-module imports.
+	 */
+	NoteEditorWithDetection: typeof import('$lib/modules/core/components/notes/NoteEditorWithDetection.svelte').default;
+
+	/**
+	 * Flashcard display component
+	 *
+	 * Exposed via module API for reuse across modules (flashcards, inbox, etc.)
+	 * while keeping implementation details within Core.
+	 */
+	Flashcard: typeof import('$lib/modules/core/components/Flashcard.svelte').default;
+
+	/**
 	 * Tagging API factory function
 	 *
 	 * Creates a tagging API instance for a specific entity type.
@@ -205,6 +241,11 @@ export interface CoreModuleAPI {
 	 * **Returns:** Global shortcuts API with register/unregister/enable/disable methods
 	 */
 	useGlobalShortcuts: typeof useGlobalShortcutsComposable;
+
+	/**
+	 * Navigation stack composable for layered panel navigation.
+	 */
+	useNavigationStack: typeof useNavigationStackComposable;
 }
 
 import TagSelectorComponent from '$lib/modules/core/components/TagSelector.svelte';
@@ -212,6 +253,9 @@ import QuickCreateModalComponent from '$lib/modules/core/components/QuickCreateM
 import SidebarComponent from '$lib/modules/core/components/Sidebar.svelte';
 import AppTopBarComponent from '$lib/modules/core/components/AppTopBar.svelte';
 import GlobalActivityTrackerComponent from '$lib/modules/core/components/GlobalActivityTracker.svelte';
+import NoteEditorComponent from '$lib/modules/core/components/notes/NoteEditor.svelte';
+import NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
+import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 
 /**
  * Factory function to create CoreModuleAPI implementation
@@ -239,9 +283,14 @@ export function createCoreModuleAPI(): CoreModuleAPI {
 		Sidebar: SidebarComponent,
 		AppTopBar: AppTopBarComponent,
 		GlobalActivityTracker: GlobalActivityTrackerComponent,
+		NoteEditor: NoteEditorComponent,
+		NoteEditorWithDetection: NoteEditorWithDetectionComponent,
+		Flashcard: FlashcardComponent,
 		// Expose useTagging composable
 		useTagging: useTaggingComposable,
 		// Expose useGlobalShortcuts composable
-		useGlobalShortcuts: useGlobalShortcutsComposable
+		useGlobalShortcuts: useGlobalShortcutsComposable,
+		// Expose navigation stack composable
+		useNavigationStack: useNavigationStackComposable
 	};
 }
