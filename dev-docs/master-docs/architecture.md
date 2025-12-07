@@ -1,1196 +1,831 @@
-# SynergyOS Architecture & Tech Stack
+# SynergyOS Architecture
 
-**OS = Open Source**
+**Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-## Overview
-
-SynergyOS is a full-stack open source application built with modern web technologies, designed for both web and mobile platforms. The architecture follows a hybrid authentication model with server-side validation and client-side state management.
-
-## Data Architecture Layers
-
-SynergyOS organizes data into three distinct layers:
-
-### 🏗️ Core Data Layer
-
-**Foundation entities that define organizational structure and identity:**
-
-- **`users`** - System users (identity, profile, authentication)
-- **`workspaces`** - Multi-tenant workspaces (organizations/companies)
-- **`workspaceMembers`** - Many-to-many relationship between users and workspaces
-- **`circles`** - Work units within workspaces (hierarchical organizational structure)
-- **`circleMembers`** - Many-to-many relationship between users and circles
-- **`circleRoles`** - Organizational roles within circles (e.g., "Circle Lead", "Dev Lead", "Facilitator")
-  - **Note**: These are NOT RBAC permissions, but organizational accountabilities
-  - Tasks/action items are assigned to these roles, not people directly
-- **`userCircleRoles`** - Many-to-many assignments of users to circle roles
-- **`roles`** - RBAC system roles (access control: admin, manager, circle-lead, member, guest)
-- **`permissions`** - RBAC permissions (what users can do: `teams.create`, `org.billing.view`)
-- **`rolePermissions`** - Links RBAC roles to permissions
-- **`userRoles`** - Assigns RBAC roles to users with optional resource scoping
-
-**Key Distinction:**
-- **Circle Roles** = Organizational accountabilities (who does what work)
-- **RBAC Roles** = Access control permissions (what users can do)
-
-### ⚙️ Enabling Systems Layer
-
-**Infrastructure that powers core data and application modules:**
-
-- **Authentication** (`authSessions`, `authLoginState`) - WorkOS AuthKit integration
-- **RBAC** (`roles`, `permissions`, `rolePermissions`, `userRoles`, `resourceGuests`, `permissionAuditLog`) - Permission-based access control
-- **Feature Flags** (`featureFlags`) - Progressive rollout and A/B testing
-- **Settings** (`userSettings`, `workspaceSettings`) - User and workspace preferences
-
-### 📦 Application Layer Modules
-
-**Feature-specific modules built on top of core data:**
-
-- **Meetings Module** - `meetings`, `meetingTemplates`, `meetingTemplateSteps`, `meetingAgendaItems`, `meetingAttendees`, `meetingInvitations`, `meetingPresence`
-- **Inbox Module** - `inboxItems` (polymorphic), `highlights`, `sources`, `authors`, `tags`
-- **Projects Module** - `projects`, `tasks`
-- **Flashcards Module** - `flashcards`, `flashcardReviews`, `userAlgorithmSettings`
-- **Other** - `verificationCodes`, `waitlist`, `doc404Errors`, `syncProgress`
-
-**Architecture Principle:**
-- Core data defines **who** (users), **where** (workspaces), **how organized** (circles, roles)
-- Enabling systems provide **security** (auth, RBAC) and **control** (feature flags)
-- Application modules provide **functionality** (meetings, inbox, projects) that operates within the core structure
-
-## Tech Stack
-
-### Frontend
-
-- **Framework**: SvelteKit 5 (with TypeScript)
-- **UI Components**: Bits UI (headless components) + Tailwind CSS 4
-- **Mobile**: Capacitor 7 (iOS support configured)
-- **State Management**: Convex Svelte (reactive queries/mutations)
-- **Build Tool**: Vite 7
-
-### Backend
-
-- **Database & Backend**: Convex (serverless, real-time database)
-- **Authentication**: WorkOS AuthKit (enterprise-grade, OAuth 2.0)
-- **Email Service**: Resend
-
-### Development Tools
-
-- **Testing**: Vitest (unit tests) + Playwright (E2E tests)
-- **Linting**: ESLint + Prettier
-- **Type Safety**: TypeScript
-
-## Frontend Architecture
-
-### Infrastructure vs Modules
-
-The frontend codebase separates **infrastructure** (foundational, always-on) from **modules** (optional features).
-
-| Folder | Purpose | Feature Flags |
-|--------|---------|---------------|
-| `src/lib/infrastructure/` | Core data, always available | None |
-| `src/lib/modules/` | Optional features | Can have flags |
-
-**Infrastructure** (`src/lib/infrastructure/`):
-
-| Domain | Path | Purpose |
-|--------|------|---------|
-| Workspaces | `workspaces/` | Multi-tenant workspace management |
-| Organizational Model | `organizational-model/` | Circles, circle roles, circle members |
-| Users | `users/` | User profiles, queries |
-| RBAC | `rbac/` | Permissions, roles |
-| Auth | `auth/` | Session management |
-| Feature Flags | `feature-flags/` | Flag system |
-| Analytics | `analytics/` | PostHog tracking |
-
-**Modules** (`src/lib/modules/`):
-
-| Module | Feature Flag | Purpose |
-|--------|--------------|---------|
-| `shared-ui/` | None (always on) | Sidebar, TagSelector, shared components |
-| `org-chart/` | None (always on) | Circle visualization (core functionality) |
-| `meetings/` | `meetings_module` | Meeting management |
-| `inbox/` | `inbox_module` | Readwise sync, inbox items |
-| `flashcards/` | `flashcards_module` | Spaced repetition |
-| `projects/` | `projects_module` | Project tracking |
-
-**Key Principle**: Infrastructure = always available. Modules = can be toggled.
-
-### URL Architecture
-
-All workspace-scoped features use path-based routing: `/w/:slug/...`
-
-**See**: [URL Strategy](./architecture/url-strategy.md) for:
-- Workspace routing patterns
-- Slug vs ID strategy
-- URL stability (aliases for renamed workspaces)
-- Reserved slugs list
-
-**Route Structure**:
-
-```
-/w/[slug]/                  # Workspace-scoped features
-├── inbox/
-├── flashcards/
-├── circles/
-├── meetings/
-├── settings/
-└── ...
-
-/account                    # User-scoped (no workspace)
-/admin                      # Admin routes
-/onboarding                 # New user flow
-```
-
-## Why These Technologies?
-
-### SvelteKit 5 + Svelte 5 Runes
-
-**Why We Chose It:**
-
-- **Server-Side Rendering (SSR)**: Built-in SSR and static site generation for better performance and SEO
-- **File-Based Routing**: Intuitive `+page.svelte`, `+layout.svelte`, `+page.server.ts` structure
-- **First-Class TypeScript**: End-to-end type safety from frontend to backend
-- **Svelte 5 Runes**: Modern reactivity system (`$state`, `$derived`, `$effect`) with better composability
-- **Zero-Config**: Works out of the box with Vite, TypeScript, and modern tooling
-
-**Quick Start:**
-
-**File Structure:**
-
-```
-src/routes/
-  +page.svelte              # Homepage (client component)
-  +layout.svelte            # Root layout (wraps all pages)
-  +layout.server.ts         # Server-side data loading
-  +page.server.ts           # Page-specific server data
-  dashboard/
-    +page.svelte            # /dashboard route
-```
-
-**Reactive State:**
-
-```typescript
-<script lang="ts">
-  // Reactive state
-  let count = $state(0);
-
-  // Derived values (computed)
-  const doubled = $derived(count * 2);
-
-  // Side effects
-  $effect(() => {
-    console.log(`Count changed to ${count}`);
-  });
-</script>
-
-<button onclick={() => count++}>
-  Count: {count} (Doubled: {doubled})
-</button>
-```
-
-**Server-Side Data Loading:**
-
-```typescript
-// +page.server.ts
-import type { PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async ({ params }) => {
-	return {
-		user: { name: 'Randy' }
-	};
-};
-```
-
-**See Also:**
-
-- [Svelte 5 Reactivity Patterns](../2-areas/patterns/svelte-reactivity.md) - Patterns for `$state`, `$derived`, composables
-- Official Docs: Use **Context7** for latest SvelteKit and Svelte 5 documentation
+**Version**: 2.0  
+**Last Updated**: 2025-12-06  
+**Optimization Target**: AI-native development with domain cohesion
 
 ---
 
-### Convex
+## Quick Reference
 
-**Why We Chose It:**
+**Note:** Code Hygiene rules (Principles 26–33) are enforceable standards. Apply them to all Convex domain files alongside the core architecture principles.
 
-- **Real-Time Subscriptions**: Live queries update UI automatically when data changes
-- **Serverless Functions**: No infrastructure management, auto-scaling, zero DevOps
-- **TypeScript End-to-End**: Type-safe queries/mutations with auto-generated client types
-- **Developer Experience**: Fast local development, instant deploys, time-travel debugging
+### The 25 Principles
 
-**Quick Start:**
+| # | Principle | Enforcement |
+|---|-----------|-------------|
+| **Foundation** |||
+| 1 | Core domains are foundational and complete (schema + queries + mutations + rules) | Directory structure |
+| 2 | Core domains: circles, roles, people, assignments, proposals, policies, authority | Code review |
+| 3 | Circle Lead authority implemented at core level | Tests |
+| 4 | Authority is calculated from roles, never stored on users | Tests |
+| **Dependencies** |||
+| 5 | `infrastructure/ ← core/ ← features/` — never reversed | Imports |
+| 6 | Domains communicate through explicit interfaces (`index.ts` exports) | Code review |
+| 7 | No circular dependencies between domains | Linting |
+| **Convex Patterns** |||
+| 8 | Queries are pure reads with reactive subscriptions | Code review |
+| 9 | Mutations validate authorization BEFORE writing | Tests |
+| 10 | All business logic lives in Convex, not Svelte | Code review |
+| 11 | Zero classes anywhere — functions only | Linting |
+| **Svelte Patterns** |||
+| 12 | Components are thin and presentational | Code review |
+| 13 | Components delegate to Convex for all logic | Code review |
+| 14 | Svelte 5 runes used correctly ($state, $derived, $effect) | Code review |
+| **Domain Language** |||
+| 15 | Use practitioner terminology: circles, roles, tensions, proposals, consent | Code review |
+| 16 | Function and variable names match domain language | Code review |
+| **Code Quality** |||
+| 17 | Pure functions preferred where possible | Code review |
+| 18 | Functions do one thing at appropriate abstraction level | Code review |
+| 19 | Duplication tolerated twice, refactored on third | Boy Scout Rule |
+| 20 | No hardcoded magic values — use constants or config | Linting |
+| **Testing** |||
+| 21 | Unit tests co-located: `{domain}.test.ts` next to source | Directory structure |
+| 22 | Integration tests in `/tests/integration/` | Directory structure |
+| 23 | Tests are independent — no test imports from another test | Code review |
+| 24 | Core domains have full test coverage | CI gate |
+| **Immutability** |||
+| 25 | Organizational history is immutable and auditable | Schema design |
 
-**Schema Definition:**
+### Code Hygiene
 
-```typescript
-// convex/schema.ts
-import { defineSchema, defineTable } from 'convex/server';
-import { v } from 'convex/values';
+| # | Principle | Enforcement |
+|---|-----------|-------------|
+| 26 | Query/mutation handlers ≤ 20 lines | Code review |
+| 27 | Validation logic extracted to `rules.ts` | Code review |
+| 28 | Repeated patterns (3x+) extracted to helpers | Code review |
+| 29 | No inline type casts (`as unknown as`) — use type helpers | Linting |
+| 30 | Auth/access via composed helpers (e.g., `withCircleAccess`) | Code review |
+| 31 | Archive queries via a helper (e.g., `queryActive`), not branching | Code review |
+| 32 | Domain files ≤ 300 lines; split if larger | CI gate |
+| 33 | Error format consistent: `ERR_CODE: message` | Code review |
 
-export default defineSchema({
-	notes: defineTable({
-		title: v.string(),
-		content: v.string(),
-		userId: v.id('users'),
-		createdAt: v.number()
-	}).index('by_user', ['userId'])
-});
+### AI Development Rules (No Judgment Calls)
+
+| Task | Location |
+|------|----------|
+| Add circle query | `/convex/core/circles/queries.ts` |
+| Add circle mutation | `/convex/core/circles/mutations.ts` |
+| Add circle business rule | `/convex/core/circles/rules.ts` |
+| Add circle schema/type | `/convex/core/circles/schema.ts` |
+| Add circle test | `/convex/core/circles/circles.test.ts` |
+| Add meeting feature | `/convex/features/meetings/` |
+| Add auth infrastructure | `/convex/infrastructure/auth/` |
+| Working on circles | **Only look in `/convex/core/circles/`** |
+
+### Terminology (Always Use)
+
+| ✅ Correct | ❌ Never Use |
+|-----------|-------------|
+| Circle | Team |
+| Role | Job, Position |
+| Proposal | Ticket, Request |
+| Tension | Issue, Problem |
+| Consent | Approval, Sign-off |
+| Circle Lead | Manager, Boss |
+| Person | Member, User |
+| Authority | Permission |
+| Workspace | Organization |
+
+### Document Selection for AI
+
+| Task | Read First |
+|------|------------|
+| Backend logic, domain code, structure | This document (ARCHITECTURE.md) |
+| UI component, styling, tokens | DESIGN-SYSTEM.md |
+| Auth changes | workos-convex-auth-architecture.md |
+| Permission/access control logic | rbac/rbac-architecture.md |
+
+### Related Documentation
+
+| Document | Use When |
+|----------|----------|
+| [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md) | Implementing UI components, styling, tokens, recipes |
+| [RBAC Architecture](./rbac/rbac-architecture.md) | Working on access control features |
+| [WorkOS Auth](./workos-convex-auth-architecture.md) | Working on authentication |
+
+---
+
+## Core Philosophy: CORE
+
+**C - Consent-Based Architecture**  
+Every significant organizational change flows through consent processes. The system enforces consent at the code level — it cannot be bypassed. Proposals are first-class domain objects.
+
+**O - Organizational Truth**  
+Single source of truth for organizational structure. Circles, roles, and authorities are never duplicated or inconsistent. All views (org charts, authority maps) derive from canonical structure.
+
+**R - Role-Based Authority**  
+Authority comes from roles, not people or hierarchy. The system calculates permissions based on roles filled. Authority is computed, explicit, and auditable — never implicit or stored.
+
+**E - Evolvable Governance**  
+Governance structure is mutable through the system's own processes. You can change decision-making, circle organization, and roles — through consent. The system is self-hosting: it governs its own evolution.
+
+---
+
+## Architecture Layers
+
+### Three-Layer Model
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Application Layer (Svelte routes, UI)                      │
+│  /src/routes/, /src/lib/components/                         │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ depends on
+┌──────────────────────────▼──────────────────────────────────┐
+│  Features Layer                                             │
+│  /convex/features/ (meetings, tensions, projects)           │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ depends on
+┌──────────────────────────▼──────────────────────────────────┐
+│  Core Layer                                                 │
+│  /convex/core/ (circles, roles, authority, proposals...)    │
+└──────────────────────────┬──────────────────────────────────┘
+                           │ depends on
+┌──────────────────────────▼──────────────────────────────────┐
+│  Infrastructure Layer                                       │
+│  /convex/infrastructure/ (auth, events)                     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Queries (Read Data):**
+### Dependency Rules
 
-```typescript
-// convex/notes.ts
-import { query } from './_generated/server';
-import { v } from 'convex/values';
+| Layer | Can Import From | Cannot Import From |
+|-------|-----------------|-------------------|
+| Infrastructure | Nothing | Core, Features, Application |
+| Core | Infrastructure | Features, Application |
+| Features | Core, Infrastructure | Application, other Features* |
+| Application | Features, Core, Infrastructure | — |
 
-export const list = query({
-	args: { userId: v.id('users') },
-	handler: async (ctx, { userId }) => {
-		return await ctx.db
-			.query('notes')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
-	}
-});
+*Features should not depend on each other unless explicitly designed as dependencies.
+
+### Directory Structure
+
+```
+/convex/
+├── core/                           # Foundational domains (COMPLETE)
+│   ├── circles/
+│   │   ├── schema.ts               # Convex schema definitions
+│   │   ├── queries.ts              # Read operations (ctx.db)
+│   │   ├── mutations.ts            # Write operations (ctx.db)
+│   │   ├── rules.ts                # Business rules (pure OR contextual)
+│   │   ├── index.ts                # Public exports only
+│   │   └── circles.test.ts         # All tests for this domain
+│   ├── roles/
+│   ├── people/
+│   ├── assignments/
+│   ├── proposals/
+│   ├── policies/
+│   └── authority/
+│
+├── features/                       # Application features (compose core)
+│   ├── meetings/
+│   │   ├── queries.ts
+│   │   ├── mutations.ts
+│   │   ├── rules.ts
+│   │   ├── index.ts
+│   │   └── meetings.test.ts
+│   ├── tensions/
+│   └── projects/
+│
+└── infrastructure/                 # Cross-cutting concerns
+    ├── auth/
+    └── events/
+
+/src/
+├── lib/
+│   ├── components/
+│   │   ├── ui/                     # Styled components (shared)
+│   │   │   └── primitives/         # Unstyled base components
+│   │   └── [feature]/              # Feature-specific components
+│   └── composables/                # Shared UI logic (.svelte.ts)
+└── routes/                         # SvelteKit routes (thin)
+
+/tests/
+└── integration/                    # Cross-domain workflow tests
+
+/e2e/                               # End-to-end tests
 ```
 
-**Mutations (Write Data):**
+### Core Domains (The Seven Pillars)
+
+These domains form the kernel. Everything else builds on top:
+
+| Domain | Purpose | Key Responsibilities |
+|--------|---------|---------------------|
+| **Circles** | Organizational containers | Hierarchy, membership, types |
+| **Roles** | Authority distribution units | Definition, accountabilities, domains |
+| **People** | Humans in the system | Identity, profile |
+| **Assignments** | People filling roles | Role ↔ Person mapping, terms |
+| **Proposals** | Change mechanism | Lifecycle, consent tracking |
+| **Policies** | Constraints within circles | Rules, permissions by circle |
+| **Authority** | Permission calculation | Derives authority from roles |
+
+**Circle Lead Authority** belongs in core — it's the bootstrap mechanism that makes self-management practical.
+
+---
+
+## Authority Architecture
+
+### Core Responsibility: Organizational Truth
+
+Core provides factual answers about organizational state:
 
 ```typescript
-// convex/notes.ts
-import { mutation } from './_generated/server';
+// Core answers these questions:
+hasRole(person, circle, 'Facilitator')     // → true/false
+isCircleLead(person, circle)               // → true/false
+isCircleMember(person, circle)             // → true/false
+getCircleType(circle)                      // → 'hierarchy' | 'empowered_team' | 'guild'
+calculateAuthority(person, circle)         // → Authority object
+```
 
+### Core Owns Foundational Permissions
+
+| Permission | Why It's Core |
+|------------|---------------|
+| canApproveProposals | Defines governance process |
+| canAssignRoles | Defines authority distribution |
+| canModifyCircleStructure | Defines org evolution |
+| canRaiseObjections | Defines consent process |
+
+### Features Compose Core Primitives
+
+Features build domain-specific permissions from core:
+
+| Feature | Action | Composed From |
+|---------|--------|---------------|
+| Meetings | canFacilitate | `isCircleLead OR hasRole('Facilitator')` |
+| Projects | canAssignTask | `isCircleMember AND (isTaskOwner OR isCircleLead)` |
+| Tensions | canProcessTension | `isCircleMember` |
+
+### Decision Boundary
+
+**Ask**: "Is this about organizational structure or feature behavior?"
+
+| If... | Then... |
+|-------|---------|
+| Rule defines WHO has authority in the org | Core |
+| Rule defines WHAT you can do in a feature | Feature (compose from core) |
+| Rule affects consent/proposals/governance | Core |
+| Rule is specific to one module's workflow | Feature |
+
+### Anti-Patterns
+
+| ❌ Anti-Pattern | Why It's Wrong |
+|----------------|----------------|
+| Feature defines its own role checks | Duplicates core, will drift |
+| Feature hardcodes user IDs | Bypasses authority model |
+| Core includes feature-specific logic | Core becomes bloated |
+| Feature queries DB directly for roles | Breaks single source of truth |
+
+---
+
+## Authority vs Access Control (RBAC)
+
+SynergyOS has two complementary systems that are intentionally separate:
+
+### The Two Systems
+
+| System | What It Controls | Who Manages It | How It Changes |
+|--------|------------------|----------------|----------------|
+| **Organizational Authority** | *What work you do* — accountabilities, domains, decision rights within circles | Circle Leads, org designers via proposals | Frequently, through consent process |
+| **Access Control (RBAC)** | *What system features you can access* — billing, workspace settings, invite users, delete data | Workspace admins | Rarely, requires explicit admin action |
+
+### Why Both Are Needed
+
+**Organizational roles** define *domain authority*:
+- "Dev Lead can approve technical decisions in this circle"
+- "Facilitator can run governance meetings"
+- These are *organizational accountabilities* — what you're responsible for
+
+**RBAC** defines *system capabilities*:
+- "Admin can change billing settings"
+- "Member can view workspace content"
+- "Guest can only see specific resources they're invited to"
+- These are *application features* — what buttons you can click
+
+### Critical Security Boundary
+
+A user-created "Finance Lead" organizational role does NOT automatically get billing access. That would be a security hole.
+
+The *workspace admin* (RBAC role) decides who can access system features, regardless of their organizational role.
+
+### Where They Interact
+
+Organizational roles and RBAC can be *explicitly mapped* by workspace admins:
+- Workspace admin can say "Circle Leads get `circle.members.invite` permission"
+- But this is a workspace-level policy, not inherent to the Circle Lead role
+- This keeps security explicit while allowing flexibility
+
+### Key Principle
+
+> Organizational roles define *domain authority* (what you're accountable for).
+> RBAC defines *system capabilities* (what features you can use).
+> They are intentionally separate to maintain security boundaries.
+
+For RBAC implementation details, see [RBAC Architecture](./rbac/rbac-architecture.md).
+
+---
+
+## Code Standards
+
+### Function Types (In Order of Preference)
+
+| Type | When to Use | Example |
+|------|-------------|---------|
+| **Pure Functions** | Calculations, transformations | `calculateAuthority(roles)` |
+| **Convex Queries** | Reads with reactivity | `getCircleById(ctx, id)` |
+| **Convex Mutations** | Writes with validation | `createProposal(ctx, data)` |
+| **Rule Functions** | Business logic (pure or contextual) | `canApproveProposal(ctx, person, circle)` |
+| **Helper Functions** | Small reusable utilities | `formatCircleName(name)` |
+| **Component Functions** | UI logic only | `toggleDropdown()` |
+
+### Decision Tree
+
+```
+Need to read data?              → Convex Query (queries.ts)
+Need to write data?             → Convex Mutation (mutations.ts)
+Business rule or validation?    → Rule Function (rules.ts)
+Calculate without side effects? → Pure Function (rules.ts or helpers.ts)
+UI-specific logic?              → Component Function (in .svelte)
+```
+
+### Code Examples
+
+```typescript
+// ✅ DO: Types + Functions
+type Circle = { 
+  _id: Id<"circles">; 
+  name: string; 
+  parentId?: Id<"circles">; 
+};
+
+function canAddRole(circle: Circle, person: Person): boolean {
+  // Pure calculation
+}
+
+// ❌ DON'T: Classes
+class Circle {
+  constructor(public name: string) {}
+  canAddRole() { ... }
+}
+```
+
+```typescript
+// ✅ DO: Business logic in Convex
+// /convex/core/circles/mutations.ts
 export const create = mutation({
-	args: { title: v.string(), content: v.string() },
-	handler: async (ctx, { title, content }) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) throw new Error('Not authenticated');
-
-		return await ctx.db.insert('notes', {
-			title,
-			content,
-			userId,
-			createdAt: Date.now()
-		});
-	}
+  args: { name: v.string(), parentId: v.optional(v.id("circles")) },
+  handler: async (ctx, args) => {
+    // Validation here
+    if (args.name.length < 2) throw new Error("Name too short");
+    // Authorization here
+    const canCreate = await canCreateCircle(ctx, ctx.auth.userId);
+    if (!canCreate) throw new Error("Not authorized");
+    // Then write
+    return ctx.db.insert("circles", args);
+  },
 });
-```
 
-**Using in Components:**
-
-```typescript
+// ❌ DON'T: Business logic in components
 <script lang="ts">
-  import { useQuery, useMutation } from 'convex-svelte';
-  import { api } from '$convex/_generated/api';
-
-  // Reactive query (auto-updates)
-  const notesQuery = useQuery(api.notes.list, () => ({ userId }));
-  const notes = $derived(notesQuery?.data ?? []);
-
-  // Mutation
-  const createNote = useMutation(api.notes.create);
-
-  async function handleCreate() {
-    await createNote({ title: 'New Note', content: '' });
+  function validateAndSave() {
+    if (name.length < 2) { ... } // Wrong place!
   }
 </script>
 ```
 
-**See Also:**
-
-- [Authentication Architecture](#authentication-architecture) - How Convex Auth works
-- Official Docs: Use **Context7** for latest Convex documentation
-
----
-
-### Tailwind CSS 4
-
-**Why We Chose It:**
-
-- **Utility-First CSS**: Rapid UI development with composable utility classes
-- **Design Tokens via CSS Variables**: Semantic tokens that adapt to light/dark mode automatically
-- **No Build Step**: Tailwind CSS 4 uses native CSS features (no PostCSS required)
-- **Fast Iteration**: Change design system once, updates everywhere
-- **Type Safety**: IntelliSense autocomplete for all utility classes
-
-**Quick Start:**
-
-**Design Token System:**
-
-```css
-/* src/app.css */
-@theme {
-	/* Semantic color tokens */
-	--color-surface: light-dark(white, #1a1a1a);
-	--color-primary: light-dark(#1a1a1a, #f5f5f5);
-
-	/* Spacing tokens */
-	--spacing-nav-item: 0.5rem;
-	--spacing-inbox-container: 1.5rem;
-}
-```
-
-**Using Semantic Tokens:**
-
-```svelte
-<!-- ❌ WRONG: Hardcoded values -->
-<div class="px-nav-item py-1.5 bg-sidebar text-text-primary">
-
-<!-- ✅ CORRECT: Semantic tokens -->
-<div class="px-nav-item py-nav-item bg-bg-surface text-text-primary">
-```
-
-**Why Tokens Matter:**
-
-```svelte
-<!-- These automatically adapt to light/dark mode -->
-<div class="border-border-base bg-bg-surface text-text-primary">
-	<!-- No manual dark: variants needed! -->
-</div>
-```
-
-**See Also:**
-
-- [Design System](design-system.md) - Complete token reference, visual principles ⭐ **MANDATORY**
-- [UI Patterns](../2-areas/patterns/ui-patterns.md) - Solved design problems
-- Official Docs: Use **Context7** for latest Tailwind CSS 4 documentation
-
----
-
-### PostHog
-
-**Why We Chose It:**
-
-- **Open Source**: Self-hostable, transparent, privacy-friendly alternative to Google Analytics
-- **Product Analytics**: Event tracking, funnels, retention, user paths, cohorts
-- **Feature Flags**: Toggle features without deploys, A/B testing, gradual rollouts
-- **Session Replay**: Watch user sessions to debug issues and improve UX
-- **No Data Silos**: All product data in one place
-
-**Quick Start:**
-
-**Server-Side Tracking (Recommended):**
+### Svelte 5 Patterns
 
 ```typescript
-// src/lib/server/posthog.ts
-import { PostHog } from 'posthog-node';
+// ✅ Correct rune usage
+let count = $state(0);
+let doubled = $derived(count * 2);
 
-let client: PostHog | null = null;
-
-export function getPostHogClient() {
-	if (!client) {
-		client = new PostHog(PUBLIC_POSTHOG_KEY, {
-			host: PUBLIC_POSTHOG_HOST
-		});
-	}
-	return client;
-}
-
-// Track critical events server-side (bypasses browser blockers)
-export async function trackEvent(
-	event: string,
-	distinctId: string,
-	properties: Record<string, any>
-) {
-	await getPostHogClient().capture({
-		event,
-		distinctId,
-		properties
-	});
-}
-```
-
-**Event Naming Conventions:**
-
-```typescript
-// Use object_action format
-await trackEvent('user_signed_in', email, { method: 'password' });
-await trackEvent('note_created', userId, { hasTitle: true });
-await trackEvent('inbox_synced', userId, { itemCount: 42 });
-```
-
-**Why Server-Side:**
-
-- Browser privacy tools block `*.posthog.com` requests
-- Server-to-server requests guarantee event delivery
-- Critical for tracking sign-ups, conversions, payments
-
-**See Also:**
-
-- Official Docs: Use **Context7** for latest PostHog documentation
-- Rule: See `.cursor/rules/posthog-integration.mdc` for tracking rules
-
----
-
-### ProseMirror
-
-**Why We Chose It:**
-
-- **Collaborative Editing Foundation**: Built for real-time collaboration (CRDT-ready)
-- **Schema-Based**: Precise document model prevents invalid content states
-- **Extensible Plugins**: Modular architecture for mentions, emoji, code blocks, etc.
-- **Framework Agnostic**: Works with any UI framework (Svelte, React, Vue)
-- **Battle-Tested**: Powers Notion, Atlassian, GitLab, and other major editors
-
-**Quick Start:**
-
-**Basic Editor Setup:**
-
-```typescript
-// See: src/lib/modules/inbox/components/NoteDetail.svelte
-import { EditorView } from 'prosemirror-view';
-import { EditorState } from 'prosemirror-state';
-import { createEditorState } from '$lib/utils/prosemirror-setup';
-
-let editorElement: HTMLDivElement;
-let editorView: EditorView | null = null;
-
-onMount(() => {
-	const state = createEditorState(content);
-	editorView = new EditorView(editorElement, {
-		state,
-		dispatchTransaction(transaction) {
-			const newState = editorView!.state.apply(transaction);
-			editorView!.updateState(newState);
-
-			// Export to markdown
-			const markdown = exportMarkdown(newState);
-			onContentChange?.(markdown);
-		}
-	});
+$effect(() => {
+  console.log(`Count changed to ${count}`);
 });
-```
 
-**Plugin System:**
+// ✅ Props are readonly
+let { circleId, onUpdate } = $props();
 
-```typescript
-// Mentions plugin
-import { createMentionPlugin } from '$lib/utils/prosemirror-mentions';
-const mentionPlugin = createMentionPlugin([
-	{ id: 'randy', label: 'Randy', icon: '👤' },
-	{ id: 'project', label: 'project', icon: '📁' }
-]);
-
-// Emoji plugin
-import { createEmojiPlugin } from './prosemirror/emoji-plugin';
-const emojiPlugin = createEmojiPlugin();
-
-// Syntax highlighting for code blocks
-import { createSyntaxHighlightPlugin } from '$lib/utils/prosemirror-codeblock';
-const syntaxPlugin = createSyntaxHighlightPlugin();
-
-// Add to editor state
-const state = EditorState.create({
-	schema,
-	plugins: [mentionPlugin, emojiPlugin, syntaxPlugin]
-});
-```
-
-**Document Model:**
-
-```typescript
-// ProseMirror uses a precise schema
-const schema = new Schema({
-	nodes: {
-		doc: { content: 'block+' },
-		paragraph: { content: 'inline*', group: 'block' },
-		heading: { content: 'inline*', group: 'block', attrs: { level: {} } },
-		codeBlock: { content: 'text*', group: 'block', attrs: { language: {} } },
-		text: { inline: true }
-	},
-	marks: {
-		strong: {},
-		em: {},
-		code: {}
-	}
-});
-```
-
-**Export to Markdown:**
-
-```typescript
-import { exportMarkdown } from '$lib/utils/prosemirror-setup';
-
-const markdown = exportMarkdown(editorView.state);
-// "# Title\n\nParagraph with **bold** and *italic*"
-```
-
-**Key Files:**
-
-- `src/lib/modules/inbox/components/NoteDetail.svelte` - Main editor component
-- `src/lib/utils/prosemirror-setup.ts` - Editor state creation and export
-- `src/lib/utils/prosemirror-mentions.ts` - Mention plugin
-- `src/lib/utils/prosemirror/emoji-plugin.ts` - Emoji plugin (if exists)
-- `src/lib/utils/prosemirror-codeblock.ts` - Code block syntax highlighting
-
-**See Also:**
-
-- Pattern documentation coming when we next refactor editor code
-- Official Docs: Use Context7 for latest ProseMirror documentation
-
----
-
-## Other Technologies (Document as We Use)
-
-The following tools are part of our stack and will be documented with rationale + quick start guides when we next work with them:
-
-**UI & Components:**
-
-- **Bits UI** - Headless component library (accessible, unstyled primitives)
-- **Layerchart** - Charts and data visualization
-
-**Mobile:**
-
-- **Capacitor 7** - Cross-platform mobile (iOS support configured)
-
-**Testing:**
-
-- **Vitest** - Unit tests (fast, Vite-native)
-- **Playwright** - E2E tests (browser automation)
-
-**Integrations:**
-
-- **Readwise API** - Import highlights from reading apps
-- **Resend** - Transactional email service
-- **Claude API** - AI-powered flashcard generation
-
-**Documentation:**
-
-- **MDsveX** - Markdown in Svelte components
-- **Shiki** - Syntax highlighting for code blocks
-- **Rehype** - Markdown processing (auto-linking headings, slugs)
-
-**Utilities:**
-
-- **ts-fsrs** - Spaced repetition algorithm (flashcards)
-- **marked** - Markdown parser and renderer
-- **highlight.js** / **lowlight** - Code syntax highlighting
-
-**Follow the pattern:** When you touch any of these tools, add a section above with:
-
-1. **Why** we chose it (rationale)
-2. **Quick Start** (setup + basic usage)
-3. **Links** to Context7 docs and any pattern files
-
-## Authentication Architecture
-
-> ✅ **CURRENT**: We now use **WorkOS AuthKit** for authentication (migrated Nov 2025).
->
-> **📖 Complete Architecture**: [WorkOS + Convex Auth Architecture](workos-convex-auth-architecture.md) ⭐ **READ THIS FIRST**
->
-> The information below is **ARCHIVED** from the old Convex Auth implementation and kept for reference.
-
----
-
-### 🔐 OLD: Authentication Model (ARCHIVED)
-
-**Note**: This was the old `@mmailaender/convex-auth-svelte` approach (no longer used).
-
-SynergyOS now uses WorkOS AuthKit.
-
-<details>
-<summary>Click to expand archived Convex Auth documentation</summary>
-
-SynergyOS used a **hybrid authentication approach** that combined:
-
-- **Server-side validation** (primary security layer)
-- **Client-side state management** (UX layer)
-
-### Authentication Flow
-
-```
-┌─────────────┐
-│   Client    │
-│  (Browser/  │
-│   Mobile)   │
-└──────┬──────┘
-       │
-       │ 1. User submits credentials
-       ▼
-┌─────────────────────────────────┐
-│  SvelteKit Client              │
-│  - useAuth() hook              │
-│  - signIn('password', {...})  │
-└──────────────┬──────────────────┘
-               │
-               │ 2. POST /api/auth
-               ▼
-┌─────────────────────────────────┐
-│  hooks.server.ts                │
-│  - handleAuth middleware        │
-│  - Validates request            │
-└──────────────┬──────────────────┘
-               │
-               │ 3. Forwards to Convex
-               ▼
-┌─────────────────────────────────┐
-│  Convex Backend                 │
-│  - auth.addHttpRoutes()         │
-│  - Password provider validates  │
-│  - Creates JWT token            │
-└──────────────┬──────────────────┘
-               │
-               │ 4. Returns JWT token
-               ▼
-┌─────────────────────────────────┐
-│  SvelteKit Server               │
-│  - Stores token in HTTP-only    │
-│    cookie (secure)              │
-│  - Returns auth state           │
-└──────────────┬──────────────────┘
-               │
-               │ 5. Auth state available
-               ▼
-┌─────────────────────────────────┐
-│  Client Components              │
-│  - useAuth().isAuthenticated    │
-│  - Real-time auth state         │
-└─────────────────────────────────┘
-```
-
-### Security Layers
-
-1. **Server-Side Validation (Primary)**
-   - All authentication requests are validated server-side
-   - JWT tokens stored in HTTP-only cookies (prevent XSS)
-   - Token validation happens in `hooks.server.ts` middleware
-   - Convex backend validates all authenticated requests
-
-2. **Client-Side State (UX)**
-   - `useAuth()` hook provides reactive auth state
-   - Used for UI rendering (show/hide buttons, conditional routes)
-   - **Never trusted for authorization decisions**
-   - Always validated server-side before accessing protected resources
-
-### Key Files
-
-#### Authentication Setup
-
-**`convex/auth.ts`** - Backend authentication configuration
-
-```typescript
-import { convexAuth } from '@convex-dev/auth/server';
-import { Password } from '@convex-dev/auth/providers/Password';
-
-export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-	providers: [Password] // Email/password auth
-});
-```
-
-**`convex/http.ts`** - HTTP routes for authentication
-
-```typescript
-import { httpRouter } from 'convex/server';
-import { auth } from './auth';
-
-const http = httpRouter();
-auth.addHttpRoutes(http); // Adds /api/auth/* routes
-export default http;
-```
-
-**`src/hooks.server.ts`** - SvelteKit server hooks
-
-```typescript
-import { sequence } from '@sveltejs/kit/hooks';
-import { createConvexAuthHooks } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-
-const { handleAuth } = createConvexAuthHooks();
-export const handle = sequence(handleAuth);
-```
-
-- Handles all POST requests to `/api/auth`
-- Manages JWT token storage in secure cookies
-- Validates authentication state on every request
-
-**`src/routes/+layout.server.ts`** - Load auth state
-
-```typescript
-import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-
-const { getAuthState } = createConvexAuthHandlers();
-
-export const load: LayoutServerLoad = async (event) => {
-	return { authState: await getAuthState(event) };
-};
-```
-
-- Loads authentication state on every page load
-- Available to all pages via `data.authState`
-
-**`src/routes/+layout.svelte`** - Client-side auth setup
-
-```typescript
-import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-
-setupConvexAuth({ getServerState: () => data.authState });
-```
-
-- Initializes Convex client with auth state
-- Makes `useAuth()` hook available throughout the app
-
-## Implementing Authentication Across Pages
-
-### Client-Side: Display Auth State
-
-Use the `useAuth()` hook in any Svelte component:
-
-```typescript
+// ✅ Component delegates to Convex
 <script lang="ts">
-  import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-
-  const auth = useAuth();
-  const isAuthenticated = $derived(auth.isAuthenticated);
-  const isLoading = $derived(auth.isLoading);
-  const { signIn, signOut } = auth;
+  import { useQuery, useMutation } from "convex-svelte";
+  import { api } from "$convex/_generated/api";
+  
+  const circles = useQuery(api.core.circles.queries.list);
+  const createCircle = useMutation(api.core.circles.mutations.create);
 </script>
-
-{#if isLoading}
-  <p>Loading...</p>
-{:else if isAuthenticated}
-  <p>You are signed in!</p>
-  <button onclick={() => signOut()}>Sign Out</button>
-{:else}
-  <p>Please sign in</p>
-  <a href="/login">Login</a>
-{/if}
 ```
 
-### Server-Side: Protect Routes
+### Module API Pattern (Cross-Feature Communication)
 
-#### Option 1: Global Route Protection (Recommended for Production)
-
-Protect routes in `src/hooks.server.ts`:
+When features need to expose functionality:
 
 ```typescript
-import { sequence, redirect } from '@sveltejs/kit/hooks';
-import {
-	createConvexAuthHooks,
-	createRouteMatcher
-} from '@mmailaender/convex-auth-svelte/sveltekit/server';
+// Feature defines its API
+interface MeetingsModuleAPI {
+  useAgenda: () => AgendaState;
+  useTimer: () => TimerState;
+}
 
-// Define public routes
-const isPublicRoute = createRouteMatcher([
-	'/',
-	'/login',
-	'/register',
-	'/about'
-	// Note: '/api/auth' is automatically handled
-]);
+// Provider sets context
+setContext('feature:meetings', createMeetingsAPI());
 
-const { handleAuth, isAuthenticated } = createConvexAuthHooks();
-
-const requireAuth: Handle = async ({ event, resolve }) => {
-	// Allow public routes
-	if (isPublicRoute(event.url.pathname)) {
-		return resolve(event);
-	}
-
-	// Check authentication for protected routes
-	if (!(await isAuthenticated(event))) {
-		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-	}
-
-	return resolve(event);
-};
-
-export const handle = sequence(handleAuth, requireAuth);
+// Consumer retrieves from context
+const meetings = getContext<MeetingsModuleAPI>('feature:meetings');
 ```
 
-#### Option 2: Page-Level Protection
-
-Protect individual pages in `+page.server.ts`:
-
-```typescript
-// src/routes/dashboard/+page.server.ts
-import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-
-const { isAuthenticated } = createConvexAuthHandlers();
-
-export const load: PageServerLoad = async (event) => {
-	if (!(await isAuthenticated(event))) {
-		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-	}
-
-	// Return page data for authenticated users
-	return {
-		user: {
-			/* user data */
-		}
-	};
-};
-```
-
-### Convex Functions: Validate Authentication
-
-Always validate authentication in Convex queries and mutations:
-
-```typescript
-// convex/users.ts
-import { query, mutation } from './_generated/server';
-import { getAuthUserId } from '@convex-dev/auth/server';
-
-// Example: Get current user
-export const getCurrentUser = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (userId === null) {
-			throw new Error('Client is not authenticated');
-		}
-
-		// Return user data
-		const user = await ctx.db.get(userId);
-		return user;
-	}
-});
-
-// Example: Update user profile
-export const updateProfile = mutation({
-	args: { name: v.string() },
-	handler: async (ctx, { name }) => {
-		const userId = await getAuthUserId(ctx);
-		if (userId === null) {
-			throw new Error('Client is not authenticated');
-		}
-
-		// Update only the authenticated user's data
-		await ctx.db.patch(userId, { name });
-	}
-});
-```
-
-### Server-Side Data Fetching with Auth
-
-Use authenticated Convex client in `+page.server.ts`:
-
-```typescript
-// src/routes/profile/+page.server.ts
-import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-import { api } from '$convex/_generated/api';
-import type { PageServerLoad } from './$types';
-
-export const load: PageServerLoad = async (event) => {
-	const { createConvexHttpClient } = createConvexAuthHandlers();
-
-	// Create authenticated HTTP client
-	const client = await createConvexHttpClient(event);
-
-	// Make authenticated query
-	const user = await client.query(api.users.getCurrentUser, {});
-
-	return { user };
-};
-```
-
-## Security Best Practices
-
-### ✅ Current Implementation (Secure)
-
-1. **JWT tokens stored in HTTP-only cookies** - Prevents XSS attacks
-2. **Server-side validation on every request** - Auth state checked in hooks
-3. **Convex backend validates all authenticated requests** - Use `getAuthUserId()` in functions
-4. **Password provider handles hashing** - Passwords never stored in plain text
-
-### ⚠️ Recommended Enhancements for Production
-
-1. **Add Route Protection**
-   - Implement global route protection in `hooks.server.ts`
-   - Use `createRouteMatcher` to define public/protected routes
-
-2. **Validate in Convex Functions**
-   - Always use `getAuthUserId()` in queries/mutations
-   - Never trust client-side auth state for authorization
-
-3. **Add Rate Limiting**
-   - Protect login/register endpoints from brute force
-   - Consider adding rate limiting middleware
-
-4. **HTTPS Only (Production)**
-   - Ensure all cookies are Secure (HTTPS only)
-   - Set SameSite cookie attributes
-
-5. **Session Management**
-   - Consider adding session timeout
-   - Implement refresh token rotation if needed
-
-</details>
+**Context key naming**: `'feature:meetings'`, `'feature:projects'`
 
 ---
 
-### Current Implementation: WorkOS AuthKit
+## Frontend Architecture
 
-Current authentication implementation:
+### Directory Structure
 
-- **Migration**: Completed Nov 2025 from `@mmailaender/convex-auth-svelte` to WorkOS AuthKit
-- **Features**: OAuth 2.0, hosted UI, enterprise-grade security, free tier up to 1M MAUs
-- **Docs**: Use **Context7** for WorkOS AuthKit documentation
-
----
-
-## Role-Based Access Control (RBAC)
-
-> 🚧 **Status**: Design Phase - Implementation Pending (Nov 2025)
-
-SynergyOS implements a **Permission-Based Access Control** system where:
-
-- Users are assigned **roles** (Admin, Manager, Team Lead, Billing Admin, Member, Guest)
-- Roles have **permissions** (e.g., `teams.create`, `org.billing.view`)
-- Features check **permissions**, not roles directly (scalable approach)
-
-### Key Features
-
-- ✅ **Multiple Roles Per User** - Users can have multiple roles simultaneously
-- ✅ **Resource-Scoped Permissions** - Team Leads only manage their own teams
-- ✅ **Guest Access** - Resource-specific sharing (like Notion/Google Docs)
-- ✅ **Audit Trail** - All permission checks and role changes are logged
-
-### Documentation
-
-- **[📖 RBAC Architecture](rbac/rbac-architecture.md)** - Complete system design with database schema, diagrams, and implementation guide
-- **[⚡ Quick Reference](rbac/rbac-quick-reference.md)** - Fast lookup for common patterns and permissions
-
-### Example Usage
-
-```typescript
-// In Convex functions - Check permission
-await requirePermission(ctx, userId, "teams.create", undefined, orgId);
-
-// In Svelte components - Permission gate
-const permissions = usePermissions(() => userId, () => orgId);
-
-{#if permissions.can("teams.create")}
-  <button>Create Team</button>
-{/if}
+```
+src/lib/
+├── components/
+│   ├── atoms/              # Single elements (Button, Badge, Input)
+│   ├── molecules/          # Combined atoms (FormField, SearchBar)
+│   └── organisms/          # Complex sections (Dialog, Header)
+├── modules/[module]/
+│   ├── components/         # Feature-specific components
+│   └── composables/        # Feature-specific logic (.svelte.ts)
+├── infrastructure/
+│   └── [area]/             # Cross-cutting (auth, analytics, rbac)
+└── composables/            # Shared UI logic (.svelte.ts)
 ```
 
-**See full documentation for**:
+### Component Location Rules
 
-- Complete role and permission definitions
-- Database schema and migration plan
-- Code examples and patterns
-- Testing strategy
+| Component Type | Location | Can Import From |
+|----------------|----------|-----------------|
+| Atom | `components/atoms/` | Nothing (base level) |
+| Molecule | `components/molecules/` | Atoms only |
+| Organism | `components/organisms/` | Atoms, Molecules |
+| Feature | `modules/[module]/components/` | Atoms, Molecules, Organisms |
+| Infrastructure | `infrastructure/[area]/` | Atoms, Molecules |
 
----
-
-## Frontend Architecture: Composables Pattern
-
-### Composables Overview
-
-SynergyOS uses **Svelte 5 composables** to extract reusable logic from components. See [`dev-docs/2-areas/patterns/svelte-reactivity.md`](../2-areas/patterns/svelte-reactivity.md) for patterns.
-
-### Composable Structure
-
-All composables:
-
-- Use `.svelte.ts` extension (required for Svelte 5 runes)
-- Located in `src/lib/modules/{module}/composables/` or `src/lib/infrastructure/{area}/composables/`
-- Use single `$state` object pattern for reactivity
-- Return getters for reactive state properties
-- Have explicit TypeScript return types
-
-### Available Composables
-
-**Inbox Module** (`src/lib/modules/inbox/composables/`):
-1. **`useInboxItems`** - Manages inbox item queries and filtering
-   - Uses `useQuery()` from `convex-svelte` for reactive subscriptions
-   - Handles filtering by type and processed status
-   - Returns reactive `filteredItems` and loading states
-
-2. **`useSelectedItem`** - Manages selected inbox item state
-   - Handles async item detail loading
-   - Prevents race conditions with query tracking
-   - Uses `$effect` for reactive data fetching
-
-3. **`useInboxSync`** - Handles Readwise sync operations
-   - Manages sync state (progress, errors, success)
-   - Handles polling for sync progress
-   - Integrates with activity tracker
-
-4. **`useKeyboardNavigation`** - Keyboard navigation (J/K keys)
-   - Uses function parameters for reactive values
-   - Sets up keyboard event listeners with `$effect`
-   - Handles navigation and scrolling
-
-5. **`useInboxLayout`** - Manages inbox layout state
-   - Persists layout preferences to localStorage
-   - Handles responsive layout changes
-
-**Shared UI Module** (`src/lib/modules/shared-ui/composables/`):
-- **`useGlobalShortcuts`** - Global keyboard shortcuts
-- **`useLoadingOverlay`** - Loading overlay state management
-
-**Infrastructure** (`src/lib/infrastructure/`):
-- **`useAuthSession`** (`auth/composables/`) - Authentication session management
-- **`usePermissions`** (`rbac/composables/`) - RBAC permission checks
-
-### Composable Patterns
-
-**Pattern 1: Single `$state` Object with Getters**
+**Critical rule**: Feature components MUST NOT cross module boundaries.
 
 ```typescript
-const state = $state({
-	isSyncing: false,
-	syncError: null as string | null
-});
+// ✅ CORRECT: Import from shared components
+import { Button, Card } from '$lib/components/atoms';
+import { FormField } from '$lib/components/molecules';
 
-return {
-	get isSyncing() {
-		return state.isSyncing;
-	},
-	get syncError() {
-		return state.syncError;
-	}
-};
+// ❌ WRONG: Cross-module import
+import { InboxCard } from '$lib/modules/inbox/components'; // From meetings module
 ```
 
-**Pattern 2: Function Parameters for Reactive Values**
+### Styling Rule (Critical)
+
+All component styling MUST use the recipe system:
 
 ```typescript
-export function useKeyboardNavigation(
-	filteredItems: () => InboxItem[],
-	selectedItemId: () => string | null,
-	onSelectItem: (itemId: string) => void
-) {
-	// Call functions to get current reactive values
-	const items = filteredItems();
-	const currentId = selectedItemId();
+// ✅ CORRECT: Use recipe
+import { buttonRecipe } from '$lib/design-system/recipes';
+const classes = buttonRecipe({ variant: 'primary', size: 'md' });
+
+// ❌ WRONG: Direct utility classes for variants
+const classes = variant === 'primary' ? 'bg-blue-500' : 'bg-gray-100';
+
+// ❌ WRONG: Hardcoded values
+<div class="px-4 py-2 bg-gray-100">  // Should use tokens
+```
+
+**Why**: Direct utility classes bypass the design system and cause visual drift. When a design token changes, components using recipes update automatically. Hardcoded values don't.
+
+For recipe implementation patterns, token usage, and styling details, see [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md).
+
+### Composables Pattern
+
+Use `.svelte.ts` files for reusable UI logic:
+
+```typescript
+// useCircleForm.svelte.ts
+export function useCircleForm(initialData: Circle | null) {
+  const state = $state({
+    name: initialData?.name ?? '',
+    isDirty: false
+  });
+
+  return {
+    get name() { return state.name; },
+    get isDirty() { return state.isDirty; },
+    setName(value: string) {
+      state.name = value;
+      state.isDirty = true;
+    }
+  };
 }
 ```
 
-**Pattern 3: Reactive Queries with `useQuery()`**
+**Location**:
+- Shared composables → `src/lib/composables/`
+- Feature-specific → `src/lib/modules/[module]/composables/`
 
-```typescript
-import { useQuery } from 'convex-svelte';
+---
 
-const inboxQuery = useQuery(api.inbox.listInboxItems, () => ({ processed: false }));
+## Testing Strategy
 
-const inboxItems = $derived(inboxQuery?.data ?? []);
-```
-
-See [`dev-docs/2-areas/patterns/INDEX.md`](../2-areas/patterns/INDEX.md) for pattern documentation.
-
-## Project Structure
+### Testing Pyramid
 
 ```
-SynergyOS/
-├── convex/              # Convex backend
-│   ├── auth.ts          # Authentication configuration
-│   ├── http.ts          # HTTP routes (includes auth routes)
-│   ├── schema.ts        # Database schema (includes auth tables)
-│   └── ...              # Other backend functions
-├── src/
-│   ├── hooks.server.ts           # SvelteKit server hooks (auth middleware)
-│   ├── routes/
-│   │   ├── +layout.server.ts     # Load auth state for all pages
-│   │   ├── +layout.svelte        # Setup auth client-side
-│   │   ├── +page.svelte          # Homepage
-│   │   ├── login/                # Login page
-│   │   └── register/             # Registration page
-│   └── lib/
-│       ├── modules/              # Feature modules
-│       │   ├── core/             # Core module (global components)
-│       │   │   ├── components/   # QuickCreateModal, Sidebar, etc.
-│       │   │   └── composables/  # useGlobalShortcuts, etc.
-│       │   ├── inbox/            # Inbox module
-│       │   │   ├── components/   # InboxCard, InboxHeader, etc.
-│       │   │   └── composables/  # useInboxItems, useInboxSync, etc.
-│       │   ├── meetings/          # Meetings module
-│       │   └── org-chart/        # Org chart module
-│       ├── infrastructure/       # Cross-cutting infrastructure
-│       │   ├── analytics/        # Analytics (events.ts)
-│       │   ├── auth/             # Auth (useAuthSession)
-│       │   ├── feature-flags/    # Feature flags (constants.ts)
-│       │   └── rbac/             # RBAC (usePermissions)
-│       ├── types/                # Shared TypeScript types
-│       │   └── convex.ts         # Convex client and API types
-│       └── utils/                # Shared utilities
-├── ios/                 # Capacitor iOS project
-└── dev-docs/            # Documentation
+          ╱╲
+         ╱E2E╲           5-10 smoke tests (critical paths)
+        ╱──────╲
+       ╱  BDD   ╲        30-75 scenarios (user journeys)
+      ╱──────────╲
+     ╱Integration ╲      Cross-domain workflows
+    ╱──────────────╲
+   ╱   Unit Tests   ╲    Core domain logic (highest volume)
+  ╱══════════════════╲
 ```
 
-## Environment Variables
+### Test Location (Co-located)
 
-### Frontend (.env.local)
+| Test Type | Location | Naming |
+|-----------|----------|--------|
+| Unit tests | Next to source | `{domain}.test.ts` |
+| Integration | `/tests/integration/` | `{workflow}.test.ts` |
+| E2E | `/e2e/` | `{flow}.spec.ts` |
+| BDD features | `/features/` | `{domain}.feature` |
 
-```env
-PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+**Why co-located unit tests:**
+- Proximity = visibility (missing tests are obvious)
+- Refactoring stays atomic (move module, tests move with it)
+- Discourages test interdependence
+- Simple import paths
+
+**Example:**
+```
+convex/core/circles/
+├── schema.ts
+├── queries.ts
+├── mutations.ts
+├── rules.ts
+├── index.ts
+└── circles.test.ts      ← Tests ALL of the above
 ```
 
-### Backend (set via `npx convex env set`)
+### Coverage Requirements
+
+| Layer | Coverage | Rationale |
+|-------|----------|-----------|
+| Core domains | 100% | Foundation must be solid |
+| Features | 80%+ | Key workflows covered |
+| Infrastructure | 90%+ | Auth/events are critical |
+
+### Test Quality Rules
+
+1. **Tests are independent** — no test depends on another
+2. **Behavior-focused** — test scenarios, not implementation
+3. **Fast feedback** — unit tests run in seconds
+4. **No cross-test imports** — each test file is standalone
+
+### Minimum Viable Testing (Before Every Push)
 
 ```bash
-# Convex deployment URL (set automatically)
-CONVEX_URL=https://your-deployment.convex.cloud
-JWKS=<auto-generated>
-
-# Optional: Email service
-RESEND_API_KEY=your-resend-api-key
+npm run check          # Type safety (2 seconds)
+npm run test           # Unit tests (30 seconds)
+# Manual smoke test    # 5 minutes
 ```
+
+**Definition of Done**: Would you be comfortable having a neutral facilitator demo it to an executive board without you in the room?
+
+---
 
 ## Development Workflow
 
-### Running Locally
+### Trunk-Based Development
 
-1. **Start Convex backend:**
+- Single branch: `main`
+- Small, frequent commits
+- Feature flags hide incomplete work
+- Deploy frequently
 
-   ```bash
-   npx convex dev
-   ```
+### Commit Discipline
 
-2. **Start SvelteKit dev server:**
+```bash
+# ✅ Good: Separate refactoring from features
+git commit -m "refactor: extract authority calculator"
+git commit -m "feat: add Circle Lead approval flow"
 
-   ```bash
-   npm run dev
-   ```
+# ❌ Bad: Mixed concerns
+git commit -m "Add approval and refactor authority"
+```
 
-3. **Test on iOS (with live reload):**
-   ```bash
-   npm run dev              # Terminal 1: Start dev server
-   npm run build            # Terminal 2: Build for mobile
-   npx cap sync ios         # Terminal 2: Sync to iOS
-   # Then click Play in Xcode
-   ```
+### Refactoring Rules
 
-### Authentication Testing
+- **Boy Scout Rule**: Leave code cleaner than you found it
+- **Rule of Three**: Tolerate duplication twice, refactor on third
+- **Separate commits**: Refactoring commits separate from feature commits
 
-1. **Register a new user:**
-   - Navigate to `/register`
-   - Fill in name, email, password (min 8 chars)
-   - Submit form
+---
 
-2. **Login:**
-   - Navigate to `/login`
-   - Enter email and password
-   - Submit form
+## Configuration Standards
 
-3. **Check auth state:**
-   - Homepage shows auth status
-   - Protected routes should redirect if not authenticated
+### Environment Variables
 
-## Mobile (Capacitor) Considerations
+```typescript
+// ✅ RIGHT: Single source, derived values
+const APP_URL = requireEnv('PUBLIC_APP_URL');
+const WORKOS_REDIRECT_URI = `${APP_URL}/auth/callback`;
 
-- Authentication works identically on iOS
-- JWT tokens are stored in secure cookies (handled by Capacitor WebView)
-- Live reload configured for development (`http://192.168.68.110:5173`)
-- Production builds use static files from `www/` directory
+// ❌ WRONG: Multiple independent configs
+const redirectUri = env.WORKOS_REDIRECT_URI;
+const baseUrl = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
+```
 
-## Production Deployment Checklist
+### Rules
 
-- [ ] Configure WorkOS Production environment with production redirect URIs
-- [ ] Set WorkOS production credentials in deployment platform (Vercel)
-- [ ] Validate auth in all Convex queries/mutations using `getAuthUserId()`
-- [ ] Ensure HTTPS is enabled (required for secure cookies)
-- [ ] Test complete auth flow: login → protected route → logout
-- [ ] Configure CORS if needed
-- [ ] Add rate limiting for auth endpoints
-- [ ] Test authentication flow end-to-end
-- [ ] Verify mobile app authentication works
+1. Environment-specific values in env vars
+2. Required config validated at startup (fail fast)
+3. Derived values computed from single source
+4. No silent fallbacks to development values in production
 
-## Additional Resources
+---
 
-- Use **Context7** for latest library documentation (Convex, WorkOS, SvelteKit, Capacitor)
-- **[Convex Documentation](https://docs.convex.dev)**
-- **[WorkOS Documentation](https://workos.com/docs)** - AuthKit guides
-- **[SvelteKit Documentation](https://kit.svelte.dev/docs)**
-- **[Capacitor Documentation](https://capacitorjs.com/docs)**
+## Red Flags (Audit Patterns)
+
+Search for these during code review:
+
+| Red Flag | Violation | Detection |
+|----------|-----------|-----------|
+| Business logic in UI | Principle 10, 12 | `grep -rn "ctx.db" src/` |
+| Core importing features | Principle 5 | `grep -r "from.*features" convex/core/` |
+| Classes in codebase | Principle 11 | `grep -rn "^class " convex/ src/` |
+| Handler > 20 lines | Principle 26 | Line count in `queries.ts`/`mutations.ts` |
+| Inline type cast | Principle 29 | `grep -rn "as unknown as" convex/` |
+| File > 300 lines | Principle 32 | `wc -l convex/**/*.ts` |
+| Implicit authority | Principle 4 | `grep -rn "role ===" convex/` |
+| Wrong terminology | Principle 15 | `grep -rin "\"team\"" convex/ src/` |
+| Tests in wrong location | Principle 21 | Unit tests not next to source |
+| Test interdependencies | Principle 23 | `grep -r "import.*\.test"` |
+| Hardcoded fallbacks | Config rules | `grep -rn "\|\| 'http://localhost"` |
+
+---
+
+## Decision Records
+
+### DR-001: Convex as Backend
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Use Convex instead of traditional REST API + database.
+
+**Rationale**: Real-time sync eliminates manual state management. Queries provide reactive subscriptions. Mutations handle validation and business logic. Reduces boilerplate significantly.
+
+**Consequences**: Business logic must live in Convex functions. Frontend becomes purely presentational. Testing focuses on Convex functions.
+
+---
+
+### DR-002: Svelte 5 for Frontend
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Use Svelte 5 with runes system.
+
+**Rationale**: Excellent reactivity with runes. No virtual DOM overhead. Composables pattern for reusable logic. Natural fit with Convex reactive queries.
+
+**Consequences**: Components must be thin (presentation only). Business logic stays in Convex. Use composables for shared UI logic.
+
+---
+
+### DR-003: Functions Only, No Classes
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Zero classes in codebase — pure functions only.
+
+**Rationale**: Functions compose better than classes. Easier to test. Aligns with Convex + Svelte functional approach.
+
+**Consequences**: Use types for data structures, functions for behavior. Pure functions for calculations. Service functions for orchestration.
+
+---
+
+### DR-004: Three-Layer Architecture
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Organize code into Core/Features/Infrastructure layers with explicit dependencies.
+
+**Rationale**: Core must be stable before building features. Prevents spaghetti dependencies. Enables independent evolution. Clear boundaries for testing.
+
+**Consequences**: Core cannot import from features. Features compose core. Clear dependency direction.
+
+---
+
+### DR-005: Trunk-Based Development
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Single main branch, feature flags for incomplete work.
+
+**Rationale**: Reduces merge conflicts. Faster feedback loop. Simpler for solo/small team.
+
+**Consequences**: Small, frequent commits. Feature flags hide incomplete work. Deploy frequently.
+
+---
+
+### DR-006: Domain Language Enforcement
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Code must use practitioner terminology (circles, roles, proposals, etc.).
+
+**Rationale**: Reduces cognitive load. Code matches how users think. Ubiquitous language principle from DDD.
+
+**Consequences**: Enforce in code reviews. Update legacy terms. Document for new contributors.
+
+---
+
+### DR-007: Authority Calculated, Not Stored
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Authority is computed from roles, not stored as user attributes.
+
+**Rationale**: Single source of truth (roles). No synchronization bugs. Easier to test. Audit trail through role assignments.
+
+**Consequences**: Authority calculator is critical core component. Must be highly tested.
+
+---
+
+### DR-008: Co-located Unit Tests
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Unit tests live next to their source files (`circles.test.ts` next to `circles/`).
+
+**Rationale**: Proximity = visibility. Refactoring stays atomic. Discourages test interdependence. Simple imports.
+
+**Consequences**: Integration tests remain in `/tests/integration/`. E2E in `/e2e/`.
+
+---
+
+### DR-009: Domain Cohesion over Technical Purity
+
+**Status**: Accepted  
+**Date**: 2025-12-06
+
+**Decision**: Organize by domain, not by technical concern (pure vs. impure). Core domains include schema, queries, mutations, and rules together.
+
+**Rationale**: Domain cohesion reduces cognitive load. "Working on circles" means one directory. Eliminates judgment calls for AI development. Purity is a function property, not a location property.
+
+**Consequences**: No separate "pure logic" layer. Business rules in `rules.ts` can be pure or contextual. Everything about a domain lives together.
+
+**Alternatives Rejected**:
+- Separate `/core/` (pure) and `/modules/` (DB) — fragments domains
+- Purity as organizational principle — requires judgment calls
+
+---
+
+## Checklist: Before Every Commit
+
+```markdown
+## Before Writing Code
+- [ ] Which domain does this belong to?
+- [ ] Am I using correct terminology? (circles, roles, tensions, proposals)
+- [ ] Will this create a dependency? → Verify direction
+
+## While Writing Code  
+- [ ] Functions only, no classes
+- [ ] Functions do one thing
+- [ ] Authorization checked BEFORE data writes
+- [ ] No hardcoded magic values
+
+## Before Committing
+- [ ] Unit test co-located? (`domain.test.ts`)
+- [ ] Tests independent?
+- [ ] Domain language correct?
+- [ ] No business logic in components?
+```
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 2.0 | 2025-12-06 | Consolidated from 3 docs. Domain cohesion model. AI-native optimization. |
+| 1.x | 2025-12 | Original drafts (superseded) |
+
+---
+
+*This document is the single source of truth. Update it when decisions change.*
