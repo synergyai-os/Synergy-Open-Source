@@ -332,6 +332,7 @@ For RBAC implementation details, see [RBAC Architecture](./rbac/rbac-architectur
 ---
 
 ## Code Standards
+See also: [Code Style Notes](./code-style-notes.md) for supplementary readability guidance.
 
 ### Function Types (In Order of Preference)
 

@@ -175,7 +175,7 @@ const roles = $derived(
 </script>
 ```
 
-**Fix**: Move query to composable where SSR behavior is different:
+**Fix**: If you need conditional creation or SSR gating, move the query to a composable (or wrap creation in `$derived` when staying in the component):
 
 ```typescript
 // ✅ CORRECT: Query in composable (useOrgChart.svelte.ts)
@@ -213,18 +213,18 @@ const coreRoles = $derived(
 );
 ```
 
-**Why Composables Work**:
-1. Composable is only instantiated when `browser && sessionId` is true
-2. The "throw error when params not ready" pattern works in composables
+**Why Composables Help Here**:
+1. Instantiated only when `browser && sessionId` is true (avoids SSR/hydration pitfalls)
+2. The "throw when params not ready" pattern works and retries reactively
 3. Convex handles the error gracefully and retries when params become available
-4. Components use reactive getters - no query creation needed
+4. Components consume reactive getters (keep UI thin; no business logic)
 
-**Key Principles**:
-1. **Never conditionally create useQuery based on $derived values in components**
-2. **Move queries to composables** where SSR behavior is predictable
-3. **Use "throw when params not ready" pattern** inside query function
-4. **Expose helper methods** from composable for filtered/derived data
-5. **Components use reactive getters** - no query logic in components
+**Key Principles** (aligned with Code Style Notes + Architecture):
+1. Components may create **unconditional** `useQuery`/`useMutation` at point-of-use (thin UI, no business logic).
+2. **Conditional** query creation must be reactive: wrap in `$derived` or move to a composable when SSR/hydration is involved.
+3. Keep validation/authorization/business rules in Convex; Svelte stays thin and presentational.
+4. Use the "throw when params not ready" pattern inside the query function for reactive retries.
+5. Expose helper methods from composables for filtered/derived data; components consume getters (no duplicated logic).
 
 **Detection**:
 - Check for `useQuery` in component with condition checking `$derived` values

@@ -30,4 +30,12 @@
   - `posthog-node` can trigger codegen bundling errors on `node:fs/readline`. Use a fetch-based capture in Convex (`'use node'`) to avoid bundling Node built-ins during `npx convex codegen`.  
   - Keep analytics types minimal and local to avoid app-layer imports; prefer runtime environment vars (`PUBLIC_POSTHOG_KEY/HOST`) with graceful no-op when missing.
 
+- **Readability guidance (supplemental, non-blocking)**  
+  - Added `dev-docs/master-docs/code-style-notes.md` for optional readability conventions (early returns, prefer const with Svelte exceptions, avoid negated ternaries/`!!`, object params, `kind` discriminators). Linked from `architecture.md` and referenced in `synergyos-guide`.
+  - Enforcement stays limited to existing ESLint/TS/Prettier + architecture/design-system rules; readability notes are advisory to avoid developer friction.
+
+- **Convex integration clarifications**  
+  - Components may host **unconditional** `useQuery`/`useMutation` at point-of-use, but keep business logic in Convex.
+  - Conditional query creation must be reactive (wrap in `$derived`) or moved to a composable for SSR/hydration safety; keep validation/auth in Convex and expose getters from composables.
+
 
