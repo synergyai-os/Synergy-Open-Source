@@ -5,6 +5,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import { captureUpdate, captureCreate } from './orgVersionHistory';
 import { requireQuickEditPermission } from './orgChartPermissions';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Circle Items - Content items within categories (domains, accountabilities, etc.)
@@ -25,7 +26,10 @@ async function ensureWorkspaceMembership(
 		.first();
 
 	if (!membership) {
-		throw new Error('You do not have access to this workspace');
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			'You do not have access to this workspace'
+		);
 	}
 }
 
@@ -43,7 +47,7 @@ async function getCircleForItem(
 		const circleId = item.entityId as Id<'circles'>;
 		const circle = await ctx.db.get(circleId);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 		return circle;
 	} else {
@@ -51,11 +55,11 @@ async function getCircleForItem(
 		const roleId = item.entityId as Id<'circleRoles'>;
 		const role = await ctx.db.get(roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 		const circle = await ctx.db.get(role.circleId);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 		return circle;
 	}
@@ -93,17 +97,17 @@ async function getWorkspaceIdFromEntity(
 	if (entityType === 'circle') {
 		const circle = await ctx.db.get(entityId as Id<'circles'>);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 		return circle.workspaceId;
 	} else {
 		const role = await ctx.db.get(entityId as Id<'circleRoles'>);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 		const circle = await ctx.db.get(role.circleId);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 		return circle.workspaceId;
 	}
@@ -273,16 +277,16 @@ export const create = mutation({
 		if (args.entityType === 'circle') {
 			circle = await ctx.db.get(args.entityId as Id<'circles'>);
 			if (!circle) {
-				throw new Error('Circle not found');
+				throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 			}
 		} else {
 			const role = await ctx.db.get(args.entityId as Id<'circleRoles'>);
 			if (!role) {
-				throw new Error('Role not found');
+				throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 			}
 			circle = await ctx.db.get(role.circleId);
 			if (!circle) {
-				throw new Error('Circle not found');
+				throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 			}
 		}
 
@@ -299,7 +303,10 @@ export const create = mutation({
 		if (!categoryId) {
 			// Category doesn't exist - this shouldn't happen for default categories
 			// but could happen for custom categories that were deleted
-			throw new Error(`Category "${args.categoryName}" not found for ${args.entityType}`);
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				`Category "${args.categoryName}" not found for ${args.entityType}`
+			);
 		}
 
 		// 6. Check for duplicate content (case-insensitive)
@@ -319,7 +326,10 @@ export const create = mutation({
 			(item) => item.content.toLowerCase().trim() === args.content.toLowerCase().trim()
 		);
 		if (duplicate) {
-			throw new Error(`An item with this content already exists in "${args.categoryName}"`);
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				`An item with this content already exists in "${args.categoryName}"`
+			);
 		}
 
 		// 7. Calculate order (max + 1 if not provided)
@@ -370,7 +380,7 @@ export const update = mutation({
 		// 2. Get circle item and its circle
 		const item = await ctx.db.get(args.circleItemId);
 		if (!item) {
-			throw new Error('Circle item not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Circle item not found');
 		}
 
 		const circle = await getCircleForItem(ctx, item);
@@ -419,7 +429,7 @@ export const deleteItem = mutation({
 		// 2. Get circle item and its circle
 		const item = await ctx.db.get(args.circleItemId);
 		if (!item) {
-			throw new Error('Circle item not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Circle item not found');
 		}
 
 		const circle = await getCircleForItem(ctx, item);

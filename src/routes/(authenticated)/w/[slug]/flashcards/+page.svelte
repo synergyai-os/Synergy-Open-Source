@@ -11,6 +11,7 @@
 	import type { Doc, Id } from '$convex/_generated/dataModel';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
+import { invariant } from '$lib/utils/invariant';
 
 	const convexClient = browser ? useConvexClient() : null;
 
@@ -35,7 +36,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
@@ -48,9 +49,9 @@
 	// Query collections
 	const collectionsQuery =
 		browser && getSessionId()
-			? useQuery(api.flashcards.getFlashcardsByCollection, () => {
+			? useQuery(api.flashcards.listFlashcardsByCollection, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -61,7 +62,7 @@
 		browser && getSessionId()
 			? useQuery(api.flashcards.getUserFlashcards, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
@@ -138,9 +139,7 @@
 			// Query flashcards for this specific tag
 			try {
 				const sessionId = getSessionId();
-				if (!sessionId) {
-					throw new Error('Session ID is required');
-				}
+				invariant(sessionId, 'Session ID is required');
 
 				const result = await convexClient.query(api.flashcards.getUserFlashcards, {
 					sessionId,

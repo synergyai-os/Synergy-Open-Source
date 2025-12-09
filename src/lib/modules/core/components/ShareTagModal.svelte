@@ -2,9 +2,10 @@
 	import type { Id } from '$convex/_generated/dataModel';
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
-	import { api } from '$lib/convex';
+import { api } from '$lib/convex';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+import { invariant } from '$lib/utils/invariant';
 
 	type Tag = {
 		_id: Id<'tags'>;
@@ -34,9 +35,9 @@
 	// Fetch item counts for this tag
 	const itemCountsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.countTagItems, () => {
+			? useQuery(api.tags.getTagItemCount, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						tagId: tag._id

@@ -92,12 +92,7 @@ export function ourDayToJsDay(ourDay: number): number {
  * @param dayIndex - Our day index (0=Monday, 1=Tuesday, ..., 6=Sunday)
  * @returns Day name abbreviation (e.g., "Mon", "Tue")
  */
-export function getDayName(dayIndex: number): string {
-	if (dayIndex < 0 || dayIndex > 6) {
-		throw new Error(`Invalid day index: ${dayIndex}. Must be 0-6 (0=Monday, 6=Sunday)`);
-	}
-	return DAY_NAMES[dayIndex];
-}
+import { invariant } from '$lib/utils/invariant';
 
 /**
  * Get full day name from our day index (0=Monday, 6=Sunday)
@@ -105,9 +100,18 @@ export function getDayName(dayIndex: number): string {
  * @param dayIndex - Our day index (0=Monday, 1=Tuesday, ..., 6=Sunday)
  * @returns Full day name (e.g., "Monday", "Tuesday")
  */
+export function getDayName(dayIndex: number): string {
+	invariant(
+		dayIndex >= 0 && dayIndex <= 6,
+		`Invalid day index: ${dayIndex}. Must be 0-6 (0=Monday, 6=Sunday)`
+	);
+	return DAY_NAMES[dayIndex];
+}
+
 export function getDayNameFull(dayIndex: number): string {
-	if (dayIndex < 0 || dayIndex > 6) {
-		throw new Error(`Invalid day index: ${dayIndex}. Must be 0-6 (0=Monday, 6=Sunday)`);
-	}
+	invariant(
+		dayIndex >= 0 && dayIndex <= 6,
+		`Invalid day index: ${dayIndex}. Must be 0-6 (0=Monday, 6=Sunday)`
+	);
 	return DAY_NAMES_FULL[dayIndex];
 }

@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
+import { invariant } from '$lib/utils/invariant';
 
 export type CircleSummary = {
 	circleId: Id<'circles'>;
@@ -70,7 +71,7 @@ export function useCircles(options: {
 			removeMember: false,
 			createRole: false,
 			updateRole: false,
-			deleteRole: false,
+			archiveRole: false,
 			assignUser: false,
 			removeUser: false
 		}
@@ -82,7 +83,7 @@ export function useCircles(options: {
 			? useQuery(api.circles.list, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
@@ -93,7 +94,7 @@ export function useCircles(options: {
 			? useQuery(api.circles.get, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
+					invariant(sessionId && circleId, 'sessionId and circleId required');
 					return { sessionId, circleId: circleId as Id<'circles'> };
 				})
 			: null;
@@ -104,7 +105,7 @@ export function useCircles(options: {
 			? useQuery(api.circles.getMembers, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
+					invariant(sessionId && circleId, 'sessionId and circleId required');
 					return { sessionId, circleId: circleId as Id<'circles'> };
 				})
 			: null;
@@ -115,7 +116,7 @@ export function useCircles(options: {
 			? useQuery(api.circleRoles.listByCircle, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
+					invariant(sessionId && circleId, 'sessionId and circleId required');
 					return { sessionId, circleId: circleId as Id<'circles'> };
 				})
 			: null;
@@ -151,10 +152,10 @@ export function useCircles(options: {
 
 		// Mutations
 		createCircle: async (args: { name: string; purpose?: string; parentCircleId?: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			const workspaceId = getWorkspaceId();
-			if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+			invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 
 			state.loading.createCircle = true;
 			try {
@@ -184,9 +185,9 @@ export function useCircles(options: {
 			purpose?: string;
 			parentCircleId?: string;
 		}) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.updateCircle = true;
 			try {
@@ -209,9 +210,9 @@ export function useCircles(options: {
 		},
 
 		addMember: async (args: { circleId: string; userId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.addMember = true;
 			try {
@@ -232,9 +233,9 @@ export function useCircles(options: {
 		},
 
 		removeMember: async (args: { circleId: string; userId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.removeMember = true;
 			try {
@@ -255,9 +256,9 @@ export function useCircles(options: {
 		},
 
 		createRole: async (args: { circleId: string; name: string; purpose?: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.createRole = true;
 			try {
@@ -281,9 +282,9 @@ export function useCircles(options: {
 		},
 
 		updateRole: async (args: { circleRoleId: string; name?: string; purpose?: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.updateRole = true;
 			try {
@@ -304,32 +305,32 @@ export function useCircles(options: {
 			}
 		},
 
-		deleteRole: async (args: { circleRoleId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+		archiveRole: async (args: { circleRoleId: string }) => {
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
-			state.loading.deleteRole = true;
+			state.loading.archiveRole = true;
 			try {
-				await convexClient.mutation(api.circleRoles.deleteRole, {
+				await convexClient.mutation(api.circleRoles.archiveRole, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>
 				});
 
-				toast.success('Role deleted');
+				toast.success('Role archived');
 			} catch (error) {
-				const message = error instanceof Error ? error.message : 'Failed to delete role';
+				const message = error instanceof Error ? error.message : 'Failed to archive role';
 				toast.error(message);
 				throw error;
 			} finally {
-				state.loading.deleteRole = false;
+				state.loading.archiveRole = false;
 			}
 		},
 
 		assignUserToRole: async (args: { circleRoleId: string; userId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.assignUser = true;
 			try {
@@ -350,9 +351,9 @@ export function useCircles(options: {
 		},
 
 		removeUserFromRole: async (args: { circleRoleId: string; userId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.removeUser = true;
 			try {

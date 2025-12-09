@@ -11,14 +11,13 @@ import {
 	getComponentName,
 	isStoryFile
 } from '../parsers/svelte-parser.js';
-import { extractRecipeExports, getRecipeFileName } from '../parsers/recipe-parser.js';
+import { extractRecipeExports } from '../parsers/recipe-parser.js';
 import {
 	findComponentFiles,
 	findRecipeForComponent,
 	relativePath,
 	camelCase
 } from '../utils/file-finder.js';
-import fs from 'fs';
 
 /**
  * Detect component composition violations in a single component

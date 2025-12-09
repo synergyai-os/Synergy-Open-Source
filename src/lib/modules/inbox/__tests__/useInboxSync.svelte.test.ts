@@ -48,9 +48,9 @@ describe('useInboxSync - Polling Logic', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 
@@ -205,9 +205,9 @@ describe('useInboxSync - Error Handling', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 
@@ -293,9 +293,9 @@ describe('useInboxSync - Progress Updates', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 
@@ -446,9 +446,9 @@ describe('useInboxSync - Activity Tracking', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 

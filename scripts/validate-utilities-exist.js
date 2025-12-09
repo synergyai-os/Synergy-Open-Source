@@ -68,13 +68,6 @@ function extractClassesFromFile(filePath) {
 	return classes;
 }
 
-// Check if class is a utility (starts with bg-, text-, etc.)
-function isUtilityClass(className) {
-	return /^(bg|text|border|rounded|shadow|gap|px|py|p|m|mt|mb|ml|mr|mx|my|size|leading|tracking|font|opacity|z)-/.test(
-		className
-	);
-}
-
 // Allowed patterns that don't need utilities (layout primitives, etc.)
 function isAllowedPattern(className) {
 	const allowed = [

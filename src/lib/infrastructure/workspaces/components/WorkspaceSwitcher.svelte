@@ -7,7 +7,6 @@
 	import WorkspaceActions from '$lib/components/molecules/WorkspaceActions.svelte';
 	import LinkedAccountGroup from '$lib/components/molecules/LinkedAccountGroup.svelte';
 	import InvitesList from '$lib/components/molecules/InvitesList.svelte';
-	import AccountMenu from '$lib/components/molecules/AccountMenu.svelte';
 	import { Text } from '$lib/components/atoms';
 	import type { WorkspaceInvite, WorkspaceSummary } from '../composables/useWorkspaces.svelte';
 
@@ -50,7 +49,6 @@
 		onCreateWorkspace,
 		onAddAccount,
 		onSwitchAccount,
-		onLogout,
 		onLogoutAccount,
 		onCreateWorkspaceForAccount,
 		onJoinWorkspaceForAccount
@@ -78,7 +76,6 @@
 		onJoinWorkspaceForAccount?: (targetUserId: string) => void;
 		onAddAccount?: () => void;
 		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
-		onLogout?: () => void;
 		onLogoutAccount?: (targetUserId: string) => void;
 	} = $props();
 

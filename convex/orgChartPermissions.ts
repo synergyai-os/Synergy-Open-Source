@@ -8,10 +8,12 @@
 
 import { query } from './_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from './sessionValidation';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { hasPermission } from './rbac/permissions';
+import { calculateAuthorityLevel } from './core/authority';
 
 // ============================================================================
 // Types
@@ -72,54 +74,10 @@ async function hasLeadRole(
 }
 
 /**
- * Check if user has a specific role in a circle (by name)
- * @deprecated Use hasLeadRole() for Lead role detection (template-based)
- * @param ctx - Query or mutation context
- * @param userId - User ID to check
- * @param circleId - Circle ID
- * @param roleNames - Array of role names to check (e.g., ['Circle Lead', 'Manager'])
- * @returns true if user has one of the specified roles
- */
-async function hasCircleRole(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>,
-	circleId: Id<'circles'>,
-	roleNames: string[]
-): Promise<boolean> {
-	// 1. Get all active circle roles for this circle
-	const circleRoles = await ctx.db
-		.query('circleRoles')
-		.withIndex('by_circle_archived', (q) => q.eq('circleId', circleId).eq('archivedAt', undefined))
-		.collect();
-
-	// 2. Filter to roles matching the provided names
-	const matchingRoles = circleRoles.filter((role) => roleNames.includes(role.name));
-
-	if (matchingRoles.length === 0) {
-		return false;
-	}
-
-	// 3. Check if user has any of these roles assigned
-	for (const role of matchingRoles) {
-		const userAssignment = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', userId).eq('circleRoleId', role._id))
-			.filter((q) => q.eq(q.field('archivedAt'), undefined))
-			.first();
-
-		if (userAssignment) {
-			return true;
-		}
-	}
-
-	return false;
-}
-
-/**
- * Query: Check if user can perform quick edits on a circle
+ * Query: Check quick edit status for a circle (allowed + reason)
  * Frontend-friendly wrapper for canQuickEdit
  */
-export const canQuickEditQuery = query({
+export const getQuickEditStatusQuery = query({
 	args: {
 		sessionId: v.string(),
 		circleId: v.id('circles')
@@ -129,7 +87,7 @@ export const canQuickEditQuery = query({
 
 		const circle = await ctx.db.get(args.circleId);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 
 		return await canQuickEdit(ctx, userId, circle);
@@ -145,28 +103,6 @@ function getEffectiveCircleType(
 	circle: Doc<'circles'>
 ): 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid' {
 	return circle.circleType ?? 'hierarchy';
-}
-
-/**
- * Check if user is a member of a circle
- * @param ctx - Query or mutation context
- * @param userId - User ID to check
- * @param circleId - Circle ID
- * @returns true if user is an active member of the circle
- */
-async function isCircleMember(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>,
-	circleId: Id<'circles'>
-): Promise<boolean> {
-	const member = await ctx.db
-		.query('circleMembers')
-		.withIndex('by_circle_user', (q) => q.eq('circleId', circleId).eq('userId', userId))
-		.first();
-
-	if (!member) return false;
-	if (member.archivedAt) return false;
-	return true;
 }
 
 // ============================================================================
@@ -209,16 +145,10 @@ export async function canQuickEdit(
 	}
 
 	// 2. Check RBAC permission
-	// Note: 'org-chart.edit.quick' permission exists in database but may not be in PermissionSlug type yet
-	const hasPermissionResult = await hasPermission(
-		ctx,
-		userId,
-		'org-chart.edit.quick' as any, // Type assertion - permission exists in DB
-		{
-			workspaceId: circle.workspaceId,
-			circleId: circle._id
-		}
-	);
+	const hasPermissionResult = await hasPermission(ctx, userId, 'org-chart.edit.quick', {
+		workspaceId: circle.workspaceId,
+		circleId: circle._id
+	});
 
 	if (!hasPermissionResult) {
 		return {
@@ -245,8 +175,6 @@ export async function canQuickEdit(
 	// Org Designer can edit hierarchy, empowered_team, and hybrid circles
 	// Circle type restrictions only apply to users WITHOUT Org Designer role
 	return { allowed: true };
-
-	return { allowed: true };
 }
 
 /**
@@ -265,22 +193,20 @@ export async function requireQuickEditPermission(
 		.first();
 
 	if (!orgSettings?.allowQuickChanges) {
-		throw new Error('Quick edits disabled. Use "Edit circle" to create a proposal.');
+		throw createError(
+			ErrorCodes.GENERIC_ERROR,
+			'Quick edits disabled. Use "Edit circle" to create a proposal.'
+		);
 	}
 
 	// 2. Check RBAC permission
-	const hasPermissionResult = await hasPermission(
-		ctx,
-		userId,
-		'org-chart.edit.quick' as any, // Type assertion - permission exists in DB
-		{
-			workspaceId: circle.workspaceId,
-			circleId: circle._id
-		}
-	);
+	const hasPermissionResult = await hasPermission(ctx, userId, 'org-chart.edit.quick', {
+		workspaceId: circle.workspaceId,
+		circleId: circle._id
+	});
 
 	if (!hasPermissionResult) {
-		throw new Error('Quick edits require Org Designer role.');
+		throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'Quick edits require Org Designer role.');
 	}
 
 	// 3. Check circle type restrictions
@@ -291,7 +217,10 @@ export async function requireQuickEditPermission(
 	// Guilds are a hard restriction - no quick edits even for Org Designer
 	// This is because guilds have no authority and are coordination-only
 	if (circleType === 'guild') {
-		throw new Error('Guilds are coordination-only. Create a proposal in your home circle.');
+		throw createError(
+			ErrorCodes.GENERIC_ERROR,
+			'Guilds are coordination-only. Create a proposal in your home circle.'
+		);
 	}
 
 	// If user has Org Designer role, skip circle type restrictions
@@ -324,16 +253,8 @@ export async function checkApprovalAuthority(
 	circle: Doc<'circles'>,
 	meeting: Doc<'meetings'> | null
 ): Promise<boolean> {
-	const circleType = circle.circleType ?? 'hierarchy';
-
-	// Map circle type to authority level (hard-coded defaults)
-	// This matches CIRCLE_TYPE_LEAD_AUTHORITY from constants.ts
-	const authorityLevel =
-		circleType === 'empowered_team'
-			? 'facilitative'
-			: circleType === 'guild'
-				? 'convening'
-				: 'authority'; // hierarchy, hybrid, or default
+	// Calculate authority level using isolated calculator (SYOS-692)
+	const authorityLevel = calculateAuthorityLevel(circle.circleType);
 
 	// Convening (guild): Never approve here - decisions made in home circles
 	if (authorityLevel === 'convening') {

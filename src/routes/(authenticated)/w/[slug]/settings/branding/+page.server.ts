@@ -21,8 +21,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	const sessionId = locals.auth.sessionId;
 
-	// Check user is org admin/owner (getMembers returns all members, filter by current user)
-	const membersResult = (await client.query(api.workspaces.getMembers, {
+	// Check user is org admin/owner (listMembers returns all members, filter by current user)
+	const membersResult = (await client.query(api.workspaces.listMembers, {
 		sessionId,
 		workspaceId: workspaceId as Id<'workspaces'>
 	})) as Array<{ userId: string; email: string; name: string; role: 'owner' | 'admin' | 'member' }>;
@@ -41,7 +41,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	}
 
 	// Load current branding
-	const brandingResult = (await client.query(api.workspaces.getBranding, {
+	const brandingResult = (await client.query(api.workspaces.findBranding, {
 		workspaceId: workspaceId as Id<'workspaces'>
 	})) as { primaryColor: string; secondaryColor: string; logo?: string } | null;
 

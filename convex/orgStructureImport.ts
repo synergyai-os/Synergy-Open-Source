@@ -8,27 +8,16 @@
 
 import { mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from './auth';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id, MutationCtx } from './_generated/dataModel';
 import { createCoreRolesForCircle } from './circles';
 import { captureCreate } from './orgVersionHistory';
+import { slugifyName, ensureUniqueSlug } from './core/circles';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
- * Helper function to slugify a name (duplicated from circles.ts since not exported)
- */
-function slugifyName(name: string): string {
-	return (
-		name
-			.trim()
-			.toLowerCase()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/(^-|-$)/g, '')
-			.slice(0, 48) || 'circle'
-	);
-}
-
-/**
- * Ensure unique circle slug within workspace (duplicated from circles.ts since not exported)
+ * Ensure unique circle slug within workspace
+ * Application layer function that combines DB query with pure slug logic
  */
 async function ensureUniqueCircleSlug(
 	ctx: MutationCtx,
@@ -41,14 +30,7 @@ async function ensureUniqueCircleSlug(
 		.collect();
 
 	const existingSlugs = new Set(existingCircles.map((circle) => circle.slug));
-	let slug = baseSlug;
-	let suffix = 1;
-
-	while (existingSlugs.has(slug)) {
-		slug = `${baseSlug}-${suffix++}`;
-	}
-
-	return slug;
+	return ensureUniqueSlug(baseSlug, existingSlugs);
 }
 
 /**
@@ -65,7 +47,10 @@ async function ensureWorkspaceMembership(
 		.first();
 
 	if (!membership) {
-		throw new Error('You do not have access to this workspace');
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			'You do not have access to this workspace'
+		);
 	}
 }
 
@@ -79,10 +64,10 @@ async function validateCircle(
 ): Promise<void> {
 	const circle = await ctx.db.get(circleId);
 	if (!circle) {
-		throw new Error('Circle not found');
+		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 	if (circle.workspaceId !== workspaceId) {
-		throw new Error('Circle does not belong to this workspace');
+		throw createError(ErrorCodes.CIRCLE_INVALID_PARENT, 'Circle does not belong to this workspace');
 	}
 }
 
@@ -151,7 +136,8 @@ async function validateNoCoreRoleDuplicates(
 	// If duplicates found, throw error with user-friendly message
 	if (duplicateRoles.length > 0) {
 		const roleList = duplicateRoles.map((r) => `"${r.roleName}" (line ${r.lineNumber})`).join(', ');
-		throw new Error(
+		throw createError(
+			ErrorCodes.GENERIC_ERROR,
 			`Cannot import: ${roleList} ${duplicateRoles.length === 1 ? 'is' : 'are'} core role${duplicateRoles.length === 1 ? '' : 's'} that will be automatically created. Remove these lines from your import to avoid duplicates.`
 		);
 	}
@@ -204,10 +190,7 @@ export const importOrgStructure = mutation({
 		structure: parsedNodeSchema // Parsed tree from frontend (root node with children)
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Validate workspace membership
 		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
@@ -218,7 +201,7 @@ export const importOrgStructure = mutation({
 		// Validate workspace exists
 		const workspace = await ctx.db.get(args.workspaceId);
 		if (!workspace) {
-			throw new Error('Workspace not found');
+			throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
 		}
 
 		// Validate no core role duplicates BEFORE creating anything

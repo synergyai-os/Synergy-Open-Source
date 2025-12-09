@@ -190,7 +190,7 @@
 							if (slug) {
 								goto(resolveRoute(`/w/${slug}/circles`));
 							} else {
-								goto(resolveRoute('/inbox'));
+								goto(resolveRoute('/auth/redirect'));
 							}
 						}}
 						class="text-on-solid py-nav-item text-button mt-4 rounded-button bg-accent-primary px-2 font-medium hover:bg-accent-hover"

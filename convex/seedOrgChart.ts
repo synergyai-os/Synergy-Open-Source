@@ -18,6 +18,7 @@ import { v } from 'convex/values';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Ensure user is a member of the workspace
@@ -33,7 +34,10 @@ async function ensureWorkspaceMembership(
 		.first();
 
 	if (!membership) {
-		throw new Error(`User ${userId} is not a member of workspace ${workspaceId}`);
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			`User ${userId} is not a member of workspace ${workspaceId}`
+		);
 	}
 }
 
@@ -217,23 +221,23 @@ export const seedTestData = mutation({
 			},
 			// Under Platform Infrastructure
 			{
-				name: 'Database Team',
+				name: 'Database Circle',
 				purpose: 'Manage database infrastructure and performance',
 				parentIndex: 1
 			},
 			{
-				name: 'DevOps Team',
+				name: 'DevOps Circle',
 				purpose: 'Handle deployment and monitoring',
 				parentIndex: 1
 			},
 			// Under Developer Experience
 			{
-				name: 'SDK Team',
+				name: 'SDK Circle',
 				purpose: 'Build and maintain client SDKs',
 				parentIndex: 2
 			},
 			{
-				name: 'Documentation Team',
+				name: 'Documentation Circle',
 				purpose: 'Create and maintain developer docs',
 				parentIndex: 2
 			}
@@ -407,23 +411,23 @@ export const seedTestDataInternal = internalMutation({
 			},
 			// Under Platform Infrastructure
 			{
-				name: 'Database Team',
+				name: 'Database Circle',
 				purpose: 'Manage database infrastructure and performance',
 				parentIndex: 1
 			},
 			{
-				name: 'DevOps Team',
+				name: 'DevOps Circle',
 				purpose: 'Handle deployment and monitoring',
 				parentIndex: 1
 			},
 			// Under Developer Experience
 			{
-				name: 'SDK Team',
+				name: 'SDK Circle',
 				purpose: 'Build and maintain client SDKs',
 				parentIndex: 2
 			},
 			{
-				name: 'Documentation Team',
+				name: 'Documentation Circle',
 				purpose: 'Create and maintain developer docs',
 				parentIndex: 2
 			}

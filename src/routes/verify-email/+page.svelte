@@ -39,7 +39,9 @@
 
 		// Get redirect target
 		const redirectParam = $page.url.searchParams.get('redirect');
-		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+		const redirectTarget = redirectParam
+			? resolveRoute(redirectParam)
+			: resolveRoute('/auth/redirect');
 
 		// Start countdown timer
 		redirectCountdown = 10;
@@ -70,7 +72,9 @@
 			redirectTimer = null;
 		}
 		const redirectParam = $page.url.searchParams.get('redirect');
-		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+		const redirectTarget = redirectParam
+			? resolveRoute(redirectParam)
+			: resolveRoute('/auth/redirect');
 		goto(redirectTarget);
 	}
 
@@ -80,7 +84,7 @@
 			clearInterval(redirectTimer);
 			redirectTimer = null;
 		}
-		const redirectParam = $page.url.searchParams.get('redirect') ?? '/inbox';
+		const redirectParam = $page.url.searchParams.get('redirect') ?? '/auth/redirect';
 		goto(
 			resolveRoute(
 				`/login?email=${encodeURIComponent(email)}&redirectTo=${encodeURIComponent(redirectParam)}`
@@ -189,7 +193,7 @@
 			}
 
 			// Success - redirect (user is now authenticated)
-			await goto(data.redirectTo ?? resolveRoute('/inbox'));
+			await goto(data.redirectTo ?? resolveRoute('/auth/redirect'));
 		} catch (_err) {
 			console.error('Verification error:', _err);
 			errorMessage = 'Network error. Please check your connection and try again.';

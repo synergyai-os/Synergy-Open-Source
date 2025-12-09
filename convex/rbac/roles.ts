@@ -6,8 +6,8 @@
 
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from '../auth';
 import { validateSessionAndGetUserId } from '../sessionValidation';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 import { requirePermission } from './permissions';
 
 /**
@@ -26,10 +26,7 @@ export const assignRole = mutation({
 		expiresAt: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx, args.sessionId);
-		if (!actingUserId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Check permission
 		await requirePermission(ctx, actingUserId, 'users.change-roles', {
@@ -44,7 +41,7 @@ export const assignRole = mutation({
 			.first();
 
 		if (!role) {
-			throw new Error(`Role not found: ${args.roleSlug}`);
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, `Role not found: ${args.roleSlug}`);
 		}
 
 		// Check if user already has this role
@@ -67,7 +64,7 @@ export const assignRole = mutation({
 			.first();
 
 		if (existingRole) {
-			throw new Error(`User already has role: ${args.roleSlug}`);
+			throw createError(ErrorCodes.GENERIC_ERROR, `User already has role: ${args.roleSlug}`);
 		}
 
 		// Assign role
@@ -97,15 +94,12 @@ export const revokeRole = mutation({
 		userRoleId: v.id('userRoles')
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx, args.sessionId);
-		if (!actingUserId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get user role
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role not found');
 		}
 
 		// Check permission

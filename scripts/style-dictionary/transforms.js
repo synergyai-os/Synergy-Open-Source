@@ -472,7 +472,7 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 				dtcgRefConditional = current.dtcgRefConditional;
 			}
 		}
-	} catch (error) {
+	} catch {
 		// If reading fails, fall back to resolved values
 		// Silent fail - not critical if we can't read the file
 	}
@@ -550,10 +550,6 @@ function resolveConditionalValue(value, pathParts) {
 		// This happens when a conditional token references another conditional token
 		// Style Dictionary resolves {color.text.tertiary} to the actual conditional object
 		// We need to convert it back to a CSS variable reference
-		// Extract the token path from the current context or use a fallback
-		const tokenPath = pathParts.join('.');
-		// For now, try to infer the CSS variable name from common patterns
-		// If this is a reference to another conditional token, use var() syntax
 		const cssVarName = pathParts.join('-');
 		return `var(--${cssVarName})`;
 	}

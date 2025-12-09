@@ -1,11 +1,11 @@
 import { query, mutation, action, internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 // Note: We use dynamic imports for crypto functions to avoid bundler issues
 // Mutations have Node.js runtime by default and can use dynamic imports
 import { internal } from './_generated/api';
 import type { Id } from './_generated/dataModel';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Get user settings for the current authenticated user
@@ -94,7 +94,7 @@ export const updateClaudeApiKey = action({
 			sessionId: args.sessionId
 		});
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated');
 		}
 
 		// Validate the API key first
@@ -107,21 +107,24 @@ export const updateClaudeApiKey = action({
 			const errorMsg = validationResult.error || 'Invalid API key';
 			// Make error message shorter and more user-friendly
 			if (errorMsg.includes('invalid x-api-key')) {
-				throw new Error('Invalid API key format');
+				throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Invalid API key format');
 			}
 			if (errorMsg.includes('authentication')) {
-				throw new Error('Authentication failed');
+				throw createError(ErrorCodes.AUTH_INVALID_TOKEN, 'Authentication failed');
 			}
-			throw new Error(errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg);
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg
+			);
 		}
 
-		// Encrypt the API key (required so team can't read user keys)
+		// Encrypt the API key (required so operators can't read user keys)
 		const encryptedKey: string = await ctx.runAction(internal.cryptoActions.encryptApiKey, {
 			plaintextApiKey: args.apiKey
 		});
 
 		// Save encrypted key
-		// userId is already an Id<"users"> from getAuthUserId, so we can use it directly
+		// userId is already an Id<"users"> from validateSessionAndGetUserId, so we can use it directly
 		return await ctx.runMutation(internal.settings.updateClaudeApiKeyInternal, {
 			userId: userId as Id<'users'>,
 			encryptedKey
@@ -147,7 +150,7 @@ export const updateReadwiseApiKey = action({
 			sessionId: args.sessionId
 		});
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated');
 		}
 
 		// Validate the API key first
@@ -158,16 +161,19 @@ export const updateReadwiseApiKey = action({
 		if (!validationResult.valid) {
 			// Return user-friendly error message
 			const errorMsg = validationResult.error || 'Invalid API key';
-			throw new Error(errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg);
+			throw createError(
+				ErrorCodes.VALIDATION_INVALID_FORMAT,
+				errorMsg.length > 50 ? errorMsg.substring(0, 50) + '...' : errorMsg
+			);
 		}
 
-		// Encrypt the API key (required so team can't read user keys)
+		// Encrypt the API key (required so operators can't read user keys)
 		const encryptedKey: string = await ctx.runAction(internal.cryptoActions.encryptApiKey, {
 			plaintextApiKey: args.apiKey
 		});
 
 		// Save encrypted key
-		// userId is already an Id<"users"> from getAuthUserId, so we can use it directly
+		// userId is already an Id<"users"> from validateSessionAndGetUserId, so we can use it directly
 		return await ctx.runMutation(internal.settings.updateReadwiseApiKeyInternal, {
 			userId: userId as Id<'users'>,
 			encryptedKey
@@ -184,7 +190,8 @@ export const getUserIdFromSessionId = internalQuery({
 		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		return await getAuthUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		return userId;
 	}
 });
 
@@ -275,10 +282,7 @@ export const updateTheme = mutation({
 		theme: v.union(v.literal('light'), v.literal('dark'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Find existing settings
 		const settings = await ctx.db
@@ -315,10 +319,7 @@ export const deleteClaudeApiKey = mutation({
 		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Find existing settings
 		const settings = await ctx.db
@@ -347,10 +348,7 @@ export const deleteReadwiseApiKey = mutation({
 		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Find existing settings
 		const settings = await ctx.db

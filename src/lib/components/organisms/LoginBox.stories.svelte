@@ -24,7 +24,7 @@
 	});
 </script>
 
-<Story name="Default" args={{ email: '', password: '', redirectTarget: '/inbox' }}>
+<Story name="Default" args={{ email: '', password: '', redirectTarget: '/auth/redirect' }}>
 	{#snippet template(args)}
 		<LoginBox {...args} />
 	{/snippet}
@@ -32,7 +32,7 @@
 
 <Story
 	name="With Prefilled Email"
-	args={{ email: 'user@example.com', password: '', redirectTarget: '/inbox' }}
+	args={{ email: 'user@example.com', password: '', redirectTarget: '/auth/redirect' }}
 >
 	{#snippet template(args)}
 		<LoginBox {...args} />
@@ -41,7 +41,7 @@
 
 <Story
 	name="Submitting"
-	args={{ email: '', password: '', isSubmitting: true, redirectTarget: '/inbox' }}
+	args={{ email: '', password: '', isSubmitting: true, redirectTarget: '/auth/redirect' }}
 >
 	{#snippet template(args)}
 		<LoginBox {...args} />
@@ -55,7 +55,7 @@
 		password: '',
 		errorMessage: 'Invalid email or password. Please try again.',
 		showCreateAccountLink: true,
-		redirectTarget: '/inbox'
+		redirectTarget: '/auth/redirect'
 	}}
 >
 	{#snippet template(args)}
@@ -70,7 +70,7 @@
 		password: '',
 		isRateLimited: true,
 		rateLimitRetryAfter: 45,
-		redirectTarget: '/inbox'
+		redirectTarget: '/auth/redirect'
 	}}
 >
 	{#snippet template(args)}
@@ -84,7 +84,7 @@
 		email: 'user@example.com',
 		password: '',
 		linkingFlow: true,
-		redirectTarget: '/inbox'
+		redirectTarget: '/auth/redirect'
 	}}
 >
 	{#snippet template(args)}

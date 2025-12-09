@@ -148,7 +148,6 @@ describe('Transform Logic Validation', () => {
 	describe('Transform Edge Cases', () => {
 		it('should handle nested token paths correctly', () => {
 			const tokens = getTokens();
-			const utilities = getGeneratedUtilities();
 
 			// Test nested paths like spacing.card.padding.x
 			const nestedTokens = tokens.filter((t) => t.path.length > 2);

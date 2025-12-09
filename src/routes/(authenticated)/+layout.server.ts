@@ -45,7 +45,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		);
 
 		// Legacy: Check circles flag directly (not yet migrated to module registry)
-		circlesEnabled = (await client.query(api.featureFlags.checkFlag, {
+		circlesEnabled = (await client.query(api.featureFlags.isFlagEnabled, {
 			flag: 'circles_ui_beta',
 			sessionId
 		})) as boolean;
@@ -143,7 +143,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					try {
 						// TODO: Add meetings-specific data loading here when needed
 						// Example:
-						// return await client.query(api.meetings.listUpcoming, {
+						// return await client.query(api.modules.meetings.meetings.listUpcoming, {
 						//   sessionId,
 						//   workspaceId: activeOrgId as Id<'workspaces'>
 						// });
@@ -185,7 +185,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	if (activeOrgId) {
 		workspaceId = activeOrgId;
 		try {
-			const brandingResult = await client.query(api.workspaces.getBranding, {
+			const brandingResult = await client.query(api.workspaces.findBranding, {
 				workspaceId: activeOrgId as Id<'workspaces'>
 			});
 			orgBranding = brandingResult as {

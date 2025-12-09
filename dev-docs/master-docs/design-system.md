@@ -1,12 +1,28 @@
 # SynergyOS Design System
 
-**Purpose**: Single source of truth for design system architecture and implementation.
+**Purpose**: Single source of truth for visual design, tokens, styling patterns, and component recipes.
 
 **Audience**: Human developers + AI agents
 
 **Status**: Living document - Updated as system evolves
 
-**Last Updated**: 2025-11-29
+**Last Updated**: 2025-12-06
+
+---
+
+## When to Use This Document
+
+| Task | Use This Document? |
+|------|-------------------|
+| Styling a component | ✅ Yes |
+| Creating/using design tokens | ✅ Yes |
+| Implementing a recipe | ✅ Yes |
+| Visual design decisions | ✅ Yes |
+| Where to put a component file | ❌ No → See [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| Backend code structure | ❌ No → See [ARCHITECTURE.md](./ARCHITECTURE.md) |
+| Domain logic, business rules | ❌ No → See [ARCHITECTURE.md](./ARCHITECTURE.md) |
+
+**Key principle**: This document answers "HOW should it look?" `ARCHITECTURE.md` answers "WHERE does code go?"
 
 ---
 
@@ -16,9 +32,8 @@
 2. [Token Architecture](#2-token-architecture)
 3. [Brand Identity](#3-brand-identity)
 4. [CSS Utilities](#4-css-utilities)
-5. [Component Architecture](#5-component-architecture)
+5. [Component Styling](#5-component-styling)
 6. [Recipe System](#6-recipe-system)
-   - 6.8 [Compound Components Pattern](#68-compound-components-pattern)
 7. [Dark Mode](#7-dark-mode)
 8. [Validation](#8-validation)
 9. [Visual Design Principles](#9-visual-design-principles)
@@ -58,9 +73,20 @@ NO code changes required
 ### 1.3 Design Philosophy
 
 1. **Token-Driven**: Every design value is a token
-2. **AI-Friendly**: Patterns that AI agents can follow consistently
-3. **Cascade-First**: Changes propagate automatically
+2. **Cascade-First**: Changes propagate automatically
+3. **Recipe-Enforced**: Variants use CVA recipes, not manual class logic
 4. **Type-Safe**: Recipe system prevents invalid variants
+
+### 1.4 AI Development Rules
+
+For AI agents working with this design system:
+
+| Rule | Rationale |
+|------|-----------|
+| Always use semantic tokens, never base tokens | `bg-surface` not `bg-neutral-900` |
+| Always use recipes for component variants | Prevents visual drift |
+| Never hardcode colors, spacing, or sizes | Even if the value "matches" a token |
+| Check recipe exists before creating manual variant logic | Recipes are the source of truth |
 
 ---
 
@@ -75,7 +101,7 @@ Layer 2: Semantic Tokens (design-tokens-semantic.json)
   ↓ generates
 Layer 3: CSS Utilities (@utility classes)
   ↓ used by
-Layer 4: Components (Atoms/Molecules/Organisms)
+Layer 4: Components (styled via recipes)
   ↓ composed into
 Layer 5: Pages
 ```
@@ -238,41 +264,39 @@ We provide alias utilities that map common names to semantic tokens:
 
 ---
 
-## 5. Component Architecture
+## 5. Component Styling
 
-### 5.1 Atomic Design Layers
+### 5.1 Styling Approach
 
-```
-src/lib/components/
-  ├── atoms/       # Single elements (Button, Badge, Card, Input)
-  ├── molecules/   # 2-3 atoms combined (FormField, SearchBar)
-  └── organisms/   # Complex sections (Dialog, Header)
+This section covers **how to style components**. For component file locations and import rules, see [ARCHITECTURE.md](./ARCHITECTURE.md#frontend-architecture).
 
-src/lib/modules/[module]/components/
-  └── *.svelte     # Module-specific components
-```
+| Component Type | Styling Approach |
+|----------------|------------------|
+| **Atoms** (Button, Badge, Input) | Recipe with variants |
+| **Molecules** (FormField, SearchBar) | Compose atom recipes + layout utilities |
+| **Organisms** (Dialog, Header) | Compose recipes + custom layout |
+| **Feature components** | Use shared recipes, add feature-specific layout |
 
-### 5.2 Component Classification
-
-| Type | Location | Characteristics |
-|------|----------|-----------------|
-| **Atoms** | `src/lib/components/atoms/` | Single element, has variants, used everywhere |
-| **Molecules** | `src/lib/components/molecules/` | Combines 2-3 atoms, reusable |
-| **Organisms** | `src/lib/components/organisms/` | Complex, may have state |
-| **Feature** | `src/lib/modules/*/components/` | Module-specific, has business logic |
-
-### 5.3 Import Rules
+### 5.2 Import Rules for Styling
 
 ```typescript
-// ✅ CORRECT: Import from shared components
-import { Button, Card, Badge } from '$lib/components/atoms';
-import { ToggleSwitch, DropdownMenu } from '$lib/components/molecules';
+// ✅ CORRECT: Import recipes from design system
+import { buttonRecipe, cardRecipe } from '$lib/design-system/recipes';
 
-// ❌ WRONG: Cross-module imports
-import { InboxCard } from '$lib/modules/inbox/components'; // From flashcards module
+// ✅ CORRECT: Import shared components (they have recipes built-in)
+import { Button, Card, Badge } from '$lib/components/atoms';
+
+// ❌ WRONG: Importing directly from bits-ui (no recipes)
+import { Button } from 'bits-ui';
 ```
 
-**Rule**: Feature components MUST NOT cross module boundaries.
+### 5.3 Recipe vs Utility Decision
+
+| Scenario | Use |
+|----------|-----|
+| Component with variants (size, color, state) | **Recipe** |
+| One-off layout styling | **Utility classes** |
+| SVG sizing | **Manual attributes** (with exception comment) |
 
 ---
 
@@ -318,6 +342,8 @@ Recipe System = CVA (Class Variance Authority) based variant system.
 
 **If you wanted icon styling variants** (e.g., different sizes/colors), that would go in a recipe. But selecting which icon to display is business logic and stays in the component.
 
+### 6.3 Recipe Implementation
+
 ```typescript
 // src/lib/design-system/recipes/button.recipe.ts
 import { cva } from 'class-variance-authority';
@@ -346,7 +372,7 @@ export const buttonRecipe = cva(
 );
 ```
 
-### 6.3 Using Recipes
+### 6.4 Using Recipes
 
 ```svelte
 <script lang="ts">
@@ -361,14 +387,6 @@ export const buttonRecipe = cva(
   <slot />
 </button>
 ```
-
-### 6.4 When to Use Recipe vs Manual Classes
-
-| Scenario | Use |
-|----------|-----|
-| CSS component with variants (Button, Card, Badge) | **Recipe System** |
-| SVG component (Loading, Icon) | **Manual classes** (with exception comment) |
-| One-off styling | **Utility classes directly** |
 
 ### 6.5 Size Variant Naming Standard
 
@@ -406,10 +424,6 @@ Some components may need extended ranges beyond the core three:
 - **Larger**: `xl` (or `xxl` for very large) - e.g., Icon for hero sections
 
 **Rule**: Only add extended sizes when the component genuinely needs them. Most components should stick to `sm`, `md`, `lg`.
-
-**Examples of Extended Sizes:**
-- **Avatar**: `xxs`, `xs`, `sm`, `md`, `lg` (needs very small sizes for compact sidebars)
-- **Icon**: `sm`, `md`, `lg`, `xl`, `xxl` (needs larger sizes for hero sections)
 
 #### Current Recipe Standards
 
@@ -835,10 +849,10 @@ If you need a spacing value that doesn't exist:
 ### 10.2 Wrong Import Paths
 
 ```typescript
-// ❌ WRONG: Importing from bits-ui
+// ❌ WRONG: Importing from bits-ui (no recipes applied)
 import { ToggleSwitch } from 'bits-ui';
 
-// ✅ CORRECT: Import from our components
+// ✅ CORRECT: Import from our components (recipes built-in)
 import { ToggleSwitch } from '$lib/components/molecules';
 ```
 
@@ -879,6 +893,18 @@ Z-index utilities (`z-10`, `z-50`) are **acceptable** - they're layout/layering 
 <div style="z-index: var(--zIndex-modal);">Modal content</div>
 ```
 
+### 10.6 Cross-Module Component Imports
+
+```typescript
+// ❌ WRONG: Importing feature component from another module
+import { InboxCard } from '$lib/modules/inbox/components'; // From meetings module
+
+// ✅ CORRECT: Use shared components or duplicate if truly needed
+import { Card } from '$lib/components/atoms';
+```
+
+For component location rules, see [ARCHITECTURE.md](./ARCHITECTURE.md#frontend-architecture).
+
 ---
 
 ## Quick Reference
@@ -917,8 +943,14 @@ Z-index utilities (`z-10`, `z-50`) are **acceptable** - they're layout/layering 
 | Card border radius | `rounded-card` |
 | Card shadow | `shadow-card` |
 
+### Related Documentation
+
+| Document | Use When |
+|----------|----------|
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Component file locations, import rules, backend structure |
+| [ARCHITECTURE.md#frontend-architecture](./ARCHITECTURE.md#frontend-architecture) | Where to put component files |
+
 ---
 
-**Last Updated**: 2025-11-29
-**Version**: 2.1.0 (Design System Compactness v2 - Linear-inspired compact defaults)
-
+**Last Updated**: 2025-12-06
+**Version**: 2.2.0 (Added cross-references to ARCHITECTURE.md, streamlined component section)

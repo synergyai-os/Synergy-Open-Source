@@ -15,6 +15,7 @@ import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 export interface UsePermissionsParams {
 	sessionId: () => string | null;
@@ -62,7 +63,7 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 		browser && params.sessionId()
 			? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 
 					const args: {
 						sessionId: string;

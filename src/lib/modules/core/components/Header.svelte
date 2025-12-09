@@ -24,7 +24,7 @@
 	<div class="flex items-center gap-2">
 		{#if isAuthenticated}
 			<!-- Logged in: Show Dashboard button -->
-			<Button variant="primary" href={resolve('/inbox')}>Dashboard</Button>
+			<Button variant="primary" href={resolve('/auth/redirect')}>Dashboard</Button>
 		{:else}
 			<!-- Not logged in: Show Register/Login -->
 			<Button variant="secondary" href={resolve('/register')}>Register</Button>

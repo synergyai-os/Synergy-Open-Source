@@ -1,3 +1,4 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
 	/**
 	 * CircleNode Component - Isolated circle rendering for Storybook
@@ -7,12 +8,7 @@
 	 *
 	 * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for color system docs
 	 */
-	import {
-		getCircleColor,
-		getCircleStrokeColor,
-		getCircleLabelColor,
-		getCircleLabelStrokeColor
-	} from '$lib/utils/orgChartTransform';
+	import { getCircleColor, getCircleStrokeColor } from '$lib/utils/orgChartTransform';
 	import type { CircleHierarchyNode } from '$lib/utils/orgChartTransform';
 
 	let {

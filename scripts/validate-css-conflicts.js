@@ -525,9 +525,9 @@ function checkTokenExistence(ast, filePath, generatedTokens, generatedUtilities)
  */
 function checkSvelteInlineStyles(
 	svelteFilePath,
-	conditionalTokenNames,
-	generatedTokens,
-	generatedUtilities
+	_conditionalTokenNames,
+	_generatedTokens,
+	_generatedUtilities
 ) {
 	const violations = [];
 	const content = fs.readFileSync(svelteFilePath, 'utf-8');
@@ -542,7 +542,7 @@ function checkSvelteInlineStyles(
 			try {
 				const cssAst = postcss.parse(ast.css.content);
 				violations.push(...checkOrgBrandingPattern(cssAst, svelteFilePath));
-			} catch (error) {
+			} catch {
 				// Invalid CSS - skip
 			}
 		}
@@ -737,7 +737,7 @@ function scanCSSFile(filePath, conditionalTokenNames, generatedTokens, generated
 /**
  * Format violation for output
  */
-function formatViolation(violation, verbose = false) {
+function formatViolation(violation) {
 	const relativePath = path.relative(PROJECT_ROOT, violation.file);
 	const lineInfo = `${relativePath}:${violation.line}`;
 
@@ -757,12 +757,13 @@ function formatViolation(violation, verbose = false) {
 		case 'load-order':
 			return `${lineInfo}\n  ${colors.yellow}⚠️  Load order issue: ${violation.message}${colors.reset}\n  → ${violation.suggestion}`;
 
-		case 'missing-token':
+		case 'missing-token': {
 			const suggestions =
 				violation.suggestions && violation.suggestions.length > 0
 					? `\n  → Available: ${violation.suggestions.join(', ')}`
 					: '';
 			return `${lineInfo}\n  ${colors.red}❌ Missing token: ${violation.token}${colors.reset}${suggestions}`;
+		}
 
 		default:
 			return `${lineInfo}\n  ${colors.red}❌ Unknown violation type${colors.reset}`;
@@ -773,7 +774,7 @@ function formatViolation(violation, verbose = false) {
  * Main validation function
  */
 function validateCSSConflicts(options = {}) {
-	const { ci = false, verbose = false, fix = false } = options;
+	const { ci = false, verbose = false } = options;
 
 	console.log(`${colors.blue}🔍 Validating CSS conflicts...${colors.reset}\n`);
 
@@ -915,8 +916,7 @@ function parseArgs() {
 	const args = process.argv.slice(2);
 	return {
 		ci: args.includes('--ci'),
-		verbose: args.includes('--verbose'),
-		fix: args.includes('--fix')
+		verbose: args.includes('--verbose')
 	};
 }
 

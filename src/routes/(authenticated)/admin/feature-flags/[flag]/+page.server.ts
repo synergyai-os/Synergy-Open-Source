@@ -14,9 +14,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const flagName = params.flag;
 
 	// Load flag details
-	let flag: Awaited<ReturnType<typeof client.query<typeof api.featureFlags.getFlag>>> | null = null;
+	let flag: Awaited<ReturnType<typeof client.query<typeof api.featureFlags.findFlag>>> | null =
+		null;
 	try {
-		flag = await client.query(api.featureFlags.getFlag, { flag: flagName });
+		flag = await client.query(api.featureFlags.findFlag, { flag: flagName });
 	} catch (error) {
 		console.warn('Failed to load flag:', error);
 	}

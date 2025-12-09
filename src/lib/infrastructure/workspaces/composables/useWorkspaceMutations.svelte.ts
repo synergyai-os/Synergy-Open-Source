@@ -16,6 +16,7 @@ import { toast } from '$lib/utils/toast';
 import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 import type { Id } from '$lib/convex';
 import type { ConvexClient } from 'convex/browser';
+import { invariant } from '$lib/utils/invariant';
 
 export type ModalKey = 'createWorkspace' | 'joinOrganization';
 
@@ -63,9 +64,7 @@ export function useWorkspaceMutations(
 		if (!trimmed) return;
 
 		const userId = getUserId();
-		if (!userId) {
-			throw new Error('User ID is required. Please log in again.');
-		}
+		invariant(userId, 'User ID is required. Please log in again.');
 
 		loadingState.createWorkspace = true;
 
@@ -86,9 +85,7 @@ export function useWorkspaceMutations(
 		try {
 			// Get sessionId
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID not available');
-			}
+			invariant(sessionId, 'Session ID not available');
 
 			const result = await convexClient.mutation(api.workspaces.createWorkspace, {
 				name: trimmed,

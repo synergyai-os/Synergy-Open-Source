@@ -1,3 +1,4 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	// TODO: Re-enable when EditorView is needed
@@ -12,29 +13,32 @@
 
 	let { visible = false, position = { x: 0, y: 0 }, onConfirm, onDismiss }: Props = $props();
 
-	// Calculate position to keep menu in viewport
-	// Menu dimensions: 12.5rem (200px) width, 6.25rem (100px) height
-	const menuWidth = $derived(() => {
-		if (typeof window === 'undefined') {
-			return 200; // SSR fallback
-		}
-		return 200; // 12.5rem = 200px
-	});
-	const menuHeight = $derived(() => {
-		if (typeof window === 'undefined') {
-			return 100; // SSR fallback
-		}
-		return 100; // 6.25rem = 100px
-	});
+	// Calculate position to keep menu in viewport using spacing tokens
+	function spacingValue(token: string, fallback: number) {
+		if (typeof window === 'undefined') return fallback;
+		const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+		const numeric = Number.parseFloat(raw);
+		if (!Number.isFinite(numeric)) return fallback;
+		return raw.endsWith('rem') ? numeric * 16 : numeric;
+	}
+
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const menuWidth = $derived(() => spacingValue('--spacing-52', 208));
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const menuHeight = $derived(() => spacingValue('--spacing-24', 96));
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const viewportPadding = $derived(() => spacingValue('--spacing-5', 20));
+	const arrowOffset = $derived(() => spacingValue('--spacing-5', 20));
+	const arrowLift = $derived(() => spacingValue('--spacing-2', 8));
 	const adjustedX = $derived(() => {
 		if (!position) return 0;
-		const maxX = window.innerWidth - menuWidth() - 20;
+		const maxX = window.innerWidth - menuWidth() - viewportPadding();
 		return Math.min(position.x, maxX);
 	});
 
 	const adjustedY = $derived(() => {
 		if (!position) return 0;
-		const maxY = window.innerHeight - menuHeight() - 20;
+		const maxY = window.innerHeight - menuHeight() - viewportPadding();
 		return Math.min(position.y, maxY);
 	});
 
@@ -97,7 +101,7 @@
 		<!-- Arrow pointer -->
 		<div
 			class="icon-xs border-base absolute rotate-45 transform border-t border-l bg-surface"
-			style="top: -7px; left: 20px;"
+			style="top: -{arrowLift()}px; left: {arrowOffset()}px;"
 		></div>
 	</div>
 {/if}

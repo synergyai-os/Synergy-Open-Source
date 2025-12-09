@@ -39,7 +39,6 @@
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 		user?: { email: string; firstName?: string; lastName?: string } | null;
-		circlesEnabled?: boolean;
 		meetingsEnabled?: boolean;
 		dashboardEnabled?: boolean;
 	};
@@ -55,7 +54,6 @@
 		onCreateMenuChange: _onCreateMenuChange,
 		onQuickCreate: _onQuickCreate,
 		user = null,
-		circlesEnabled = false,
 		meetingsEnabled = false,
 		dashboardEnabled = false
 	}: Props = $props();
@@ -89,12 +87,6 @@
 	// This demonstrates loose coupling - component depends on interface, not internal implementation
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const authSession = useAuthSession();
-
-	// Get active workspace ID for org-scoped links
-	const activeOrgId = $derived(() => {
-		if (!workspaces) return null;
-		return workspaces.activeWorkspaceId ?? null;
-	});
 
 	// Get active workspace slug for path-based routing
 	const activeWorkspaceSlug = $derived(() => {
@@ -535,16 +527,16 @@
 				}}
 				onCreateWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open create modal
-					await authSession.switchAccount(targetUserId, '/inbox?create=workspace');
+					await authSession.switchAccount(targetUserId, '/auth/redirect?create=workspace');
 				}}
 				onJoinWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open join modal
-					await authSession.switchAccount(targetUserId, '/inbox?join=workspace');
+					await authSession.switchAccount(targetUserId, '/auth/redirect?join=workspace');
 				}}
 				onAddAccount={() => {
 					const currentPath = browser
 						? `${window.location.pathname}${window.location.search}`
-						: '/inbox';
+						: '/auth/redirect';
 					const params = new URLSearchParams({
 						linkAccount: '1',
 						redirect: currentPath
@@ -552,7 +544,7 @@
 					const loginPath = resolveRoute('/login');
 					goto(`${loginPath}?${params.toString()}`);
 				}}
-				onSwitchAccount={async (targetUserId, redirectTo) => {
+				onSwitchAccount={async (targetUserId, _redirectTo) => {
 					// Find the account being switched to
 					const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 					const targetName =
@@ -563,8 +555,7 @@
 					accountSwitchOverlay.targetName = targetName;
 
 					try {
-						// Don't pass redirectTo - let server redirect to /inbox, then client will redirect to workspace
-						// This ensures we get the first workspace's inbox after account switch
+						// Don't pass redirectTo - server will resolve workspace inbox
 						await authSession.switchAccount(targetUserId);
 					} catch (error) {
 						// Reset overlay if switch fails
@@ -593,7 +584,7 @@
 					<!-- Inbox -->
 					<NavItem
 						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/inbox'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/auth/redirect'
 						)}
 						iconType="inbox"
 						label="Inbox"
@@ -605,7 +596,7 @@
 					<!-- Org Chart -->
 					<NavItem
 						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
 						)}
 						iconType="orgChart"
 						label="Org Chart"
@@ -631,7 +622,9 @@
 							{#if meetingsEnabled}
 								<NavItem
 									href={resolveRoute(
-										activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+										activeWorkspaceSlug()
+											? `/w/${activeWorkspaceSlug()}/meetings`
+											: '/auth/redirect'
 									)}
 									iconType="calendar"
 									label="Meetings"
@@ -643,7 +636,7 @@
 							<!-- Proposals -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/auth/redirect'
 								)}
 								iconType="document"
 								label="Proposals"
@@ -716,7 +709,7 @@
 							<!-- Circles -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
 								)}
 								iconType="circles"
 								label="Circles"
@@ -727,7 +720,9 @@
 							<!-- Flashcards -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+									activeWorkspaceSlug()
+										? `/w/${activeWorkspaceSlug()}/flashcards`
+										: '/auth/redirect'
 								)}
 								iconType="flashcards"
 								label="Flashcards"
@@ -738,7 +733,7 @@
 							<!-- Study -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/auth/redirect'
 								)}
 								iconType="study"
 								label="Study"
@@ -749,7 +744,7 @@
 							<!-- Tags -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/auth/redirect'
 								)}
 								iconType="tags"
 								label="Tags"
@@ -760,7 +755,7 @@
 							<!-- Members -->
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/auth/redirect'
 								)}
 								iconType="members"
 								label="Members"
@@ -772,7 +767,9 @@
 							{#if dashboardEnabled}
 								<NavItem
 									href={resolveRoute(
-										activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+										activeWorkspaceSlug()
+											? `/w/${activeWorkspaceSlug()}/dashboard`
+											: '/auth/redirect'
 									)}
 									iconType="dashboard"
 									label="Dashboard"
@@ -924,7 +921,7 @@
 			onAddAccount={() => {
 				const currentPath = browser
 					? `${window.location.pathname}${window.location.search}`
-					: '/inbox';
+					: '/auth/redirect';
 				const params = new URLSearchParams({
 					linkAccount: '1',
 					redirect: currentPath
@@ -932,7 +929,7 @@
 				const loginPath = resolveRoute('/login');
 				goto(`${loginPath}?${params.toString()}`);
 			}}
-			onSwitchAccount={async (targetUserId, redirectTo) => {
+			onSwitchAccount={async (targetUserId, _redirectTo) => {
 				// Find the account being switched to
 				const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 				const targetName =
@@ -972,7 +969,7 @@
 				<!-- Inbox -->
 				<NavItem
 					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/inbox'
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/auth/redirect'
 					)}
 					iconType="inbox"
 					label="Inbox"
@@ -984,7 +981,7 @@
 				<!-- Org Chart -->
 				<NavItem
 					href={resolveRoute(
-						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
 					)}
 					iconType="orgChart"
 					label="Org Chart"
@@ -1008,7 +1005,7 @@
 						{#if meetingsEnabled}
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/auth/redirect'
 								)}
 								iconType="calendar"
 								label="Meetings"
@@ -1020,7 +1017,7 @@
 						<!-- Proposals -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/auth/redirect'
 							)}
 							iconType="document"
 							label="Proposals"
@@ -1091,7 +1088,7 @@
 						<!-- Circles -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
 							)}
 							iconType="circles"
 							label="Circles"
@@ -1102,7 +1099,7 @@
 						<!-- Flashcards -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/auth/redirect'
 							)}
 							iconType="flashcards"
 							label="Flashcards"
@@ -1113,7 +1110,7 @@
 						<!-- Study -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/auth/redirect'
 							)}
 							iconType="study"
 							label="Study"
@@ -1124,7 +1121,7 @@
 						<!-- Tags -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/auth/redirect'
 							)}
 							iconType="tags"
 							label="Tags"
@@ -1135,7 +1132,7 @@
 						<!-- Members -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/auth/redirect'
 							)}
 							iconType="members"
 							label="Members"
@@ -1147,7 +1144,7 @@
 						{#if dashboardEnabled}
 							<NavItem
 								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/auth/redirect'
 								)}
 								iconType="dashboard"
 								label="Dashboard"

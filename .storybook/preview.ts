@@ -8,6 +8,8 @@ import '../src/styles/app.css';
 // Import Storybook-specific CSS overrides (fixes code block readability)
 import './storybook-overrides.css';
 
+let storybookResizeTimeout: ReturnType<typeof setTimeout> | undefined;
+
 // Measure iframe content height and communicate to parent
 if (typeof window !== 'undefined') {
 	// Function to measure the actual component wrapper and report height
@@ -17,10 +19,10 @@ if (typeof window !== 'undefined') {
 			requestAnimationFrame(() => {
 				// Try multiple selectors to find the content wrapper
 				const wrapper =
-					document.querySelector('[data-storybook-wrapper="true"]') ||
-					document.querySelector('#storybook-root > div') ||
-					document.querySelector('#root > div') ||
-					document.querySelector('body > div:first-child');
+					document.querySelector<HTMLElement>('[data-storybook-wrapper="true"]') ||
+					document.querySelector<HTMLElement>('#storybook-root > div') ||
+					document.querySelector<HTMLElement>('#root > div') ||
+					document.querySelector<HTMLElement>('body > div:first-child');
 
 				let contentHeight = 0;
 				let source = 'unknown';
@@ -109,8 +111,8 @@ if (typeof window !== 'undefined') {
 		if (document.body && document.body instanceof Node) {
 			const observer = new MutationObserver(() => {
 				// Debounce measurements
-				clearTimeout(window._storybookResizeTimeout);
-				window._storybookResizeTimeout = setTimeout(measureAndReportHeight, 50);
+				clearTimeout(storybookResizeTimeout);
+				storybookResizeTimeout = setTimeout(measureAndReportHeight, 50);
 			});
 			observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 		} else {
@@ -127,8 +129,8 @@ if (typeof window !== 'undefined') {
 
 	// Measure on resize
 	window.addEventListener('resize', () => {
-		clearTimeout(window._storybookResizeTimeout);
-		window._storybookResizeTimeout = setTimeout(measureAndReportHeight, 50);
+		clearTimeout(storybookResizeTimeout);
+		storybookResizeTimeout = setTimeout(measureAndReportHeight, 50);
 	});
 }
 

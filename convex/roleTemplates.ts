@@ -11,11 +11,11 @@
 
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import { captureUpdate } from './orgVersionHistory';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Helper: Check if user is workspace admin or owner
@@ -129,7 +129,10 @@ export const list = query({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		// Get workspace-level templates
@@ -177,27 +180,28 @@ export const create = mutation({
 		isRequired: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Only workspace admins can create templates
 		const userIsAdmin = await isWorkspaceAdmin(ctx, args.workspaceId, userId);
 		if (!userIsAdmin) {
-			throw new Error('Only workspace admins can create role templates');
+			throw createError(
+				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
+				'Only workspace admins can create role templates'
+			);
 		}
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
-			throw new Error('Template name is required');
+			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Template name is required');
 		}
 
 		// Validation: Only one template per workspace can have isRequired: true
 		if (args.isRequired === true) {
 			const existingLeadTemplate = await getLeadRoleTemplate(ctx, args.workspaceId);
 			if (existingLeadTemplate) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.VALIDATION_INVALID_FORMAT,
 					'A Lead role template already exists for this workspace. Archive or modify the existing Lead template first.'
 				);
 			}
@@ -235,26 +239,26 @@ export const update = mutation({
 		isRequired: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const template = await ctx.db.get(args.templateId);
 		if (!template) {
-			throw new Error('Template not found');
+			throw createError(ErrorCodes.TEMPLATE_NOT_FOUND, 'Template not found');
 		}
 
 		// Determine workspace ID (system templates have workspaceId = undefined)
 		const workspaceId = template.workspaceId;
 		if (!workspaceId) {
-			throw new Error('System templates cannot be modified');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'System templates cannot be modified');
 		}
 
 		// Only workspace admins can update templates
 		const userIsAdmin = await isWorkspaceAdmin(ctx, workspaceId, userId);
 		if (!userIsAdmin) {
-			throw new Error('Only workspace admins can update role templates');
+			throw createError(
+				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
+				'Only workspace admins can update role templates'
+			);
 		}
 
 		const updates: {
@@ -277,7 +281,8 @@ export const update = mutation({
 		if (willBeLeadTemplate && !wasLeadTemplate) {
 			const existingLeadTemplate = await getLeadRoleTemplate(ctx, workspaceId);
 			if (existingLeadTemplate && existingLeadTemplate !== args.templateId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.VALIDATION_INVALID_FORMAT,
 					'A Lead role template already exists for this workspace. Archive or modify the existing Lead template first.'
 				);
 			}
@@ -324,25 +329,25 @@ export const archive = mutation({
 		templateId: v.id('roleTemplates')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const template = await ctx.db.get(args.templateId);
 		if (!template) {
-			throw new Error('Template not found');
+			throw createError(ErrorCodes.TEMPLATE_NOT_FOUND, 'Template not found');
 		}
 
 		// System templates cannot be archived
 		if (!template.workspaceId) {
-			throw new Error('System templates cannot be archived');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'System templates cannot be archived');
 		}
 
 		// Only workspace admins can archive templates
 		const userIsAdmin = await isWorkspaceAdmin(ctx, template.workspaceId, userId);
 		if (!userIsAdmin) {
-			throw new Error('Only workspace admins can archive role templates');
+			throw createError(
+				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
+				'Only workspace admins can archive role templates'
+			);
 		}
 
 		// Check if already archived
@@ -354,7 +359,8 @@ export const archive = mutation({
 		if (template.isRequired) {
 			const existingLeadTemplate = await getLeadRoleTemplate(ctx, template.workspaceId);
 			if (!existingLeadTemplate || existingLeadTemplate === args.templateId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.VALIDATION_INVALID_FORMAT,
 					'Cannot archive the Lead role template. Every workspace must have at least one Lead role template. Create a new Lead template first, or modify the existing one instead.'
 				);
 			}

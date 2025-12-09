@@ -66,7 +66,7 @@
 		<div>
 			<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Neutral Scale</h4>
 			<div class="flex gap-1">
-				{#each ['0', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000'] as n}
+				{#each ['0', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000'] as n (n)}
 					<div class="flex flex-col items-center">
 						<div
 							class="h-8 w-6 rounded-sm border border-default"

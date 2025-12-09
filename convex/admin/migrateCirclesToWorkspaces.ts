@@ -9,7 +9,7 @@
  */
 
 import { internalMutation } from '../_generated/server';
-import type { Id } from '../_generated/dataModel';
+import type { Id, TableNames } from '../_generated/dataModel';
 
 /**
  * Migrate all circles and meetings from organizationId to workspaceId
@@ -26,6 +26,13 @@ export const migrate = internalMutation({
 		// ============================================================================
 		// Initialize mapping first (will be populated during organization migration)
 		const idMapping = new Map<string, Id<'workspaces'>>();
+		const replaceRecord = ctx.db.replace as unknown as <TableName extends TableNames>(
+			id: Id<TableName>,
+			value: Record<string, unknown>
+		) => Promise<void>;
+		const queryUnknownTable = ctx.db.query as unknown as (table: string) => {
+			collect: () => Promise<unknown[]>;
+		};
 
 		// ============================================================================
 		// STEP 1: MIGRATE ORGANIZATIONS → WORKSPACES (if needed)
@@ -38,8 +45,7 @@ export const migrate = internalMutation({
 
 			try {
 				// Try to query the old organizations table
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const oldOrganizations = await (ctx.db.query as any)('organizations').collect();
+				const oldOrganizations = await queryUnknownTable('organizations').collect();
 
 				if (oldOrganizations && oldOrganizations.length > 0) {
 					console.log(`Found ${oldOrganizations.length} organizations to migrate`);
@@ -65,8 +71,7 @@ export const migrate = internalMutation({
 								createdAt: orgDoc.createdAt,
 								updatedAt: orgDoc.updatedAt,
 								plan: orgDoc.plan,
-								// eslint-disable-next-line @typescript-eslint/no-explicit-any
-								branding: orgDoc.branding as any
+								branding: orgDoc.branding as Record<string, unknown> | undefined
 							});
 
 							// Store mapping: old org ID → new workspace ID
@@ -89,8 +94,7 @@ export const migrate = internalMutation({
 			console.log(`Found ${existingWorkspaces.length} existing workspaces`);
 			// Try to rebuild mapping by matching old organizations with existing workspaces
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const oldOrganizations = await (ctx.db.query as any)('organizations').collect();
+				const oldOrganizations = await queryUnknownTable('organizations').collect();
 				if (oldOrganizations && oldOrganizations.length > 0) {
 					console.log(
 						`Found ${oldOrganizations.length} old organizations to match with workspaces`
@@ -211,8 +215,7 @@ export const migrate = internalMutation({
 					workspaceId: _oldWorkspaceId,
 					...rest
 				} = circleDoc as Record<string, unknown>;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(circleDoc._id, { ...rest, workspaceId: newWorkspaceId });
+				await replaceRecord(circleDoc._id, { ...rest, workspaceId: newWorkspaceId });
 
 				circlesMigrated++;
 			} catch (error) {
@@ -284,8 +287,7 @@ export const migrate = internalMutation({
 					updatedDoc.meetingType = 'general';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(meetingDoc._id, updatedDoc);
+				await replaceRecord(meetingDoc._id, updatedDoc);
 				meetingsMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating meeting ${meetingDoc._id}:`, error);
@@ -390,8 +392,7 @@ export const migrate = internalMutation({
 					string,
 					unknown
 				>;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(flagDoc._id, {
+				await replaceRecord(flagDoc._id, {
 					...rest,
 					allowedWorkspaceIds: finalWorkspaceIds
 				});
@@ -465,8 +466,7 @@ export const migrate = internalMutation({
 					workspaceId: _oldWorkspaceId,
 					...rest
 				} = templateDoc as Record<string, unknown>;
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(templateDoc._id, { ...rest, workspaceId: newWorkspaceId });
+				await replaceRecord(templateDoc._id, { ...rest, workspaceId: newWorkspaceId });
 
 				templatesMigrated++;
 			} catch (error) {
@@ -539,8 +539,7 @@ export const migrate = internalMutation({
 					updatedDoc.ownershipType = 'workspace';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(itemDoc._id, updatedDoc);
+				await replaceRecord(itemDoc._id, updatedDoc);
 				inboxItemsMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating inbox item ${itemDoc._id}:`, error);
@@ -611,8 +610,7 @@ export const migrate = internalMutation({
 					updatedDoc.ownershipType = 'workspace';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(sourceDoc._id, updatedDoc);
+				await replaceRecord(sourceDoc._id, updatedDoc);
 				sourcesMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating source ${sourceDoc._id}:`, error);
@@ -678,8 +676,7 @@ export const migrate = internalMutation({
 					updatedDoc.ownershipType = 'workspace';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(highlightDoc._id, updatedDoc);
+				await replaceRecord(highlightDoc._id, updatedDoc);
 				highlightsMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating highlight ${highlightDoc._id}:`, error);
@@ -745,8 +742,7 @@ export const migrate = internalMutation({
 					updatedDoc.ownershipType = 'workspace';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(tagDoc._id, updatedDoc);
+				await replaceRecord(tagDoc._id, updatedDoc);
 				tagsMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating tag ${tagDoc._id}:`, error);
@@ -812,8 +808,7 @@ export const migrate = internalMutation({
 					updatedDoc.ownershipType = 'workspace';
 				}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				await (ctx.db.replace as any)(flashcardDoc._id, updatedDoc);
+				await replaceRecord(flashcardDoc._id, updatedDoc);
 				flashcardsMigrated++;
 			} catch (error) {
 				console.error(`❌ Error migrating flashcard ${flashcardDoc._id}:`, error);
@@ -840,8 +835,7 @@ export const migrate = internalMutation({
 			);
 
 			// Try to query old organizationMembers table
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const oldMemberships = await (ctx.db.query as any)('organizationMembers').collect();
+			const oldMemberships = await queryUnknownTable('organizationMembers').collect();
 
 			if (oldMemberships && oldMemberships.length > 0) {
 				console.log(`Found ${oldMemberships.length} old membership records to migrate`);

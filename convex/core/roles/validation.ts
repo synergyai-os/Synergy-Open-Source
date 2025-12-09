@@ -39,4 +39,3 @@ export function hasDuplicateRoleName(
 		return normalizeRoleName(role.name) === normalizedCandidate;
 	});
 }
-

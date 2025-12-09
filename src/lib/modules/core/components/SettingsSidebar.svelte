@@ -29,7 +29,7 @@
 	<!-- Header with Back Button -->
 	<SettingsSidebarHeader
 		onBack={() => {
-			goto(resolveRoute('/inbox'));
+			goto(resolveRoute('/auth/redirect'));
 		}}
 	/>
 

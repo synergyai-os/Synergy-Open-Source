@@ -1,7 +1,10 @@
+/* eslint-disable synergyos/no-hardcoded-design-values */
 /**
  * Tag System Constants
  *
  * Centralized constants for tag colors, validation, and configuration
+ * Tag colors are user-selectable data values stored in the database,
+ * not design system tokens. These hex values are the actual data payload.
  */
 
 export interface TagColor {

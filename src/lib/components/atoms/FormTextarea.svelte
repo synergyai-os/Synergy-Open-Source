@@ -11,6 +11,7 @@
 		required?: boolean;
 		disabled?: boolean;
 		class?: string; // Allow custom classes for specific cases
+		oninput?: ((e: Event & { currentTarget: HTMLTextAreaElement }) => void) | undefined;
 	};
 
 	let {
@@ -22,7 +23,8 @@
 		rows = 4,
 		required = false,
 		disabled = false,
-		class: customClass = ''
+		class: customClass = '',
+		oninput
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -43,7 +45,14 @@
 			</Text>
 		</label>
 	{/if}
-	<textarea {id} {placeholder} {rows} {required} {disabled} bind:value class={textareaClasses}
-		>{value}</textarea
+	<textarea
+		{id}
+		{placeholder}
+		{rows}
+		{required}
+		{disabled}
+		bind:value
+		{oninput}
+		class={textareaClasses}>{value}</textarea
 	>
 </div>

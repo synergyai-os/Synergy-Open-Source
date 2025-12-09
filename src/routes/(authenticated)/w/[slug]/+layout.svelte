@@ -7,6 +7,8 @@
 		WorkspaceSummary,
 		WorkspaceInvite
 	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
+	import { useTaskForm } from '$lib/modules/projects/composables/useTaskForm.svelte';
 
 	let { children, data } = $props();
 
@@ -27,6 +29,11 @@
 		initialOrganizations: data.workspaces as unknown as WorkspaceSummary[],
 		initialOrganizationInvites: data.workspaceInvites as unknown as WorkspaceInvite[]
 	});
+
+	const projectsApi = {
+		useTasks,
+		useTaskForm
+	};
 
 	// Sync workspace from route to active workspace
 	// This ensures the workspace from the URL slug is set as active
@@ -61,6 +68,7 @@
 	});
 
 	setContext('workspaces', workspaces);
+	setContext('projects-api', projectsApi);
 
 	// Reactive page title based on active workspace and current route
 	const activeWorkspace = $derived(workspaces?.activeWorkspace);

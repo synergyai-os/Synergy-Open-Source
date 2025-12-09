@@ -10,6 +10,7 @@
 import { useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { browser } from '$app/environment';
+import { invariant } from '$lib/utils/invariant';
 
 interface UseMeetingsOptions {
 	workspaceId: () => string | undefined;
@@ -48,11 +49,11 @@ export function useMeetings(options: UseMeetingsOptions) {
 	// Fetch meetings for user (already filtered by permissions in backend)
 	const meetingsQuery =
 		browser && workspaceId() && sessionId()
-			? useQuery(api.meetings.listForUser, () => {
+			? useQuery(api.modules.meetings.meetings.listForUser, () => {
 					const orgId = workspaceId();
 					const session = sessionId();
 					// Throw if not ready yet (outer check ensures they exist)
-					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
+					invariant(orgId && session, 'workspaceId and sessionId required');
 					return {
 						workspaceId: orgId as Id<'workspaces'>,
 						sessionId: session

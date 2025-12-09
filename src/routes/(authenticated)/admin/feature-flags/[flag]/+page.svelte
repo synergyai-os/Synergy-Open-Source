@@ -132,7 +132,7 @@
 		const domains = parseDomains(formDomainInput);
 
 		try {
-			await convexClient.mutation(api.featureFlags.upsertFlag, {
+			await convexClient.mutation(api.featureFlags.updateFlag, {
 				sessionId,
 				flag: flag.flag,
 				description: formDescription.trim() || undefined,

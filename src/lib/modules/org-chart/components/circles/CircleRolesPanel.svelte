@@ -18,7 +18,7 @@
 			| 'loading'
 			| 'createRole'
 			| 'updateRole'
-			| 'deleteRole'
+			| 'archiveRole'
 			| 'assignUserToRole'
 			| 'removeUserFromRole'
 		>;
@@ -82,9 +82,9 @@
 		}
 	}
 
-	async function handleDeleteRole(roleId: string, roleName: string) {
-		if (confirm(`Delete role "${roleName}"? All user assignments will be removed.`)) {
-			await circles.deleteRole({ circleRoleId: roleId });
+	async function handleArchiveRole(roleId: string, roleName: string) {
+		if (confirm(`Archive role "${roleName}"? All user assignments will be removed.`)) {
+			await circles.archiveRole({ circleRoleId: roleId });
 		}
 	}
 
@@ -212,10 +212,10 @@
 								<p class="text-label text-secondary mt-fieldGroup">{role.fillerCount} fillers</p>
 							</button>
 							<button
-								onclick={() => handleDeleteRole(role.roleId, role.name)}
-								disabled={circles.loading.deleteRole}
+								onclick={() => handleArchiveRole(role.roleId, role.name)}
+								disabled={circles.loading.archiveRole}
 								class="hover:bg-sidebar-hover ml-2 rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
-								title="Delete role"
+								title="Archive role"
 							>
 								<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path

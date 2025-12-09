@@ -1,557 +1,215 @@
 # start
 
-**Purpose**: Universal onboarding for any LLM/agent coding session. Read first.
+Begin work on a task. Read ticket, understand constraints, confirm before coding.
 
 ---
 
-# 🚨🚨🚨 CRITICAL: STOP AND CHECK THIS FIRST 🚨🚨🚨
+## Workflow
 
-## ⛔ **DO NOT READ DOCUMENTATION UNTIL YOU CHECK THIS**
-
-**BEFORE reading any docs, calling any tools, or doing ANY work:**
-
-### Step 1: Check for Linear Ticket ID
-
-**Look in the conversation for:**
-
-- "SYOS-123" or "SYOS-XXX" format
-- "ticket SYOS-123"
-- "Linear ticket"
-- Any mention of a Linear issue ID
-
-### Step 2: Decision
-
-**IF NO TICKET ID FOUND:**
-
-**If user says "create new ticket" or "we have no ticket yet":**
-
-1. **ASK user for project** (REQUIRED unless user says "no project"):
-
-   ```
-   Which project should this ticket belong to?
-   (Say "no project" to skip, or provide project name)
-   ```
-
-   - If user says "no project" → Continue without project
-   - If user provides project name → Get/create project → Use `projectId`
-   - If user doesn't respond → STOP (project ID is required)
-
-2. **Create ticket** with required fields:
-
-   **Linear Constants** (always available):
-
-   ```typescript
-   const LINEAR_TEAM_ID = '08d684b7-986f-4781-8bc5-e4d9aead6935'; // SYOS
-   const LINEAR_TEAM_NAME = 'SYOS';
-   const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'; // Randy Hereman
-
-   const LINEAR_LABELS = {
-   	// Type (REQUIRED - pick one)
-   	feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
-   	bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
-   	'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
-   	risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
-
-   	// Scope (REQUIRED - pick one or more)
-   	backend: '7299ef53-982d-429d-b513-ccf190b28c16',
-   	frontend: '70068764-575a-48a6-b4d1-3735a044230e',
-   	ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
-   	auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
-   	workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
-   	analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
-   	devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
-   	security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97'
-   };
-
-   const ESTIMATES = {
-   	none: 0, // No estimate
-   	xs: 1, // < 2h
-   	s: 2, // 2-4h (default)
-   	m: 3, // 4-8h (half day)
-   	l: 4, // 1-2 days
-   	xl: 5 // 2+ days (break down!)
-   };
-   ```
-
-   **Create ticket:**
-
-   ```typescript
-   await mcp_Linear_create_issue({
-   	team: LINEAR_TEAM_NAME, // 'SYOS'
-   	title: '[Descriptive Title]',
-   	description: '...', // See ticket-writing-format.md for structure
-   	projectId: projectId, // ✅ From step 1 (or null if "no project")
-   	assigneeId: RANDY_USER_ID, // ✅ ALWAYS Randy
-   	state: 'Todo',
-   	estimate: ESTIMATES.s, // ✅ Default to "s" (2) - numeric
-   	labels: [
-   		LINEAR_LABELS.bug, // ✅ Type (required, one)
-   		LINEAR_LABELS.backend // ✅ Scope (required, one or more)
-   	]
-   });
-   ```
-
-   **Ticket Writing Format**: See `dev-docs/2-areas/development/ticket-writing-format.md` for complete structure
-
-3. **Continue with onboarding** using the new ticket ID
-
-**If user doesn't say "create new ticket":**
-
-```
-❌ STOP IMMEDIATELY - I cannot proceed without a Linear ticket ID.
-
-Please provide:
-- Linear ticket ID (e.g., SYOS-123)
-- OR say "create new ticket" and I'll help you create one
-
-Once I have a ticket ID, I'll proceed with the work.
-```
-
-**DO NOT:**
-
-- ❌ Read documentation
-- ❌ Call any tools
-- ❌ Investigate the codebase
-- ❌ Do ANY work
-
-**ONLY AFTER ticket ID is provided → Continue below**
-
----
-
-## ✅ If Ticket ID Present - Continue Onboarding
-
-**Update ticket status to "In Progress" (only if still in pre-start state):**
+### Step 1: Fetch Ticket using Linear MCP
 
 ```typescript
-// Get current ticket to check state
-const ticket = await mcp_Linear_get_issue({ id: 'SYOS-XXX' }); // Use the ticket ID from conversation
-
-// Only update to "In Progress" if ticket is still in a pre-start state
-// Pre-start states: Todo, Backlog (or similar initial states)
-// Skip update if: Done/Cancelled (terminal) or In Review/In Progress (already progressed)
-const preStartStates = ['Todo', 'Backlog']; // Add other initial states as needed
-const currentState = ticket.state?.name || ticket.state;
-
-if (preStartStates.includes(currentState)) {
-	// Only update if still in pre-start state (avoids regressing Done/Cancelled/In Review tickets)
-	await mcp_Linear_update_issue({
-		id: 'SYOS-XXX',
-		state: 'In Progress'
-	});
-}
-// If ticket is already Done/Cancelled/In Review/In Progress, skip status update and continue onboarding
+const ticket = await Linear.get_issue({ id: ticketId });
 ```
 
-**Then continue with onboarding below...**
+If no ticket ID provided:
+> What ticket? (e.g., SYOS-123)
 
----
+**Do not proceed without fetching from Linear.**
 
-## 🌿 Branch Verification (After Ticket Status Update)
+### Step 2: Parse Ticket
 
-**Purpose**: Verify you're on the correct branch before starting work to prevent work loss.
+Extract from the ticket description:
 
-**When**: After updating ticket status to "In Progress", before reference code check.
+```markdown
+**Title:** [ticket title]
+**Type:** [feature/bug/tech-debt from labels]
 
-**Workflow**:
+**Acceptance Criteria:**
+- AC-1: [text]
+- AC-2: [text]
 
-1. **Check current branch**:
+**Files in Scope:**
+- path/to/file1.ts
+- path/to/file2.ts
 
-   ```bash
-   git branch --show-current
-   ```
-
-2. **Extract ticket ID from branch name** (if ticket-based branch):
-   - Pattern: `feature/SYOS-XXX-description` or `fix/SYOS-XXX-description`
-   - Extract: `SYOS-XXX` from branch name
-
-3. **Compare ticket ID**:
-   - If branch contains ticket ID → Compare with current ticket ID
-   - If match → ✅ Continue onboarding
-   - If mismatch → ⚠️ Warn user
-
-4. **If branch doesn't match ticket**:
-
-   ```
-   ⚠️ Warning: You're on branch [branch-name] but working on ticket SYOS-XXX
-
-   Current branch: [branch-name]
-   Ticket ID: SYOS-XXX
-
-   Options:
-   1. Switch to correct branch: Use /branch command to create feature/SYOS-XXX-description
-   2. Continue anyway: If this is intentional (e.g., project-based branch)
-
-   Proceed? (yes/no)
-   ```
-
-5. **If branch matches or user confirms**:
-   - Continue with onboarding
-   - Note: Branch verification passed
-
-**Why**: Prevents working on wrong branch, ensures work stays organized, reduces merge conflicts.
-
-**See**: `/branch` command for branch creation workflow
-
----
-
-## 📚 Reference Code Check (After Ticket Status Update)
-
-**Purpose**: Check for relevant reference code projects that AI can use when implementing features.
-
-**When**: After updating ticket status to "In Progress", before investigation.
-
-**Workflow**:
-
-1. **List reference projects**:
-
-   ```typescript
-   // List directories in ai-docs/reference/
-   const referenceProjects = list_dir('ai-docs/reference');
-   // Filter out README.md, get project folders
-   ```
-
-2. **Match ticket to reference projects**:
-   - Read ticket title and description
-   - Check each project's README.md for keywords/topics
-   - Match ticket keywords to project descriptions
-   - Example: Ticket about "chat" → Check for `vercel-ai-sdk-chat/` project
-
-3. **If match found**:
-   - Load reference project README.md
-   - Document in investigation findings: "Found reference project: [project-name] - [what it demonstrates]"
-   - Note: Reference code will be used during `/go` implementation
-
-4. **If no match**:
-   - Continue normally (no reference code available)
-   - Document: "No relevant reference projects found"
-
-**Reference Code System**: See `ai-docs/reference/README.md` for structure and usage
-
-**Integration**: Reference code loaded here will be available during `/go` implementation phase
-
----
-
-## ⚠️ CRITICAL: Communication Style
-
-**User prefers concise, dense communication:**
-
-- Keep answers SHORT
-- Minimum fluff - be direct
-- Dense information - maximum value, minimum words
-- If user needs more - they will ask
-
-**⚠️ NEVER CREATE DOCUMENTATION UNLESS EXPLICITLY ASKED**
-
-**When in doubt**: Ask first, don't create.
-
----
-
-## 🔍 Problem-Solving Workflow (MANDATORY)
-
-**Before implementing any fix or feature:**
-
-1. **Identify Problem** - Clearly state what's broken or what needs to be built
-2. **Confirm Root Cause** - Investigate why it's happening (check logs, trace code flow, test hypotheses)
-3. **Validate Pattern with DevDocs** - Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
-4. **Create Hypothesis to Solution** - Design the fix based on root cause and patterns
-5. **Confidence Check**:
-   - **95%+ confident**: Implement directly
-   - **<95% confident**: Provide short recap (problem → solution → confidence score) and wait for confirmation
-
-**Why**: Prevents writing unnecessary code, introducing bugs, creating spaghetti code, and leaving garbage in the codebase. We want simple, clean, maintainable, scalable, reliable, secure code.
-
-## 🔍 Workflow: Linear Ticket Check → Investigate → Scope → Plan → Validate Architecture → Confirm
-
-**Before doing ANYTHING:**
-
-0. **🚨 Linear Ticket Check** - **MUST HAVE Linear ticket ID** (REFUSE if missing)
-   - Check conversation for ticket ID (SYOS-XXX format)
-   - If missing → STOP and ask for ticket ID
-   - If present → Continue to step 1
-
-1. **Investigate** - Understand current state, existing patterns
-2. **Scope** - Define what's in/out
-3. **Plan** - Outline approach, steps, issues
-4. **🔧 Validate Architecture** - Check modularity principles (see below) ⭐ **MANDATORY**
-5. **Confirm** - Get user approval
-
-**Never start ANY work without:**
-
-- ✅ Linear ticket ID (e.g., SYOS-123)
-- ✅ Architecture validation passed
-- ✅ User confirmation
-
----
-
-## 🔧 Modularity Validation (MANDATORY Before Implementation)
-
-**⚠️ CRITICAL**: All new features/modules MUST follow modularity principles from `system-architecture.md`.
-
-**Reference**: [System Architecture - Modularity Section](dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system) ⭐
-
-### Quick Validation Checklist
-
-**Before writing ANY code, validate:**
-
-- [ ] **Is this a new module?** → Create feature flag in `src/lib/featureFlags.ts` and `convex/featureFlags.ts`
-- [ ] **Can this be enabled per org?** → Use `allowedOrganizationIds` targeting (organization-based feature flags)
-- [ ] **Does this follow loose coupling?** → No direct imports from other modules' internals (use shared utilities or APIs)
-- [ ] **Does this have clear contracts?** → Documented API/interface for module communication (if cross-module)
-- [ ] **Can this be deployed independently?** → Verify module boundaries (future goal, but design for it now)
-
-### Modularity Principles (from system-architecture.md)
-
-**Current State** (Verified):
-
-- ✅ **Independent Development** - Teams work without conflicts
-- ✅ **Independent Enablement** - Feature flags per org/tenant (`allowedOrganizationIds`)
-- 🟡 **Independent Deployment** - Planned after refactoring (design for it now)
-- 🟡 **Clear Contracts** - APIs for module communication (in progress - document interfaces)
-- 🟡 **Loose Coupling** - No direct internal dependencies (needs enforcement - validate imports)
-
-**Module Enablement Pattern** (Required for new modules):
-
-```typescript
-// Frontend: src/lib/featureFlags.ts
-export const NEW_MODULE_FLAG = 'new-module-flag';
-
-// Backend: convex/featureFlags.ts
-await upsertFlag({
-	flag: 'new-module-flag',
-	enabled: true,
-	allowedOrganizationIds: ['org-id-1'] // Per-org targeting
-});
-
-// Usage: Check flag before rendering/enabling module
-const isEnabled = useFeatureFlag(NEW_MODULE_FLAG, organizationId);
+**Constraints:**
+- `constraint-id-1`: [description]
+- `constraint-id-2`: [description]
 ```
 
-**Common Violations to Avoid:**
+If constraints section missing:
+> ⚠️ Ticket missing constraints. Inferring from file scope...
 
-- ❌ **Tight Coupling**: Direct imports from `src/lib/components/[other-module]/` internals
-- ❌ **Missing Feature Flags**: New module without feature flag (can't enable/disable per org)
-- ❌ **Hardcoded Dependencies**: Module assumes another module is always enabled
-- ❌ **No Contracts**: Cross-module communication without documented API
+Then apply constraint matrix:
 
-**If violations detected**: STOP and discuss with user before implementing.
+| If files touch... | Apply |
+|-------------------|-------|
+| `convex/core/` | `core-complete`, `dep-layer-direction`, `test-core-coverage` |
+| Any mutation | `cvx-auth-before-write`, `hygiene-handler-thin`, `err-code-format` |
+| Any query | `cvx-queries-pure`, `hygiene-handler-thin` |
+| Any Convex file | `cvx-no-classes`, `hygiene-file-size`, `lang-terminology` |
+| `src/` components | `svelte-thin-components`, `svelte-delegate`, `svelte-runes` |
+| Any test file | `test-colocated`, `test-independent` |
 
-**See**: [System Architecture](dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system) for complete module system details
+### Step 3: Read Current State
 
----
+For each file in scope, read current state:
 
-## 📚 Library Documentation
+```bash
+view [file]
+wc -l [file]
+```
 
-**Use Context7 MCP before web search:**
+Note:
+- Current line counts (for `hygiene-file-size`)
+- Existing patterns to follow
+- Related code that might be affected
 
-1. Call `mcp_context7_resolve-library-id` to find library
-2. Call `mcp_context7_get-library-docs` with topic
-3. Only web search if Context7 fails
+### Step 4: Identify Approach
 
-**Why**: Up-to-date, accurate docs with code examples.
+Based on architecture.md principles:
 
----
+| If working on... | Approach |
+|------------------|----------|
+| New mutation | Auth → RBAC → Authority → Write pattern |
+| New query | Pure read, no side effects |
+| New rule | Pure function if possible, contextual if needs ctx |
+| UI component | Thin, delegate to Convex, use recipes |
+| Tests | Co-located, independent, cover required cases |
 
-## 🔧 Critical Workflows
+### Step 5: Present Plan
 
-### `/root-cause` - Find Solutions Fast
+```markdown
+## Task: SYOS-XXX — [Title]
 
-**When**: Investigating bugs/issues
+### What I'll Do
+1. [Step with file:change]
+2. [Step with file:change]
+3. [Step with file:change]
 
-1. Load `dev-docs/2-areas/patterns/INDEX.md` (200 lines)
-2. Scan symptom table → jump to line number
-3. Read: Symptom → Root Cause → Fix
-4. Apply if 95%+ confident
-5. If uncertain: Research, report confidence
+### Files to Touch
+| File | Current Lines | Action |
+|------|---------------|--------|
+| mutations.ts | 187 | Add `approve` (~25 lines) |
+| rules.ts | 95 | Add `canApprove` (~15 lines) |
+| circles.test.ts | 234 | Add 5 test cases (~60 lines) |
 
-### `/save` - Capture Knowledge
+### Constraints I'll Follow
+- `cvx-auth-before-write`: Will check auth on line 1 of handler
+- `hygiene-handler-thin`: Will extract validation to rules.ts
+- `hygiene-file-size`: mutations.ts will be ~212 lines (under 300)
+- `test-colocated`: Tests go in circles.test.ts
 
-**When**: End of session, before commit
-
-1. Analyze what changed
-2. Search `dev-docs/2-areas/patterns/INDEX.md` for existing patterns
-3. Update domain file OR add new pattern
-4. Update INDEX.md symptom table
-5. Mark Linear ticket as "In Review" (human marks "Done")
-6. Commit locally (on feature branch)
-7. Create PR to main (don't push directly to main)
-
----
-
-## ✅ General Principles
-
-**Before Writing Code:**
-
-1. **Read `dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Prevents linting errors
-2. Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
-3. Use Context7 for library documentation
-4. Investigate, scope, plan, get confirmation
-
-**Coding Standards (MANDATORY for AI Agents):**
-
-- ❌ NEVER use `any` type (use proper types or `unknown` + type guards)
-- ❌ NEVER use `{#each}` without keys `(item._id)`
-- ❌ NEVER use `goto()` without `resolveRoute()`
-- ❌ NEVER use `Map`/`Set` (use `SvelteMap`/`SvelteSet` or plain objects)
-- ❌ NEVER leave unused imports/variables
-- ✅ ALWAYS use TypeScript types
-- ✅ ALWAYS use design tokens
-- ✅ ALWAYS use `.svelte.ts` for composables
-- ✅ ALWAYS use `useQuery()` for Convex data
-
-**See**: `dev-docs/2-areas/development/coding-standards.md` for complete rules
-
-**When Debugging:**
-
-- Use `/root-cause` command
-- Load `dev-docs/2-areas/patterns/INDEX.md` → jump to line number
-- Validate with Context7 for library patterns
-- Only fix if 95%+ confident
-
-**When Uncertain:**
-
-- Research and report confidence %
-- Ask user before implementing
-- Don't guess - validate first
+### Acceptance Criteria Mapping
+- AC-1 → Steps 1, 2
+- AC-2 → Step 3
 
 ---
 
-## 🚨 **CRITICAL: Linear Ticket ID Required**
+**Ready to proceed?** (or `/audit-plan` to verify approach)
+```
 
-**⚠️ HARD BLOCKER: You can ONLY work with a Linear ticket ID present in context.**
+Wait for confirmation.
 
-**Before reading docs, investigating, or doing ANY work:**
+### Step 6: Execute
 
-1. **Check conversation for Linear ticket ID**:
-   - Look for: "SYOS-123", "ticket SYOS-123", "Linear ticket SYOS-XXX"
-   - Check if user mentioned a ticket in their request
+After confirmation, implement the plan.
 
-2. **If NO ticket ID found → STOP and respond:**
+**During implementation, continuously verify:**
+- [ ] Auth before writes (don't "check exists" first)
+- [ ] Handler staying under 20 lines (extract if growing)
+- [ ] Using domain language (circles not teams)
+- [ ] Error format: `ERR_CODE: message`
 
-   ```
-   ❌ I cannot proceed without a Linear ticket ID.
+### Step 7: Self-Check Before Calling Done
 
-   Please provide:
-   - Linear ticket ID (e.g., SYOS-123)
-   - OR say "create new ticket" and I'll help you create one using /linear command
+Before saying "done", run quick checks:
 
-   Once I have a ticket ID, I'll proceed with the work.
-   ```
+```bash
+# File sizes
+wc -l [touched files]
 
-3. **If ticket ID provided → Continue with work**
+# No classes
+grep -n "^class " [touched files]
 
-**Why**:
+# Terminology
+grep -in '"team"\|"manager"\|"permission"' [touched files]
 
-- All work must be tracked in Linear for visibility and Flow Metrics
-- Keeps workflow clean and documentation focused
-- Prevents undocumented work
+# Error format
+grep -n "throw new Error" [touched files]
+```
 
-**Rule**: `.cursor/rules/working-with-linear.mdc` - **REFUSE to work without Linear ticket ID**
+Report:
+```markdown
+## Self-Check
 
-**Linear Constants & Workflow**: All constants and workflows are in this `/start` command (see above)
+| Check | Result |
+|-------|--------|
+| File sizes ≤300 | ✅ mutations.ts: 212, rules.ts: 110 |
+| No classes | ✅ 0 matches |
+| Terminology | ✅ 0 violations |
+| Error format | ✅ All use ERR_CODE: message |
 
----
-
-## 🎯 Remember
-
-1. **🚨 Linear Required** - **REFUSE to work without Linear project/ticket** ⭐ **CRITICAL**
-2. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
-3. **🔧 Modularity Validation** - Validate architecture before coding ⭐ **MANDATORY**
-4. **Design System** - Use design tokens, atomic components, follow governance docs ⭐
-5. **Communication** - Short, dense, concise
-6. **No auto-docs** - Never create docs unless asked
-7. **Product Principles** - Read first, outcomes over outputs
-8. **Business Language** - Avoid jargon in project names
-9. **Investigate first** - Understand before acting
-10. **Confirm before building** - Scope, plan, validate architecture, get approval
-11. **Context7 first** - For library docs before web search
-12. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
+Ready for `/validate SYOS-XXX`
+```
 
 ---
 
-## 📖 Essential Reading (In Order)
+## Architecture Quick Reference
 
-**Before starting ANY work:**
+**Read if needed:**
+- Backend/domain: `dev-docs/master-docs/architecture.md`
+- UI/styling: `dev-docs/master-docs/design-system.md`
+- Auth: `dev-docs/master-docs/workos-convex-auth-architecture.md`
+- RBAC: `dev-docs/master-docs/rbac/rbac-architecture.md`
 
-1. **`dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Coding rules for AI agents (prevents 483 linting errors)
-2. **`marketing-docs/strategy/product-vision-2.0.md`** ⭐ **CRITICAL** - Current product vision (The Open-Source Product OS)
-   - ⚠️ **DO NOT read** `dev-docs/2-areas/product/product-vision-and-plan.md` - It's HISTORICAL
-   - ✅ **Read** `marketing-docs/strategy/product-vision-2.0.md` - Current vision
-3. **`dev-docs/2-areas/product/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
-4. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
-5. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+**File locations:**
+| Domain | Path |
+|--------|------|
+| Circles | `/convex/core/circles/` |
+| Roles | `/convex/core/roles/` |
+| Meetings | `/convex/features/meetings/` |
+| Shared components | `/src/lib/components/` |
+| Feature components | `/src/lib/modules/[module]/components/` |
 
-**Design System Governance** (when working with UI/components):
-
-- **`dev-docs/2-areas/design/quick-start.md`** ⭐ - 5-minute setup guide for new developers
-- **`dev-docs/2-areas/design/component-architecture.md`** - Component structure and anti-patterns
-- **`dev-docs/2-areas/design/design-tokens.md`** - Complete token reference
-- **`dev-docs/2-areas/design/migration-guide.md`** - Step-by-step migration instructions
-- **`dev-docs/2-areas/design/deprecation-policy.md`** - Token/component deprecation process
-
-**Key principles:**
-
-- **Outcomes Over Outputs** - Define business outcome before building
-- **Business-Friendly Naming** - Use common language, not jargon
-- **Team Ownership** - Know who owns the work
-- **AI Transparency** - Mark guesses as: `{Your guess} (by AI → not validated yet)`
-
-**⚠️ IMPORTANT**:
-
-- Project is **SynergyOS** (The Open-Source Product OS) - NOT "Axon"
-- Current vision: `marketing-docs/strategy/product-vision-2.0.md`
-- Historical docs are marked as HISTORICAL - ignore them
-
-**For Linear ticket management:**
-
-- **Constants & Workflow**: All in this `/start` command (see ticket creation section above)
-- **Ticket Writing Format**: `dev-docs/2-areas/development/ticket-writing-format.md` - Complete template
-- **Creating Subtickets**: See "Creating Subtickets" section below
-- **Command**: `/start-new-project` - For new initiatives
-
----
-
-## 📋 Creating Subtickets (Child Issues)
-
-**When to use**: Break down large tickets into focused, actionable subtickets.
-
-### Workflow
-
-1. **Get parent ticket** - `mcp_Linear_get_issue({ id: 'SYOS-84' })`
-2. **Create subticket** - One ticket per issue/fix
-3. **Link with `parentId`** - Use parent ticket's ID
-
-### Example
-
+**Mutation pattern:**
 ```typescript
-// Get parent ticket
-const parent = await mcp_Linear_get_issue({ id: 'SYOS-84' });
-
-// Create subticket
-await mcp_Linear_create_issue({
-	team: LINEAR_TEAM_NAME,
-	title: 'Fix: [Specific Issue]',
-	description: `# Issue Description
-
-**Parent:** [SYOS-84](https://linear.app/younghumanclub/issue/SYOS-84)
-
-[Issue details...]`,
-	projectId: parent.projectId, // ✅ Use same project as parent
-	parentId: parent.id, // ✅ Link to parent
-	assigneeId: RANDY_USER_ID, // ✅ Always assign to Randy
-	state: 'Todo',
-	estimate: ESTIMATES.s, // ✅ Numeric estimate (typically 1-3 for subtasks)
-	labels: [
-		LINEAR_LABELS.bug, // ✅ Type
-		LINEAR_LABELS.auth, // ✅ Scope
-		LINEAR_LABELS.backend
-	]
+export const doThing = mutation({
+  args: { ... },
+  handler: async (ctx, args) => {
+    // 1. Auth
+    const user = await requireAuth(ctx);
+    
+    // 2. RBAC (if needed)
+    await requireCapability(ctx, user, "capability.name");
+    
+    // 3. Authority
+    await requireCircleLead(ctx, user._id, args.circleId);
+    
+    // 4. Validation (via rules.ts)
+    validateThingInput(args);
+    
+    // 5. Write
+    return ctx.db.insert("things", { ... });
+  },
 });
 ```
 
-### Best Practices
+**Test cases required per mutation:**
+- Success path
+- No auth → `AUTH_REQUIRED`
+- Wrong RBAC → `AUTHZ_INSUFFICIENT_RBAC`
+- Wrong authority → `AUTHZ_NOT_*`
+- Invalid input → `VALIDATION_*`
+- Business rule violation → domain error
 
-- ✅ **One issue per subticket** - Each subticket should be independently fixable
-- ✅ **Use parent's project** - Subtickets inherit parent's project
-- ✅ **Clear titles** - Start with "Fix:" or "Add:" for clarity
-- ✅ **Link to parent** - Include parent ticket link in description
-- ✅ **Appropriate estimates** - Smaller than parent (typically 1-3)
+---
+
+## Critical Reminders
+
+1. **Fetch ticket first** — Don't work from memory
+2. **Present plan** — Wait for confirmation
+3. **Follow constraints** — They'll be checked by `/validate`
+4. **Self-check** — Run quick checks before saying done
+5. **Domain language** — Circle, role, person, consent, tension

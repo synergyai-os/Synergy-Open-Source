@@ -41,9 +41,7 @@
 	});
 
 	// Initialize org chart composable to get root circle
-	if (!orgChartAPI) {
-		throw new Error('OrgChartModuleAPI not available in context');
-	}
+	invariant(orgChartAPI, 'OrgChartModuleAPI not available in context');
 	const orgChart =
 		browser && getSessionId()
 			? orgChartAPI.useOrgChart({

@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { resetPassword, WorkOSError } from '$lib/infrastructure/auth/server/workos';
+import { isWorkOSError, resetPassword } from '$lib/infrastructure/auth/server/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
@@ -43,7 +43,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		console.error('❌ Reset password error:', err);
 
 		// Check if it's a WorkOSError with status code
-		if (err instanceof WorkOSError) {
+		if (isWorkOSError(err)) {
 			// Use the status code from WorkOS API response
 			const statusCode = err.statusCode;
 

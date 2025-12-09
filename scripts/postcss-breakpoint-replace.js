@@ -12,7 +12,7 @@
 export default function postcssBreakpointReplace() {
 	return {
 		postcssPlugin: 'postcss-breakpoint-replace',
-		Once(root, { result }) {
+		Once(root) {
 			// Breakpoint mappings (read from design-tokens-base.json or generated CSS)
 			// These values match design-tokens-base.json breakpoints
 			const breakpoints = {

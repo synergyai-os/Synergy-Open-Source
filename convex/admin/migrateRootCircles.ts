@@ -8,13 +8,14 @@
  */
 
 import { internalMutation } from '../_generated/server';
+import type { MutationCtx } from '../_generated/server';
 import type { Id } from '../_generated/dataModel';
 
 /**
  * Helper function to get workspace owner (first owner/admin member)
  */
 async function getWorkspaceOwner(
-	ctx: { db: { query: (table: string) => any } },
+	ctx: MutationCtx,
 	workspaceId: Id<'workspaces'>
 ): Promise<Id<'users'> | null> {
 	const members = await ctx.db

@@ -167,5 +167,119 @@ $effect(() => {
 
 ---
 
-**Last Updated**: 2025-01-27
+## #L120: Bidirectional $effect Sync Causes Infinite Loop [🔴 CRITICAL]
+
+**Keywords**: $effect, infinite loop, freeze, frozen, bidirectional sync, two-way binding, form state, composable state, setField, formValues, local state, untrack, controlled input
+
+**Principle**: Never use two `$effect` blocks to sync state in both directions. Use `$derived` for reading and callbacks for writing.
+
+**Symptom**: 
+- App freezes completely (must reload page)
+- Browser becomes unresponsive
+- Happens when interacting with form or trying to close modal/panel
+- No visible error (infinite loop consumes all resources)
+
+**Root Cause**: Two `$effect` blocks watching each other's outputs creates a cycle:
+
+```
+Effect 1: formValues changes → writes localValue
+Effect 2: localValue changes → calls setField() → mutates composable state
+Composable: state mutates → formValues (derived) recalculates → NEW object reference
+Effect 1: sees "new" formValues → writes localValue again
+→ INFINITE LOOP → FREEZE
+```
+
+**Example of broken code**:
+```svelte
+<script lang="ts">
+    // ❌ BROKEN: Bidirectional $effect sync causes infinite loop
+    let nameValue = $state('');
+    
+    // Effect 1: Sync FROM composable TO local
+    $effect(() => {
+        const formValues = editCircle.formValues;
+        nameValue = formValues.name; // WRITES to local state
+    });
+    
+    // Effect 2: Sync FROM local TO composable
+    $effect(() => {
+        editCircle.setField('name', nameValue); // READS local state, WRITES to composable
+    });
+</script>
+
+<FormInput bind:value={nameValue} />
+```
+
+**Fix**: Use `$derived` for reading (one-way) and explicit callbacks for writing:
+
+```svelte
+<script lang="ts">
+    // ✅ CORRECT: $derived for reading, callbacks for writing
+    // Single source of truth = composable state
+    const nameValue = $derived(editCircle.formValues.name);
+</script>
+
+<!-- Use oninput callback to write, value prop to read -->
+<FormInput 
+    value={nameValue}
+    oninput={(e) => editCircle.setField('name', e.currentTarget.value)}
+/>
+```
+
+**Alternative with `untrack()`** (when you MUST write in an effect):
+```svelte
+<script lang="ts">
+    import { untrack } from 'svelte';
+    
+    // Only track circleType, not decisionModel
+    $effect(() => {
+        const circleType = editCircle.formValues.circleType;
+        const currentModel = untrack(() => editCircle.formValues.decisionModel);
+        
+        // This won't cause a loop because decisionModel isn't tracked
+        if (!isValidModel(currentModel, circleType)) {
+            editCircle.setField('decisionModel', getDefaultModel(circleType));
+        }
+    });
+</script>
+```
+
+**Form Component Pattern** (enable controlled inputs):
+```svelte
+<!-- FormInput.svelte - add oninput prop -->
+<script lang="ts">
+    let {
+        value = $bindable(''),
+        oninput  // Allow controlled input pattern
+    }: Props = $props();
+</script>
+
+<input bind:value {oninput} />
+```
+
+**Apply when**: 
+- Building edit forms with composables
+- Syncing local component state with external state manager
+- Any bidirectional state synchronization
+- App freezes when opening/closing panels or interacting with forms
+
+**Anti-Patterns**:
+- ❌ Two `$effect` blocks that read/write to each other's dependencies
+- ❌ `$effect` that both reads and writes the same state
+- ❌ Using `bind:value` with local state that syncs to composable via `$effect`
+
+**Correct Patterns**:
+- ✅ `$derived` for reading + callbacks for writing
+- ✅ Single source of truth (either local OR composable, not both)
+- ✅ `untrack()` to break specific dependency chains when needed
+- ✅ Controlled input pattern: `value={derivedValue}` + `oninput={callback}`
+
+**Related**: 
+- #L10 (Composable Reactivity Break) - related reactivity issue
+- Svelte 5 docs: "Anti-pattern for Bidirectional State Sync with $effect"
+- `untrack()` documentation
+
+---
+
+**Last Updated**: 2025-12-05
 

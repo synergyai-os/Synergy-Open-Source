@@ -32,26 +32,6 @@ function isBaseToken(value) {
 }
 
 /**
- * Check if token value is a reference token
- */
-function isReferenceToken(value) {
-	if (!value || typeof value !== 'object') return false;
-	if (!value.$value) return false;
-	const val = value.$value;
-	return typeof val === 'string' && val.startsWith('{');
-}
-
-/**
- * Check if token value is a conditional token
- */
-function isConditionalToken(value) {
-	if (!value || typeof value !== 'object') return false;
-	if (!value.$value) return false;
-	const val = value.$value;
-	return typeof val === 'object' && !Array.isArray(val) && ('light' in val || 'dark' in val);
-}
-
-/**
  * Extract tokens into base and semantic
  */
 function extractTokens(obj, path = [], base = {}, semantic = {}) {

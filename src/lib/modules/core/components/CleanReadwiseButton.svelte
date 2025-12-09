@@ -14,7 +14,7 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const cleanApi = browser
-		? (makeFunctionReference('cleanReadwiseData:cleanReadwiseData') as FunctionReference<
+		? (makeFunctionReference('readwiseCleanup:ensureCleanReadwiseData') as FunctionReference<
 				'action',
 				'public',
 				{ sessionId: string },

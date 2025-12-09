@@ -31,7 +31,7 @@
 <TimeField.Root {value} {required} {disabled} {minValue} {maxValue} {granularity}>
 	<TimeField.Input {id} class={inputClasses}>
 		{#snippet children({ segments })}
-			{#each segments as { part, value: segmentValue }}
+			{#each segments as { part, value: segmentValue } (part)}
 				<TimeField.Segment {part}>
 					{segmentValue}
 				</TimeField.Segment>

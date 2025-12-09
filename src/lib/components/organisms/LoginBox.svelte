@@ -20,7 +20,6 @@
 		variant?: 'default';
 		class?: string;
 		onSubmit?: (event: { email: string; password: string }) => void | Promise<void>;
-		onCreateAccountClick?: () => void;
 	};
 
 	let {
@@ -32,11 +31,10 @@
 		isRateLimited = $bindable(false),
 		rateLimitRetryAfter = $bindable(0),
 		linkingFlow = false,
-		redirectTarget = '/inbox',
+		redirectTarget = '/auth/redirect',
 		variant = 'default',
 		class: className = '',
-		onSubmit,
-		onCreateAccountClick
+		onSubmit
 	}: Props = $props();
 
 	const classes = $derived([loginBoxRecipe({ variant }), className]);
@@ -81,8 +79,8 @@
 	<header class="flex flex-col gap-header text-center mb-header">
 		<Heading level={1}>Welcome back</Heading>
 		<Text variant="body" size="base" color="secondary">
-			Sign in to continue where you left off. Don't have an account?{' '}
-			<a href={registerUrl} class="font-medium text-brand hover:underline">Create one</a>.
+			Sign in to continue where you left off. Don't have an account?
+			<a href={registerUrl} class="font-medium text-brand hover:underline"> Create one</a>.
 		</Text>
 	</header>
 
@@ -104,7 +102,7 @@
 			<Text variant="body" size="sm" color="error" class="font-medium">{errorMessage}</Text>
 			{#if showCreateAccountLink}
 				<Text variant="body" size="sm" color="error" class="mt-fieldGroup">
-					Don't have an account?{' '}
+					Don't have an account?
 					<a
 						href={`${resolveRoute('/register')}?email=${encodeURIComponent(email)}`}
 						class="font-semibold underline"

@@ -1,4 +1,5 @@
 ---
+globs: **/*.svelte,**/*.ts,**/*.svelte.ts
 alwaysApply: false
 ---
 # Svelte 5 + TypeScript + Convex Development Standards
@@ -18,7 +19,7 @@ You are an expert senior software engineer specializing in TypeScript, Svelte 5 
 2. ❌ **Never use `{#each}` without keys** → Always `{#each items as item (item._id)}` (ESLint error)
 3. ❌ **Never use `goto()` without `resolveRoute()`** → `goto(resolveRoute('/path'))` (ESLint error)
 4. ❌ **Never use `Map`/`Set`** → Use `SvelteMap`/`SvelteSet` or plain objects (breaks reactivity)
-5. ❌ **Never use hardcoded values** → Use design tokens (see `way-of-working.mdc` for details)
+5. ❌ **Never use hardcoded values** → Use design tokens (see `design-tokens-enforcement.mdc`)
 6. ❌ **Never use multiple `$state` variables** → Use single `$state` object with getters (Svelte 5 pattern)
 7. ❌ **Never use `$effect` for computed values** → Use `$derived` (Svelte 5 best practice)
 8. ❌ **Never pass `undefined` to Convex** → Use sentinel values (Convex requirement)
@@ -107,7 +108,7 @@ const items = $derived(query?.data ?? []); // Auto-updates
 
 ## Design Tokens
 
-**See**: `way-of-working.mdc` - Design token system details and examples
+**See**: `design-tokens-enforcement.mdc` - Design token system and enforcement rules
 
 ## CI/CD Alignment
 
@@ -131,7 +132,7 @@ Before submitting code:
 - [ ] No `any` types (except test files - ESLint allows it)
 - [ ] All `{#each}` blocks have keys `(item._id)`
 - [ ] All `goto()` use `resolveRoute()`
-- [ ] Using design tokens (see `way-of-working.mdc`)
+- [ ] Using design tokens (see `design-tokens-enforcement.mdc`)
 - [ ] Composables use `.svelte.ts` extension
 - [ ] Single `$state` object with getters
 - [ ] Convex uses `sessionId` pattern: `sessionId: v.string()` + destructure `{ userId }`
@@ -144,7 +145,7 @@ Before submitting code:
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - **Svelte 5**: `dev-docs/2-areas/patterns/svelte-reactivity.md` - Reactivity patterns
 - **Convex**: `dev-docs/2-areas/patterns/convex-integration.md` - Convex patterns
-- **Design**: `dev-docs/2-areas/design/design-tokens.md` - Design tokens
+- **Design**: `dev-docs/master-docs/design-system.md` - Design tokens
 - **Standards**: `dev-docs/2-areas/development/coding-standards.md` - Complete rules
 - **CI/CD**: `dev-docs/2-areas/patterns/ci-cd.md` - CI/CD patterns
 

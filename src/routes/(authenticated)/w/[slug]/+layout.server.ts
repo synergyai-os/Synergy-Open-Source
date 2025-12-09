@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import { env } from '$env/dynamic/public';
 import type { LayoutServerLoad } from './$types';
+import type { Id } from '$lib/convex';
 
 /**
  * Workspace-scoped route layout
@@ -16,16 +17,21 @@ import type { LayoutServerLoad } from './$types';
  * 3. Try as alias (old slug) → redirect to current slug
  * 4. Not found → redirect to first workspace or onboarding
  */
+type WorkspaceSummary = {
+	workspaceId: Id<'workspaces'>;
+	slug: string;
+};
+
 async function resolveWorkspace(
 	client: ConvexHttpClient,
 	slugOrId: string,
 	sessionId: string
-): Promise<{ workspace: any; redirect: boolean; to?: string } | { workspace: null }> {
+): Promise<{ workspace: WorkspaceSummary; redirect: boolean; to?: string } | { workspace: null }> {
 	// 1. Try as current slug
-	let workspace = await client.query(api.workspaces.getBySlug, {
+	let workspace = (await client.query(api.workspaces.findBySlug, {
 		slug: slugOrId,
 		sessionId
-	});
+	})) as WorkspaceSummary | null;
 
 	if (workspace) {
 		return { workspace, redirect: false };
@@ -35,15 +41,16 @@ async function resolveWorkspace(
 	// Workspace IDs are typically like "j123abc..." - check if it looks like an ID
 	if (slugOrId.length > 10 && /^[a-z0-9]+$/.test(slugOrId)) {
 		try {
-			workspace = await client.query(api.workspaces.getById, {
-				workspaceId: slugOrId as any, // Type assertion needed for Convex ID
+			const workspaceId = slugOrId as Id<'workspaces'>;
+			workspace = (await client.query(api.workspaces.findById, {
+				workspaceId,
 				sessionId
-			});
+			})) as WorkspaceSummary | null;
 
 			if (workspace) {
 				return { workspace, redirect: true, to: workspace.slug };
 			}
-		} catch (e) {
+		} catch (_e) {
 			// Invalid ID format, continue to alias check
 		}
 	}
@@ -56,10 +63,10 @@ async function resolveWorkspace(
 
 	if (alias) {
 		// Get workspace by ID from alias
-		workspace = await client.query(api.workspaces.getById, {
+		workspace = (await client.query(api.workspaces.findById, {
 			workspaceId: alias.workspaceId,
 			sessionId
-		});
+		})) as WorkspaceSummary | null;
 
 		if (workspace) {
 			return { workspace, redirect: true, to: workspace.slug };

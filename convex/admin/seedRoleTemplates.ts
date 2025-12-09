@@ -13,14 +13,14 @@
  */
 
 import { internalMutation } from '../_generated/server';
+import type { MutationCtx } from '../_generated/server';
 import type { Id } from '../_generated/dataModel';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * Helper function to get any user ID (for system operations)
  */
-async function getAnyUserId(ctx: {
-	db: { query: (table: string) => any };
-}): Promise<Id<'users'> | null> {
+async function getAnyUserId(ctx: MutationCtx): Promise<Id<'users'> | null> {
 	const user = await ctx.db.query('users').first();
 	return user?._id ?? null;
 }
@@ -38,7 +38,10 @@ export const seedRoleTemplates = internalMutation({
 		// Get a system user ID for createdBy
 		const systemUserId = await getAnyUserId(ctx);
 		if (!systemUserId) {
-			throw new Error('No users found in database. Cannot create role templates.');
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'No users found in database. Cannot create role templates.'
+			);
 		}
 
 		// System-level templates configuration

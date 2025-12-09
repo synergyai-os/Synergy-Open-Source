@@ -3,8 +3,9 @@
 	import { browser } from '$app/environment';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import { Button, Badge, Heading, Text, Icon } from '$lib/components/atoms';
+	import { Button, Badge, Heading, Text } from '$lib/components/atoms';
 	import { Dialog } from 'bits-ui';
+	import { invariant } from '$lib/utils/invariant';
 
 	let { data }: { data: PageData } = $props();
 
@@ -49,7 +50,7 @@
 
 		try {
 			const role = availableRoles.find((r) => r._id === selectedRoleId);
-			if (!role) throw new Error('Role not found');
+			invariant(role, 'Role not found');
 
 			await convexClient.mutation(api.rbac.roles.assignRole, {
 				sessionId,

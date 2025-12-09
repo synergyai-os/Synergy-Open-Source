@@ -34,6 +34,14 @@ if (!CONVEX_URL) {
 	process.exit(1);
 }
 
+const sessionId = process.env.ADMIN_SESSION_ID;
+
+if (!sessionId) {
+	console.error('❌ ADMIN_SESSION_ID not set in environment');
+	console.error('   Please export ADMIN_SESSION_ID for a system admin session.');
+	process.exit(1);
+}
+
 async function main() {
 	console.log('🚀 Updating circles_ui_beta feature flag...\n');
 
@@ -44,7 +52,8 @@ async function main() {
 		// Replace with your actual userId from browser console debug output
 		const userId = 'jx7b6gcvkmpsppm7sqzst8s3q57v898d'; // randy@synergyai.nl
 
-		await client.mutation(api.featureFlags.upsertFlag, {
+		await client.mutation(api.featureFlags.updateFlag, {
+			sessionId,
 			flag: 'circles_ui_beta',
 			enabled: true,
 			allowedUserIds: [userId as Id<'users'>]

@@ -8,6 +8,7 @@
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
 import { requireSystemAdmin } from '../rbac/permissions';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * List all users
@@ -51,7 +52,7 @@ export const getUserById = query({
 
 		const user = await ctx.db.get(args.userId);
 		if (!user) {
-			throw new Error('User not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User not found');
 		}
 
 		// Get user's roles

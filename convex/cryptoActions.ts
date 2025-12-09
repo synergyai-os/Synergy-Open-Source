@@ -11,6 +11,7 @@
 
 import { internalAction } from './_generated/server';
 import { v } from 'convex/values';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const crypto = require('crypto');
 
@@ -26,7 +27,8 @@ export const encryptApiKey = internalAction({
 		const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY;
 
 		if (!encryptionKey) {
-			throw new Error(
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
 				'API_KEY_ENCRYPTION_KEY environment variable is not set. ' +
 					'Run: npx convex env set API_KEY_ENCRYPTION_KEY your-32-byte-key'
 			);
@@ -34,7 +36,8 @@ export const encryptApiKey = internalAction({
 
 		// Validate key length (AES-256 requires 32 bytes / 64 hex chars)
 		if (encryptionKey.length !== 64) {
-			throw new Error(
+			throw createError(
+				ErrorCodes.VALIDATION_INVALID_FORMAT,
 				'API_KEY_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). ' +
 					'Generate with: openssl rand -hex 32'
 			);
@@ -75,7 +78,8 @@ export const decryptApiKey = internalAction({
 		const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY;
 
 		if (!encryptionKey) {
-			throw new Error(
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
 				'API_KEY_ENCRYPTION_KEY environment variable is not set. ' +
 					'Run: npx convex env set API_KEY_ENCRYPTION_KEY your-32-byte-key'
 			);
@@ -83,7 +87,8 @@ export const decryptApiKey = internalAction({
 
 		// Validate key length
 		if (encryptionKey.length !== 64) {
-			throw new Error(
+			throw createError(
+				ErrorCodes.VALIDATION_INVALID_FORMAT,
 				'API_KEY_ENCRYPTION_KEY must be exactly 64 hex characters (32 bytes). ' +
 					'Generate with: openssl rand -hex 32'
 			);
@@ -92,7 +97,7 @@ export const decryptApiKey = internalAction({
 		// Parse the encrypted string: iv:authTag:encryptedData
 		const parts = args.encryptedApiKey.split(':');
 		if (parts.length !== 3) {
-			throw new Error('Invalid encrypted API key format');
+			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Invalid encrypted API key format');
 		}
 
 		const [ivBase64, authTagBase64, encryptedData] = parts;

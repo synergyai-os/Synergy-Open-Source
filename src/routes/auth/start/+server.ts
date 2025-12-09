@@ -77,9 +77,29 @@ export const GET: RequestHandler = async (event) => {
 	console.log('   Client ID:', publicEnv.PUBLIC_WORKOS_CLIENT_ID?.substring(0, 15) + '...');
 	console.log('   Redirect URI:', env.WORKOS_REDIRECT_URI);
 
+	// Guard against redirect/app origin drift in non-production
+	try {
+		const redirectOrigin = new URL(env.WORKOS_REDIRECT_URI).origin;
+		const appOrigin = new URL(publicEnv.PUBLIC_APP_URL ?? env.WORKOS_REDIRECT_URI).origin;
+		if (redirectOrigin !== appOrigin) {
+			const message = `WORKOS_REDIRECT_URI origin (${redirectOrigin}) does not match PUBLIC_APP_URL origin (${appOrigin})`;
+			if (env.NODE_ENV !== 'production') {
+				console.warn('⚠️  Auth config mismatch:', message);
+				throw new Error(message);
+			} else {
+				console.warn('⚠️  Auth config mismatch (prod):', message);
+			}
+		}
+	} catch (err) {
+		if (err instanceof Error) {
+			throw err;
+		}
+		console.warn('⚠️  Failed to validate auth origins', err);
+	}
+
 	const redirectParam =
 		event.url.searchParams.get('redirect') ?? event.url.searchParams.get('redirectTo');
-	const redirectTo = sanitizeRedirect(redirectParam, event.url.origin) ?? '/inbox';
+	const redirectTo = sanitizeRedirect(redirectParam, event.url.origin) ?? null;
 
 	const flowMode = parseMode(event.url.searchParams.get('mode'));
 	const linkAccount = parseBooleanFlag(

@@ -13,6 +13,7 @@
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	import { useTagging } from '../composables/useTagging.svelte';
+	import { invariant } from '$lib/utils/invariant';
 	// TODO: Re-enable when Doc type is needed
 	// import type { Doc } from '$lib/convex';
 	import type { FunctionReference } from 'convex/server';
@@ -21,7 +22,7 @@
 
 	type Props = {
 		inboxItemId?: string; // Inbox item ID (if using real data)
-		item: ReadwiseHighlightWithDetails; // Item from getInboxItemWithDetails query (narrowed to readwise_highlight)
+		item: ReadwiseHighlightWithDetails; // Item from findInboxItemWithDetails query (narrowed to readwise_highlight)
 		onClose: () => void;
 		currentIndex?: number; // Current item index (0-based)
 		totalItems?: number; // Total number of items
@@ -52,7 +53,7 @@
 	const TagSelector = coreAPI?.TagSelector;
 
 	const markProcessedApi = browser
-		? (makeFunctionReference('inbox:markProcessed') as FunctionReference<
+		? (makeFunctionReference('inbox:updateProcessed') as FunctionReference<
 				'mutation',
 				'public',
 				{ sessionId: string; inboxItemId: Id<'inboxItems'> },
@@ -275,9 +276,7 @@
 		if (browser && convexClient && markProcessedApi && inboxItemId) {
 			try {
 				const sessionId = $page.data.sessionId;
-				if (!sessionId) {
-					throw new Error('Session ID is required');
-				}
+				invariant(sessionId, 'Session ID is required');
 				await convexClient.mutation(markProcessedApi, {
 					sessionId,
 					inboxItemId: inboxItemId as Id<'inboxItems'>

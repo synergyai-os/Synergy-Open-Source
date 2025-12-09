@@ -23,9 +23,9 @@ echo ""
 MIGRATED_FUNCTIONS=(
   "createNote"
   "updateNote"
-  "deleteNote"
+  "archiveNote"
   "listNotes"
-  "getNote"
+  "findNote"
   "getUserSettings"
   "updateTheme"
   "deleteClaudeApiKey"
@@ -63,7 +63,7 @@ COMPONENTS_WITH_CONVEX=$(grep -rl "api\." src/lib/components/ src/routes/ 2>/dev
 for file in $COMPONENTS_WITH_CONVEX; do
   # Check if component has userId prop but uses migrated functions
   HAS_USERID_PROP=$(grep "userId.*:" "$file" | grep -v "convexUserId" || true)
-  USES_MIGRATED=$(grep -E "(createNote|updateNote|listNotes|listInboxItems|markProcessed)" "$file" || true)
+  USES_MIGRATED=$(grep -E "(createNote|updateNote|listNotes|listInboxItems|updateProcessed)" "$file" || true)
   
   if [ ! -z "$HAS_USERID_PROP" ] && [ ! -z "$USES_MIGRATED" ]; then
     echo -e "${YELLOW}⚠️  Component may need sessionId instead of userId: $file${NC}"

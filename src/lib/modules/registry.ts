@@ -10,6 +10,7 @@
 
 import type { FeatureFlagKey } from '$lib/infrastructure/feature-flags';
 import { api } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 /**
  * Module metadata structure
@@ -134,7 +135,7 @@ export async function checkFeatureFlag(
 
 	try {
 		// Use Convex feature flag query to check if flag is enabled
-		const result = await client.query(api.featureFlags.checkFlag, {
+		const result = await client.query(api.featureFlags.isFlagEnabled, {
 			flag,
 			sessionId
 		});
@@ -273,22 +274,19 @@ export function resolveDependencies(moduleNames: string[]): string[] {
 			return; // Already resolved
 		}
 
-		if (resolving.has(name)) {
-			throw new Error(`Circular dependency detected involving module "${name}"`);
-		}
+		invariant(!resolving.has(name), `Circular dependency detected involving module "${name}"`);
 
 		const module = getModule(name);
-		if (!module) {
-			throw new Error(`Module "${name}" not found`);
-		}
+		invariant(module, `Module "${name}" not found`);
 
 		resolving.add(name);
 
 		// Resolve dependencies first
 		for (const dep of module.dependencies) {
-			if (!moduleNames.includes(dep)) {
-				throw new Error(`Module "${name}" depends on "${dep}" which is not in the list`);
-			}
+			invariant(
+				moduleNames.includes(dep),
+				`Module "${name}" depends on "${dep}" which is not in the list`
+			);
 			resolve(dep);
 		}
 

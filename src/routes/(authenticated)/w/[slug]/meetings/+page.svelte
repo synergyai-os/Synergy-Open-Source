@@ -5,6 +5,7 @@
 	 */
 
 	import { page } from '$app/stores';
+	import { invariant } from '$lib/utils/invariant';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
@@ -26,6 +27,7 @@
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+	import { SvelteMap } from 'svelte/reactivity';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
@@ -52,9 +54,9 @@
 	const getWorkspaceId = () => workspaceId();
 	const flagQuery =
 		browser && getSessionId()
-			? useQuery(api.featureFlags.checkFlag, () => {
+			? useQuery(api.featureFlags.isFlagEnabled, () => {
 					const session = getSessionId();
-					if (!session) throw new Error('sessionId required');
+					invariant(session, 'sessionId required');
 					return {
 						flag: FeatureFlags.MEETINGS_MODULE,
 						sessionId: session
@@ -70,7 +72,7 @@
 			? useQuery(api.circles.list, () => {
 					const orgId = getWorkspaceId();
 					const session = getSessionId();
-					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
+					invariant(orgId && session, 'workspaceId and sessionId required');
 					return {
 						workspaceId: orgId as Id<'workspaces'>,
 						sessionId: session
@@ -85,10 +87,10 @@
 	// Fetch meeting templates for template name lookup
 	const templatesQuery =
 		browser && getWorkspaceId() && getSessionId()
-			? useQuery(api.meetingTemplates.list, () => {
+			? useQuery(api.modules.meetings.templates.list, () => {
 					const orgId = getWorkspaceId();
 					const session = getSessionId();
-					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
+					invariant(orgId && session, 'workspaceId and sessionId required');
 					return {
 						workspaceId: orgId as Id<'workspaces'>,
 						sessionId: session
@@ -99,7 +101,7 @@
 	// Create templateId -> templateName map
 	const templateNameMap = $derived(() => {
 		const templates = templatesQuery?.data ?? [];
-		const map = new Map<string, string>();
+		const map = new SvelteMap<string, string>();
 		for (const template of templates) {
 			map.set(template._id, template.name);
 		}

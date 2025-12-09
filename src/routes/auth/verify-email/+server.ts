@@ -131,7 +131,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		event.cookies.delete('registration_pending', { path: '/' });
 
 		// Check if user registered from invite link - accept invite automatically
-		let redirectTo = registrationData.redirect ?? '/inbox';
+		let redirectTo = registrationData.redirect ?? '/auth/redirect';
 		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
 
 		if (inviteMatch) {
@@ -140,13 +140,13 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 			try {
 				// Get invite details (workspace invites only)
-				const inviteDetails = await convex.query(api.workspaces.getInviteByCode, {
+				const inviteDetails = await convex.query(api.workspaces.findInviteByCode, {
 					code: inviteCode
 				});
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
-					redirectTo = '/inbox';
+					redirectTo = '/auth/redirect';
 				} else if (inviteDetails.type === 'workspace') {
 					// Accept workspace invite
 					const acceptResult = await convex.mutation(api.workspaces.acceptOrganizationInvite, {
@@ -162,13 +162,13 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);
-					redirectTo = '/inbox';
+					redirectTo = '/auth/redirect';
 				}
 			} catch (inviteError) {
 				console.error('❌ Failed to accept invite:', inviteError);
 				// If invite acceptance fails, redirect to inbox instead
 				// User can manually accept invite later if needed
-				redirectTo = '/inbox';
+				redirectTo = '/auth/redirect';
 			}
 		}
 

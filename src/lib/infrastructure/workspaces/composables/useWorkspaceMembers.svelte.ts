@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
+import { invariant } from '$lib/utils/invariant';
 
 export type WorkspaceMember = {
 	userId: Id<'users'>;
@@ -32,10 +33,10 @@ export function useWorkspaceMembers(options: {
 	// Query workspace members
 	const membersQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.workspaces.getMembers, () => {
+			? useQuery(api.workspaces.listMembers, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
@@ -46,7 +47,7 @@ export function useWorkspaceMembers(options: {
 			? useQuery(api.workspaces.getWorkspaceInvites, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
@@ -65,9 +66,9 @@ export function useWorkspaceMembers(options: {
 
 		// Mutations
 		removeMember: async (args: { workspaceId: string; userId: string }) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.remove = true;
 			try {
@@ -88,10 +89,10 @@ export function useWorkspaceMembers(options: {
 		},
 
 		inviteMember: async (email: string) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			const workspaceId = getWorkspaceId();
-			if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+			invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 
 			state.loading.invite = true;
 			try {
@@ -121,9 +122,9 @@ export function useWorkspaceMembers(options: {
 		},
 
 		resendInvite: async (inviteId: string) => {
-			if (!convexClient) throw new Error('Convex client not available');
+			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
-			if (!sessionId) throw new Error('sessionId required');
+			invariant(sessionId, 'sessionId required');
 
 			state.loading.resend = true;
 			try {

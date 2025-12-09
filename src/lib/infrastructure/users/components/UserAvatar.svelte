@@ -48,15 +48,15 @@
 	const initials = $derived(getInitials(user));
 	const imageUrl = $derived(user?.profileImageUrl);
 
-	// Size mapping (matches Avatar.svelte)
-	const sizeMap = {
-		xxs: '1.25rem', // 20px
-		xs: '1.5rem', // 24px
-		sm: '2rem', // 32px
-		md: '2.5rem', // 40px
-		lg: '3rem' // 48px
-	};
-	const imageSize = $derived(sizeMap[size]);
+	// Size mapping (matches Avatar.svelte) using sizing tokens
+	const sizeTokenMap = {
+		xxs: '--sizing-avatar-xxs',
+		xs: '--sizing-avatar-xs',
+		sm: '--sizing-avatar-sm',
+		md: '--sizing-avatar-md',
+		lg: '--sizing-avatar-lg'
+	} as const;
+	const imageSize = $derived(`var(${sizeTokenMap[size]})`);
 </script>
 
 {#if imageUrl}

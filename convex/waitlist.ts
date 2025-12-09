@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Add someone to the waitlist
@@ -21,13 +22,13 @@ export const joinWaitlist = mutation({
 			.first();
 
 		if (existing) {
-			throw new Error('Email already on waitlist');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Email already on waitlist');
 		}
 
 		// Validate email format
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(args.email)) {
-			throw new Error('Invalid email format');
+			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Invalid email format');
 		}
 
 		// Add to waitlist

@@ -1,7 +1,7 @@
 /**
  * Meeting Presence Composable - Real-time presence tracking (SYOS-227)
  *
- * Manages heartbeat lifecycle and provides real-time presence data.
+ * Manages recordHeartbeat lifecycle and provides real-time presence data.
  *
  * Pattern: Svelte 5 composable with single $state object + getters
  * Reference: dev-docs/2-areas/patterns/svelte-reactivity.md#L10
@@ -10,6 +10,7 @@
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { browser } from '$app/environment';
+import { invariant } from '$lib/utils/invariant';
 
 interface UseMeetingPresenceOptions {
 	/**
@@ -49,7 +50,7 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 
 	// Single $state object (Svelte 5 pattern)
 	const state = $state({
-		heartbeatInterval: null as NodeJS.Timeout | null
+		recordHeartbeatInterval: null as NodeJS.Timeout | null
 	});
 
 	// Real-time subscription to active presence
@@ -57,12 +58,10 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	// Reference: dev-docs/2-areas/patterns/svelte-reactivity.md#L220
 	const activePresenceQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.meetingPresence.getActivePresence, () => {
+			? useQuery(api.modules.meetings.presence.getActivePresence, () => {
 					const mid = meetingId();
 					const sid = sessionId();
-					if (!mid || !sid) {
-						throw new Error('meetingId and sessionId required for presence tracking');
-					}
+					invariant(mid && sid, 'meetingId and sessionId required for presence tracking');
 					return {
 						meetingId: mid,
 						sessionId: sid
@@ -73,12 +72,10 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	// Real-time subscription to combined attendance (expected + active + guests)
 	const combinedAttendanceQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.meetingPresence.getCombinedAttendance, () => {
+			? useQuery(api.modules.meetings.presence.getCombinedAttendance, () => {
 					const mid = meetingId();
 					const sid = sessionId();
-					if (!mid || !sid) {
-						throw new Error('meetingId and sessionId required for attendance tracking');
-					}
+					invariant(mid && sid, 'meetingId and sessionId required for attendance tracking');
 					return {
 						meetingId: mid,
 						sessionId: sid
@@ -98,24 +95,24 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	);
 
 	/**
-	 * Start heartbeat interval
-	 * - Sends immediate heartbeat
-	 * - Sets up 30s interval for subsequent heartbeats
+	 * Start recordHeartbeat interval
+	 * - Sends immediate recordHeartbeat
+	 * - Sets up 30s interval for subsequent recordHeartbeats
 	 *
 	 * Pattern: Context7 validated (Convex Presence Component)
 	 * Heartbeat frequency: 30s (2 requests/min/user)
 	 */
 	const startHeartbeat = () => {
 		// Don't start if already running
-		if (state.heartbeatInterval) {
+		if (state.recordHeartbeatInterval) {
 			return;
 		}
 
-		// Send immediate heartbeat
+		// Send immediate recordHeartbeat
 		sendHeartbeat();
 
-		// Set up interval for subsequent heartbeats (30s)
-		state.heartbeatInterval = setInterval(
+		// Set up interval for subsequent recordHeartbeats (30s)
+		state.recordHeartbeatInterval = setInterval(
 			() => {
 				sendHeartbeat();
 			},
@@ -124,18 +121,18 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	};
 
 	/**
-	 * Stop heartbeat interval
+	 * Stop recordHeartbeat interval
 	 * Cleans up interval on component unmount
 	 */
 	const stopHeartbeat = () => {
-		if (state.heartbeatInterval) {
-			clearInterval(state.heartbeatInterval);
-			state.heartbeatInterval = null;
+		if (state.recordHeartbeatInterval) {
+			clearInterval(state.recordHeartbeatInterval);
+			state.recordHeartbeatInterval = null;
 		}
 	};
 
 	/**
-	 * Send heartbeat to server
+	 * Send recordHeartbeat to server
 	 * Internal method - called by startHeartbeat
 	 */
 	const sendHeartbeat = async () => {
@@ -148,13 +145,13 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 		}
 
 		try {
-			await convexClient.mutation(api.meetingPresence.heartbeat, {
+			await convexClient.mutation(api.modules.meetings.presence.recordHeartbeat, {
 				meetingId: mid,
 				sessionId: sid
 			});
 		} catch (error) {
-			console.error('Failed to send heartbeat:', error);
-			// Don't throw - allow silent failure for heartbeats
+			console.error('Failed to send recordHeartbeat:', error);
+			// Don't throw - allow silent failure for recordHeartbeats
 		}
 	};
 
@@ -192,12 +189,12 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 		},
 
 		/**
-		 * Start sending heartbeats (call on mount)
+		 * Start sending recordHeartbeats (call on mount)
 		 */
 		startHeartbeat,
 
 		/**
-		 * Stop sending heartbeats (call on unmount)
+		 * Stop sending recordHeartbeats (call on unmount)
 		 */
 		stopHeartbeat
 	};

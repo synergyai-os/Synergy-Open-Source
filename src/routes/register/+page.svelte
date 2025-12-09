@@ -9,7 +9,9 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const redirectTarget = $derived(
-		$page.url.searchParams.get('redirect') ?? $page.url.searchParams.get('redirectTo') ?? '/inbox'
+		$page.url.searchParams.get('redirect') ??
+			$page.url.searchParams.get('redirectTo') ??
+			'/auth/redirect'
 	);
 
 	let email = $state('');

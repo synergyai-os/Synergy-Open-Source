@@ -29183,3 +29183,8059 @@
 [2025-12-03T12:44:09.278Z] Max allowed: 3
 [2025-12-03T12:44:09.278Z] Retry after (seconds): 60
 [2025-12-03T12:44:09.278Z] === RATE LIMIT: checkRateLimit END (BLOCKED) ===
+[2025-12-06T10:47:58.115Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765018078115",
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.116Z] Creating new entry
+{
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.116Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.116Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T10:47:58.117Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765018078115",
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.117Z] Found existing entry
+{
+  "key": "login:test-allow-1765018078115",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.117Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.117Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T10:47:58.117Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765018078115",
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.117Z] Found existing entry
+{
+  "key": "login:test-allow-1765018078115",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.117Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.117Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.117Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765018078115",
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.117Z] Found existing entry
+{
+  "key": "login:test-allow-1765018078115",
+  "timestampCount": 3
+}
+[2025-12-06T10:47:58.117Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.117Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.117Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765018078115",
+  "key": "login:test-allow-1765018078115"
+}
+[2025-12-06T10:47:58.117Z] Found existing entry
+{
+  "key": "login:test-allow-1765018078115",
+  "timestampCount": 4
+}
+[2025-12-06T10:47:58.117Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.117Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Creating new entry
+{
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.118Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Found existing entry
+{
+  "key": "login:test-block-1765018078118",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.118Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Found existing entry
+{
+  "key": "login:test-block-1765018078118",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.118Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Found existing entry
+{
+  "key": "login:test-block-1765018078118",
+  "timestampCount": 3
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.118Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Found existing entry
+{
+  "key": "login:test-block-1765018078118",
+  "timestampCount": 4
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.118Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T10:47:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765018078118",
+  "key": "login:test-block-1765018078118"
+}
+[2025-12-06T10:47:58.118Z] Found existing entry
+{
+  "key": "login:test-block-1765018078118",
+  "timestampCount": 5
+}
+[2025-12-06T10:47:58.118Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.119Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765018078119",
+  "key": "test-reset:test-reset-1765018078119"
+}
+[2025-12-06T10:47:58.119Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765018078119"
+}
+[2025-12-06T10:47:58.119Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T10:47:58.119Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.119Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765018078119",
+  "key": "test-reset:test-reset-1765018078119"
+}
+[2025-12-06T10:47:58.119Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765018078119",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.119Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-06T10:47:58.119Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-06T10:47:58.119Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765018078119",
+  "key": "test-reset:test-reset-1765018078119"
+}
+[2025-12-06T10:47:58.119Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765018078119",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.119Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-06T10:47:58.270Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765018078119",
+  "key": "test-reset:test-reset-1765018078119"
+}
+[2025-12-06T10:47:58.270Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765018078119",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.272Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-06T10:47:58.272Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T10:47:58.276Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.277Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.277Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T10:47:58.277Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765018078277",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.277Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.277Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T10:47:58.277Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765018078277",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.277Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.277Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.277Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765018078277",
+  "timestampCount": 3
+}
+[2025-12-06T10:47:58.277Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.277Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.277Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.277Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765018078277",
+  "timestampCount": 4
+}
+[2025-12-06T10:47:58.278Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.278Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T10:47:58.278Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765018078277",
+  "key": "login:test-multi-1-1765018078277"
+}
+[2025-12-06T10:47:58.278Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765018078277",
+  "timestampCount": 5
+}
+[2025-12-06T10:47:58.278Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.278Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765018078277",
+  "key": "login:test-multi-2-1765018078277"
+}
+[2025-12-06T10:47:58.278Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765018078277"
+}
+[2025-12-06T10:47:58.278Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.278Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T10:47:58.278Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765018078278",
+  "key": "login:test-reset-time-1765018078278"
+}
+[2025-12-06T10:47:58.278Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765018078278"
+}
+[2025-12-06T10:47:58.278Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T10:47:58.279Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T10:47:58.280Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T10:47:58.280Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T10:47:58.280Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T10:47:58.280Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-06T10:47:58.280Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T10:47:58.280Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T10:47:58.280Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T10:47:58.280Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-06T10:47:58.280Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T10:47:58.280Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T10:47:58.280Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765018078280",
+  "key": "test-sliding:test-sliding-1765018078280"
+}
+[2025-12-06T10:47:58.280Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765018078280"
+}
+[2025-12-06T10:47:58.280Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.280Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.381Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765018078280",
+  "key": "test-sliding:test-sliding-1765018078280"
+}
+[2025-12-06T10:47:58.381Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765018078280",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.381Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.381Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.484Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765018078280",
+  "key": "test-sliding:test-sliding-1765018078280"
+}
+[2025-12-06T10:47:58.484Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765018078280",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.484Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-06T10:47:58.484Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.484Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.485Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765018078485",
+  "key": "register:test-format-allowed-1765018078485"
+}
+[2025-12-06T10:47:58.485Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765018078485"
+}
+[2025-12-06T10:47:58.485Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.485Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.485Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765018078485",
+  "key": "register:test-format-blocked-1765018078485"
+}
+[2025-12-06T10:47:58.485Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765018078485"
+}
+[2025-12-06T10:47:58.485Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.486Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T10:47:58.486Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765018078485",
+  "key": "register:test-format-blocked-1765018078485"
+}
+[2025-12-06T10:47:58.487Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765018078485",
+  "timestampCount": 1
+}
+[2025-12-06T10:47:58.487Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.487Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T10:47:58.488Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765018078485",
+  "key": "register:test-format-blocked-1765018078485"
+}
+[2025-12-06T10:47:58.488Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765018078485",
+  "timestampCount": 2
+}
+[2025-12-06T10:47:58.488Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-06T10:47:58.488Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-06T10:47:58.488Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765018078485",
+  "key": "register:test-format-blocked-1765018078485"
+}
+[2025-12-06T10:47:58.488Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765018078485",
+  "timestampCount": 3
+}
+[2025-12-06T10:47:58.488Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-06T11:31:33.601Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765020693601",
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.602Z] Creating new entry
+{
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.602Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.602Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T11:31:33.602Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765020693601",
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.603Z] Found existing entry
+{
+  "key": "login:test-allow-1765020693601",
+  "timestampCount": 1
+}
+[2025-12-06T11:31:33.604Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.604Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T11:31:33.604Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765020693601",
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.604Z] Found existing entry
+{
+  "key": "login:test-allow-1765020693601",
+  "timestampCount": 2
+}
+[2025-12-06T11:31:33.604Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.604Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T11:31:33.604Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765020693601",
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.604Z] Found existing entry
+{
+  "key": "login:test-allow-1765020693601",
+  "timestampCount": 3
+}
+[2025-12-06T11:31:33.604Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.604Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T11:31:33.604Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765020693601",
+  "key": "login:test-allow-1765020693601"
+}
+[2025-12-06T11:31:33.604Z] Found existing entry
+{
+  "key": "login:test-allow-1765020693601",
+  "timestampCount": 4
+}
+[2025-12-06T11:31:33.604Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.604Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T11:31:33.605Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.606Z] Creating new entry
+{
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.606Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.606Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T11:31:33.606Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.606Z] Found existing entry
+{
+  "key": "login:test-block-1765020693605",
+  "timestampCount": 1
+}
+[2025-12-06T11:31:33.606Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.606Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T11:31:33.606Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.606Z] Found existing entry
+{
+  "key": "login:test-block-1765020693605",
+  "timestampCount": 2
+}
+[2025-12-06T11:31:33.606Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.606Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T11:31:33.606Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.606Z] Found existing entry
+{
+  "key": "login:test-block-1765020693605",
+  "timestampCount": 3
+}
+[2025-12-06T11:31:33.607Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.607Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T11:31:33.608Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.608Z] Found existing entry
+{
+  "key": "login:test-block-1765020693605",
+  "timestampCount": 4
+}
+[2025-12-06T11:31:33.608Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.608Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T11:31:33.608Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765020693605",
+  "key": "login:test-block-1765020693605"
+}
+[2025-12-06T11:31:33.608Z] Found existing entry
+{
+  "key": "login:test-block-1765020693605",
+  "timestampCount": 5
+}
+[2025-12-06T11:31:33.608Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.609Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765020693609",
+  "key": "test-reset:test-reset-1765020693609"
+}
+[2025-12-06T11:31:33.609Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765020693609"
+}
+[2025-12-06T11:31:33.609Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T11:31:33.609Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T11:31:33.609Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765020693609",
+  "key": "test-reset:test-reset-1765020693609"
+}
+[2025-12-06T11:31:33.609Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765020693609",
+  "timestampCount": 1
+}
+[2025-12-06T11:31:33.609Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-06T11:31:33.609Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-06T11:31:33.610Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765020693609",
+  "key": "test-reset:test-reset-1765020693609"
+}
+[2025-12-06T11:31:33.610Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765020693609",
+  "timestampCount": 2
+}
+[2025-12-06T11:31:33.610Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-06T11:31:33.762Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765020693609",
+  "key": "test-reset:test-reset-1765020693609"
+}
+[2025-12-06T11:31:33.762Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765020693609",
+  "timestampCount": 2
+}
+[2025-12-06T11:31:33.762Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-06T11:31:33.762Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T11:31:33.762Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.763Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765020693763",
+  "timestampCount": 1
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.763Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765020693763",
+  "timestampCount": 2
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.763Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765020693763",
+  "timestampCount": 3
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.763Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765020693763",
+  "timestampCount": 4
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.763Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T11:31:33.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765020693763",
+  "key": "login:test-multi-1-1765020693763"
+}
+[2025-12-06T11:31:33.763Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765020693763",
+  "timestampCount": 5
+}
+[2025-12-06T11:31:33.763Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.764Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765020693763",
+  "key": "login:test-multi-2-1765020693763"
+}
+[2025-12-06T11:31:33.764Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765020693763"
+}
+[2025-12-06T11:31:33.764Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.764Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T11:31:33.764Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765020693764",
+  "key": "login:test-reset-time-1765020693764"
+}
+[2025-12-06T11:31:33.764Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765020693764"
+}
+[2025-12-06T11:31:33.764Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T11:31:33.764Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T11:31:33.765Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T11:31:33.765Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T11:31:33.765Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T11:31:33.765Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-06T11:31:33.765Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T11:31:33.765Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T11:31:33.765Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T11:31:33.765Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-06T11:31:33.766Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T11:31:33.766Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T11:31:33.766Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765020693766",
+  "key": "test-sliding:test-sliding-1765020693766"
+}
+[2025-12-06T11:31:33.766Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765020693766"
+}
+[2025-12-06T11:31:33.766Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T11:31:33.766Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T15:07:42.899Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765033662899",
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Creating new entry
+{
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.900Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T15:07:42.900Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765033662899",
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Found existing entry
+{
+  "key": "login:test-allow-1765033662899",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:42.900Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.900Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T15:07:42.900Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765033662899",
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Found existing entry
+{
+  "key": "login:test-allow-1765033662899",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:42.900Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.900Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T15:07:42.900Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765033662899",
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Found existing entry
+{
+  "key": "login:test-allow-1765033662899",
+  "timestampCount": 3
+}
+[2025-12-06T15:07:42.900Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.900Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T15:07:42.900Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765033662899",
+  "key": "login:test-allow-1765033662899"
+}
+[2025-12-06T15:07:42.900Z] Found existing entry
+{
+  "key": "login:test-allow-1765033662899",
+  "timestampCount": 4
+}
+[2025-12-06T15:07:42.900Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.900Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T15:07:42.901Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Creating new entry
+{
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.901Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T15:07:42.901Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Found existing entry
+{
+  "key": "login:test-block-1765033662901",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:42.901Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.901Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T15:07:42.901Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Found existing entry
+{
+  "key": "login:test-block-1765033662901",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:42.901Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.901Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T15:07:42.901Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Found existing entry
+{
+  "key": "login:test-block-1765033662901",
+  "timestampCount": 3
+}
+[2025-12-06T15:07:42.901Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.901Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T15:07:42.901Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.901Z] Found existing entry
+{
+  "key": "login:test-block-1765033662901",
+  "timestampCount": 4
+}
+[2025-12-06T15:07:42.901Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.901Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T15:07:42.902Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765033662901",
+  "key": "login:test-block-1765033662901"
+}
+[2025-12-06T15:07:42.902Z] Found existing entry
+{
+  "key": "login:test-block-1765033662901",
+  "timestampCount": 5
+}
+[2025-12-06T15:07:42.902Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:42.902Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765033662902",
+  "key": "test-reset:test-reset-1765033662902"
+}
+[2025-12-06T15:07:42.902Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765033662902"
+}
+[2025-12-06T15:07:42.902Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T15:07:42.902Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T15:07:42.902Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765033662902",
+  "key": "test-reset:test-reset-1765033662902"
+}
+[2025-12-06T15:07:42.902Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765033662902",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:42.902Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-06T15:07:42.902Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-06T15:07:42.903Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765033662902",
+  "key": "test-reset:test-reset-1765033662902"
+}
+[2025-12-06T15:07:42.903Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765033662902",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:42.903Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-06T15:07:43.055Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765033662902",
+  "key": "test-reset:test-reset-1765033662902"
+}
+[2025-12-06T15:07:43.057Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765033662902",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:43.057Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-06T15:07:43.057Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-06T15:07:43.057Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-06T15:07:43.057Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.057Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.057Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.057Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T15:07:43.057Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.057Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765033663057",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.058Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-06T15:07:43.058Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765033663057",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.058Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-06T15:07:43.058Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765033663057",
+  "timestampCount": 3
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.058Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-06T15:07:43.058Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765033663057",
+  "timestampCount": 4
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.058Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-06T15:07:43.058Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765033663057",
+  "key": "login:test-multi-1-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765033663057",
+  "timestampCount": 5
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.058Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765033663057",
+  "key": "login:test-multi-2-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765033663057"
+}
+[2025-12-06T15:07:43.058Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.059Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T15:07:43.059Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765033663059",
+  "key": "login:test-reset-time-1765033663059"
+}
+[2025-12-06T15:07:43.059Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765033663059"
+}
+[2025-12-06T15:07:43.059Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-06T15:07:43.059Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-06T15:07:43.060Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T15:07:43.060Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T15:07:43.060Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T15:07:43.060Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-06T15:07:43.060Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T15:07:43.060Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T15:07:43.060Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T15:07:43.060Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-06T15:07:43.061Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-06T15:07:43.061Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-06T15:07:43.061Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765033663061",
+  "key": "test-sliding:test-sliding-1765033663061"
+}
+[2025-12-06T15:07:43.061Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765033663061"
+}
+[2025-12-06T15:07:43.061Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.061Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T15:07:43.162Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765033663061",
+  "key": "test-sliding:test-sliding-1765033663061"
+}
+[2025-12-06T15:07:43.162Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765033663061",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:43.162Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.162Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T15:07:43.264Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765033663061",
+  "key": "test-sliding:test-sliding-1765033663061"
+}
+[2025-12-06T15:07:43.264Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765033663061",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:43.264Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-06T15:07:43.264Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.264Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T15:07:43.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765033663265",
+  "key": "register:test-format-allowed-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.265Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T15:07:43.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765033663265",
+  "key": "register:test-format-blocked-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.265Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-06T15:07:43.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765033663265",
+  "key": "register:test-format-blocked-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765033663265",
+  "timestampCount": 1
+}
+[2025-12-06T15:07:43.265Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.265Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-06T15:07:43.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765033663265",
+  "key": "register:test-format-blocked-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765033663265",
+  "timestampCount": 2
+}
+[2025-12-06T15:07:43.265Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-06T15:07:43.265Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-06T15:07:43.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765033663265",
+  "key": "register:test-format-blocked-1765033663265"
+}
+[2025-12-06T15:07:43.265Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765033663265",
+  "timestampCount": 3
+}
+[2025-12-06T15:07:43.265Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.318Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765110566317",
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.318Z] Creating new entry
+{
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.318Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.318Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T12:29:26.318Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765110566317",
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.318Z] Found existing entry
+{
+  "key": "login:test-allow-1765110566317",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.318Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.318Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765110566317",
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-allow-1765110566317",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765110566317",
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-allow-1765110566317",
+  "timestampCount": 3
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765110566317",
+  "key": "login:test-allow-1765110566317"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-allow-1765110566317",
+  "timestampCount": 4
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.319Z] Creating new entry
+{
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-block-1765110566319",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-block-1765110566319",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.319Z] Found existing entry
+{
+  "key": "login:test-block-1765110566319",
+  "timestampCount": 3
+}
+[2025-12-07T12:29:26.319Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.319Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.319Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.320Z] Found existing entry
+{
+  "key": "login:test-block-1765110566319",
+  "timestampCount": 4
+}
+[2025-12-07T12:29:26.320Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.320Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T12:29:26.320Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765110566319",
+  "key": "login:test-block-1765110566319"
+}
+[2025-12-07T12:29:26.320Z] Found existing entry
+{
+  "key": "login:test-block-1765110566319",
+  "timestampCount": 5
+}
+[2025-12-07T12:29:26.320Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.320Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765110566320",
+  "key": "test-reset:test-reset-1765110566320"
+}
+[2025-12-07T12:29:26.320Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765110566320"
+}
+[2025-12-07T12:29:26.320Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-07T12:29:26.320Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.320Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765110566320",
+  "key": "test-reset:test-reset-1765110566320"
+}
+[2025-12-07T12:29:26.320Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765110566320",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.320Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-07T12:29:26.320Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-07T12:29:26.320Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765110566320",
+  "key": "test-reset:test-reset-1765110566320"
+}
+[2025-12-07T12:29:26.320Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765110566320",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.320Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-07T12:29:26.472Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765110566320",
+  "key": "test-reset:test-reset-1765110566320"
+}
+[2025-12-07T12:29:26.472Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765110566320",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.472Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-07T12:29:26.472Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-07T12:29:26.472Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.472Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.472Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.472Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.472Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T12:29:26.472Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.472Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765110566472",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T12:29:26.473Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765110566472",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.473Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765110566472",
+  "timestampCount": 3
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.473Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765110566472",
+  "timestampCount": 4
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T12:29:26.473Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765110566472",
+  "key": "login:test-multi-1-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765110566472",
+  "timestampCount": 5
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765110566472",
+  "key": "login:test-multi-2-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765110566472"
+}
+[2025-12-07T12:29:26.473Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.473Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T12:29:26.474Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765110566474",
+  "key": "login:test-reset-time-1765110566474"
+}
+[2025-12-07T12:29:26.474Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765110566474"
+}
+[2025-12-07T12:29:26.474Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T12:29:26.474Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T12:29:26.475Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T12:29:26.476Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T12:29:26.476Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T12:29:26.476Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-07T12:29:26.476Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T12:29:26.476Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T12:29:26.476Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T12:29:26.476Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-07T12:29:26.476Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T12:29:26.476Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T12:29:26.476Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765110566476",
+  "key": "test-sliding:test-sliding-1765110566476"
+}
+[2025-12-07T12:29:26.476Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765110566476"
+}
+[2025-12-07T12:29:26.476Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.477Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.577Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765110566476",
+  "key": "test-sliding:test-sliding-1765110566476"
+}
+[2025-12-07T12:29:26.577Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765110566476",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.577Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.577Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.681Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765110566476",
+  "key": "test-sliding:test-sliding-1765110566476"
+}
+[2025-12-07T12:29:26.681Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765110566476",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.681Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-07T12:29:26.681Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.681Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.681Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765110566681",
+  "key": "register:test-format-allowed-1765110566681"
+}
+[2025-12-07T12:29:26.681Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765110566681"
+}
+[2025-12-07T12:29:26.681Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.681Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.682Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765110566682",
+  "key": "register:test-format-blocked-1765110566682"
+}
+[2025-12-07T12:29:26.682Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765110566682"
+}
+[2025-12-07T12:29:26.682Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.682Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T12:29:26.682Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765110566682",
+  "key": "register:test-format-blocked-1765110566682"
+}
+[2025-12-07T12:29:26.682Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765110566682",
+  "timestampCount": 1
+}
+[2025-12-07T12:29:26.682Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.682Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T12:29:26.682Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765110566682",
+  "key": "register:test-format-blocked-1765110566682"
+}
+[2025-12-07T12:29:26.682Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765110566682",
+  "timestampCount": 2
+}
+[2025-12-07T12:29:26.682Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-07T12:29:26.682Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-07T12:29:26.682Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765110566682",
+  "key": "register:test-format-blocked-1765110566682"
+}
+[2025-12-07T12:29:26.682Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765110566682",
+  "timestampCount": 3
+}
+[2025-12-07T12:29:26.682Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.170Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765123511170",
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Creating new entry
+{
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.171Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T16:05:11.171Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765123511170",
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Found existing entry
+{
+  "key": "login:test-allow-1765123511170",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.171Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.171Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T16:05:11.171Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765123511170",
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Found existing entry
+{
+  "key": "login:test-allow-1765123511170",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.171Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.171Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.171Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765123511170",
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Found existing entry
+{
+  "key": "login:test-allow-1765123511170",
+  "timestampCount": 3
+}
+[2025-12-07T16:05:11.171Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.171Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.171Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765123511170",
+  "key": "login:test-allow-1765123511170"
+}
+[2025-12-07T16:05:11.171Z] Found existing entry
+{
+  "key": "login:test-allow-1765123511170",
+  "timestampCount": 4
+}
+[2025-12-07T16:05:11.171Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.171Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Creating new entry
+{
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.172Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Found existing entry
+{
+  "key": "login:test-block-1765123511172",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.172Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Found existing entry
+{
+  "key": "login:test-block-1765123511172",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.172Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Found existing entry
+{
+  "key": "login:test-block-1765123511172",
+  "timestampCount": 3
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.172Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Found existing entry
+{
+  "key": "login:test-block-1765123511172",
+  "timestampCount": 4
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.172Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T16:05:11.172Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765123511172",
+  "key": "login:test-block-1765123511172"
+}
+[2025-12-07T16:05:11.172Z] Found existing entry
+{
+  "key": "login:test-block-1765123511172",
+  "timestampCount": 5
+}
+[2025-12-07T16:05:11.172Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.173Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765123511173",
+  "key": "test-reset:test-reset-1765123511173"
+}
+[2025-12-07T16:05:11.173Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765123511173"
+}
+[2025-12-07T16:05:11.173Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-07T16:05:11.173Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.173Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765123511173",
+  "key": "test-reset:test-reset-1765123511173"
+}
+[2025-12-07T16:05:11.173Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765123511173",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.173Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-07T16:05:11.173Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-07T16:05:11.173Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765123511173",
+  "key": "test-reset:test-reset-1765123511173"
+}
+[2025-12-07T16:05:11.173Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765123511173",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.173Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-07T16:05:11.324Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765123511173",
+  "key": "test-reset:test-reset-1765123511173"
+}
+[2025-12-07T16:05:11.324Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765123511173",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.324Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-07T16:05:11.324Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-07T16:05:11.324Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.324Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.324Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.324Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.324Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T16:05:11.324Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.324Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765123511324",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.324Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-07T16:05:11.325Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765123511324",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.325Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.325Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765123511324",
+  "timestampCount": 3
+}
+[2025-12-07T16:05:11.325Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.325Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765123511324",
+  "timestampCount": 4
+}
+[2025-12-07T16:05:11.325Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-07T16:05:11.325Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765123511324",
+  "key": "login:test-multi-1-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765123511324",
+  "timestampCount": 5
+}
+[2025-12-07T16:05:11.325Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765123511324",
+  "key": "login:test-multi-2-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765123511324"
+}
+[2025-12-07T16:05:11.325Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.325Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T16:05:11.326Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765123511326",
+  "key": "login:test-reset-time-1765123511326"
+}
+[2025-12-07T16:05:11.326Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765123511326"
+}
+[2025-12-07T16:05:11.326Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-07T16:05:11.326Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-07T16:05:11.328Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T16:05:11.328Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T16:05:11.328Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T16:05:11.328Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-07T16:05:11.329Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T16:05:11.329Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T16:05:11.329Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T16:05:11.329Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-07T16:05:11.329Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-07T16:05:11.329Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-07T16:05:11.329Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765123511329",
+  "key": "test-sliding:test-sliding-1765123511329"
+}
+[2025-12-07T16:05:11.329Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765123511329"
+}
+[2025-12-07T16:05:11.329Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.329Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.430Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765123511329",
+  "key": "test-sliding:test-sliding-1765123511329"
+}
+[2025-12-07T16:05:11.430Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765123511329",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.430Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.430Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.531Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765123511329",
+  "key": "test-sliding:test-sliding-1765123511329"
+}
+[2025-12-07T16:05:11.531Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765123511329",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.531Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-07T16:05:11.531Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.531Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.531Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765123511531",
+  "key": "register:test-format-allowed-1765123511531"
+}
+[2025-12-07T16:05:11.531Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765123511531"
+}
+[2025-12-07T16:05:11.532Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.532Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.532Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765123511532",
+  "key": "register:test-format-blocked-1765123511532"
+}
+[2025-12-07T16:05:11.532Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765123511532"
+}
+[2025-12-07T16:05:11.532Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.532Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-07T16:05:11.532Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765123511532",
+  "key": "register:test-format-blocked-1765123511532"
+}
+[2025-12-07T16:05:11.532Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765123511532",
+  "timestampCount": 1
+}
+[2025-12-07T16:05:11.532Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.532Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-07T16:05:11.532Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765123511532",
+  "key": "register:test-format-blocked-1765123511532"
+}
+[2025-12-07T16:05:11.532Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765123511532",
+  "timestampCount": 2
+}
+[2025-12-07T16:05:11.532Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-07T16:05:11.532Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-07T16:05:11.532Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765123511532",
+  "key": "register:test-format-blocked-1765123511532"
+}
+[2025-12-07T16:05:11.532Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765123511532",
+  "timestampCount": 3
+}
+[2025-12-07T16:05:11.532Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.404Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214851404",
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.405Z] Creating new entry
+{
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.405Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.405Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:27:31.405Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214851404",
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.405Z] Found existing entry
+{
+  "key": "login:test-allow-1765214851404",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:27:31.406Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214851404",
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.406Z] Found existing entry
+{
+  "key": "login:test-allow-1765214851404",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.406Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214851404",
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.406Z] Found existing entry
+{
+  "key": "login:test-allow-1765214851404",
+  "timestampCount": 3
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.406Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214851404",
+  "key": "login:test-allow-1765214851404"
+}
+[2025-12-08T17:27:31.406Z] Found existing entry
+{
+  "key": "login:test-allow-1765214851404",
+  "timestampCount": 4
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:27:31.406Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.406Z] Creating new entry
+{
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:27:31.406Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.406Z] Found existing entry
+{
+  "key": "login:test-block-1765214851406",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.406Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.406Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:27:31.407Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.407Z] Found existing entry
+{
+  "key": "login:test-block-1765214851406",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.407Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.407Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.407Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.407Z] Found existing entry
+{
+  "key": "login:test-block-1765214851406",
+  "timestampCount": 3
+}
+[2025-12-08T17:27:31.407Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.407Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.407Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.407Z] Found existing entry
+{
+  "key": "login:test-block-1765214851406",
+  "timestampCount": 4
+}
+[2025-12-08T17:27:31.407Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.407Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:27:31.407Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214851406",
+  "key": "login:test-block-1765214851406"
+}
+[2025-12-08T17:27:31.407Z] Found existing entry
+{
+  "key": "login:test-block-1765214851406",
+  "timestampCount": 5
+}
+[2025-12-08T17:27:31.407Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.407Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214851407",
+  "key": "test-reset:test-reset-1765214851407"
+}
+[2025-12-08T17:27:31.408Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765214851407"
+}
+[2025-12-08T17:27:31.408Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T17:27:31.408Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.408Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214851407",
+  "key": "test-reset:test-reset-1765214851407"
+}
+[2025-12-08T17:27:31.408Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214851407",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.408Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-08T17:27:31.408Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-08T17:27:31.408Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214851407",
+  "key": "test-reset:test-reset-1765214851407"
+}
+[2025-12-08T17:27:31.408Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214851407",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.408Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-08T17:27:31.574Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214851407",
+  "key": "test-reset:test-reset-1765214851407"
+}
+[2025-12-08T17:27:31.579Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214851407",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.579Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-08T17:27:31.579Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T17:27:31.579Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.582Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.582Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.582Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.583Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:27:31.583Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.583Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214851582",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.583Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.583Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:27:31.583Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.583Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214851582",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.583Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.585Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.585Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.585Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214851582",
+  "timestampCount": 3
+}
+[2025-12-08T17:27:31.585Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.585Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.585Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.587Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214851582",
+  "timestampCount": 4
+}
+[2025-12-08T17:27:31.587Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.588Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:27:31.588Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214851582",
+  "key": "login:test-multi-1-1765214851582"
+}
+[2025-12-08T17:27:31.588Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214851582",
+  "timestampCount": 5
+}
+[2025-12-08T17:27:31.590Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.590Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765214851582",
+  "key": "login:test-multi-2-1765214851582"
+}
+[2025-12-08T17:27:31.590Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765214851582"
+}
+[2025-12-08T17:27:31.590Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.590Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:27:31.592Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765214851592",
+  "key": "login:test-reset-time-1765214851592"
+}
+[2025-12-08T17:27:31.592Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765214851592"
+}
+[2025-12-08T17:27:31.593Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:27:31.594Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:27:31.596Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:27:31.596Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:27:31.597Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:27:31.597Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-08T17:27:31.598Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:27:31.598Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:27:31.599Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:27:31.599Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-08T17:27:31.600Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:27:31.601Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:27:31.601Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214851601",
+  "key": "test-sliding:test-sliding-1765214851601"
+}
+[2025-12-08T17:27:31.601Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765214851601"
+}
+[2025-12-08T17:27:31.603Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.603Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.705Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214851601",
+  "key": "test-sliding:test-sliding-1765214851601"
+}
+[2025-12-08T17:27:31.705Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765214851601",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.705Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.705Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.810Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214851601",
+  "key": "test-sliding:test-sliding-1765214851601"
+}
+[2025-12-08T17:27:31.810Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765214851601",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.810Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-08T17:27:31.810Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.810Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.810Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765214851810",
+  "key": "register:test-format-allowed-1765214851810"
+}
+[2025-12-08T17:27:31.810Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765214851810"
+}
+[2025-12-08T17:27:31.810Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.810Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.810Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214851810",
+  "key": "register:test-format-blocked-1765214851810"
+}
+[2025-12-08T17:27:31.810Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765214851810"
+}
+[2025-12-08T17:27:31.810Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.810Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:27:31.811Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214851810",
+  "key": "register:test-format-blocked-1765214851810"
+}
+[2025-12-08T17:27:31.811Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214851810",
+  "timestampCount": 1
+}
+[2025-12-08T17:27:31.811Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.811Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:27:31.811Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214851810",
+  "key": "register:test-format-blocked-1765214851810"
+}
+[2025-12-08T17:27:31.811Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214851810",
+  "timestampCount": 2
+}
+[2025-12-08T17:27:31.811Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-08T17:27:31.811Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-08T17:27:31.811Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214851810",
+  "key": "register:test-format-blocked-1765214851810"
+}
+[2025-12-08T17:27:31.811Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214851810",
+  "timestampCount": 3
+}
+[2025-12-08T17:27:31.811Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.013Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214944013",
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.014Z] Creating new entry
+{
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.014Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.014Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:29:04.015Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214944013",
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.015Z] Found existing entry
+{
+  "key": "login:test-allow-1765214944013",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.015Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.015Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:29:04.015Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214944013",
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.015Z] Found existing entry
+{
+  "key": "login:test-allow-1765214944013",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.015Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.015Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.015Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214944013",
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.015Z] Found existing entry
+{
+  "key": "login:test-allow-1765214944013",
+  "timestampCount": 3
+}
+[2025-12-08T17:29:04.015Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.015Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.015Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765214944013",
+  "key": "login:test-allow-1765214944013"
+}
+[2025-12-08T17:29:04.015Z] Found existing entry
+{
+  "key": "login:test-allow-1765214944013",
+  "timestampCount": 4
+}
+[2025-12-08T17:29:04.015Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.015Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:29:04.016Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.016Z] Creating new entry
+{
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.016Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.016Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:29:04.016Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.016Z] Found existing entry
+{
+  "key": "login:test-block-1765214944016",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.016Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.016Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:29:04.016Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.016Z] Found existing entry
+{
+  "key": "login:test-block-1765214944016",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.016Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.016Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.016Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.016Z] Found existing entry
+{
+  "key": "login:test-block-1765214944016",
+  "timestampCount": 3
+}
+[2025-12-08T17:29:04.017Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.017Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.017Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.017Z] Found existing entry
+{
+  "key": "login:test-block-1765214944016",
+  "timestampCount": 4
+}
+[2025-12-08T17:29:04.017Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.017Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:29:04.017Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765214944016",
+  "key": "login:test-block-1765214944016"
+}
+[2025-12-08T17:29:04.017Z] Found existing entry
+{
+  "key": "login:test-block-1765214944016",
+  "timestampCount": 5
+}
+[2025-12-08T17:29:04.017Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.018Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214944018",
+  "key": "test-reset:test-reset-1765214944018"
+}
+[2025-12-08T17:29:04.018Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765214944018"
+}
+[2025-12-08T17:29:04.018Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T17:29:04.018Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.019Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214944018",
+  "key": "test-reset:test-reset-1765214944018"
+}
+[2025-12-08T17:29:04.019Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214944018",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.019Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-08T17:29:04.019Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-08T17:29:04.019Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214944018",
+  "key": "test-reset:test-reset-1765214944018"
+}
+[2025-12-08T17:29:04.019Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214944018",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.019Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-08T17:29:04.171Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765214944018",
+  "key": "test-reset:test-reset-1765214944018"
+}
+[2025-12-08T17:29:04.172Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765214944018",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.172Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-08T17:29:04.172Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T17:29:04.172Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.173Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.173Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.173Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.173Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:29:04.173Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.173Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214944173",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.173Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.174Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T17:29:04.174Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.174Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214944173",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.174Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.174Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.174Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.174Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214944173",
+  "timestampCount": 3
+}
+[2025-12-08T17:29:04.174Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.174Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.174Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.174Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214944173",
+  "timestampCount": 4
+}
+[2025-12-08T17:29:04.174Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.174Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T17:29:04.175Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765214944173",
+  "key": "login:test-multi-1-1765214944173"
+}
+[2025-12-08T17:29:04.175Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765214944173",
+  "timestampCount": 5
+}
+[2025-12-08T17:29:04.175Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.175Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765214944173",
+  "key": "login:test-multi-2-1765214944173"
+}
+[2025-12-08T17:29:04.175Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765214944173"
+}
+[2025-12-08T17:29:04.175Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.175Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:29:04.176Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765214944176",
+  "key": "login:test-reset-time-1765214944176"
+}
+[2025-12-08T17:29:04.176Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765214944176"
+}
+[2025-12-08T17:29:04.176Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T17:29:04.176Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T17:29:04.177Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:29:04.177Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:29:04.178Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:29:04.178Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-08T17:29:04.178Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:29:04.178Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:29:04.178Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:29:04.178Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-08T17:29:04.178Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T17:29:04.178Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T17:29:04.178Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214944178",
+  "key": "test-sliding:test-sliding-1765214944178"
+}
+[2025-12-08T17:29:04.178Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765214944178"
+}
+[2025-12-08T17:29:04.178Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.178Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.280Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214944178",
+  "key": "test-sliding:test-sliding-1765214944178"
+}
+[2025-12-08T17:29:04.280Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765214944178",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.280Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.280Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.381Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765214944178",
+  "key": "test-sliding:test-sliding-1765214944178"
+}
+[2025-12-08T17:29:04.381Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765214944178",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.381Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-08T17:29:04.381Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.381Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.381Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765214944381",
+  "key": "register:test-format-allowed-1765214944381"
+}
+[2025-12-08T17:29:04.381Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765214944381"
+}
+[2025-12-08T17:29:04.382Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.382Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.382Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214944382",
+  "key": "register:test-format-blocked-1765214944382"
+}
+[2025-12-08T17:29:04.382Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765214944382"
+}
+[2025-12-08T17:29:04.382Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.382Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T17:29:04.382Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214944382",
+  "key": "register:test-format-blocked-1765214944382"
+}
+[2025-12-08T17:29:04.382Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214944382",
+  "timestampCount": 1
+}
+[2025-12-08T17:29:04.382Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.382Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T17:29:04.382Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214944382",
+  "key": "register:test-format-blocked-1765214944382"
+}
+[2025-12-08T17:29:04.382Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214944382",
+  "timestampCount": 2
+}
+[2025-12-08T17:29:04.382Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-08T17:29:04.382Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-08T17:29:04.382Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765214944382",
+  "key": "register:test-format-blocked-1765214944382"
+}
+[2025-12-08T17:29:04.382Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765214944382",
+  "timestampCount": 3
+}
+[2025-12-08T17:29:04.382Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.102Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765218972102",
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.105Z] Creating new entry
+{
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.105Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.105Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T18:36:12.105Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765218972102",
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.106Z] Found existing entry
+{
+  "key": "login:test-allow-1765218972102",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.106Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.106Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T18:36:12.106Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765218972102",
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.106Z] Found existing entry
+{
+  "key": "login:test-allow-1765218972102",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.106Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.106Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.106Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765218972102",
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.106Z] Found existing entry
+{
+  "key": "login:test-allow-1765218972102",
+  "timestampCount": 3
+}
+[2025-12-08T18:36:12.106Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.106Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.106Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765218972102",
+  "key": "login:test-allow-1765218972102"
+}
+[2025-12-08T18:36:12.106Z] Found existing entry
+{
+  "key": "login:test-allow-1765218972102",
+  "timestampCount": 4
+}
+[2025-12-08T18:36:12.106Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.106Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T18:36:12.106Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.106Z] Creating new entry
+{
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.106Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.108Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T18:36:12.108Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.108Z] Found existing entry
+{
+  "key": "login:test-block-1765218972106",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.108Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.108Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T18:36:12.108Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.108Z] Found existing entry
+{
+  "key": "login:test-block-1765218972106",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.108Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.109Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.109Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.109Z] Found existing entry
+{
+  "key": "login:test-block-1765218972106",
+  "timestampCount": 3
+}
+[2025-12-08T18:36:12.109Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.109Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.109Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.109Z] Found existing entry
+{
+  "key": "login:test-block-1765218972106",
+  "timestampCount": 4
+}
+[2025-12-08T18:36:12.109Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.109Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T18:36:12.109Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765218972106",
+  "key": "login:test-block-1765218972106"
+}
+[2025-12-08T18:36:12.109Z] Found existing entry
+{
+  "key": "login:test-block-1765218972106",
+  "timestampCount": 5
+}
+[2025-12-08T18:36:12.109Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.110Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765218972110",
+  "key": "test-reset:test-reset-1765218972110"
+}
+[2025-12-08T18:36:12.110Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765218972110"
+}
+[2025-12-08T18:36:12.110Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T18:36:12.110Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.110Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765218972110",
+  "key": "test-reset:test-reset-1765218972110"
+}
+[2025-12-08T18:36:12.110Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765218972110",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.110Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-08T18:36:12.110Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-08T18:36:12.111Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765218972110",
+  "key": "test-reset:test-reset-1765218972110"
+}
+[2025-12-08T18:36:12.111Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765218972110",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.111Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-08T18:36:12.262Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765218972110",
+  "key": "test-reset:test-reset-1765218972110"
+}
+[2025-12-08T18:36:12.262Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765218972110",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.262Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-08T18:36:12.262Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T18:36:12.262Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.263Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.263Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.263Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.263Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T18:36:12.263Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.264Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765218972263",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.264Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.264Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T18:36:12.264Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.264Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765218972263",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.264Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.264Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.264Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.264Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765218972263",
+  "timestampCount": 3
+}
+[2025-12-08T18:36:12.264Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.264Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.265Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765218972263",
+  "timestampCount": 4
+}
+[2025-12-08T18:36:12.265Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.265Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T18:36:12.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765218972263",
+  "key": "login:test-multi-1-1765218972263"
+}
+[2025-12-08T18:36:12.265Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765218972263",
+  "timestampCount": 5
+}
+[2025-12-08T18:36:12.265Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.265Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765218972263",
+  "key": "login:test-multi-2-1765218972263"
+}
+[2025-12-08T18:36:12.266Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765218972263"
+}
+[2025-12-08T18:36:12.266Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.266Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T18:36:12.266Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765218972266",
+  "key": "login:test-reset-time-1765218972266"
+}
+[2025-12-08T18:36:12.266Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765218972266"
+}
+[2025-12-08T18:36:12.266Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T18:36:12.266Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T18:36:12.267Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T18:36:12.267Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T18:36:12.268Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T18:36:12.268Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-08T18:36:12.268Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T18:36:12.268Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T18:36:12.268Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T18:36:12.268Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-08T18:36:12.268Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T18:36:12.268Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T18:36:12.270Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765218972270",
+  "key": "test-sliding:test-sliding-1765218972270"
+}
+[2025-12-08T18:36:12.270Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765218972270"
+}
+[2025-12-08T18:36:12.270Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.270Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.372Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765218972270",
+  "key": "test-sliding:test-sliding-1765218972270"
+}
+[2025-12-08T18:36:12.372Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765218972270",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.372Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.372Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.474Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765218972270",
+  "key": "test-sliding:test-sliding-1765218972270"
+}
+[2025-12-08T18:36:12.475Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765218972270",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.475Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-08T18:36:12.475Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.475Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.476Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765218972476",
+  "key": "register:test-format-allowed-1765218972476"
+}
+[2025-12-08T18:36:12.476Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765218972476"
+}
+[2025-12-08T18:36:12.476Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.477Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.477Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765218972477",
+  "key": "register:test-format-blocked-1765218972477"
+}
+[2025-12-08T18:36:12.477Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765218972477"
+}
+[2025-12-08T18:36:12.477Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.477Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T18:36:12.477Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765218972477",
+  "key": "register:test-format-blocked-1765218972477"
+}
+[2025-12-08T18:36:12.478Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765218972477",
+  "timestampCount": 1
+}
+[2025-12-08T18:36:12.478Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.478Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T18:36:12.478Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765218972477",
+  "key": "register:test-format-blocked-1765218972477"
+}
+[2025-12-08T18:36:12.478Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765218972477",
+  "timestampCount": 2
+}
+[2025-12-08T18:36:12.478Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-08T18:36:12.478Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-08T18:36:12.478Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765218972477",
+  "key": "register:test-format-blocked-1765218972477"
+}
+[2025-12-08T18:36:12.478Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765218972477",
+  "timestampCount": 3
+}
+[2025-12-08T18:36:12.478Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.007Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765225282007",
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.008Z] Creating new entry
+{
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.008Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.008Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:21:22.008Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765225282007",
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.008Z] Found existing entry
+{
+  "key": "login:test-allow-1765225282007",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.009Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.009Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:21:22.009Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765225282007",
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.009Z] Found existing entry
+{
+  "key": "login:test-allow-1765225282007",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.009Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.009Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.009Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765225282007",
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.009Z] Found existing entry
+{
+  "key": "login:test-allow-1765225282007",
+  "timestampCount": 3
+}
+[2025-12-08T20:21:22.009Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.009Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.009Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765225282007",
+  "key": "login:test-allow-1765225282007"
+}
+[2025-12-08T20:21:22.009Z] Found existing entry
+{
+  "key": "login:test-allow-1765225282007",
+  "timestampCount": 4
+}
+[2025-12-08T20:21:22.009Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.009Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:21:22.009Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.009Z] Creating new entry
+{
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.009Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.009Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:21:22.009Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.010Z] Found existing entry
+{
+  "key": "login:test-block-1765225282009",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.010Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.010Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:21:22.010Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.010Z] Found existing entry
+{
+  "key": "login:test-block-1765225282009",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.010Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.010Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.010Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.010Z] Found existing entry
+{
+  "key": "login:test-block-1765225282009",
+  "timestampCount": 3
+}
+[2025-12-08T20:21:22.010Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.010Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.010Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.010Z] Found existing entry
+{
+  "key": "login:test-block-1765225282009",
+  "timestampCount": 4
+}
+[2025-12-08T20:21:22.010Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.010Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:21:22.010Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765225282009",
+  "key": "login:test-block-1765225282009"
+}
+[2025-12-08T20:21:22.010Z] Found existing entry
+{
+  "key": "login:test-block-1765225282009",
+  "timestampCount": 5
+}
+[2025-12-08T20:21:22.010Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.011Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765225282011",
+  "key": "test-reset:test-reset-1765225282011"
+}
+[2025-12-08T20:21:22.011Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765225282011"
+}
+[2025-12-08T20:21:22.011Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T20:21:22.011Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.011Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765225282011",
+  "key": "test-reset:test-reset-1765225282011"
+}
+[2025-12-08T20:21:22.011Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765225282011",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.011Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-08T20:21:22.011Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-08T20:21:22.011Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765225282011",
+  "key": "test-reset:test-reset-1765225282011"
+}
+[2025-12-08T20:21:22.011Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765225282011",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.011Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-08T20:21:22.163Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765225282011",
+  "key": "test-reset:test-reset-1765225282011"
+}
+[2025-12-08T20:21:22.163Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765225282011",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.163Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-08T20:21:22.163Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T20:21:22.163Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.163Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.163Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.163Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.163Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:21:22.163Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765225282163",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:21:22.164Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765225282163",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.164Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765225282163",
+  "timestampCount": 3
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.164Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765225282163",
+  "timestampCount": 4
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:21:22.164Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765225282163",
+  "key": "login:test-multi-1-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765225282163",
+  "timestampCount": 5
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765225282163",
+  "key": "login:test-multi-2-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765225282163"
+}
+[2025-12-08T20:21:22.164Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.164Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:21:22.165Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765225282165",
+  "key": "login:test-reset-time-1765225282165"
+}
+[2025-12-08T20:21:22.165Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765225282165"
+}
+[2025-12-08T20:21:22.165Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:21:22.165Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:21:22.166Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:21:22.166Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:21:22.166Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:21:22.166Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-08T20:21:22.166Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:21:22.166Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:21:22.166Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:21:22.166Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-08T20:21:22.166Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:21:22.166Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:21:22.166Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765225282166",
+  "key": "test-sliding:test-sliding-1765225282166"
+}
+[2025-12-08T20:21:22.166Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765225282166"
+}
+[2025-12-08T20:21:22.166Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.166Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.267Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765225282166",
+  "key": "test-sliding:test-sliding-1765225282166"
+}
+[2025-12-08T20:21:22.267Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765225282166",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.268Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.268Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.374Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765225282166",
+  "key": "test-sliding:test-sliding-1765225282166"
+}
+[2025-12-08T20:21:22.375Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765225282166",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.375Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-08T20:21:22.375Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.376Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.378Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765225282378",
+  "key": "register:test-format-allowed-1765225282378"
+}
+[2025-12-08T20:21:22.378Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765225282378"
+}
+[2025-12-08T20:21:22.378Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.379Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.379Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765225282379",
+  "key": "register:test-format-blocked-1765225282379"
+}
+[2025-12-08T20:21:22.379Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765225282379"
+}
+[2025-12-08T20:21:22.379Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.379Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:21:22.379Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765225282379",
+  "key": "register:test-format-blocked-1765225282379"
+}
+[2025-12-08T20:21:22.379Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765225282379",
+  "timestampCount": 1
+}
+[2025-12-08T20:21:22.379Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.379Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:21:22.379Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765225282379",
+  "key": "register:test-format-blocked-1765225282379"
+}
+[2025-12-08T20:21:22.379Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765225282379",
+  "timestampCount": 2
+}
+[2025-12-08T20:21:22.379Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-08T20:21:22.379Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-08T20:21:22.379Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765225282379",
+  "key": "register:test-format-blocked-1765225282379"
+}
+[2025-12-08T20:21:22.379Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765225282379",
+  "timestampCount": 3
+}
+[2025-12-08T20:21:22.379Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:58.761Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765226698761",
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.761Z] Creating new entry
+{
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.761Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.761Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:44:58.762Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765226698761",
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.762Z] Found existing entry
+{
+  "key": "login:test-allow-1765226698761",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:58.762Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.762Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:44:58.762Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765226698761",
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.762Z] Found existing entry
+{
+  "key": "login:test-allow-1765226698761",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:58.762Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.762Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:44:58.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765226698761",
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.763Z] Found existing entry
+{
+  "key": "login:test-allow-1765226698761",
+  "timestampCount": 3
+}
+[2025-12-08T20:44:58.763Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.763Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:44:58.763Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-allow-1765226698761",
+  "key": "login:test-allow-1765226698761"
+}
+[2025-12-08T20:44:58.763Z] Found existing entry
+{
+  "key": "login:test-allow-1765226698761",
+  "timestampCount": 4
+}
+[2025-12-08T20:44:58.763Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.763Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:44:58.764Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.764Z] Creating new entry
+{
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.764Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.764Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:44:58.764Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.764Z] Found existing entry
+{
+  "key": "login:test-block-1765226698764",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:58.764Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.764Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:44:58.764Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.765Z] Found existing entry
+{
+  "key": "login:test-block-1765226698764",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:58.765Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.765Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:44:58.765Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.765Z] Found existing entry
+{
+  "key": "login:test-block-1765226698764",
+  "timestampCount": 3
+}
+[2025-12-08T20:44:58.765Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.765Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:44:58.765Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.765Z] Found existing entry
+{
+  "key": "login:test-block-1765226698764",
+  "timestampCount": 4
+}
+[2025-12-08T20:44:58.765Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.765Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:44:58.765Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-block-1765226698764",
+  "key": "login:test-block-1765226698764"
+}
+[2025-12-08T20:44:58.765Z] Found existing entry
+{
+  "key": "login:test-block-1765226698764",
+  "timestampCount": 5
+}
+[2025-12-08T20:44:58.766Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.766Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765226698766",
+  "key": "test-reset:test-reset-1765226698766"
+}
+[2025-12-08T20:44:58.766Z] Creating new entry
+{
+  "key": "test-reset:test-reset-1765226698766"
+}
+[2025-12-08T20:44:58.766Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T20:44:58.766Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T20:44:58.766Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765226698766",
+  "key": "test-reset:test-reset-1765226698766"
+}
+[2025-12-08T20:44:58.766Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765226698766",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:58.766Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 2
+}
+[2025-12-08T20:44:58.766Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 0
+}
+[2025-12-08T20:44:58.767Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765226698766",
+  "key": "test-reset:test-reset-1765226698766"
+}
+[2025-12-08T20:44:58.767Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765226698766",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:58.767Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 2
+}
+[2025-12-08T20:44:58.919Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-reset",
+    "maxRequests": 2,
+    "windowMs": 100
+  },
+  "identifier": "test-reset-1765226698766",
+  "key": "test-reset:test-reset-1765226698766"
+}
+[2025-12-08T20:44:58.919Z] Found existing entry
+{
+  "key": "test-reset:test-reset-1765226698766",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:58.919Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-08T20:44:58.920Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 2
+}
+[2025-12-08T20:44:58.923Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 1
+}
+[2025-12-08T20:44:58.923Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.923Z] Creating new entry
+{
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.923Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.924Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:44:58.924Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.924Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765226698923",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:58.924Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.924Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 3
+}
+[2025-12-08T20:44:58.924Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.924Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765226698923",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:58.924Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.924Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 2
+}
+[2025-12-08T20:44:58.924Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.924Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765226698923",
+  "timestampCount": 3
+}
+[2025-12-08T20:44:58.924Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.924Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 1
+}
+[2025-12-08T20:44:58.924Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.924Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765226698923",
+  "timestampCount": 4
+}
+[2025-12-08T20:44:58.924Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.924Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 0
+}
+[2025-12-08T20:44:58.924Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-1-1765226698923",
+  "key": "login:test-multi-1-1765226698923"
+}
+[2025-12-08T20:44:58.924Z] Found existing entry
+{
+  "key": "login:test-multi-1-1765226698923",
+  "timestampCount": 5
+}
+[2025-12-08T20:44:58.925Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.925Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-multi-2-1765226698923",
+  "key": "login:test-multi-2-1765226698923"
+}
+[2025-12-08T20:44:58.925Z] Creating new entry
+{
+  "key": "login:test-multi-2-1765226698923"
+}
+[2025-12-08T20:44:58.925Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.925Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:44:58.925Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "login",
+    "maxRequests": 5,
+    "windowMs": 60000
+  },
+  "identifier": "test-reset-time-1765226698925",
+  "key": "login:test-reset-time-1765226698925"
+}
+[2025-12-08T20:44:58.925Z] Creating new entry
+{
+  "key": "login:test-reset-time-1765226698925"
+}
+[2025-12-08T20:44:58.925Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 5
+}
+[2025-12-08T20:44:58.925Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 4
+}
+[2025-12-08T20:44:58.926Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:44:58.927Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:44:58.927Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:44:58.927Z] Using real IP
+{
+  "identifier": "192.168.1.2"
+}
+[2025-12-08T20:44:58.927Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:44:58.927Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:44:58.927Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:44:58.927Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-08T20:44:58.927Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-08T20:44:58.927Z] Using forwarded IP
+{
+  "identifier": "192.168.1.1"
+}
+[2025-12-08T20:44:58.928Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765226698928",
+  "key": "test-sliding:test-sliding-1765226698928"
+}
+[2025-12-08T20:44:58.928Z] Creating new entry
+{
+  "key": "test-sliding:test-sliding-1765226698928"
+}
+[2025-12-08T20:44:58.928Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:58.928Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:44:59.029Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765226698928",
+  "key": "test-sliding:test-sliding-1765226698928"
+}
+[2025-12-08T20:44:59.029Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765226698928",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:59.029Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.029Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:44:59.131Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "test-sliding",
+    "maxRequests": 3,
+    "windowMs": 200
+  },
+  "identifier": "test-sliding-1765226698928",
+  "key": "test-sliding:test-sliding-1765226698928"
+}
+[2025-12-08T20:44:59.131Z] Found existing entry
+{
+  "key": "test-sliding:test-sliding-1765226698928",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:59.131Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 1,
+  "removed": 1
+}
+[2025-12-08T20:44:59.131Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.132Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:44:59.132Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-allowed-1765226699132",
+  "key": "register:test-format-allowed-1765226699132"
+}
+[2025-12-08T20:44:59.132Z] Creating new entry
+{
+  "key": "register:test-format-allowed-1765226699132"
+}
+[2025-12-08T20:44:59.133Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.133Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:44:59.133Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765226699133",
+  "key": "register:test-format-blocked-1765226699133"
+}
+[2025-12-08T20:44:59.133Z] Creating new entry
+{
+  "key": "register:test-format-blocked-1765226699133"
+}
+[2025-12-08T20:44:59.133Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.133Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 2
+}
+[2025-12-08T20:44:59.133Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765226699133",
+  "key": "register:test-format-blocked-1765226699133"
+}
+[2025-12-08T20:44:59.133Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765226699133",
+  "timestampCount": 1
+}
+[2025-12-08T20:44:59.133Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.133Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 1
+}
+[2025-12-08T20:44:59.133Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765226699133",
+  "key": "register:test-format-blocked-1765226699133"
+}
+[2025-12-08T20:44:59.133Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765226699133",
+  "timestampCount": 2
+}
+[2025-12-08T20:44:59.133Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 3
+}
+[2025-12-08T20:44:59.134Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 0
+}
+[2025-12-08T20:44:59.134Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "register",
+    "maxRequests": 3,
+    "windowMs": 60000
+  },
+  "identifier": "test-format-blocked-1765226699133",
+  "key": "register:test-format-blocked-1765226699133"
+}
+[2025-12-08T20:44:59.134Z] Found existing entry
+{
+  "key": "register:test-format-blocked-1765226699133",
+  "timestampCount": 3
+}
+[2025-12-08T20:44:59.134Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 3
+}

@@ -5,7 +5,6 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { processMermaidInHtml } from '$lib/utils/mermaidProcessor';
-	import { resolveRoute } from '$lib/utils/navigation';
 
 	let { data }: { data: PageData } = $props();
 

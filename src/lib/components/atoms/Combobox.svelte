@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Combobox as BitsCombobox } from 'bits-ui';
 	import {
-		comboboxTriggerRecipe,
-		comboboxInputRecipe,
 		comboboxContentRecipe,
 		comboboxViewportRecipe,
 		comboboxItemRecipe
@@ -51,9 +49,9 @@
 		allowDeselect = false,
 		showLabel = true,
 		class: customClass = '',
-		maxHeight = '14rem', // Default: ~224px, shows ~4-5 items (30% smaller than original)
+		maxHeight = 'var(--spacing-56)', // Default: ~224px, shows ~4-5 items (30% smaller than original)
 		onValueChange,
-		children
+		children: childrenSlot
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -228,8 +226,8 @@
 								class={comboboxItemRecipe({ disabled: option.disabled })}
 							>
 								{#snippet children({ selected })}
-									{#if children}
-										{@render children({ option, selected: isSelected })}
+									{#if childrenSlot}
+										{@render childrenSlot({ option, selected: isSelected })}
 									{:else}
 										{option.label}
 										{#if selected}

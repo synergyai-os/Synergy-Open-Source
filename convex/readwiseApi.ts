@@ -11,6 +11,7 @@
 
 import { internalAction } from './_generated/server';
 import { v } from 'convex/values';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 import type {
 	ReadwiseHighlight,
 	ReadwiseSource,
@@ -66,7 +67,8 @@ export const fetchHighlights = internalAction({
 				// Rate limited
 				const retryAfter = response.headers.get('Retry-After');
 				const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-				throw new Error(
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 					`Rate limit exceeded. Please wait ${retrySeconds} seconds before retrying.`
 				);
 			}
@@ -84,7 +86,7 @@ export const fetchHighlights = internalAction({
 				}
 			}
 
-			throw new Error(errorMessage);
+			throw createError(ErrorCodes.EXTERNAL_SERVICE_FAILURE, errorMessage);
 		}
 
 		const data: ReadwisePaginatedResponse<ReadwiseHighlight> = await response.json();
@@ -137,7 +139,8 @@ export const fetchBooks = internalAction({
 				// Rate limited
 				const retryAfter = response.headers.get('Retry-After');
 				const retrySeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-				throw new Error(
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 					`Rate limit exceeded. Please wait ${retrySeconds} seconds before retrying.`
 				);
 			}
@@ -155,7 +158,7 @@ export const fetchBooks = internalAction({
 				}
 			}
 
-			throw new Error(errorMessage);
+			throw createError(ErrorCodes.EXTERNAL_SERVICE_FAILURE, errorMessage);
 		}
 
 		const data: ReadwisePaginatedResponse<ReadwiseSource> = await response.json();

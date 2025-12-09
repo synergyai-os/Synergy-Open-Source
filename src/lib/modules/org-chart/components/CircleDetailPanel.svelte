@@ -2,12 +2,12 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
-	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
 	import { useCircleItems } from '../composables/useCircleItems.svelte';
+	import { useEditCircle } from '../composables/useEditCircle.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
@@ -18,11 +18,28 @@
 	import CircleTypeSelector from './CircleTypeSelector.svelte';
 	import DecisionModelSelector from './DecisionModelSelector.svelte';
 	import AssignUserDialog from './AssignUserDialog.svelte';
+	import ConfirmDiscardDialog from './ConfirmDiscardDialog.svelte';
+	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
+	import FormSelect from '$lib/components/atoms/FormSelect.svelte';
+	import Button from '$lib/components/atoms/Button.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import Heading from '$lib/components/atoms/Heading.svelte';
+	import Icon from '$lib/components/atoms/Icon.svelte';
+	import type { IconType } from '$lib/components/atoms/iconRegistry';
+	import {
+		CIRCLE_TYPES,
+		DECISION_MODELS,
+		DEFAULT_CIRCLE_TYPE_LABELS,
+		DEFAULT_DECISION_MODEL_LABELS,
+		type CircleType,
+		type DecisionModel
+	} from '$lib/infrastructure/organizational-model/constants';
+	import { untrack } from 'svelte';
+
+	type DecisionOption = { value: DecisionModel; label: string };
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -55,6 +72,19 @@
 	const canEdit = $derived(quickEditPermission.canEdit);
 	const editReason = $derived(quickEditPermission.editReason);
 
+	// Edit mode state
+	let isEditMode = $state(false);
+	let showDiscardDialog = $state(false);
+	const workspaceId = $derived($page.data.workspaceId as Id<'workspaces'> | undefined);
+
+	// Edit circle composable (only used in edit mode)
+	const editCircle = useEditCircle({
+		circleId: () => circle?.circleId ?? null,
+		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
+		canQuickEdit: () => canEdit
+	});
+
 	// Circle items composable
 	const circleItems = useCircleItems({
 		sessionId: () => sessionId,
@@ -62,20 +92,129 @@
 		entityId: () => circle?.circleId ?? null
 	});
 
+	// Circle type and decision model options for edit mode
+	const circleTypeOptions = [
+		{ value: CIRCLE_TYPES.HIERARCHY, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY] },
+		{
+			value: CIRCLE_TYPES.EMPOWERED_TEAM,
+			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.EMPOWERED_TEAM]
+		},
+		{ value: CIRCLE_TYPES.GUILD, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.GUILD] },
+		{ value: CIRCLE_TYPES.HYBRID, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HYBRID] }
+	];
+
+	// Extract circleType as separate derived value (only tracks circleType, not entire formValues)
+	// Pattern: Prevents infinite loop by tracking only the specific field we care about
+	const circleTypeValue = $derived(isEditMode ? editCircle.formValues.circleType : null);
+
+	// Decision model options (filtered based on circle type)
+	const decisionModelOptions = $derived.by<DecisionOption[]>(() => {
+		if (!isEditMode || !circleTypeValue) return [];
+		const allOptions: DecisionOption[] = [
+			{
+				value: DECISION_MODELS.MANAGER_DECIDES,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.MANAGER_DECIDES]
+			},
+			{
+				value: DECISION_MODELS.TEAM_CONSENSUS,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.TEAM_CONSENSUS]
+			},
+			{
+				value: DECISION_MODELS.CONSENT,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.CONSENT]
+			},
+			{
+				value: DECISION_MODELS.COORDINATION_ONLY,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.COORDINATION_ONLY]
+			}
+		];
+
+		switch (circleTypeValue) {
+			case CIRCLE_TYPES.HIERARCHY:
+				return allOptions.filter((o) => o.value === DECISION_MODELS.MANAGER_DECIDES);
+			case CIRCLE_TYPES.EMPOWERED_TEAM:
+				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
+			case CIRCLE_TYPES.GUILD:
+				return allOptions.filter((o) => o.value === DECISION_MODELS.COORDINATION_ONLY);
+			case CIRCLE_TYPES.HYBRID:
+				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
+			default:
+				return allOptions;
+		}
+	});
+
+	// Ensure decision model is valid for current circle type
+	// Pattern #L120: Only track circleTypeValue (not entire formValues) to prevent infinite loop
+	// Uses untrack() when calling setField() to prevent mutation from triggering effect
+	$effect(() => {
+		if (!isEditMode || !circle || !circleTypeValue) return;
+
+		// Track only circleTypeValue - this is what triggers the effect
+		// NOT editCircle.formValues (which would track entire object and cause loop)
+		const circleType = circleTypeValue;
+
+		// Compute valid options inline to avoid reactivity issues
+		const allOptions: DecisionOption[] = [
+			{
+				value: DECISION_MODELS.MANAGER_DECIDES,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.MANAGER_DECIDES]
+			},
+			{
+				value: DECISION_MODELS.TEAM_CONSENSUS,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.TEAM_CONSENSUS]
+			},
+			{
+				value: DECISION_MODELS.CONSENT,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.CONSENT]
+			},
+			{
+				value: DECISION_MODELS.COORDINATION_ONLY,
+				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.COORDINATION_ONLY]
+			}
+		];
+
+		let validOptions: DecisionOption[];
+		switch (circleType) {
+			case CIRCLE_TYPES.HIERARCHY:
+				validOptions = allOptions.filter((o) => o.value === DECISION_MODELS.MANAGER_DECIDES);
+				break;
+			case CIRCLE_TYPES.EMPOWERED_TEAM:
+				validOptions = allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
+				break;
+			case CIRCLE_TYPES.GUILD:
+				validOptions = allOptions.filter((o) => o.value === DECISION_MODELS.COORDINATION_ONLY);
+				break;
+			case CIRCLE_TYPES.HYBRID:
+				validOptions = allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
+				break;
+			default:
+				validOptions = allOptions;
+		}
+
+		// Untrack decisionModel read to prevent loops
+		const currentDecisionModel = untrack(() => editCircle.formValues.decisionModel);
+
+		// Only update if current decision model is invalid
+		const isValid = validOptions.some((o) => o.value === currentDecisionModel);
+
+		if (!isValid && validOptions.length > 0) {
+			// Pattern #L120: Use untrack() when calling setField() to prevent mutation from triggering effect
+			// This breaks the cycle: setField() → state mutates → formValues recalculates → effect triggers
+			untrack(() => {
+				editCircle.setField('decisionModel', validOptions[0].value);
+			});
+		}
+	});
+
 	// Quick update handlers
 	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
 		if (!convexClient || !circle || !sessionId) return;
 
-		try {
-			await convexClient.mutation(api.circles.quickUpdate, {
-				sessionId,
-				circleId: circle.circleId,
-				updates
-			});
-		} catch (error) {
-			// Error handling is done in InlineEditText component
-			throw error;
-		}
+		await convexClient.mutation(api.circles.updateInline, {
+			sessionId,
+			circleId: circle.circleId,
+			updates
+		});
 	}
 
 	async function handleQuickUpdateRole(
@@ -84,16 +223,11 @@
 	) {
 		if (!convexClient || !sessionId) return;
 
-		try {
-			await convexClient.mutation(api.circleRoles.quickUpdate, {
-				sessionId,
-				circleRoleId: roleId,
-				updates
-			});
-		} catch (error) {
-			// Error handling is done in InlineEditText component
-			throw error;
-		}
+		await convexClient.mutation(api.circleRoles.updateInline, {
+			sessionId,
+			circleRoleId: roleId,
+			updates
+		});
 	}
 
 	// Check if this circle panel is the topmost layer
@@ -107,14 +241,6 @@
 	const childCircles = $derived(
 		orgChart && orgChart.selectedCircleId
 			? orgChart.circles.filter((c) => c.parentCircleId === orgChart.selectedCircleId)
-			: []
-	);
-
-	// Get roles from preloaded data (instant display, no query delay)
-	// Roles are preloaded in useOrgChart via listByWorkspace query
-	const allRoles = $derived(
-		orgChart && orgChart.selectedCircleId
-			? (orgChart.getRolesForCircle(orgChart.selectedCircleId) ?? [])
 			: []
 	);
 
@@ -183,6 +309,19 @@
 
 	function handleClose() {
 		if (!orgChart) return;
+
+		// Check if in edit mode with unsaved changes
+		if (isEditMode && editCircle.isDirty) {
+			showDiscardDialog = true;
+			return;
+		}
+
+		// Exit edit mode if active
+		if (isEditMode) {
+			isEditMode = false;
+			editCircle.reset();
+		}
+
 		// ESC goes back one level (not all the way)
 		const previousLayer = orgChart.navigationStack.previousLayer;
 
@@ -205,8 +344,65 @@
 		}
 	}
 
+	function handleEditClick() {
+		if (!circle) return;
+		isEditMode = true;
+		editCircle.loadCircle();
+	}
+
+	function handleCancelEdit() {
+		if (editCircle.isDirty) {
+			showDiscardDialog = true;
+		} else {
+			isEditMode = false;
+			editCircle.reset();
+		}
+	}
+
+	function handleConfirmDiscard() {
+		editCircle.reset();
+		isEditMode = false;
+		showDiscardDialog = false;
+	}
+
+	async function handleSaveDirectly() {
+		await editCircle.saveDirectly();
+		isEditMode = false;
+		// Refresh circle data by re-selecting
+		if (orgChart && circle) {
+			orgChart.selectCircle(circle.circleId, { skipStackPush: true });
+		}
+	}
+
+	async function handleSaveAsProposal() {
+		// For MVP, use simple title/description
+		// TODO: In future, could show a dialog to enter title/description
+		const title = `Update ${editCircle.formValues.name}`;
+		const description = `Proposed changes to circle "${editCircle.formValues.name}"`;
+
+		await editCircle.saveAsProposal(title, description);
+		isEditMode = false;
+		// Refresh circle data by re-selecting
+		if (orgChart && circle) {
+			orgChart.selectCircle(circle.circleId, { skipStackPush: true });
+		}
+	}
+
 	function handleBreadcrumbClick(index: number) {
 		if (!orgChart) return;
+
+		// Check if in edit mode with unsaved changes
+		if (isEditMode && editCircle.isDirty) {
+			showDiscardDialog = true;
+			return;
+		}
+
+		// Exit edit mode if active
+		if (isEditMode) {
+			isEditMode = false;
+			editCircle.reset();
+		}
+
 		// Get the target layer to navigate to
 		const targetLayer = orgChart.navigationStack.getLayer(index);
 		if (!targetLayer) return;
@@ -235,12 +431,12 @@
 	}
 
 	// Icon renderer for breadcrumbs - modules define their own icons
-	// Returns HTML strings for SVG icons
-	function renderBreadcrumbIcon(layerType: string): string | null {
+	// Returns IconType for rendering with Icon component (secure, no HTML injection)
+	function renderBreadcrumbIcon(layerType: string): IconType | null {
 		if (layerType === 'circle') {
-			return `<svg class="size-icon-sm inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle></svg>`;
+			return 'circle';
 		} else if (layerType === 'role') {
-			return `<svg class="size-icon-sm inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>`;
+			return 'user';
 		}
 		return null;
 	}
@@ -293,18 +489,14 @@
 			{:else if circle}
 				<!-- Header -->
 				<CircleDetailHeader
-					circleName={circle.name}
+					circleName={isEditMode ? editCircle.formValues.name : circle.name}
 					onClose={handleClose}
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
-					onEdit={() => {
-						if (orgChart && circle) {
-							orgChart.openEditCircle(circle.circleId);
-						}
-					}}
-					editable={canEdit}
+					onEdit={isEditMode ? undefined : handleEditClick}
+					editable={!isEditMode && canEdit}
 					{editReason}
-					onNameChange={(name) => handleQuickUpdateCircle({ name })}
+					onNameChange={!isEditMode ? (name) => handleQuickUpdateCircle({ name }) : undefined}
 					addMenuItems={[
 						{ label: 'Add lead members', onclick: () => {} },
 						{ label: 'Add member', onclick: () => {} }
@@ -322,18 +514,49 @@
 					]}
 				/>
 
+				<!-- Edit Mode Indicator Bar -->
+				{#if isEditMode}
+					<div
+						class="border-base bg-surface-subtle py-header flex items-center gap-button border-b px-page"
+					>
+						<Icon type="edit" size="sm" />
+						<Text variant="body" size="sm" color="primary" class="font-medium">Edit mode</Text>
+					</div>
+				{/if}
+
 				<!-- Operating Mode Section -->
 				{#if circle}
 					<div class="border-base mx-page rounded-card border bg-surface card-padding mb-section">
 						<div class="mb-fieldGroup flex items-center justify-between">
 							<Heading level={3}>Operating Mode</Heading>
-							<CircleTypeBadge circleType={circle.circleType} />
+							{#if !isEditMode}
+								<CircleTypeBadge circleType={circle.circleType} />
+							{/if}
 						</div>
 
-						<div class="space-y-form">
-							<CircleTypeSelector {circle} {sessionId} {canEdit} />
-							<DecisionModelSelector {circle} {sessionId} {canEdit} />
-						</div>
+						{#if isEditMode}
+							<!-- Edit Mode: Form Inputs -->
+							<div class="space-y-form">
+								<FormSelect
+									label="Circle Type"
+									value={editCircle.formValues.circleType}
+									onchange={(value) => editCircle.setField('circleType', value as CircleType)}
+									options={circleTypeOptions}
+								/>
+								<FormSelect
+									label="Decision Model"
+									value={editCircle.formValues.decisionModel}
+									onchange={(value) => editCircle.setField('decisionModel', value as DecisionModel)}
+									options={decisionModelOptions}
+								/>
+							</div>
+						{:else}
+							<!-- Read Mode: Selectors -->
+							<div class="space-y-form">
+								<CircleTypeSelector {circle} {sessionId} {canEdit} />
+								<DecisionModelSelector {circle} {sessionId} {canEdit} />
+							</div>
+						{/if}
 					</div>
 				{/if}
 
@@ -444,7 +667,15 @@
 											>
 												Purpose
 											</h4>
-											{#if canEdit}
+											{#if isEditMode}
+												<FormTextarea
+													label=""
+													placeholder="What's the purpose of this circle?"
+													value={editCircle.formValues.purpose}
+													oninput={(e) => editCircle.setField('purpose', e.currentTarget.value)}
+													rows={4}
+												/>
+											{:else if canEdit}
 												<InlineEditText
 													value={circle.purpose || ''}
 													onSave={(purpose) => handleQuickUpdateCircle({ purpose })}
@@ -455,17 +686,13 @@
 												/>
 											{:else if editReason}
 												<EditPermissionTooltip reason={editReason}>
-													{#snippet children()}
-														<div class="text-button leading-relaxed break-words text-secondary">
-															{#if circle.purpose}
-																{circle.purpose}
-															{:else}
-																<Text variant="body" size="md" color="tertiary">
-																	No purpose set
-																</Text>
-															{/if}
-														</div>
-													{/snippet}
+													<div class="text-button leading-relaxed break-words text-secondary">
+														{#if circle.purpose}
+															{circle.purpose}
+														{:else}
+															<Text variant="body" size="md" color="tertiary">No purpose set</Text>
+														{/if}
+													</div>
 												</EditPermissionTooltip>
 											{:else}
 												<p class="text-button leading-relaxed break-words text-secondary">
@@ -897,9 +1124,50 @@
 						</div>
 					</Tabs.Root>
 				</div>
+
+				<!-- Footer with Save Actions (Edit Mode Only) -->
+				{#if isEditMode}
+					<div
+						class="border-base py-header sticky bottom-0 z-20 flex items-center justify-end gap-button border-t bg-surface px-page"
+					>
+						{#if editCircle.error}
+							<div class="mr-auto">
+								<Text variant="body" size="sm" color="error">{editCircle.error}</Text>
+							</div>
+						{/if}
+						<Button variant="outline" onclick={handleCancelEdit} disabled={editCircle.isSaving}>
+							Cancel
+						</Button>
+						{#if canEdit}
+							<Button
+								variant="primary"
+								onclick={handleSaveDirectly}
+								disabled={editCircle.isSaving || !editCircle.isDirty}
+							>
+								{editCircle.isSaving ? 'Saving...' : 'Save'}
+							</Button>
+						{/if}
+						<Button
+							variant="primary"
+							onclick={handleSaveAsProposal}
+							disabled={editCircle.isSaving || !editCircle.isDirty}
+						>
+							{editCircle.isSaving ? 'Creating...' : 'Save as Proposal'}
+						</Button>
+					</div>
+				{/if}
 			{/if}
 		{/snippet}
 	</StackedPanel>
+
+	<!-- Confirm Discard Dialog -->
+	<ConfirmDiscardDialog
+		open={showDiscardDialog}
+		onOpenChange={(open) => {
+			showDiscardDialog = open;
+		}}
+		onConfirm={handleConfirmDiscard}
+	/>
 
 	<!-- Assign User Dialog -->
 	{#if assignUserDialogEntityId && circle}

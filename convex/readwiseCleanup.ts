@@ -18,11 +18,11 @@
 
 import { action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
-import type { Doc } from './_generated/dataModel';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 import { v } from 'convex/values';
 
 // Internal mutation to delete a batch of inbox items
-export const deleteInboxItemsBatch = internalMutation({
+export const archiveInboxItemsBatch = internalMutation({
 	args: {
 		itemIds: v.array(v.id('inboxItems'))
 	},
@@ -35,7 +35,7 @@ export const deleteInboxItemsBatch = internalMutation({
 });
 
 // Internal mutation to delete multiple highlights and their tags
-export const deleteHighlightBatch = internalMutation({
+export const archiveHighlightBatch = internalMutation({
 	args: {
 		highlightIds: v.array(v.id('highlights'))
 	},
@@ -74,7 +74,7 @@ export const deleteHighlightBatch = internalMutation({
 });
 
 // Internal mutation to delete multiple sources and their junction links
-export const deleteSourceBatch = internalMutation({
+export const archiveSourceBatch = internalMutation({
 	args: {
 		sourceIds: v.array(v.id('sources'))
 	},
@@ -121,7 +121,7 @@ export const deleteSourceBatch = internalMutation({
 });
 
 // Internal mutation to delete a batch of authors
-export const deleteAuthorsBatch = internalMutation({
+export const archiveAuthorsBatch = internalMutation({
 	args: {
 		userId: v.id('users'),
 		limit: v.number()
@@ -144,7 +144,7 @@ export const deleteAuthorsBatch = internalMutation({
 });
 
 // Internal mutation to delete a batch of tags
-export const deleteTagsBatch = internalMutation({
+export const archiveTagsBatch = internalMutation({
 	args: {
 		userId: v.id('users'),
 		limit: v.number()
@@ -167,7 +167,7 @@ export const deleteTagsBatch = internalMutation({
 });
 
 // Main action that orchestrates the cleanup
-export const cleanReadwiseData = action({
+export const ensureCleanReadwiseData = action({
 	args: {
 		sessionId: v.string()
 	},
@@ -176,35 +176,35 @@ export const cleanReadwiseData = action({
 			sessionId: args.sessionId
 		});
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated');
 		}
 
-		console.log(`[cleanReadwiseData] Starting cleanup for user ${userId}`);
+		console.log(`[ensureCleanReadwiseData] Starting cleanup for user ${userId}`);
 
 		// Step 1: Delete inbox items in batches
-		console.log(`[cleanReadwiseData] Deleting inbox items...`);
+		console.log(`[ensureCleanReadwiseData] Deleting inbox items...`);
 		let inboxItemsDeleted = 0;
 		const batchSize = 10;
 
 		while (true) {
-			const inboxItems = (await ctx.runQuery(internal.readwiseCleanup.listInboxItems, {
+			const inboxItems = await ctx.runQuery(internal.readwiseCleanup.fetchInboxItemsBatch, {
 				userId,
 				limit: batchSize
-			})) as Array<Doc<'inboxItems'>>;
+			});
 
 			if (inboxItems.length === 0) break;
 
 			const itemIds = inboxItems.map((item) => item._id);
-			const deleted = (await ctx.runMutation(internal.readwiseCleanup.deleteInboxItemsBatch, {
+			const deleted = (await ctx.runMutation(internal.readwiseCleanup.archiveInboxItemsBatch, {
 				itemIds
 			})) as number;
 			inboxItemsDeleted += deleted;
 		}
 
-		console.log(`[cleanReadwiseData] Deleted ${inboxItemsDeleted} inbox items`);
+		console.log(`[ensureCleanReadwiseData] Deleted ${inboxItemsDeleted} inbox items`);
 
 		// Step 2: Delete highlights in batches
-		console.log(`[cleanReadwiseData] Processing highlights...`);
+		console.log(`[ensureCleanReadwiseData] Processing highlights...`);
 		let highlightsDeleted = 0;
 		let highlightTagsDeleted = 0;
 		const allTagIds = new Set<string>();
@@ -212,20 +212,20 @@ export const cleanReadwiseData = action({
 		let batchCount = 0;
 
 		while (true) {
-			const highlights = (await ctx.runQuery(internal.readwiseCleanup.listHighlights, {
+			const highlights = await ctx.runQuery(internal.readwiseCleanup.fetchHighlightsBatch, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as Array<Doc<'highlights'>>;
+			});
 
 			if (highlights.length === 0) break;
 
 			batchCount++;
 			console.log(
-				`[cleanReadwiseData] Processing highlight batch ${batchCount} (${highlights.length} items)...`
+				`[ensureCleanReadwiseData] Processing highlight batch ${batchCount} (${highlights.length} items)...`
 			);
 
 			const highlightIds = highlights.map((h) => h._id);
-			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteHighlightBatch, {
+			const result = (await ctx.runMutation(internal.readwiseCleanup.archiveHighlightBatch, {
 				highlightIds
 			})) as { deleted: number; results: Array<{ sourceId: string; tagIds: string[] }> };
 
@@ -239,16 +239,16 @@ export const cleanReadwiseData = action({
 			}
 
 			console.log(
-				`[cleanReadwiseData] Deleted ${result.deleted} highlights in this batch (total: ${highlightsDeleted})`
+				`[ensureCleanReadwiseData] Deleted ${result.deleted} highlights in this batch (total: ${highlightsDeleted})`
 			);
 		}
 
 		console.log(
-			`[cleanReadwiseData] Deleted ${highlightsDeleted} highlights and ${highlightTagsDeleted} highlightTags`
+			`[ensureCleanReadwiseData] Deleted ${highlightsDeleted} highlights and ${highlightTagsDeleted} highlightTags`
 		);
 
 		// Step 3: Delete sources in batches
-		console.log(`[cleanReadwiseData] Processing sources...`);
+		console.log(`[ensureCleanReadwiseData] Processing sources...`);
 		let sourcesDeleted = 0;
 		let sourceAuthorsDeleted = 0;
 		let sourceTagsDeleted = 0;
@@ -256,20 +256,20 @@ export const cleanReadwiseData = action({
 		let sourceBatchCount = 0;
 
 		while (true) {
-			const sources = (await ctx.runQuery(internal.readwiseCleanup.listSources, {
+			const sources = await ctx.runQuery(internal.readwiseCleanup.fetchSourcesBatch, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as Array<Doc<'sources'>>;
+			});
 
 			if (sources.length === 0) break;
 
 			sourceBatchCount++;
 			console.log(
-				`[cleanReadwiseData] Processing source batch ${sourceBatchCount} (${sources.length} items)...`
+				`[ensureCleanReadwiseData] Processing source batch ${sourceBatchCount} (${sources.length} items)...`
 			);
 
 			const sourceIds = sources.map((s) => s._id);
-			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteSourceBatch, {
+			const result = (await ctx.runMutation(internal.readwiseCleanup.archiveSourceBatch, {
 				sourceIds
 			})) as { deleted: number; results: Array<{ authorIds: string[]; tagIds: string[] }> };
 
@@ -286,23 +286,23 @@ export const cleanReadwiseData = action({
 			}
 
 			console.log(
-				`[cleanReadwiseData] Deleted ${result.deleted} sources in this batch (total: ${sourcesDeleted})`
+				`[ensureCleanReadwiseData] Deleted ${result.deleted} sources in this batch (total: ${sourcesDeleted})`
 			);
 		}
 
 		console.log(
-			`[cleanReadwiseData] Deleted ${sourcesDeleted} sources, ${sourceAuthorsDeleted} sourceAuthors, and ${sourceTagsDeleted} sourceTags`
+			`[ensureCleanReadwiseData] Deleted ${sourcesDeleted} sources, ${sourceAuthorsDeleted} sourceAuthors, and ${sourceTagsDeleted} sourceTags`
 		);
 
 		// Step 4: Delete ALL authors and tags for this user (clean slate for retesting)
-		console.log(`[cleanReadwiseData] Deleting all authors and tags...`);
+		console.log(`[ensureCleanReadwiseData] Deleting all authors and tags...`);
 		let totalAuthorsDeleted = 0;
 		let totalTagsDeleted = 0;
 		const cleanupBatchSize = 50;
 
 		// Delete all authors in batches
 		while (true) {
-			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteAuthorsBatch, {
+			const result = (await ctx.runMutation(internal.readwiseCleanup.archiveAuthorsBatch, {
 				userId,
 				limit: cleanupBatchSize
 			})) as { deleted: number; hasMore: boolean };
@@ -311,7 +311,7 @@ export const cleanReadwiseData = action({
 
 			if (result.deleted > 0) {
 				console.log(
-					`[cleanReadwiseData] Deleted ${result.deleted} authors in this batch (total: ${totalAuthorsDeleted})`
+					`[ensureCleanReadwiseData] Deleted ${result.deleted} authors in this batch (total: ${totalAuthorsDeleted})`
 				);
 			}
 
@@ -320,7 +320,7 @@ export const cleanReadwiseData = action({
 
 		// Delete all tags in batches (separate from authors)
 		while (true) {
-			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteTagsBatch, {
+			const result = (await ctx.runMutation(internal.readwiseCleanup.archiveTagsBatch, {
 				userId,
 				limit: cleanupBatchSize
 			})) as { deleted: number; hasMore: boolean };
@@ -328,7 +328,7 @@ export const cleanReadwiseData = action({
 			if (result.deleted > 0) {
 				totalTagsDeleted += result.deleted;
 				console.log(
-					`[cleanReadwiseData] Deleted ${result.deleted} tags in this batch (total: ${totalTagsDeleted})`
+					`[ensureCleanReadwiseData] Deleted ${result.deleted} tags in this batch (total: ${totalTagsDeleted})`
 				);
 			}
 
@@ -336,12 +336,12 @@ export const cleanReadwiseData = action({
 		}
 
 		console.log(
-			`[cleanReadwiseData] Deleted ${totalAuthorsDeleted} authors and ${totalTagsDeleted} tags total`
+			`[ensureCleanReadwiseData] Deleted ${totalAuthorsDeleted} authors and ${totalTagsDeleted} tags total`
 		);
 
 		// Step 5: Reset lastReadwiseSyncAt timestamp
-		console.log(`[cleanReadwiseData] Resetting sync timestamp...`);
-		await ctx.runMutation(internal.readwiseCleanup.resetSyncTimestamp, { userId });
+		console.log(`[ensureCleanReadwiseData] Resetting sync timestamp...`);
+		await ctx.runMutation(internal.readwiseCleanup.updateSyncTimestamp, { userId });
 
 		const summary: {
 			inboxItemsDeleted: number;
@@ -357,14 +357,14 @@ export const cleanReadwiseData = action({
 			orphanedTagsDeleted: totalTagsDeleted
 		};
 
-		console.log(`[cleanReadwiseData] Cleanup complete:`, summary);
+		console.log(`[ensureCleanReadwiseData] Cleanup complete:`, summary);
 
 		return summary;
 	}
 });
 
 // Internal queries to list items in batches
-export const listInboxItems = internalQuery({
+export const fetchInboxItemsBatch = internalQuery({
 	args: {
 		userId: v.id('users'),
 		limit: v.number()
@@ -378,7 +378,7 @@ export const listInboxItems = internalQuery({
 	}
 });
 
-export const listHighlights = internalQuery({
+export const fetchHighlightsBatch = internalQuery({
 	args: {
 		userId: v.id('users'),
 		limit: v.number()
@@ -391,7 +391,7 @@ export const listHighlights = internalQuery({
 	}
 });
 
-export const listSources = internalQuery({
+export const fetchSourcesBatch = internalQuery({
 	args: {
 		userId: v.id('users'),
 		limit: v.number()
@@ -404,7 +404,7 @@ export const listSources = internalQuery({
 	}
 });
 
-export const resetSyncTimestamp = internalMutation({
+export const updateSyncTimestamp = internalMutation({
 	args: {
 		userId: v.id('users')
 	},

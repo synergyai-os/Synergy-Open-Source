@@ -47,9 +47,9 @@ describe('useSelectedItem - Race Condition Prevention', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 
@@ -114,13 +114,14 @@ describe('useSelectedItem - Race Condition Prevention', () => {
 
 		// Should have selected item-2, not item-1
 		expect(composable.selectedItemId).toBe('item-2');
+		expect(queryCallCount).toBe(2);
 	});
 
 	it('should ignore stale query results when item changes quickly', async () => {
 		const mockItem1 = createMockInboxItemWithDetails();
 		const mockItem2 = { ...mockItem1, _id: 'item-2', title: 'Item 2' };
 
-		let resolveOrder: string[] = [];
+		const resolveOrder: string[] = [];
 
 		(mockClient.query as ReturnType<typeof vi.fn>).mockImplementation((_fn, args) => {
 			const itemId = (args as { inboxItemId: string }).inboxItemId;
@@ -184,9 +185,9 @@ describe('useSelectedItem - Cleanup on Unmount', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 
@@ -248,9 +249,9 @@ describe('useSelectedItem - Stale Query Handling', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			getInboxItemWithDetails: api.inbox.getInboxItemWithDetails,
-			syncReadwiseHighlights: api.syncReadwise.syncReadwiseHighlights,
-			getSyncProgress: api.inbox.getSyncProgress
+			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
+			findSyncProgress: api.inbox.findSyncProgress
 		};
 	});
 

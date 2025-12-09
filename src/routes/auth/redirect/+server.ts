@@ -41,4 +41,3 @@ export const GET: RequestHandler = async ({ locals, request, url }) => {
 	// Default browser experience: perform the redirect
 	throw redirect(302, redirectTo);
 };
-

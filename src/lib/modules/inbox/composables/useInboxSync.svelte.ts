@@ -84,7 +84,7 @@ export function useInboxSync(
 		if (!sessionId) return;
 
 		try {
-			const progress = (await convexClient.query(inboxApi.getSyncProgress, {
+			const progress = (await convexClient.query(inboxApi.findSyncProgress, {
 				sessionId
 			})) as SyncProgress;
 			if (progress) {
@@ -183,7 +183,7 @@ export function useInboxSync(
 
 		try {
 			const result = (await convexClient.action(
-				inboxApi.syncReadwiseHighlights,
+				inboxApi.fetchReadwiseHighlights,
 				options
 			)) as SyncReadwiseResult;
 

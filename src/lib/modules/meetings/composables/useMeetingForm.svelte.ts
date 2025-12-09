@@ -16,19 +16,14 @@ import { browser } from '$app/environment';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from 'svelte-sonner';
-import {
-	CalendarDate,
-	Time,
-	CalendarDateTime,
-	today,
-	getLocalTimeZone
-} from '@internationalized/date';
+import { CalendarDate, Time, today, getLocalTimeZone } from '@internationalized/date';
 import {
 	DEFAULT_LOCALE,
 	DEFAULT_SHORT_DATE_FORMAT,
 	jsDayToOurDay,
 	getDayNameFull
 } from '$lib/utils/locale';
+import { invariant } from '$lib/utils/invariant';
 
 type Attendee = {
 	type: 'user' | 'circle';
@@ -104,9 +99,9 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 	// Fetch templates
 	const templatesQuery =
 		browser && params.workspaceId() && params.sessionId()
-			? useQuery(api.meetingTemplates.list, () => {
+			? useQuery(api.modules.meetings.templates.list, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return {
 						workspaceId: params.workspaceId() as Id<'workspaces'>,
 						sessionId
@@ -266,9 +261,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 
 	// Helper: Parse date/time to timestamp
 	function parseDateTime(date: CalendarDate | null, time: Time | null): number {
-		if (!date || !time) {
-			throw new Error('Date and time are required');
-		}
+		invariant(date && time, 'Date and time are required');
 		// Convert CalendarDate + Time directly to Date object, then to timestamp
 		// Note: CalendarDate uses 1-based months, Date uses 0-based months
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -385,6 +378,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		}
 
 		// Convert CalendarDate to Date for day-of-week calculation
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const startDateObj = new Date(
 			state.startDate.year,
 			state.startDate.month - 1,
@@ -442,6 +436,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		}
 
 		// Convert CalendarDate to Date for calculations
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const startDateObj = new Date(
 			state.startDate.year,
 			state.startDate.month - 1,
@@ -534,7 +529,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 				return;
 			}
 
-			const result = await convexClient?.mutation(api.meetings.create, {
+			const result = await convexClient?.mutation(api.modules.meetings.meetings.create, {
 				sessionId: params.sessionId()!,
 				workspaceId: params.workspaceId() as Id<'workspaces'>,
 				circleId: state.circleId || undefined,
@@ -551,7 +546,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			if (meetingId && state.selectedAttendees.length > 0) {
 				for (const attendee of state.selectedAttendees) {
 					try {
-						await convexClient?.mutation(api.meetingInvitations.createInvitation, {
+						await convexClient?.mutation(api.modules.meetings.invitations.createInvitation, {
 							sessionId: params.sessionId()!,
 							meetingId: meetingId as Id<'meetings'>,
 							invitationType: attendee.type,
@@ -602,6 +597,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		if (!state.startDate || !state.startTime) {
 			// Create CalendarDate and Time objects from current date/time
 			const now = today(getLocalTimeZone());
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity
 			const nowTime = new Time(new Date().getHours(), new Date().getMinutes());
 			state.startDate = now;
 			state.startTime = nowTime;
@@ -615,6 +611,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		if (state.recurrence.frequency === 'weekly' && state.startDate) {
 			// Weekly: Pre-select day based on start date
 			// Convert CalendarDate to Date to get day of week
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity
 			const startDateObj = new Date(
 				state.startDate.year,
 				state.startDate.month - 1,

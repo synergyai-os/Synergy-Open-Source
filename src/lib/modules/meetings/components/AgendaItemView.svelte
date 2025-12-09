@@ -12,14 +12,15 @@
 	 */
 
 	import { browser } from '$app/environment';
-import { getContext, onDestroy } from 'svelte';
+	import { getContext, onDestroy } from 'svelte';
 	import ActionItemsList from './ActionItemsList.svelte';
 	import ProposalAgendaItem from './ProposalAgendaItem.svelte';
-import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
-import { useQuery } from 'convex-svelte';
+	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
+	import { useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { Button, Text, Heading, Icon } from '$lib/components/atoms';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
+import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		item?: {
@@ -49,17 +50,15 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 		isRecorder
 	}: Props = $props();
 
-const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-const NoteEditor = coreAPI?.NoteEditor;
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const NoteEditor = coreAPI?.NoteEditor;
 
 	// Check if this agenda item is linked to a proposal
 	// Wrap in $derived to make query creation reactive
 	const proposalQuery = $derived(
 		browser && item?._id && sessionId
 			? useQuery(api.proposals.getByAgendaItem, () => {
-					if (!item?._id || !sessionId) {
-						throw new Error('Agenda item ID and sessionId required');
-					}
+					invariant(item?._id && sessionId, 'Agenda item ID and sessionId required');
 					return {
 						sessionId,
 						agendaItemId: item._id

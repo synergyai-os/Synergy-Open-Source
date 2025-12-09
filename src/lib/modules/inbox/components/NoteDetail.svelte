@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-import { useConvexClient } from 'convex-svelte';
-import { getContext } from 'svelte';
-import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
-import { api } from '$lib/convex';
-import type { InboxItemWithDetails } from '$lib/types/convex';
-import type { Id } from '$lib/convex';
-import { Button } from '$lib/components/atoms';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { useConvexClient } from 'convex-svelte';
+	import { getContext } from 'svelte';
+	import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
+	import { api } from '$lib/convex';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
+	import type { Id } from '$lib/convex';
+	import { Button } from '$lib/components/atoms';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
+import { invariant } from '$lib/utils/invariant';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
@@ -21,14 +22,14 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 	const getSessionId = () => $page.data.sessionId;
 	const note = useNote(convexClient, getSessionId);
 
-const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-const NoteEditorWithDetection = coreAPI?.NoteEditorWithDetection;
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const NoteEditorWithDetection = coreAPI?.NoteEditorWithDetection;
 
-type NoteEditorWithDetectionComponent = InstanceType<
-	NonNullable<CoreModuleAPI['NoteEditorWithDetection']>
->;
+	type NoteEditorWithDetectionComponent = InstanceType<
+		NonNullable<CoreModuleAPI['NoteEditorWithDetection']>
+	>;
 
-let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
+	let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 	let editMode = $state(false);
 
 	// Handle Enter key to activate edit mode
@@ -115,7 +116,7 @@ let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 	}
 
 	function handleAIFlagged() {
-		note.markAsAIGenerated();
+		note.updateNoteAIFlag();
 	}
 
 	async function handleExportToDocs() {
@@ -123,11 +124,9 @@ let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
+			const result = await convexClient.mutation(api.notes.updateNoteDevDocsExport, {
 				sessionId,
 				noteId: inboxItem._id as Id<'inboxItems'>
 			});
@@ -149,7 +148,7 @@ let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/(^-|-$)/g, '') || 'untitled';
 
-		const success = await note.markForBlogExport(slug);
+		const success = await note.updateNoteExport(slug);
 		if (success) {
 			alert('Note marked for blog export!');
 		}
@@ -219,7 +218,7 @@ let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 				autoFocus={false}
 			/>
 		{:else}
-			<p class="text-secondary text-small">Note editor unavailable</p>
+			<p class="text-small text-secondary">Note editor unavailable</p>
 		{/if}
 	</div>
 

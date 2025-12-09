@@ -2,8 +2,8 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { resolveRequestSession } from '$lib/infrastructure/auth/server/session';
 import { ConvexHttpClient } from 'convex/browser';
-import { api } from '$lib/convex';
 import { env } from '$env/dynamic/public';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -26,6 +26,20 @@ function isPublicPath(pathname: string): boolean {
 		pathname.startsWith('/docs') ||
 		pathname.startsWith('/marketing-docs')
 	);
+}
+
+async function resolveDefaultAppRedirect(event: Parameters<Handle>[0]['event']): Promise<string> {
+	const sessionId = event.locals.auth.sessionId;
+	if (!sessionId) {
+		throw new Error('Expected authenticated session for redirect');
+	}
+
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	return resolveWorkspaceRedirect({
+		client,
+		sessionId,
+		activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+	});
 }
 
 // Redirect .md URLs to dynamic routes (prevents raw markdown files from being served)
@@ -64,10 +78,14 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		if (!isBuildContext && isAuthPage && event.locals.auth.sessionId) {
 			// Authenticated user trying to access auth page - redirect to app
 			const redirectTo =
-				event.url.searchParams.get('redirect') ||
-				event.url.searchParams.get('redirectTo') ||
-				'/inbox';
-			throw redirect(302, redirectTo);
+				event.url.searchParams.get('redirect') || event.url.searchParams.get('redirectTo');
+
+			if (redirectTo) {
+				throw redirect(302, redirectTo);
+			}
+
+			const defaultRedirect = await resolveDefaultAppRedirect(event);
+			throw redirect(302, defaultRedirect);
 		}
 
 		return resolve(event);

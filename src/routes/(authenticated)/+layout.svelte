@@ -4,11 +4,10 @@
 	// import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
-	// Debug flag for overlay logging (set to false to disable production logs)
-	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
 	import WorkspaceModals from '$lib/infrastructure/workspaces/components/WorkspaceModals.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { invariant } from '$lib/utils/invariant';
 	import { setContext } from 'svelte';
 	import { useWorkspaces } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
@@ -23,7 +22,7 @@
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
 	import { page } from '$app/stores';
-	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import { generateHoverColor } from '$lib/utils/color-conversion';
@@ -54,7 +53,6 @@
 	// Phase 2C: Load org branding reactively (updates on workspace switch)
 	// Use workspaces.activeWorkspaceId for reactive updates (not data.workspaceId)
 	const getSessionId = () => data.sessionId;
-	const convexClient = browser ? useConvexClient() : null;
 
 	// Reactive activeWorkspaceId (Svelte 5 pattern - matches tags/+page.svelte)
 	// Returns a function that can be called reactively inside useQuery
@@ -63,26 +61,13 @@
 		return workspaces.activeWorkspaceId ?? null;
 	});
 
-	// Load branding for active Workspace (for current org class application)
-	// Only create query when workspaceId is available (prevents hydration errors)
-	const orgBrandingQuery =
-		browser && getSessionId() && workspaces?.activeWorkspaceId
-			? useQuery(api.workspaces.getBranding, () => {
-					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
-					const workspaceId = activeWorkspaceId();
-					if (!workspaceId) throw new Error('workspaceId required');
-					return { workspaceId: workspaceId as Id<'workspaces'> };
-				})
-			: null;
-
 	// Load branding for ALL orgs (to generate CSS for all orgs at once)
 	// This prevents CSS loss when switching workspaces
 	const allOrgBrandingQuery =
 		browser && getSessionId()
 			? useQuery(api.workspaces.getAllOrgBranding, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
 			: null;
@@ -92,7 +77,7 @@
 		browser && import.meta.env.DEV && getSessionId()
 			? useQuery(api.rbac.queries.getUserRBACDetails, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					const workspaceId = activeWorkspaceId();
 					return {
 						sessionId,
@@ -188,15 +173,6 @@
 	// Org branding state (Phase 2: Org Branding)
 	// Use reactive query result, fallback to SSR data for initial render
 	const workspaceId = $derived(activeWorkspaceId() ?? data.workspaceId ?? null);
-	const orgBranding = $derived(
-		(orgBrandingQuery?.data as
-			| { primaryColor: string; secondaryColor: string; logo?: string }
-			| null
-			| undefined) ??
-			data.orgBranding ??
-			null
-	);
-	let previousOrgId = $state<string | null>(null);
 
 	// Generate org branding CSS for ALL orgs (prevents CSS loss on workspace switch)
 	const orgBrandingCSS = $derived.by(() => {
@@ -220,6 +196,16 @@
 		}
 
 		return cssRules.join('\n');
+	});
+
+	const orgBrandingStyleId = 'org-branding-styles';
+
+	// Apply org branding CSS into dedicated style tag to avoid HTML injection
+	$effect(() => {
+		if (!browser) return;
+		const styleEl = document.getElementById(orgBrandingStyleId);
+		if (!styleEl) return;
+		styleEl.textContent = orgBrandingCSS || '';
 	});
 
 	// Apply org class on client (idempotent - same as SSR, reactive to workspace switches)
@@ -252,7 +238,6 @@
 	// Extract global components and composables from CoreModuleAPI
 	const Sidebar = coreAPI.Sidebar;
 	const GlobalActivityTracker = coreAPI.GlobalActivityTracker;
-	const AppTopBar = coreAPI.AppTopBar;
 	const QuickCreateModal = coreAPI.QuickCreateModal;
 	const useGlobalShortcuts = coreAPI.useGlobalShortcuts;
 
@@ -402,45 +387,6 @@
 				accountSwitchingState.switchingTo = null;
 				accountSwitchingState.switchingToType = 'personal';
 				accountSwitchingState.startTime = null;
-			} else if (dataLoaded && workspaces?.setActiveWorkspace && browser) {
-				// Data loaded but no org switching - process URL params if they exist
-				// URL sync was suppressed during account switching, now it can process the org param
-				const urlParams = new URLSearchParams(window.location.search);
-				const urlOrgParam = urlParams.get('org');
-
-				if (urlOrgParam && workspaces.workspaces?.some((org) => org.workspaceId === urlOrgParam)) {
-					// Convert org ID to slug and redirect to workspace-scoped route
-					const targetWorkspace = workspaces.workspaces.find(
-						(org) => org.workspaceId === urlOrgParam
-					);
-					if (targetWorkspace?.slug) {
-						// Redirect to workspace-scoped inbox
-						const currentPath = window.location.pathname;
-						const newPath = `/w/${targetWorkspace.slug}/inbox`;
-						// Clean up ?org= param
-						urlParams.delete('org');
-						const search = urlParams.toString();
-						const newUrl = newPath + (search ? `?${search}` : '');
-						window.location.href = newUrl;
-						return; // Exit early, navigation will handle the rest
-					}
-					// Fallback: use old method if slug not available
-					workspaces.setActiveWorkspace(urlOrgParam);
-				} else {
-					// No URL param - redirect to first workspace's inbox
-					const firstWorkspace = workspaces.workspaces?.[0];
-					if (firstWorkspace?.slug) {
-						window.location.href = `/w/${firstWorkspace.slug}/inbox`;
-						return;
-					}
-					// Fallback: just hide overlay
-					accountSwitchingState.isSwitching = false;
-					accountSwitchingState.switchingTo = null;
-					accountSwitchingState.switchingToType = 'personal';
-					accountSwitchingState.startTime = null;
-					// Ensure flag is cleared
-					flagState.hasFlag = false;
-				}
 			} else {
 				// Fallback: just clear account switching state
 				accountSwitchingState.isSwitching = false;
@@ -481,16 +427,9 @@
 		}
 	});
 
-	// Track if component has been mounted for at least 100ms
-	// This prevents overlay from showing during client-side navigation before page reload
-	let mountedAt = $state<number | null>(null);
-
 	// Check for account switching flag on mount
 	onMount(() => {
 		if (!browser) return;
-
-		// Record mount time
-		mountedAt = Date.now();
 
 		// Developer console log - only in development mode
 		if (import.meta.env.DEV) {
@@ -789,9 +728,7 @@
 
 <!-- Inject org branding CSS (SSR-rendered, no FOUC) -->
 <svelte:head>
-	{#if orgBrandingCSS}
-		{@html `<style>${orgBrandingCSS}</style>`}
-	{/if}
+	<style id="org-branding-styles"></style>
 </svelte:head>
 
 {#if isAdminRoute}

@@ -14,7 +14,9 @@
 	}
 
 	const redirectTarget = $derived(
-		$page.url.searchParams.get('redirect') ?? $page.url.searchParams.get('redirectTo') ?? '/inbox'
+		$page.url.searchParams.get('redirect') ??
+			$page.url.searchParams.get('redirectTo') ??
+			'/auth/redirect'
 	);
 	const linkingFlow = $derived(() =>
 		parseBooleanFlag(
@@ -123,7 +125,7 @@
 			}
 
 			// Success - redirect to target (overlay will persist through redirect)
-			await goto(data.redirectTo ?? resolveRoute('/inbox'));
+			await goto(data.redirectTo ?? resolveRoute('/auth/redirect'));
 		} catch (err) {
 			console.error('Login error:', err);
 			errorMessage = 'Network error. Please check your connection and try again.';

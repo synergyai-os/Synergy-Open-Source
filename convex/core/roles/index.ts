@@ -1,21 +1,11 @@
 /**
  * Roles Core Exports
  *
- * Pure business logic for circle roles.
+ * SYOS-707: Core domain scaffold with schema/queries/mutations/rules.
+ * Existing rule helpers remain exported for reuse.
  */
 
-export { isLeadTemplate, type RoleTemplate } from './detection';
-export {
-	hasDuplicateRoleName,
-	normalizeRoleName,
-	type RoleNameCarrier
-} from './validation';
-export {
-	countLeadRoles,
-	isLeadRequiredForCircleType,
-	type RoleCircleType,
-	type LeadRequirementMap,
-	type RoleWithTemplate,
-	type TemplateLookup
-} from './lead';
-
+export * from './schema';
+export * from './queries';
+export * from './mutations';
+export * from './rules';

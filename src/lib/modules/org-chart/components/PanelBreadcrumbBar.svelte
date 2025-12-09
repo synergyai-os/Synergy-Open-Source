@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { NavigationLayer } from '$lib/modules/core/api';
+	import type { NavigationLayer } from '$lib/modules/core/api';
 
 	let {
 		layer,

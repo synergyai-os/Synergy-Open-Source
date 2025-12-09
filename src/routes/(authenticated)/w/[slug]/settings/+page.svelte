@@ -8,12 +8,9 @@
 	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$convex/_generated/dataModel';
 
-	// Get workspace slug from route params
-	const workspaceSlug = $derived($page.params.slug as string | undefined);
-
 	// Get workspace name from parent layout data
 	const workspaceName = $derived(() => {
-		const workspace = ($page.data as any)?.workspace;
+		const workspace = ($page.data as { workspace?: { name?: string } }).workspace;
 		return workspace?.name ?? 'Workspace';
 	});
 

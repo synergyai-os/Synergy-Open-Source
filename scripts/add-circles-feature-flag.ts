@@ -33,6 +33,14 @@ if (!CONVEX_URL) {
 	process.exit(1);
 }
 
+const sessionId = process.env.ADMIN_SESSION_ID;
+
+if (!sessionId) {
+	console.error('❌ ADMIN_SESSION_ID not set in environment');
+	console.error('   Please export ADMIN_SESSION_ID for a system admin session.');
+	process.exit(1);
+}
+
 async function main() {
 	console.log('🚀 Adding circles_ui_beta feature flag...\n');
 
@@ -40,7 +48,8 @@ async function main() {
 
 	try {
 		// Create feature flag (without allowedUserIds - add manually in dashboard)
-		await client.mutation(api.featureFlags.upsertFlag, {
+		await client.mutation(api.featureFlags.createFlag, {
+			sessionId,
 			flag: 'circles_ui_beta',
 			enabled: true
 		});

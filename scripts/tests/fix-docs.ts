@@ -144,7 +144,6 @@ function fixUtilitiesInFile(
 		// Replace standalone: old-util → new-util (when not in quotes/backticks)
 		// Only if not already replaced
 		const standaloneRegex = new RegExp(`\\b${escapedOld}\\b`, 'g');
-		const beforeStandalone = newContent;
 		newContent = newContent.replace(standaloneRegex, (match, offset) => {
 			// Check if we're inside quotes or backticks
 			const before = newContent.substring(0, offset);

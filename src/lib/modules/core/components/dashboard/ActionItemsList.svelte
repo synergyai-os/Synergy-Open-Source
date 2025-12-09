@@ -23,6 +23,7 @@
 	import { toast } from 'svelte-sonner';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Tabs, Badge } from '$lib/components/atoms';
+import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		sessionId: string;
@@ -39,7 +40,7 @@
 	const actionItemsQuery =
 		browser && sessionId
 			? useQuery(api.tasks.listByAssignee, () => {
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
 			: null;

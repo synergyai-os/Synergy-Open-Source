@@ -6,6 +6,7 @@
 	import { api } from '$lib/convex';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Button } from '$lib/components/atoms';
+	import { invariant } from '$lib/utils/invariant';
 
 	// Get invite code from URL
 	const inviteCode = $derived($page.url.searchParams.get('code'));
@@ -16,9 +17,9 @@
 	// Query invite details (public query - no auth required)
 	// Only run in browser to avoid SSR issues
 	const inviteQuery = browser
-		? useQuery(api.workspaces.getInviteByCode, () => {
+		? useQuery(api.workspaces.findInviteByCode, () => {
 				const code = inviteCode;
-				if (!code) throw new Error('Code required');
+				invariant(code, 'Code required');
 				return { code };
 			})
 		: null;

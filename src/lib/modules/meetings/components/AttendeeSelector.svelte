@@ -35,10 +35,10 @@
 
 	let inputRef: HTMLElement | null = $state(null);
 
-	// Local search value for input (sync with composable)
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let localSearchValue = $state(attendeeSelection.searchValue);
 
-	// Local open state (can't bind directly to composable getter-only property)
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let localOpen = $state(attendeeSelection.comboboxOpen);
 
 	// Sync localOpen with composable when it changes externally
@@ -97,10 +97,8 @@
 				}}
 				ariaLabel="Add more attendees"
 			>
-				{#snippet children()}
-					<Icon type="add" size="sm" />
-					<span>Add</span>
-				{/snippet}
+				<Icon type="add" size="sm" />
+				<span>Add</span>
 			</Button>
 		</div>
 	{/if}
@@ -221,7 +219,7 @@
 												label={attendee.name}
 												class={comboboxItemRecipe()}
 											>
-												{#snippet children({ selected })}
+												{#snippet children({ selected: _selected })}
 													<Icon type="check" size="sm" color="primary" />
 													<Icon type={attendee.type} size="sm" color="secondary" />
 													<span class="flex-1">{attendee.name}</span>
@@ -260,7 +258,7 @@
 												label={attendee.name}
 												class={comboboxItemRecipe()}
 											>
-												{#snippet children({ selected })}
+												{#snippet children({ selected: _selected })}
 													<Icon type={attendee.type} size="sm" color="secondary" />
 													<span class="flex-1">{attendee.name}</span>
 													{#if attendee.email}

@@ -39,7 +39,6 @@ function extractHardcodedColors(cssContent) {
 		{
 			name: 'Hex',
 			regex: /#[0-9a-fA-F]{3,6}\b/g,
-			// eslint-disable-next-line synergyos/no-hardcoded-design-values
 			example: '#000000' // Example hex color (not a design token violation - this is documentation)
 		},
 		{

@@ -19,8 +19,8 @@
 
 	import type { Id } from '$lib/convex';
 	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
-	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
-	import { useTaskForm } from '$lib/modules/projects/composables/useTaskForm.svelte';
+	import { getContext } from 'svelte';
+import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
@@ -40,8 +40,16 @@
 		readonly = false
 	}: Props = $props();
 
+	const projects = getContext('projects-api') as
+		| {
+				useTasks: (options: unknown) => unknown;
+				useTaskForm: (options: unknown) => unknown;
+		  }
+		| undefined;
+invariant(projects, 'ProjectsModuleAPI context not found');
+
 	// Data fetching composable
-	const data = useTasks({
+	const data = projects.useTasks({
 		agendaItemId: () => agendaItemId,
 		sessionId: () => sessionId,
 		workspaceId: () => workspaceId,
@@ -49,7 +57,7 @@
 	});
 
 	// Form logic composable
-	const form = useTaskForm({
+	const form = projects.useTaskForm({
 		sessionId: () => sessionId,
 		workspaceId: () => workspaceId,
 		meetingId: () => meetingId,

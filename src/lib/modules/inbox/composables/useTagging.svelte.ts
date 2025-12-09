@@ -10,6 +10,7 @@ import { api } from '$lib/convex';
 import { makeFunctionReference } from 'convex/server';
 import type { FunctionReference } from 'convex/server';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 // Import TagWithHierarchy type from Convex (matches convex/tags.ts)
 export type TagWithHierarchy = {
@@ -63,7 +64,7 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 		void
 	> | null = null;
 
-	if (browser && api.tags?.createTag && api.tags?.assignTagsToHighlight) {
+	if (browser && api.tags?.createTag && api.tags?.updateHighlightTagAssignments) {
 		try {
 			createTagApi = makeFunctionReference('tags:createTag') as FunctionReference<
 				'mutation',
@@ -79,7 +80,9 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 				},
 				Id<'tags'>
 			>;
-			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as FunctionReference<
+			assignTagsApi = makeFunctionReference(
+				'tags:updateHighlightTagAssignments'
+			) as FunctionReference<
 				'mutation',
 				'public',
 				{ sessionId: string; highlightId: Id<'highlights'>; tagIds: Id<'tags'>[] },
@@ -96,7 +99,7 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 		browser && api.tags?.listAllTags && params?.sessionId
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
-					if (!sessionId) throw new Error('sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
+					invariant(sessionId, 'sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 					const orgId = params.activeWorkspaceId?.();
 					return {
 						sessionId,
@@ -121,15 +124,11 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!convexClient || !createTagApi) {
-			throw new Error('Convex client not available');
-		}
+		invariant(convexClient && createTagApi, 'Convex client not available');
 
 		try {
 			const sessionId = params?.sessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			const orgId = params?.activeWorkspaceId?.();
 			const tagId = await convexClient.mutation(createTagApi, {
@@ -149,15 +148,11 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 	}
 
 	async function assignTags(highlightId: Id<'highlights'>, tagIds: Id<'tags'>[]): Promise<void> {
-		if (!convexClient || !assignTagsApi) {
-			throw new Error('Convex client not available');
-		}
+		invariant(convexClient && assignTagsApi, 'Convex client not available');
 
 		try {
 			const sessionId = params?.sessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			await convexClient.mutation(assignTagsApi, {
 				sessionId,

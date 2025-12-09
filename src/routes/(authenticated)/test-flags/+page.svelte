@@ -4,6 +4,7 @@
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { reportFeatureFlagCheck } from '$lib/utils/errorReporting';
 	import { browser } from '$app/environment';
+import { invariant } from '$lib/utils/invariant';
 
 	let { data } = $props();
 
@@ -15,9 +16,9 @@
 	// Reduces 3 network round trips → 1, validates session once instead of 3x
 	const flagsQuery =
 		browser && getSessionId()
-			? useQuery(api.featureFlags.checkFlags, () => {
+			? useQuery(api.featureFlags.getFlagStatuses, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						flags: [

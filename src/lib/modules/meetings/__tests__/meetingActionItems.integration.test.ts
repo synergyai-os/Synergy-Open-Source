@@ -49,7 +49,7 @@ describe('tasks: create', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -58,7 +58,7 @@ describe('tasks: create', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -118,7 +118,7 @@ describe('tasks: create', () => {
 		});
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -127,7 +127,7 @@ describe('tasks: create', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -164,7 +164,7 @@ describe('tasks: create', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -173,7 +173,7 @@ describe('tasks: create', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -199,7 +199,7 @@ describe('tasks: create', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -208,7 +208,7 @@ describe('tasks: create', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -253,7 +253,7 @@ describe('tasks: queries', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda items
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -262,7 +262,7 @@ describe('tasks: queries', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -308,7 +308,7 @@ describe('tasks: queries', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -317,13 +317,13 @@ describe('tasks: queries', () => {
 			visibility: 'public'
 		});
 
-		const agenda1 = await t.mutation(api.meetings.createAgendaItem, {
+		const agenda1 = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Agenda 1'
 		});
 
-		const agenda2 = await t.mutation(api.meetings.createAgendaItem, {
+		const agenda2 = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Agenda 2'
@@ -370,7 +370,7 @@ describe('tasks: queries', () => {
 
 		cleanupQueue.push({ userId, orgId }, { userId: user2 });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -379,7 +379,7 @@ describe('tasks: queries', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -423,7 +423,7 @@ describe('tasks: queries', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -432,7 +432,7 @@ describe('tasks: queries', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -490,7 +490,7 @@ describe('tasks: queries', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -499,7 +499,7 @@ describe('tasks: queries', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -550,7 +550,7 @@ describe('tasks: mutations', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -559,7 +559,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -600,7 +600,7 @@ describe('tasks: mutations', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -609,7 +609,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -649,7 +649,7 @@ describe('tasks: mutations', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -658,7 +658,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -698,7 +698,7 @@ describe('tasks: mutations', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -707,7 +707,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -745,7 +745,7 @@ describe('tasks: mutations', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -754,7 +754,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -796,7 +796,7 @@ describe('tasks: mutations', () => {
 		cleanupQueue.push({ userId: user1, orgId: org1 }, { userId: user2, orgId: org2 });
 
 		// Create action item in Org 1
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId: session1,
 			workspaceId: org1,
 			title: 'Test Meeting',
@@ -805,7 +805,7 @@ describe('tasks: mutations', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId: session1,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -826,6 +826,6 @@ describe('tasks: mutations', () => {
 				sessionId: session2,
 				actionItemId: createResult.actionItemId
 			})
-		).rejects.toThrow('User is not a member of this workspace');
+		).rejects.toThrow('Workspace membership required');
 	});
 });

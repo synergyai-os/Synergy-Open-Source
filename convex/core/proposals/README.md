@@ -24,5 +24,3 @@ Valid transitions:
 - Guard every status change in app-layer mutations with `assertTransition`.
 - Use validation helpers for common preconditions (e.g., evolutions required before submit/import).
 - Keep any DB access in the application layer; keep this module pure.
-
-

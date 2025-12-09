@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, Badge, Button, Icon } from '$lib/components/atoms';
+	import { Badge, Button, Icon } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { roleCardRecipe } from '$lib/design-system/recipes';
 	import RoleMemberItem from './RoleMemberItem.svelte';
@@ -53,22 +53,13 @@
 		memberMenuItems,
 		currentUserId,
 		roleId,
-		circleId,
+		circleId: _circleId,
 		canEdit = false,
 		editReason,
 		onNameChange,
 		onPurposeChange,
 		class: className = ''
 	}: Props = $props();
-
-	function getInitials(text: string): string {
-		return text
-			.split(' ')
-			.map((word) => word[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
 
 	function handleHeaderClick() {
 		onClick();
@@ -101,18 +92,14 @@
 					/>
 				{:else if editReason && !isCircle}
 					<EditPermissionTooltip reason={editReason}>
-						{#snippet children()}
-							<p class="text-button truncate font-medium text-primary">{name}</p>
-						{/snippet}
+						<p class="text-button truncate font-medium text-primary">{name}</p>
 					</EditPermissionTooltip>
 				{:else}
 					<p class="text-button truncate font-medium text-primary">{name}</p>
 				{/if}
 				{#if status}
 					<Badge variant={badgeVariant} size="md">
-						{#snippet children()}
-							{badgeLabel}
-						{/snippet}
+						{badgeLabel}
 					</Badge>
 				{/if}
 			</div>
@@ -129,9 +116,7 @@
 					/>
 				{:else if editReason}
 					<EditPermissionTooltip reason={editReason}>
-						{#snippet children()}
-							<p class="text-label text-secondary">{purpose || 'No purpose set'}</p>
-						{/snippet}
+						<p class="text-label text-secondary">{purpose || 'No purpose set'}</p>
 					</EditPermissionTooltip>
 				{:else if purpose}
 					<p class="text-label text-secondary">{purpose}</p>
@@ -150,9 +135,7 @@
 					}}
 					ariaLabel="Add member to {name}"
 				>
-					{#snippet children()}
-						<Icon type="add" size="sm" />
-					{/snippet}
+					<Icon type="add" size="sm" />
 				</Button>
 			{/if}
 			{#if onEdit}
@@ -166,9 +149,7 @@
 					}}
 					ariaLabel="Edit {name}"
 				>
-					{#snippet children()}
-						<Icon type="edit" size="sm" />
-					{/snippet}
+					<Icon type="edit" size="sm" />
 				</Button>
 			{/if}
 			{#if menuItems.length > 0}

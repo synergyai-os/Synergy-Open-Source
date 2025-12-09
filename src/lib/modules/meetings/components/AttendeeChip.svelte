@@ -41,8 +41,6 @@
 		style="padding-right: var(--spacing-chip-closeButton-pr);"
 		onclick={() => onRemove(attendee)}
 	>
-		{#snippet children()}
-			<Icon type="close" size="sm" />
-		{/snippet}
+		<Icon type="close" size="sm" />
 	</Button>
 </div>

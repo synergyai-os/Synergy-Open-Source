@@ -17,21 +17,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * Deep merge two objects
- */
-function deepMerge(target, source) {
-	for (const key in source) {
-		if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-			if (!target[key]) target[key] = {};
-			deepMerge(target[key], source[key]);
-		} else {
-			target[key] = source[key];
-		}
-	}
-	return target;
-}
-
-/**
  * Convert DTCG tokens to Style Dictionary format
  * Style Dictionary expects: { category: { nested: { path: { value: "...", type: "..." } } } }
  *

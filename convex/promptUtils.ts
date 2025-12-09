@@ -3,6 +3,7 @@
  * Maps prompt names to their template strings
  */
 import { flashcardGenerationTemplate } from './prompts/flashcardGeneration';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 const promptTemplates: Record<string, string> = {
 	'flashcard-generation': flashcardGenerationTemplate
@@ -79,7 +80,8 @@ export function loadPrompt(promptName: string, variables?: Record<string, unknow
 	const template = promptTemplates[promptName];
 
 	if (!template) {
-		throw new Error(
+		throw createError(
+			ErrorCodes.GENERIC_ERROR,
 			`Prompt template "${promptName}" not found. Available templates: ${Object.keys(promptTemplates).join(', ')}`
 		);
 	}

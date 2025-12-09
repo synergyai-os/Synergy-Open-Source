@@ -17,6 +17,7 @@
 		max?: string | number;
 		class?: string; // Allow custom classes for specific cases
 		onkeydown?: ((e: KeyboardEvent) => void) | undefined;
+		oninput?: ((e: Event & { currentTarget: HTMLInputElement }) => void) | undefined;
 	};
 
 	let {
@@ -33,7 +34,8 @@
 		min,
 		max,
 		class: customClass = '',
-		onkeydown
+		onkeydown,
+		oninput
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -66,6 +68,7 @@
 		{max}
 		bind:value
 		{onkeydown}
+		{oninput}
 		class={inputClasses}
 	/>
 </div>

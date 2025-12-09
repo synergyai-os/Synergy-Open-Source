@@ -15,6 +15,7 @@ import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../_generated/dataModel';
 import type { QueryCtx, MutationCtx } from '../_generated/server';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * Assign admin role to a user
@@ -36,7 +37,10 @@ export const setupAdmin = mutation({
 			.first();
 
 		if (!adminRole) {
-			throw new Error('Admin role not found. Please run seedRBAC first.');
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'Admin role not found. Please run seedRBAC first.'
+			);
 		}
 
 		// 2. Check if user already has admin role

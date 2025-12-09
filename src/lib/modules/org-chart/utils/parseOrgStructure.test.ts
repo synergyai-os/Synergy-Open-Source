@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseOrgStructure, type ParseResult } from './parseOrgStructure';
+import { parseOrgStructure } from './parseOrgStructure';
 
 describe('parseOrgStructure', () => {
 	describe('empty input', () => {

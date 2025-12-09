@@ -8,14 +8,16 @@
  */
 
 import { internalMutation } from '../_generated/server';
+import type { MutationCtx } from '../_generated/server';
 import type { Id } from '../_generated/dataModel';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * Helper function to get workspace owner (first owner/admin member)
  * Used as fallback for changedBy when creator is unknown
  */
 async function getWorkspaceOwner(
-	ctx: { db: { query: (table: string) => any } },
+	ctx: MutationCtx,
 	workspaceId: Id<'workspaces'>
 ): Promise<Id<'users'> | null> {
 	const members = await ctx.db
@@ -40,9 +42,7 @@ async function getWorkspaceOwner(
 /**
  * Helper function to get any user ID (for system operations)
  */
-async function getAnyUserId(ctx: {
-	db: { query: (table: string) => any };
-}): Promise<Id<'users'> | null> {
+async function getAnyUserId(ctx: MutationCtx): Promise<Id<'users'> | null> {
 	const user = await ctx.db.query('users').first();
 	return user?._id ?? null;
 }
@@ -60,7 +60,10 @@ export const migrateVersionHistory = internalMutation({
 		// Get a fallback user ID for system operations
 		const systemUserId = await getAnyUserId(ctx);
 		if (!systemUserId) {
-			throw new Error('No users found in database. Cannot create version history.');
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'No users found in database. Cannot create version history.'
+			);
 		}
 
 		let circlesCreated = 0;

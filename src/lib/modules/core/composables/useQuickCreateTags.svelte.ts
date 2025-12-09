@@ -24,6 +24,7 @@ import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
 import { toast } from 'svelte-sonner';
+import { invariant } from '$lib/utils/invariant';
 
 // Type matches TagWithHierarchy from convex/tags.ts and Tag type from TagSelector
 export type Tag = {
@@ -53,7 +54,7 @@ export function useQuickCreateTags(
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const workspaceId = getWorkspaceId();
 					return {
 						sessionId,
@@ -77,17 +78,13 @@ export function useQuickCreateTags(
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!convexClient) {
-			throw new Error('Convex client not available');
-		}
+		invariant(convexClient, 'Convex client not available');
 
 		state.error = null;
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			const workspaceId = getWorkspaceId();
 

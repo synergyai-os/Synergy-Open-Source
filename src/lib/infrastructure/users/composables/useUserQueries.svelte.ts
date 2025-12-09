@@ -12,6 +12,7 @@ import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
 import type { UserProfile, LinkedAccount } from '../api';
+import { invariant } from '$lib/utils/invariant';
 
 export interface UseUserQueriesOptions {
 	getSessionId: () => string | undefined;
@@ -53,7 +54,7 @@ export function useUserQueries(options: UseUserQueriesOptions): UseUserQueriesRe
 		browser && getSessionId()
 			? useQuery(api.users.getCurrentUser, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
 			: null;
@@ -63,7 +64,7 @@ export function useUserQueries(options: UseUserQueriesOptions): UseUserQueriesRe
 		browser && getSessionId()
 			? useQuery(api.users.listLinkedAccounts, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
 			: null;
@@ -87,10 +88,6 @@ export function useUserQueries(options: UseUserQueriesOptions): UseUserQueriesRe
 		}
 		return [];
 	});
-
-	// Cache for user-by-ID queries (we'll implement this if needed)
-	// For now, we can use a separate query pattern if needed
-	const getUserByIdCache = new Map<Id<'users'>, UserProfile | null>();
 
 	/**
 	 * Get user by ID

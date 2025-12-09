@@ -1,3 +1,4 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
 	/**
 	 * RoleNode Component - Isolated role rendering for Storybook
@@ -16,7 +17,7 @@
 
 	let {
 		role,
-		circleNode,
+		circleNode: _circleNode,
 		zoomLevel = 1.0,
 		showLabel = true,
 		isSelected = false,

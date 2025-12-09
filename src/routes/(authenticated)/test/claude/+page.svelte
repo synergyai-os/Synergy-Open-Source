@@ -6,6 +6,7 @@
 	import { makeFunctionReference } from 'convex/server';
 	import type { FunctionReference } from 'convex/server';
 	import { resolveRoute } from '$lib/utils/navigation';
+import { invariant } from '$lib/utils/invariant';
 
 	let testInput = $state('');
 	let flashcard = $state<{ question: string; answer: string } | null>(null);
@@ -68,23 +69,11 @@
 		flashcard = null;
 
 		try {
-			if (!convexClient) {
-				throw new Error('Convex client not available');
-			}
+			invariant(convexClient, 'Convex client not available');
 
-			const generateFlashcardAction = makeFunctionReference(
-				'generateFlashcard:generateFlashcard'
-			) as FunctionReference<
-				'action',
-				'public',
-				{ sessionId: string; text: string; sourceTitle?: string; sourceAuthor?: string },
-				{ success: boolean; flashcard?: { question: string; answer: string } }
-			>;
 			const sessionId = $page.data.sessionId;
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
-			const result = await convexClient.action(generateFlashcardAction, {
+			invariant(sessionId, 'Session ID is required');
+			const result = await convexClient.action(api.flashcards.fetchFlashcardsFromSource, {
 				sessionId,
 				text: testInput.trim()
 			});
@@ -92,7 +81,7 @@
 			if (result.success && result.flashcard) {
 				flashcard = result.flashcard;
 			} else {
-				throw new Error('Failed to generate flashcard');
+				invariant(false, 'Failed to generate flashcard');
 			}
 		} catch (e) {
 			error = e instanceof Error ? e.message : 'Failed to generate flashcard';

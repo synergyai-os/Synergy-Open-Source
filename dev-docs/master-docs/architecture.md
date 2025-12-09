@@ -2,17 +2,17 @@
 
 **Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-**Version**: 2.0  
-**Last Updated**: 2025-12-06  
+**Version**: 2.1  
+**Last Updated**: 2025-12-07  
 **Optimization Target**: AI-native development with domain cohesion
 
 ---
 
 ## Quick Reference
 
-**Note:** Code Hygiene rules (Principles 26–33) are enforceable standards. Apply them to all Convex domain files alongside the core architecture principles.
+**Note:** Code Hygiene rules (Principles 26–33) are enforceable standards. Apply them to all Convex domain files alongside the core architecture principles. Legacy numbering is preserved for existing references; new principles use semantic IDs to avoid renumbering drift.
 
-### The 25 Principles
+### The 25 Principles *(see Appendix E for enforcement definitions)*
 
 | # | Principle | Enforcement |
 |---|-----------|-------------|
@@ -62,6 +62,21 @@
 | 31 | Archive queries via a helper (e.g., `queryActive`), not branching | Code review |
 | 32 | Domain files ≤ 300 lines; split if larger | CI gate |
 | 33 | Error format consistent: `ERR_CODE: message` | Code review |
+
+### Semantic ID Convention
+
+| Prefix | Domain | Examples |
+|--------|--------|----------|
+| `core-` | Core domain principles | `core-complete`, `core-domains` |
+| `dep-` | Dependency rules | `dep-layer-direction`, `dep-no-circular` |
+| `cvx-` | Convex patterns | `cvx-queries-pure`, `cvx-auth-before-write` |
+| `svelte-` | Svelte patterns | `svelte-thin-components`, `svelte-runes` |
+| `lang-` | Domain language | `lang-terminology`, `lang-naming` |
+| `quality-` | Code quality | `quality-pure-functions`, `quality-no-magic` |
+| `test-` | Testing | `test-colocated`, `test-independent` |
+| `hygiene-` | Code hygiene | `hygiene-handler-thin`, `hygiene-file-size` |
+| `authz-` | Authorization | `authz-rbac-check`, `authz-authority-check` |
+| `err-` | Error handling | `err-code-format`, `err-codes-central` |
 
 ### AI Development Rules (No Judgment Calls)
 
@@ -329,6 +344,20 @@ Organizational roles and RBAC can be *explicitly mapped* by workspace admins:
 
 For RBAC implementation details, see [RBAC Architecture](./rbac/rbac-architecture.md).
 
+### Authorization Check Flow
+
+1. **Get authenticated user**
+   - If missing → throw `AUTH_REQUIRED: Authentication required`.
+2. **Check RBAC capability** (system-level)
+   - Call `hasCapability(user, requiredCapability)`.
+   - If false → throw `AUTHZ_INSUFFICIENT_RBAC: Missing {capability}`.
+3. **Check Authority** (domain-level)
+   - Call the domain rule (e.g., `isCircleLead`, `isCircleMember`, `hasRole`, `canApproveProposal`).
+   - If false → throw domain-specific error (e.g., `AUTHZ_NOT_CIRCLE_LEAD`).
+4. **Both must pass** — order matters for clarity.
+   - RBAC failure → system configuration issue.
+   - Authority failure → organizational structure issue.
+
 ---
 
 ## Code Standards
@@ -399,6 +428,33 @@ export const create = mutation({
   }
 </script>
 ```
+
+### Handler Pattern (Thin Orchestration)
+
+Keep handlers as orchestration only. Auth, validation, rule checks, writes, and audit live in helpers. Target ≤20 lines in the handler body by extracting helpers.
+
+```typescript
+export const approve = mutation({
+  args: { proposalId: v.id("proposals") },
+  handler: async (ctx, args) => {
+    const user = await requireAuth(ctx);
+    const proposal = await requireProposal(ctx, args.proposalId);
+
+    assertCanApprove(user, proposal);
+    validateProposalState(proposal, "pending");
+
+    const updated = await transitionProposal(ctx, proposal, "approved", user);
+    await emitProposalApproved(ctx, updated);
+
+    return updated._id;
+  },
+});
+```
+
+**Helper location**: Auth helpers (`requireAuth`, `requirePerson`) live in `convex/infrastructure/auth/helpers.ts`. See Appendix C for error codes these helpers throw.
+Domain fetchers like `requireProposal`, `requireCircle`, `requirePerson` live in each domain’s `rules.ts`.
+
+**Auth guard (CI + local)**: `npm run guard:auth` blocks legacy helpers (`getAuthUserId`, `getUserIdFromSession`) and public queries/mutations/actions that accept `userId` in `args`. Known debt is tracked in `scripts/auth-guard-baseline.json`—burn entries down when refactoring. Always pass `sessionId` and call `validateSessionAndGetUserId(ctx, sessionId)` in handlers.
 
 ### Svelte 5 Patterns
 
@@ -503,6 +559,59 @@ const classes = variant === 'primary' ? 'bg-blue-500' : 'bg-gray-100';
 
 **Why**: Direct utility classes bypass the design system and cause visual drift. When a design token changes, components using recipes update automatically. Hardcoded values don't.
 
+### Function Prefixes (all functions)
+
+| Prefix | Returns | Use When |
+| -- | -- | -- |
+| **Lookups** |  |  |
+| `find___` | `T \| null` | Lookup that may return nothing |
+| `get___` | `T` (throws if missing) | Lookup that must succeed |
+| `list___` | `T[]` (non-null) | Return a collection |
+| **Boolean checks** |  |  |
+| `is___` / `has___` / `can___` | `boolean` | State/existence/permission checks |
+| **Mutations** |  |  |
+| `create___` | `Id` | Create entity, return ID |
+| `update___` | `void` or `T` | Modify existing entity |
+| `archive___` / `restore___` | `void` | Soft delete / un-archive |
+| **State transitions** |  |  |
+| `start___` / `close___` / `advance___` / `submit___` / `approve___` / `reject___` / `withdraw___` | `void` or domain type | Move between states |
+| **Collections** |  |  |
+| `add___` / `remove___` / `assign___` | `void` or `Id` | Manage membership/collection items |
+| **Invitations** |  |  |
+| `accept___` / `decline___` / `resend___` | `void` or `Id` | Invitation flows |
+| **Status updates** |  |  |
+| `mark___` / `set___` | `void` or `T` | Update status/flags/fields |
+| **Import/export** |  |  |
+| `import___` / `record___` | `T` or `void` | Import data or record events |
+| **Transform/utilities** |  |  |
+| `normalize___` / `slugify___` / `calculate___` / `count___` / `describe___` / `seed___` / `reorder___` | `T` | Data transforms, counts, seeds, ordering |
+| `parse___` | `T` | String → structured data |
+| `fetch___` | `T` | External API call |
+| **Validation & context** |  |  |
+| `require___` | `T` (throws if invalid/missing) | Fetch-or-throw/validate and return |
+| `ensure___` | `void` (throws if invalid) | Validate condition, no return value |
+| `validate___` / `assert___` | `void` or `T` | Validation/assertion helpers |
+| `with___` | callback result | Setup context, then run callback |
+| **Modifier** |  |  |
+| `my___` | Combines with any base | Scope to authenticated user (e.g., `myListDrafts`) |
+
+Unknown prefixes (e.g., `delete___`, `upsert___`) are not allowed. AI rule reference: `.cursor/rules/naming-conventions.mdc`. Keep this table and the linter (`scripts/lint-naming`) in sync.
+
+### Non-Function Naming
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Svelte component | PascalCase | `CircleCard.svelte` |
+| Composable | `use` prefix, camelCase | `useCircleForm.svelte.ts` |
+| Recipe | `{name}Recipe`, camelCase | `buttonRecipe.ts` |
+| Context creator | `create{Name}Context` | `createAuthContext.ts` |
+| Convex query | Verb, camelCase | `getCircleById`, `listCircles` |
+| Convex mutation | Verb, camelCase | `createCircle`, `approveProposal` |
+| Rule function | `can` / `is` prefix | `canApproveProposal`, `isCircleLead` |
+| Error code | SCREAMING_SNAKE | `AUTH_REQUIRED` |
+| Type | PascalCase | `Circle`, `ProposalState` |
+| Constant | SCREAMING_SNAKE | `MAX_CIRCLE_DEPTH` |
+
 For recipe implementation patterns, token usage, and styling details, see [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md).
 
 ### Composables Pattern
@@ -600,6 +709,26 @@ npm run test           # Unit tests (30 seconds)
 ```
 
 **Definition of Done**: Would you be comfortable having a neutral facilitator demo it to an executive board without you in the room?
+
+### Required Test Cases
+
+**Per Mutation**
+
+| Case | What to Assert |
+|------|----------------|
+| Success | Returns expected ID/data; DB state correct |
+| Unauthorized (no auth) | Throws `AUTH_REQUIRED` |
+| Unauthorized (wrong role/RBAC) | Throws appropriate `AUTHZ_*` code |
+| Invalid input | Throws `VALIDATION_*` code |
+| Business rule violation | Throws domain-specific error (e.g., `PROPOSAL_INVALID_STATE`) |
+
+**Per Query**
+
+| Case | What to Assert |
+|------|----------------|
+| Success | Returns expected shape |
+| Unauthorized | Throws `AUTH_REQUIRED` or returns filtered/empty |
+| Not found / missing input | Returns null/empty (not error) |
 
 ---
 
@@ -797,6 +926,120 @@ Search for these during code review:
 
 ---
 
+## Reference Appendices
+
+### A. Rules Scope Definition
+
+- **Pure rules**: No `ctx` access; `(args) =>` signature; live in `rules.ts`.
+- **Contextual rules**: Require `ctx`/`ctx.db`; `(ctx, ...args) =>` signature; live in `rules.ts`; imported by queries/mutations.
+- **Location**: All business rules (pure or contextual) live in the domain’s `rules.ts`. Queries/mutations call them; components never do.
+
+**Examples**
+
+```typescript
+// rules.ts — Pure rule
+export function isValidCircleName(name: string): boolean {
+  return name.length >= 2 && name.length <= 100;
+}
+```
+
+```typescript
+// rules.ts — Contextual rule
+export async function canApproveProposal(
+  ctx: QueryCtx,
+  userId: Id<"people">,
+  proposal: Doc<"proposals">
+): Promise<boolean> {
+  const circle = await ctx.db.get(proposal.circleId);
+  if (!circle) return false;
+  return isCircleLead(ctx, userId, circle._id);
+}
+```
+
+**Entity fetchers**: Functions like `requireProposal`, `requireCircle` that fetch-or-throw belong in the domain’s `rules.ts` alongside validation rules. Pattern: `require{Entity}(ctx, id)` → returns entity or throws `{ENTITY}_NOT_FOUND`.
+
+### B. Proposal State Machine
+
+| From | To | Triggered By | Guard Rule |
+|------|----|--------------|------------|
+| draft | pending | Proposer | `canSubmitProposal(ctx, user, proposal)` |
+| draft | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
+| pending | approved | Circle Lead | `canApproveProposal(ctx, user, proposal)` |
+| pending | objected | Any Circle Member | `canRaiseObjection(ctx, user, proposal)` |
+| pending | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
+| objected | pending | Proposer (after addressing) | `canResubmitProposal(ctx, user, proposal)` |
+| objected | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
+| approved | enacted | System/Lead (on enactment) | `canEnactProposal(ctx, user, proposal)` |
+
+Terminal states: `enacted`, `withdrawn` (no outgoing transitions).
+
+### C. Error Codes
+
+- Source of truth: `convex/infrastructure/errors/codes.ts`.
+- Format: `ERR_CODE: message` (e.g., `AUTH_REQUIRED: Authentication required`).
+- Add new codes to the file **before** using them in handlers or rules.
+- Seeded codes: `AUTH_REQUIRED`, `AUTH_INVALID_TOKEN`, `AUTHZ_NOT_CIRCLE_MEMBER`, `AUTHZ_NOT_CIRCLE_LEAD`, `AUTHZ_INSUFFICIENT_RBAC`, `PROPOSAL_INVALID_STATE`, `PROPOSAL_NOT_FOUND`, `VALIDATION_REQUIRED_FIELD`, `VALIDATION_INVALID_FORMAT`.
+
+### D. Feature Dependency Decision Tree
+
+1. Prefer no feature-to-feature imports.
+2. If two features need the same behavior, consider lifting to core (if domain-wide) or infrastructure (if cross-cutting).
+3. Otherwise use events: feature emits, other feature reacts.
+4. If direct dependency is unavoidable, declare an explicit `feature.manifest.ts` contract and import only via that contract.
+
+### E. Enforcement Legend
+
+| Enforcement | Meaning |
+|-------------|---------|
+| CI gate | Automated, blocks merge |
+| Lint rule | Automated, warns or blocks |
+| AI pre-commit | Planned, not implemented |
+| Manual review | Human catches this |
+
+### F. Common AI Mistakes
+
+| Mistake | Why It Happens | Correct Approach |
+|---------|----------------|------------------|
+| Auth check after DB read | “Check if exists first” | Auth before any DB access |
+| Creating new type instead of reusing | Doesn’t search existing | Search `schema.ts` and domain types first |
+| Putting validation in component | Quick client-side check | All validation in mutation handler |
+| Using "team" in code/comments | Common industry term | Always use "circle" |
+| Exporting internal helpers directly | Seems useful | Export only via `index.ts` contract |
+| Feature importing another feature | Direct path works | Use core, events, or manifest |
+
+### G. Architecture Evolution Triggers
+
+Update this document when:
+- A new domain is added to core.
+- A pattern is used 3+ times and should be canonical.
+- A decision record is needed for a non-obvious choice.
+- An AI agent repeats the same mistake (add to Common Mistakes).
+
+### H. Module Export Contract (`index.ts`)
+
+Each domain’s `index.ts` defines its public API. Only export:
+
+- Types needed by consumers
+- Rule functions needed by other domains
+- (Queries and mutations are accessed via `api.*`; no need to re-export)
+
+Never export:
+- Schema definitions
+- Internal helpers
+- Domain-internal constants
+
+Example:
+
+```typescript
+// convex/core/circles/index.ts
+
+export type { Circle, CircleType } from './schema';
+export { isCircleLead, isCircleMember, canCreateCircle } from './rules';
+// Queries/mutations are consumed via api.core.circles.*
+```
+
+---
+
 ## Checklist: Before Every Commit
 
 ```markdown
@@ -824,6 +1067,7 @@ Search for these during code review:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.1 | 2025-12-07 | Added appendices A-H, error codes file, auth helpers, proposal state machine, semantic ID convention. AI-native refinements. |
 | 2.0 | 2025-12-06 | Consolidated from 3 docs. Domain cohesion model. AI-native optimization. |
 | 1.x | 2025-12 | Original drafts (superseded) |
 

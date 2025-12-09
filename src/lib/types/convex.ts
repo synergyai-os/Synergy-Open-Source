@@ -27,8 +27,8 @@ export interface ConvexClient {
 
 // Inbox API functions interface
 export interface InboxApi {
-	getInboxItemWithDetails: FunctionReference<'query', 'public', { inboxItemId: string }>;
-	syncReadwiseHighlights: FunctionReference<
+	findInboxItemWithDetails: FunctionReference<'query', 'public', { inboxItemId: string }>;
+	fetchReadwiseHighlights: FunctionReference<
 		'action',
 		'public',
 		{
@@ -38,10 +38,10 @@ export interface InboxApi {
 			quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 		}
 	>;
-	getSyncProgress: FunctionReference<'query', 'public', { sessionId: string }>;
+	findSyncProgress: FunctionReference<'query', 'public', { sessionId: string }>;
 }
 
-// Sync progress type (return type from getSyncProgress)
+// Sync progress type (return type from findSyncProgress)
 export type SyncProgress = {
 	step: string;
 	current: number;
@@ -59,7 +59,7 @@ type BaseInboxItem = {
 	createdAt: number;
 };
 
-// Readwise highlight with details (return type from getInboxItemWithDetails for readwise_highlight)
+// Readwise highlight with details (return type from findInboxItemWithDetails for readwise_highlight)
 export type ReadwiseHighlightWithDetails = BaseInboxItem & {
 	type: 'readwise_highlight';
 	highlightId: string;
@@ -151,14 +151,14 @@ export type NoteWithDetails = BaseInboxItem & {
 	updatedAt?: number;
 };
 
-// Union type for inbox item with details (return type from getInboxItemWithDetails)
+// Union type for inbox item with details (return type from findInboxItemWithDetails)
 export type InboxItemWithDetails =
 	| ReadwiseHighlightWithDetails
 	| PhotoNoteWithDetails
 	| ManualTextWithDetails
 	| NoteWithDetails;
 
-// Sync result type (return type from syncReadwiseHighlights action)
+// Sync result type (return type from fetchReadwiseHighlights action)
 export interface SyncReadwiseResult {
 	success: boolean;
 	sourcesCount: number;

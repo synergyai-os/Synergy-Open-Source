@@ -8,7 +8,6 @@
 		orgName: string;
 		showLabels?: boolean;
 		isLoading?: boolean;
-		variant?: 'sidebar' | 'topbar';
 		class?: string;
 	};
 
@@ -18,7 +17,6 @@
 		orgName,
 		showLabels = true,
 		isLoading = false,
-		variant = 'sidebar',
 		class: className = ''
 	}: Props = $props();
 

@@ -15,4 +15,3 @@ export type RoleTemplate = {
 export function isLeadTemplate(template: RoleTemplate | null | undefined): boolean {
 	return template?.isRequired === true;
 }
-

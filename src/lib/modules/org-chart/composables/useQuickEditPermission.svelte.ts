@@ -9,8 +9,9 @@
 
 import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
-import { api } from '$lib/convex';
-import type { CircleSummary } from '../types';
+import { api } from '../../../convex';
+import { invariant } from '../../../utils/invariant';
+import type { CircleSummary } from '../../../infrastructure/organizational-model';
 
 export interface UseQuickEditPermissionParams {
 	circle: () => CircleSummary | null;
@@ -59,12 +60,10 @@ export function useQuickEditPermission(
 	// Only create query if quick edits are allowed at workspace level
 	const canEditQuery = $derived(
 		browser && !quickCheckDisabled && params.circle() && params.sessionId()
-			? useQuery(api.orgChartPermissions.canQuickEditQuery, () => {
+			? useQuery(api.orgChartPermissions.getQuickEditStatusQuery, () => {
 					const circle = params.circle();
 					const sessionId = params.sessionId();
-					if (!circle || !sessionId) {
-						throw new Error('Circle and sessionId required');
-					}
+					invariant(circle && sessionId, 'Circle and sessionId required');
 					return {
 						sessionId,
 						circleId: circle.circleId

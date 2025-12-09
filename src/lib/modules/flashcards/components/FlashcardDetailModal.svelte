@@ -7,8 +7,9 @@
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
-import { getContext } from 'svelte';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
+import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -39,8 +40,8 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 	// const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
-const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-const FlashcardComponent = coreAPI?.Flashcard;
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const FlashcardComponent = coreAPI?.Flashcard;
 
 	// State
 	let currentIndex = $state(initialIndex);
@@ -184,9 +185,7 @@ const FlashcardComponent = coreAPI?.Flashcard;
 		isSaving = true;
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			await convexClient.mutation(api.flashcards.updateFlashcard, {
 				sessionId,
@@ -220,11 +219,9 @@ const FlashcardComponent = coreAPI?.Flashcard;
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.deleteFlashcard, {
+			await convexClient.mutation(api.flashcards.archiveFlashcard, {
 				sessionId,
 				flashcardId: currentCard._id
 			});
@@ -367,7 +364,7 @@ const FlashcardComponent = coreAPI?.Flashcard;
 										editable={false}
 									/>
 								{:else}
-									<p class="text-secondary text-small">Flashcard component unavailable</p>
+									<p class="text-small text-secondary">Flashcard component unavailable</p>
 								{/if}
 							{/if}
 						</div>

@@ -19,15 +19,17 @@
 
 	const avatarClasses = $derived([avatarRecipe({ variant, size }), className]);
 
-	// Size utilities don't exist - use direct token values for width/height (ensures perfect circle)
-	const sizeMap = {
-		xxs: '1.25rem', // 20px - Extra tiny for sidebar headers (from design-tokens-base.json sizing.avatar.xxs)
-		xs: '1.5rem', // 24px - Tiny avatar (from design-tokens-base.json sizing.avatar.xs)
-		sm: '2rem', // 32px - Small avatar (from design-tokens-base.json sizing.avatar.sm)
-		md: '2.5rem', // 40px - Default avatar (from design-tokens-base.json sizing.avatar.md)
-		lg: '3rem' // 48px - Large avatar (from design-tokens-base.json sizing.avatar.lg)
-	};
-	const avatarSizeStyle = $derived(`width: ${sizeMap[size]}; height: ${sizeMap[size]};`);
+	// Use sizing tokens for width/height to preserve circular shape
+	const sizeTokenMap = {
+		xxs: '--sizing-avatar-xxs',
+		xs: '--sizing-avatar-xs',
+		sm: '--sizing-avatar-sm',
+		md: '--sizing-avatar-md',
+		lg: '--sizing-avatar-lg'
+	} as const;
+	const avatarSizeStyle = $derived(
+		`width: var(${sizeTokenMap[size]}); height: var(${sizeTokenMap[size]});`
+	);
 	const avatarColorStyle = $derived(color ? `background-color: ${color};` : '');
 	const avatarStyle = $derived([avatarColorStyle, avatarSizeStyle].filter((s) => s).join(' '));
 </script>

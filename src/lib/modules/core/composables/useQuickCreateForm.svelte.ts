@@ -24,6 +24,7 @@ import { useConvexClient } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
 import { toast } from 'svelte-sonner';
+import { invariant } from '$lib/utils/invariant';
 
 type ContentType = 'note' | 'flashcard' | 'highlight';
 
@@ -138,9 +139,7 @@ export function useQuickCreateForm(
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			const workspaceId = getWorkspaceId();
 

@@ -22,4 +22,3 @@ describe('isLeadTemplate', () => {
 		expect(isLeadTemplate(null)).toBe(false);
 	});
 });
-

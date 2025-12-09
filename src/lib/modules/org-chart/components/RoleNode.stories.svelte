@@ -46,7 +46,7 @@
 		showLabel: true,
 		onClick: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify role circle renders
 		const circle = canvasElement.querySelector('circle');
 		if (!circle) throw new Error('Role circle element not found');
@@ -84,7 +84,7 @@
 		showLabel: true,
 		onClick: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify label is visible (text may be truncated by truncateText function)
 		const text = canvasElement.querySelector('text');
 		if (!text) throw new Error('Role label text element not found');
@@ -125,7 +125,7 @@
 		showLabel: false,
 		onClick: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify label is NOT visible when too small
 		const text = canvasElement.querySelector('text');
 		if (text) {
@@ -159,7 +159,7 @@
 		showLabel: true,
 		onClick: () => {}
 	}}
-	play={async ({ canvasElement, args, userEvent }) => {
+	play={async ({ canvasElement, userEvent }) => {
 		// Click the role circle
 		const roleGroup = canvasElement.querySelector('.role-circle-group');
 		if (!roleGroup) throw new Error('Role circle group element not found');
@@ -194,7 +194,7 @@
 		showLabel: true,
 		onClick: () => {}
 	}}
-	play={async ({ canvasElement, args, userEvent }) => {
+	play={async ({ canvasElement, userEvent }) => {
 		// Hover over the role circle
 		const roleGroup = canvasElement.querySelector('.role-circle-group');
 		if (!roleGroup) throw new Error('Role circle group element not found');

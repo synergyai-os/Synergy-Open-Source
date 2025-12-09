@@ -34,4 +34,3 @@ describe('hasDuplicateRoleName', () => {
 		expect(hasDuplicateRoleName('  member  ', roles)).toBe(true);
 	});
 });
-

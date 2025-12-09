@@ -283,8 +283,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 						});
 
 						if (restoreResponse.ok) {
-							// Session restored, redirect to inbox
-							window.location.href = `${resolveRoute('/inbox')}?switched=1`;
+							// Session restored, redirect via workspace resolver
+							window.location.href = `${resolveRoute('/auth/redirect')}?switched=1`;
 						} else {
 							// Failed to restore, clear all and go to login
 							console.error('Failed to restore session for next account');
@@ -396,7 +396,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			}
 
 			state.csrfToken = null;
-			window.location.href = result.redirect ?? redirectTo ?? resolveRoute('/inbox');
+			window.location.href = result.redirect ?? redirectTo ?? resolveRoute('/auth/redirect');
 		} catch (error) {
 			// Clear switching flag on error
 			sessionStorage.removeItem('switchingAccount');

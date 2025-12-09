@@ -8,14 +8,14 @@
 
 ### If You Think in MVC Terms: Translation Guide
 
-| MVC Concept                | In This System          | Where                      | Example                                        |
-| -------------------------- | ----------------------- | -------------------------- | ---------------------------------------------- |
-| **Controller**             | Composable              | `composables/*.svelte.ts`  | `useMeetingSession()`                          |
-| **Model**                  | Convex schema + queries | `convex/*.ts`              | `convex/meetings.ts`                           |
-| **View**                   | Svelte component        | `components/*.svelte`      | `MeetingCard.svelte`                           |
-| **"Update view manually"** | Reactive (automatic)    | `$derived()` in composable | `const meetings = $derived(query?.data ?? [])` |
-| **"Handle request"**       | Mutation action         | Composable method          | `await session.startMeeting()`                 |
-| **"Fetch data"**           | `useQuery` hook         | Composable initialization  | `useQuery(api.meetings.get, {...})`            |
+| MVC Concept                | In This System          | Where                      | Example                                              |
+| -------------------------- | ----------------------- | -------------------------- | ---------------------------------------------------- |
+| **Controller**             | Composable              | `composables/*.svelte.ts`  | `useMeetingSession()`                                |
+| **Model**                  | Convex schema + queries | `convex/*.ts`              | `convex/meetings.ts`                                 |
+| **View**                   | Svelte component        | `components/*.svelte`      | `MeetingCard.svelte`                                 |
+| **"Update view manually"** | Reactive (automatic)    | `$derived()` in composable | `const meetings = $derived(query?.data ?? [])`       |
+| **"Handle request"**       | Mutation action         | Composable method          | `await session.startMeeting()`                       |
+| **"Fetch data"**           | `useQuery` hook         | Composable initialization  | `useQuery(api.modules.meetings.meetings.get, {...})` |
 
 **Key Difference**: In MVC, you manually sync Model ↔ View. Here, Convex + Svelte handle reactivity automatically.
 
@@ -52,11 +52,11 @@
 ```typescript
 // useMeetingSession.svelte.ts - State + actions
 export function useMeetingSession(options) {
-  const meetingQuery = useQuery(api.meetings.get, {...});
+  const meetingQuery = useQuery(api.modules.meetings.meetings.get, {...});
   const state = $state({ currentTime: Date.now() });
 
   async function startMeeting() {
-    await convexClient.mutation(api.meetings.startMeeting, {...});
+    await convexClient.mutation(api.modules.meetings.meetings.startMeeting, {...});
   }
 
   return { meeting: meetingQuery?.data, startMeeting };
@@ -113,7 +113,7 @@ export const startMeeting = mutation({
 
 ```typescript
 // useMeetingSession.svelte.ts
-const meetingQuery = useQuery(api.meetings.get, {...});
+const meetingQuery = useQuery(api.modules.meetings.meetings.get, {...});
 
 return {
   get error() {
@@ -187,7 +187,7 @@ const state = $state({
 async function saveNotes(content: string) {
   try {
     state.saveState = 'saving';
-    await convexClient.mutation(api.meetingAgendaItems.updateNotes, {...});
+    await convexClient.mutation(api.modules.meetings.agendaItems.updateNotes, {...});
     state.saveState = 'saved';
   } catch (error) {
     state.saveState = 'error';
@@ -315,7 +315,7 @@ import { browser } from '$app/environment';
 
 const query =
 	browser && sessionId()
-		? useQuery(api.meetings.get, () => {
+		? useQuery(api.modules.meetings.meetings.get, () => {
 				const session = sessionId();
 				if (!session) throw new Error('sessionId required');
 				return { sessionId: session };
@@ -335,19 +335,19 @@ const query =
 // useMeetingSession.svelte.ts line 29
 const meetingQuery =
   browser && meetingId() && sessionId()
-    ? useQuery(api.meetings.get, () => {...})
+    ? useQuery(api.modules.meetings.meetings.get, () => {...})
     : null;
 
 // useMeetings.svelte.ts line 49
 const meetingsQuery =
   browser && workspaceId() && sessionId()
-    ? useQuery(api.meetings.listForUser, () => {...})
+    ? useQuery(api.modules.meetings.meetings.listForUser, () => {...})
     : null;
 
 // useMeetingPresence.svelte.ts line 59
 const activePresenceQuery =
   browser && meetingId() && sessionId()
-    ? useQuery(api.meetingPresence.getActivePresence, () => {...})
+    ? useQuery(api.modules.meetings.presence.getActivePresence, () => {...})
     : null;
 ```
 
@@ -445,7 +445,7 @@ const count = $derived(query?.error ? 0 : (query?.data?.length ?? 0));
 
 ```typescript
 // +page.server.ts
-const query = useQuery(api.meetings.get, {...}); // ❌ CRASHES
+const query = useQuery(api.modules.meetings.meetings.get, {...}); // ❌ CRASHES
 ```
 
 **Fix**:
@@ -453,7 +453,7 @@ const query = useQuery(api.meetings.get, {...}); // ❌ CRASHES
 ```typescript
 // +page.server.ts
 const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
-const data = await client.query(api.meetings.get, {...}); // ✅
+const data = await client.query(api.modules.meetings.meetings.get, {...}); // ✅
 ```
 
 **Error**: "useQuery requires browser environment"
@@ -463,14 +463,14 @@ const data = await client.query(api.meetings.get, {...}); // ✅
 **Mistake**:
 
 ```typescript
-const query = useQuery(api.meetings.get, {...}); // ❌ CRASHES in SSR
+const query = useQuery(api.modules.meetings.meetings.get, {...}); // ❌ CRASHES in SSR
 ```
 
 **Fix**:
 
 ```typescript
 const query = browser && sessionId()
-  ? useQuery(api.meetings.get, {...})
+  ? useQuery(api.modules.meetings.meetings.get, {...})
   : null; // ✅
 ```
 
@@ -482,7 +482,7 @@ const query = browser && sessionId()
 
 ```typescript
 // No reactivity - won't update when data changes
-convexClient.query(api.meetings.get, {...}).then(data => {
+convexClient.query(api.modules.meetings.meetings.get, {...}).then(data => {
   state.meeting = data; // ❌ Not reactive
 });
 ```
@@ -491,7 +491,7 @@ convexClient.query(api.meetings.get, {...}).then(data => {
 
 ```typescript
 // Reactive - updates automatically
-const query = useQuery(api.meetings.get, {...});
+const query = useQuery(api.modules.meetings.meetings.get, {...});
 const meeting = $derived(query?.data); // ✅ Reactive
 ```
 
@@ -729,14 +729,14 @@ it('should show error state when query fails', async () => {
    // useMeetingSession.svelte.ts
    export function useMeetingSession(options) {
      // Real-time Convex queries (client-only)
-     const meetingQuery = useQuery(api.meetings.get, { ... });
+     const meetingQuery = useQuery(api.modules.meetings.meetings.get, { ... });
 
      // Local state (Svelte reactivity)
      const state = $state({ currentTime: Date.now() });
 
      // Actions (mutations)
      async function startMeeting() {
-       await convexClient.mutation(api.meetings.startMeeting, { ... });
+       await convexClient.mutation(api.modules.meetings.meetings.startMeeting, { ... });
      }
    }
    ```
@@ -868,7 +868,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 
 	// ✅ One-time query (no real-time)
-	const meetingsEnabled = await client.query(api.featureFlags.checkFlag, {
+	const meetingsEnabled = await client.query(api.featureFlags.isFlagEnabled, {
 		flag: 'meetings-module',
 		sessionId: locals.auth.sessionId
 	});
@@ -884,7 +884,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// ✅ CLIENT: Can use useQuery (real-time)
 	import { useQuery } from 'convex-svelte';
 
-	const meetingsQuery = useQuery(api.meetings.listForUser, {
+	const meetingsQuery = useQuery(api.modules.meetings.meetings.listForUser, {
 		workspaceId: orgId,
 		sessionId: sessionId
 	});
@@ -1005,7 +1005,7 @@ export const create = mutation({ ... });
 export const get = query({ ... });
 
 // Usage
-await convexClient.mutation(api.meetings.create, { ... });
+await convexClient.mutation(api.modules.meetings.meetings.create, { ... });
 ```
 
 #### **Why This Pattern?**
@@ -1021,7 +1021,7 @@ await convexClient.mutation(api.meetings.create, { ... });
 **Trade-offs**:
 
 - ❌ No instance methods (can't do `meeting.save()`)
-- ❌ Must use function calls (`api.meetings.create()`)
+- ❌ Must use function calls (`api.modules.meetings.meetings.create()`)
 - ❌ Schema and operations are separate files
 
 #### **Pattern Classification**
@@ -1544,7 +1544,7 @@ meetings/
 // ✅ Consistent pattern in useMeetings, useMeetingSession, useActionItems, etc.
 const query =
 	browser && sessionId()
-		? useQuery(api.meetings.get, () => {
+		? useQuery(api.modules.meetings.meetings.get, () => {
 				const session = sessionId();
 				if (!session) throw new Error('sessionId required');
 				return { sessionId: session };

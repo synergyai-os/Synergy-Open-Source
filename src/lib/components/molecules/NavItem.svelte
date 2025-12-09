@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Icon, Text, Badge, type IconType } from '$lib/components/atoms';
+	import { Icon, Text, type IconType } from '$lib/components/atoms';
 	import { navItemRecipe, type NavItemVariantProps } from '$lib/design-system/recipes';
 
 	type Props = NavItemVariantProps & {

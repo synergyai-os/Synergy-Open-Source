@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { resolveRoute } from '$lib/utils/navigation';
 	import { Dialog } from 'bits-ui';
 	import { useWorkspaceMembers } from '$lib/infrastructure/workspaces/composables/useWorkspaceMembers.svelte';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';

@@ -10,6 +10,7 @@
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { FlashcardsModuleAPI } from '$lib/modules/flashcards/api';
 	import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 	const getSessionId = () => $page.data.sessionId;
 
@@ -17,9 +18,7 @@
 	const flashcardsAPI = getContext<FlashcardsModuleAPI | undefined>('flashcards-api');
 
 	// Initialize study session composable via API
-	if (!flashcardsAPI) {
-		throw new Error('FlashcardsModuleAPI not available in context');
-	}
+	invariant(flashcardsAPI, 'FlashcardsModuleAPI not available in context');
 	const study = flashcardsAPI.useStudySession({
 		sessionId: getSessionId
 	});
@@ -33,7 +32,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
 					return {
 						sessionId,

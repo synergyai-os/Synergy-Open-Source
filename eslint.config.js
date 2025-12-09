@@ -12,6 +12,8 @@ import svelteConfig from './svelte.config.js';
 import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
 import noFeatureComponentsInComponents from './eslint-rules/no-feature-components-in-components.js';
 import noHardcodedDesignValues from './eslint-rules/no-hardcoded-design-values.js';
+import noLegacyAuthPatterns from './eslint-rules/no-legacy-auth-patterns.js';
+import noThrowNewError from './eslint-rules/no-throw-new-error.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -29,12 +31,25 @@ export default defineConfig(
 			'convex/_generated/**',
 			'.svelte-kit/**',
 			'node_modules/**',
+			'ai-docs/**',
 			'dev-docs/**',
 			'marketing-docs/**',
 			'ai-content-blog/**',
 			'storybook-static/**',
 			'.storybook/**'
 		]
+	},
+	{
+		files: [
+			'src/**/*.ts',
+			'src/**/*.js',
+			'src/**/*.svelte',
+			'src/**/*.svelte.ts',
+			'src/**/*.svelte.js'
+		],
+		rules: {
+			'synergyos/no-throw-new-error': 'error'
+		}
 	},
 	{
 		languageOptions: {
@@ -45,7 +60,9 @@ export default defineConfig(
 				rules: {
 					'no-cross-module-imports': noCrossModuleImports,
 					'no-feature-components-in-components': noFeatureComponentsInComponents,
-					'no-hardcoded-design-values': noHardcodedDesignValues
+					'no-hardcoded-design-values': noHardcodedDesignValues,
+					'no-legacy-auth-patterns': noLegacyAuthPatterns,
+					'no-throw-new-error': noThrowNewError
 				}
 			}
 			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
@@ -145,9 +162,47 @@ export default defineConfig(
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
+			'synergyos/no-throw-new-error': 'off',
 			// Allow hardcoded values in test files (ESLint allows it for test mocks)
 			'better-tailwindcss/no-restricted-classes': 'off',
 			'synergyos/no-hardcoded-design-values': 'off'
+		}
+	},
+	{
+		// Stories/docs/backups are allowed to use raw throws (storybook/testing fixtures)
+		files: [
+			'**/*.stories.*',
+			'**/*.mdx',
+			'**/*.backup',
+			'**/__fixtures__/**/*',
+			'**/fixtures/**/*',
+			'**/__snapshots__/**/*'
+		],
+		rules: {
+			'synergyos/no-throw-new-error': 'off'
+		}
+	},
+	{
+		// Backend/server and tooling: design tokens and Svelte rules do not apply
+		files: [
+			'convex/**/*.{ts,js}',
+			'scripts/**/*.{ts,js}',
+			'scripts/**/*.{mjs,cjs}',
+			'scripts/**/*.{tsx,jsx}'
+		],
+		rules: {
+			'synergyos/no-hardcoded-design-values': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_'
+				}
+			],
+			'no-useless-escape': 'off',
+			'synergyos/no-legacy-auth-patterns': 'error'
 		}
 	},
 	{
@@ -156,6 +211,14 @@ export default defineConfig(
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn'
+		}
+	},
+	{
+		// Org-chart module: D3/SVG layout calculations use computed pixel values, not design tokens
+		// These are mathematical layout values for circle packing, not CSS styling
+		files: ['src/lib/modules/org-chart/**/*.{ts,js,svelte}', 'src/lib/utils/orgChartTransform.ts'],
+		rules: {
+			'synergyos/no-hardcoded-design-values': 'off'
 		}
 	},
 	{

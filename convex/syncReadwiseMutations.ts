@@ -8,12 +8,29 @@
 
 import { internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
-import { normalizeAuthorName, parseISODate, normalizeTagName } from './readwiseUtils';
+import type { Id } from './_generated/dataModel';
+import {
+	clearSyncProgressImpl,
+	createAuthorIfMissingImpl,
+	createHighlightIfMissingImpl,
+	createInboxItemIfMissingImpl,
+	createSourceIfMissingImpl,
+	createTagIfMissingImpl,
+	findHighlightIdByExternalIdImpl,
+	findSourceIdByBookIdImpl,
+	hasHighlightImpl,
+	hasInboxItemImpl,
+	isInboxItemNewImpl,
+	linkAuthorToSourceImpl,
+	linkTagToSourceImpl,
+	updateLastSyncTimeImpl,
+	updateSyncProgressStateImpl
+} from './readwise/mutations';
 
 /**
  * Internal mutation: Update sync progress
  */
-export const updateSyncProgress = internalMutation({
+export const updateSyncProgressState = internalMutation({
 	args: {
 		userId: v.id('users'),
 		step: v.string(),
@@ -21,456 +38,162 @@ export const updateSyncProgress = internalMutation({
 		total: v.optional(v.number()),
 		message: v.optional(v.string())
 	},
-	handler: async (ctx, args) => {
-		const { userId, step, current, total, message } = args;
-		const now = Date.now();
-
-		// Find existing progress record
-		const existing = await ctx.db
-			.query('syncProgress')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.first();
-
-		if (existing) {
-			// Update existing
-			await ctx.db.patch(existing._id, {
-				step,
-				current,
-				total,
-				message,
-				updatedAt: now
-			});
-			return existing._id;
-		} else {
-			// Create new
-			const progressId = await ctx.db.insert('syncProgress', {
-				userId,
-				step,
-				current,
-				total,
-				message,
-				startedAt: now,
-				updatedAt: now
-			});
-			return progressId;
-		}
-	}
+	handler: (ctx, args) => updateSyncProgressStateImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Clear sync progress
  */
-export const clearSyncProgress = internalMutation({
+export const updateSyncProgress = internalMutation({
 	args: {
 		userId: v.id('users')
 	},
-	handler: async (ctx, args) => {
-		const { userId } = args;
-		const existing = await ctx.db
-			.query('syncProgress')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.first();
-
-		if (existing) {
-			await ctx.db.delete(existing._id);
-		}
-	}
+	handler: (ctx, args) => clearSyncProgressImpl(ctx, args.userId)
 });
 
 /**
  * Internal mutation: Find or create author
  */
-export const findOrCreateAuthor = internalMutation({
+export const createAuthorIfMissing = internalMutation({
 	args: {
 		userId: v.id('users'),
 		authorName: v.string()
 	},
-	handler: async (ctx, args) => {
-		const { userId, authorName } = args;
-		const normalizedName = normalizeAuthorName(authorName);
-
-		// Check if author exists
-		const existing = await ctx.db
-			.query('authors')
-			.withIndex('by_user_name', (q) => q.eq('userId', userId).eq('name', normalizedName))
-			.first();
-
-		if (existing) {
-			return existing._id;
-		}
-
-		// Create new author
-		const authorId = await ctx.db.insert('authors', {
-			userId,
-			name: normalizedName,
-			displayName: authorName,
-			createdAt: Date.now()
-		});
-
-		return authorId;
-	}
+	handler: (ctx, args): Promise<Id<'authors'>> => createAuthorIfMissingImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Find or create source
  */
-export const findOrCreateSource = internalMutation({
+export const createSourceIfMissing = internalMutation({
 	args: {
 		userId: v.id('users'),
 		primaryAuthorId: v.id('authors'),
 		readwiseSource: v.any() // Readwise source object
 	},
-	handler: async (ctx, args) => {
-		const { userId, primaryAuthorId, readwiseSource } = args;
-		const externalId = String(readwiseSource.id);
-
-		// Check if source exists
-		const existing = await ctx.db
-			.query('sources')
-			.withIndex('by_external_id', (q) => q.eq('externalId', externalId))
-			.first();
-
-		const now = Date.now();
-		const updatedAt = parseISODate(readwiseSource.updated) || now;
-		const lastHighlightAt = parseISODate(readwiseSource.last_highlight_at);
-
-		const sourceData = {
-			userId,
-			authorId: primaryAuthorId,
-			title: readwiseSource.title,
-			category: readwiseSource.category,
-			sourceType: readwiseSource.source,
-			externalId,
-			sourceUrl: readwiseSource.source_url || undefined,
-			coverImageUrl: readwiseSource.cover_image_url || undefined,
-			highlightsUrl: readwiseSource.highlights_url || undefined,
-			asin: readwiseSource.asin || undefined,
-			documentNote: readwiseSource.document_note || undefined,
-			numHighlights: readwiseSource.num_highlights || 0,
-			lastHighlightAt,
-			updatedAt,
-			createdAt: existing?.createdAt || now
-		};
-
-		if (existing) {
-			// Update existing source
-			await ctx.db.patch(existing._id, sourceData);
-			return existing._id;
-		} else {
-			// Create new source
-			const sourceId = await ctx.db.insert('sources', sourceData);
-			return sourceId;
-		}
-	}
+	handler: (ctx, args): Promise<Id<'sources'>> => createSourceIfMissingImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Link author to source
  */
-export const linkAuthorToSource = internalMutation({
+export const createAuthorLink = internalMutation({
 	args: {
 		sourceId: v.id('sources'),
 		authorId: v.id('authors')
 	},
-	handler: async (ctx, args) => {
-		const { sourceId, authorId } = args;
-
-		// Check if link already exists
-		const existing = await ctx.db
-			.query('sourceAuthors')
-			.withIndex('by_source_author', (q) => q.eq('sourceId', sourceId).eq('authorId', authorId))
-			.first();
-
-		if (existing) {
-			return existing._id;
-		}
-
-		// Create link
-		return await ctx.db.insert('sourceAuthors', {
-			sourceId,
-			authorId
-		});
-	}
+	handler: (ctx, args): Promise<Id<'sourceAuthors'>> => linkAuthorToSourceImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Find or create tag
  */
-export const findOrCreateTag = internalMutation({
+export const createTagIfMissing = internalMutation({
 	args: {
 		userId: v.id('users'),
 		workspaceId: v.id('workspaces'), // REQUIRED: Users always have at least one workspace
 		tagName: v.string(),
 		externalId: v.optional(v.number())
 	},
-	handler: async (ctx, args) => {
-		const { userId, workspaceId, tagName, externalId } = args;
-		const normalizedName = normalizeTagName(tagName);
-
-		// Check if tag exists for this workspace
-		const existing = await ctx.db
-			.query('tags')
-			.withIndex('by_workspace_name', (q) =>
-				q.eq('workspaceId', workspaceId).eq('name', normalizedName)
-			)
-			.first();
-
-		if (existing) {
-			// Update externalId if provided and missing
-			if (externalId && !existing.externalId) {
-				await ctx.db.patch(existing._id, { externalId });
-			}
-			return existing._id;
-		}
-
-		// Create new tag with default color (grey) - always scoped to workspace
-		// Default color: #94a3b8 (slate-400) - matches TAG_COLORS[0]
-		const tagId = await ctx.db.insert('tags', {
-			userId,
-			name: normalizedName,
-			displayName: tagName,
-			externalId,
-			color: '#94a3b8', // Default grey color (required field)
-			createdAt: Date.now(),
-			workspaceId, // REQUIRED: Tags must belong to an workspace
-			ownershipType: 'workspace' // Tags from Readwise sync are workspace-scoped
-		});
-
-		return tagId;
-	}
+	handler: (ctx, args): Promise<Id<'tags'>> => createTagIfMissingImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Link tag to source
  */
-export const linkTagToSource = internalMutation({
+export const createTagLink = internalMutation({
 	args: {
 		sourceId: v.id('sources'),
 		tagId: v.id('tags')
 	},
-	handler: async (ctx, args) => {
-		const { sourceId, tagId } = args;
-
-		// Check if link already exists
-		const existing = await ctx.db
-			.query('sourceTags')
-			.withIndex('by_source_tag', (q) => q.eq('sourceId', sourceId).eq('tagId', tagId))
-			.first();
-
-		if (existing) {
-			return existing._id;
-		}
-
-		// Create link
-		return await ctx.db.insert('sourceTags', {
-			sourceId,
-			tagId
-		});
-	}
+	handler: (ctx, args): Promise<Id<'sourceTags'>> => linkTagToSourceImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Find or create highlight
  */
-export const findOrCreateHighlight = internalMutation({
+export const createHighlightIfMissing = internalMutation({
 	args: {
 		userId: v.id('users'),
 		sourceId: v.id('sources'),
 		readwiseHighlight: v.any() // Readwise highlight object
 	},
-	handler: async (ctx, args) => {
-		const { userId, sourceId, readwiseHighlight } = args;
-		const externalId = String(readwiseHighlight.id);
-
-		// Check if highlight exists
-		const existing = await ctx.db
-			.query('highlights')
-			.withIndex('by_external_id', (q) => q.eq('externalId', externalId))
-			.first();
-
-		const now = Date.now();
-		const updatedAt = parseISODate(readwiseHighlight.updated) || now;
-		const highlightedAt = parseISODate(readwiseHighlight.highlighted_at);
-
-		const highlightData = {
-			userId,
-			sourceId,
-			text: readwiseHighlight.text,
-			location: readwiseHighlight.location || undefined,
-			locationType: readwiseHighlight.location_type || undefined,
-			note: readwiseHighlight.note || undefined,
-			color: readwiseHighlight.color || undefined,
-			externalId,
-			externalUrl: readwiseHighlight.url || '', // Convert null to empty string (schema requires string)
-			highlightedAt,
-			updatedAt,
-			createdAt: existing?.createdAt || now,
-			lastSyncedAt: now
-		};
-
-		if (existing) {
-			// Update existing highlight
-			await ctx.db.patch(existing._id, highlightData);
-			return existing._id;
-		} else {
-			// Create new highlight
-			const highlightId = await ctx.db.insert('highlights', highlightData);
-			return highlightId;
-		}
-	}
+	handler: (ctx, args): Promise<Id<'highlights'>> => createHighlightIfMissingImpl(ctx, args)
 });
 
 /**
  * Internal mutation: Find or create inbox item
  */
-export const findOrCreateInboxItem = internalMutation({
+export const createInboxItemIfMissing = internalMutation({
 	args: {
 		userId: v.id('users'),
 		highlightId: v.id('highlights')
 	},
-	handler: async (ctx, args) => {
-		const { userId, highlightId } = args;
-
-		// Check if inbox item already exists for this highlight
-		const existing = await ctx.db
-			.query('inboxItems')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.filter((q) =>
-				q.and(
-					q.eq(q.field('type'), 'readwise_highlight'),
-					q.eq(q.field('highlightId'), highlightId)
-				)
-			)
-			.first();
-
-		if (existing) {
-			// Inbox item exists, check if it was already processed
-			// If processed, we might want to recreate it if highlight was updated
-			// For now, just return the existing one
-			return existing._id;
-		}
-
-		// Create new inbox item
-		const inboxItemId = await ctx.db.insert('inboxItems', {
-			type: 'readwise_highlight' as const,
-			userId,
-			highlightId,
-			processed: false,
-			createdAt: Date.now()
-		});
-
-		return inboxItemId;
-	}
+	handler: (ctx, args): Promise<Id<'inboxItems'>> => createInboxItemIfMissingImpl(ctx, args)
 });
 
 /**
  * Internal query: Check if highlight exists by externalId
  */
-export const checkHighlightExists = internalQuery({
+export const hasHighlight = internalQuery({
 	args: {
 		userId: v.id('users'),
 		externalId: v.string()
 	},
-	handler: async (ctx, args) => {
-		const { externalId } = args;
-
-		const existing = await ctx.db
-			.query('highlights')
-			.withIndex('by_external_id', (q) => q.eq('externalId', externalId))
-			.first();
-
-		return !!existing;
+	handler: async (ctx, args): Promise<boolean> => {
+		const exists: boolean = await hasHighlightImpl(ctx, args.externalId);
+		return exists;
 	}
 });
 
 /**
  * Internal query: Get sourceId for a book_id (Readwise external ID)
  */
-export const getSourceIdByBookId = internalQuery({
+export const findSourceIdByBookId = internalQuery({
 	args: {
 		userId: v.id('users'),
 		bookId: v.string() // Readwise book_id (externalId)
 	},
-	handler: async (ctx, args) => {
-		const { bookId } = args;
-
-		const source = await ctx.db
-			.query('sources')
-			.withIndex('by_external_id', (q) => q.eq('externalId', bookId))
-			.first();
-
-		return source?._id || null;
-	}
+	handler: (ctx, args): Promise<Id<'sources'> | null> => findSourceIdByBookIdImpl(ctx, args.bookId)
 });
 
 /**
  * Internal query: Get highlightId by externalId
  */
-export const getHighlightIdByExternalId = internalQuery({
+export const findHighlightIdByExternalId = internalQuery({
 	args: {
 		userId: v.id('users'),
 		externalId: v.string()
 	},
-	handler: async (ctx, args) => {
-		const { externalId } = args;
-
-		const highlight = await ctx.db
-			.query('highlights')
-			.withIndex('by_external_id', (q) => q.eq('externalId', externalId))
-			.first();
-
-		return highlight?._id || null;
-	}
+	handler: (ctx, args): Promise<Id<'highlights'> | null> =>
+		findHighlightIdByExternalIdImpl(ctx, args.externalId)
 });
 
 /**
  * Internal query: Check if inbox item exists for a highlight
  */
-export const checkInboxItemExists = internalQuery({
+export const hasInboxItem = internalQuery({
 	args: {
 		userId: v.id('users'),
 		highlightId: v.id('highlights')
 	},
-	handler: async (ctx, args) => {
-		const { userId, highlightId } = args;
-
-		const existing = await ctx.db
-			.query('inboxItems')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.filter((q) =>
-				q.and(
-					q.eq(q.field('type'), 'readwise_highlight'),
-					q.eq(q.field('highlightId'), highlightId)
-				)
-			)
-			.first();
-
-		return !!existing;
+	handler: async (ctx, args): Promise<boolean> => {
+		const exists: boolean = await hasInboxItemImpl(ctx, args.userId, args.highlightId);
+		return exists;
 	}
 });
 
 /**
  * Internal query: Check if inbox item was newly created
  */
-export const wasInboxItemNew = internalQuery({
+export const isInboxItemNew = internalQuery({
 	args: {
 		inboxItemId: v.id('inboxItems'),
 		highlightId: v.id('highlights')
 	},
-	handler: async (ctx, args) => {
-		// This is a simple check - if the inbox item was just created, it's new
-		// We can check the createdAt vs current time, but for simplicity,
-		// we'll just assume if we're calling this right after creation, it's new
-		// Actually, let's check if it was created recently (within last minute)
-		const inboxItem = await ctx.db.get(args.inboxItemId);
-		if (!inboxItem) {
-			return false;
-		}
-
-		const now = Date.now();
-		const createdAt = inboxItem.createdAt;
-		// If created within last 5 seconds, consider it new
-		return now - createdAt < 5000;
+	handler: async (ctx, args): Promise<boolean> => {
+		const isNew: boolean = await isInboxItemNewImpl(ctx, args.inboxItemId);
+		return isNew;
 	}
 });
 
@@ -481,27 +204,5 @@ export const updateLastSyncTime = internalMutation({
 	args: {
 		userId: v.id('users')
 	},
-	handler: async (ctx, args) => {
-		const { userId } = args;
-		const now = Date.now();
-
-		// Find or create user settings
-		const settings = await ctx.db
-			.query('userSettings')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.first();
-
-		if (settings) {
-			// Update existing
-			await ctx.db.patch(settings._id, {
-				lastReadwiseSyncAt: now
-			});
-		} else {
-			// Create new (shouldn't happen, but handle it)
-			await ctx.db.insert('userSettings', {
-				userId,
-				lastReadwiseSyncAt: now
-			});
-		}
-	}
+	handler: (ctx, args) => updateLastSyncTimeImpl(ctx, args.userId)
 });

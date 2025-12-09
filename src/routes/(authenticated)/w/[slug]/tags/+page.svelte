@@ -9,6 +9,7 @@
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
 	import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const convexClient = useConvexClient();
@@ -34,7 +35,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listUserTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
@@ -67,11 +68,9 @@
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			const result = await convexClient.mutation(api.tags.shareTag, {
+			const result = await convexClient.mutation(api.tags.createTagShare, {
 				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,

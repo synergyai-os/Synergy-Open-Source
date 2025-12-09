@@ -11,7 +11,7 @@
  * - Convert to lowercase
  * - Remove extra spaces
  */
-export function normalizeAuthorName(name: string): string {
+export function parseAuthorName(name: string): string {
 	return name.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
@@ -71,6 +71,13 @@ export function parseISODate(dateStr: string | null | undefined): number | undef
  * - Convert to lowercase
  * - Remove extra spaces
  */
-export function normalizeTagName(tag: string): string {
+export function parseTagName(tag: string): string {
 	return tag.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * Backward-compatible alias for tag normalization used by features/tags.
+ */
+export function normalizeTagName(tag: string): string {
+	return parseTagName(tag);
 }

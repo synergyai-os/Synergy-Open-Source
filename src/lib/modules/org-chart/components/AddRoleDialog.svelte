@@ -16,7 +16,13 @@
 		onSuccess?: () => void;
 	};
 
-	let { open = $bindable(false), circleId, circleName, workspaceId, onSuccess }: Props = $props();
+	let {
+		open = $bindable(false),
+		circleId,
+		circleName,
+		workspaceId: _workspaceId,
+		onSuccess
+	}: Props = $props();
 
 	const convexClient = useConvexClient();
 

@@ -75,7 +75,7 @@
 	// Real-time secretary change requests (only for current secretary)
 	const secretaryRequestsQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.meetings.watchSecretaryRequests, () => {
+			? useQuery(api.modules.meetings.meetings.watchSecretaryRequests, () => {
 					const mId = meetingId();
 					const sId = sessionId();
 					if (!mId || !sId) throw new Error('Missing meetingId or sessionId');
@@ -168,7 +168,7 @@
 	async function handleMarkProcessed(itemId: Id<'meetingAgendaItems'>) {
 		try {
 			// Call mutation
-			await convexClient.mutation(api.meetingAgendaItems.markProcessed, {
+			await convexClient.mutation(api.modules.meetings.agendaItems.markProcessed, {
 				agendaItemId: itemId,
 				sessionId: sessionId(),
 				isProcessed: true

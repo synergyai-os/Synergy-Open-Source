@@ -177,7 +177,7 @@ try {
 		const mappingData = JSON.parse(mappingContent);
 		UTILITY_MAPPING = mappingData.mappings || {};
 	}
-} catch (error) {
+} catch {
 	// Fallback to hardcoded mapping if file doesn't exist
 	UTILITY_MAPPING = {
 		'px-button-x': 'px-button',

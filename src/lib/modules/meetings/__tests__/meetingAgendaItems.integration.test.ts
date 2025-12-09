@@ -47,7 +47,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -57,14 +57,14 @@ describe('meetingAgendaItems: updateNotes', () => {
 		});
 
 		// Create agenda item
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
 		// Update notes
-		const result = await t.mutation(api.meetingAgendaItems.updateNotes, {
+		const result = await t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
 			notes: '## Meeting Notes\n\nDiscussed project timeline.'
@@ -89,7 +89,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -98,7 +98,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -106,7 +106,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 
 		// Try with invalid session
 		await expect(
-			t.mutation(api.meetingAgendaItems.updateNotes, {
+			t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 				sessionId: 'invalid-session',
 				agendaItemId: agendaResult.itemId,
 				notes: 'Test notes'
@@ -122,7 +122,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -131,7 +131,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -144,12 +144,12 @@ describe('meetingAgendaItems: updateNotes', () => {
 
 		// Try to update notes as non-member
 		await expect(
-			t.mutation(api.meetingAgendaItems.updateNotes, {
+			t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 				sessionId: otherSessionId,
 				agendaItemId: agendaResult.itemId,
 				notes: 'Test notes'
 			})
-		).rejects.toThrow('User is not a member of this workspace');
+		).rejects.toThrow('Workspace membership required');
 	});
 });
 
@@ -178,7 +178,7 @@ describe('meetingAgendaItems: markStatus', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -187,14 +187,14 @@ describe('meetingAgendaItems: markStatus', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
 		// Mark as processed
-		const result = await t.mutation(api.meetingAgendaItems.markStatus, {
+		const result = await t.mutation(api.modules.meetings.agendaItems.markStatus, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
 			status: 'processed'
@@ -219,7 +219,7 @@ describe('meetingAgendaItems: markStatus', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -228,14 +228,14 @@ describe('meetingAgendaItems: markStatus', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
 		// Mark as rejected
-		const result = await t.mutation(api.meetingAgendaItems.markStatus, {
+		const result = await t.mutation(api.modules.meetings.agendaItems.markStatus, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
 			status: 'rejected'
@@ -260,7 +260,7 @@ describe('meetingAgendaItems: markStatus', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -269,7 +269,7 @@ describe('meetingAgendaItems: markStatus', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -277,7 +277,7 @@ describe('meetingAgendaItems: markStatus', () => {
 
 		// Try with invalid session
 		await expect(
-			t.mutation(api.meetingAgendaItems.markStatus, {
+			t.mutation(api.modules.meetings.agendaItems.markStatus, {
 				sessionId: 'invalid-session',
 				agendaItemId: agendaResult.itemId,
 				status: 'processed'
@@ -293,7 +293,7 @@ describe('meetingAgendaItems: markStatus', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -302,7 +302,7 @@ describe('meetingAgendaItems: markStatus', () => {
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -315,11 +315,11 @@ describe('meetingAgendaItems: markStatus', () => {
 
 		// Try to mark processed as non-member
 		await expect(
-			t.mutation(api.meetingAgendaItems.markStatus, {
+			t.mutation(api.modules.meetings.agendaItems.markStatus, {
 				sessionId: otherSessionId,
 				agendaItemId: agendaResult.itemId,
 				status: 'processed'
 			})
-		).rejects.toThrow('User is not a member of this workspace');
+		).rejects.toThrow('Workspace membership required');
 	});
 });

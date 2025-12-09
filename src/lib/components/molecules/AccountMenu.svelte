@@ -13,7 +13,7 @@
 	};
 
 	let {
-		accountEmail,
+		accountEmail: _accountEmail,
 		onCreateWorkspace,
 		onJoinWorkspace,
 		onLogout,

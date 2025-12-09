@@ -2,8 +2,8 @@
 	import { Button } from 'bits-ui';
 	import type { StudyFlashcard } from '$lib/modules/flashcards/composables/useStudySession.svelte';
 	import type { FlashcardRating } from '$lib/modules/flashcards/composables/useStudySession.svelte';
-import { getContext } from 'svelte';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	interface Props {
 		flashcard: StudyFlashcard;
@@ -15,8 +15,8 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	let { flashcard, isFlipped, onFlip, onRate, isReviewing }: Props = $props();
 
-const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-const FlashcardComponent = coreAPI?.Flashcard;
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const FlashcardComponent = coreAPI?.Flashcard;
 
 	// Convert flashcard to format expected by FlashcardComponent
 	const flashcardData = $derived({
@@ -36,7 +36,7 @@ const FlashcardComponent = coreAPI?.Flashcard;
 	{#if FlashcardComponent}
 		<FlashcardComponent flashcard={flashcardData} {isFlipped} {onFlip} editable={false} />
 	{:else}
-		<p class="text-secondary text-small text-center">Flashcard component unavailable</p>
+		<p class="text-small text-center text-secondary">Flashcard component unavailable</p>
 	{/if}
 
 	<!-- Rating Buttons (shown when flipped) -->

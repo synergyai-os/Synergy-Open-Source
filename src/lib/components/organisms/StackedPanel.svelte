@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import { PanelBreadcrumbs } from '$lib/components/molecules';
 	import {
 		stackedPanelRecipe,
@@ -24,7 +25,7 @@
 		onClose: () => void;
 		onBreadcrumbClick: (index: number) => void;
 		isTopmost: () => boolean; // Function to check if this panel is the topmost layer
-		iconRenderer?: (layerType: string) => string | null; // Optional icon renderer for breadcrumbs (returns HTML string)
+		iconRenderer?: (layerType: string) => IconType | null; // Optional icon renderer for breadcrumbs (returns IconType)
 		children: import('svelte').Snippet<[PanelContext]>;
 	}
 

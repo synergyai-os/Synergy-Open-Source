@@ -84,5 +84,3 @@ describe('isTerminalState', () => {
 		expect(isTerminalState('integrated')).toBe(false);
 	});
 });
-
-

@@ -12,12 +12,14 @@
 	let { data } = $props();
 
 	// State
+	/* eslint-disable synergyos/no-hardcoded-design-values */
 	let primaryColorHex = $state(
 		data.orgBranding ? oklchToHex(data.orgBranding.primaryColor) : '#ff9500'
 	);
 	let secondaryColorHex = $state(
 		data.orgBranding ? oklchToHex(data.orgBranding.secondaryColor) : '#ff9500'
 	);
+	/* eslint-enable synergyos/no-hardcoded-design-values */
 	let error = $state<string | null>(null);
 	let warning = $state<string | null>(null);
 	let saving = $state(false);
@@ -104,12 +106,20 @@
 
 	// Org class for preview div (must match CSS selector)
 	const previewOrgClass = $derived(`org-${data.workspaceId}`);
+
+	const previewStyleId = 'org-branding-preview-styles';
+
+	// Update preview style tag without injecting HTML
+	$effect(() => {
+		if (!browser) return;
+		const styleEl = document.getElementById(previewStyleId);
+		if (!styleEl) return;
+		styleEl.textContent = previewCSS || '';
+	});
 </script>
 
 <svelte:head>
-	{#if previewCSS}
-		{@html `<style>${previewCSS}</style>`}
-	{/if}
+	<style id="org-branding-preview-styles"></style>
 </svelte:head>
 
 <div class="max-w-readable mx-auto px-card-padding py-card-padding">

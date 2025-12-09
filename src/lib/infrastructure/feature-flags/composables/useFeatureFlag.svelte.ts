@@ -48,7 +48,7 @@ export function useFeatureFlag(
 	const { reportFeatureFlagCheck } = require('$lib/utils/errorReporting');
 
 	const userId = getUserId();
-	const flagQuery = useQuery(api.featureFlags.checkFlag, () =>
+	const flagQuery = useQuery(api.featureFlags.isFlagEnabled, () =>
 		userId ? { flag, userId } : 'skip'
 	);
 

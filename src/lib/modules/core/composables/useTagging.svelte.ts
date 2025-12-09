@@ -19,15 +19,9 @@ import { useConvexClient } from 'convex-svelte';
 import { makeFunctionReference } from 'convex/server';
 import type { FunctionReference } from 'convex/server';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 type EntityType = 'highlight' | 'flashcard' | 'note' | 'source';
-
-/**
- * Capitalize first letter for function name generation
- */
-function capitalize(str: string): string {
-	return str.charAt(0).toUpperCase() + str.slice(1);
-}
 
 /**
  * Generic tagging composable - works for any entity type
@@ -48,21 +42,27 @@ export function useTagging(
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Dynamic mutation reference based on entity type
-	// Example: 'highlight' -> 'tags:assignTagsToHighlight'
-	// Use FunctionReference type assertion for type safety (pattern #L1300)
-	const assignTagsMutation = browser
-		? (makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) as FunctionReference<
-				'mutation',
-				'public',
-				{
-					sessionId: string;
-					highlightId?: Id<'highlights'>;
-					flashcardId?: Id<'flashcards'>;
-					tagIds: Id<'tags'>[];
-				},
-				Id<'tags'>[]
-			>)
-		: null;
+	// highlight -> tags:updateHighlightTagAssignments, flashcard -> tags:updateFlashcardTagAssignments
+	const assignMutationName =
+		entityType === 'highlight'
+			? 'tags:updateHighlightTagAssignments'
+			: entityType === 'flashcard'
+				? 'tags:updateFlashcardTagAssignments'
+				: null;
+	const assignTagsMutation =
+		browser && assignMutationName
+			? (makeFunctionReference(assignMutationName) as FunctionReference<
+					'mutation',
+					'public',
+					{
+						sessionId: string;
+						highlightId?: Id<'highlights'>;
+						flashcardId?: Id<'flashcards'>;
+						tagIds: Id<'tags'>[];
+					},
+					Id<'tags'>[]
+				>)
+			: null;
 
 	const createTagMutation = browser
 		? (makeFunctionReference('tags:createTag') as FunctionReference<
@@ -88,25 +88,19 @@ export function useTagging(
 		entityId: Id<'highlights'> | Id<'flashcards'> | Id<'inboxItems'>,
 		tagIds: Id<'tags'>[]
 	): Promise<void> {
-		if (!convexClient || !assignTagsMutation) {
-			throw new Error('Convex client not available (server-side rendering?)');
-		}
+		invariant(convexClient && assignTagsMutation, 'Convex client not available (server-side rendering?)');
 
 		state.isAssigning = true;
 		state.error = null;
 
 		try {
 			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
-			}
+			invariant(userId, 'User ID is required');
 
 			// Build args dynamically: { sessionId, highlightId: ..., tagIds: ... }
-			// Note: assignTagsToHighlight uses highlightId, assignTagsToFlashcard uses flashcardId
+			// Note: updateHighlightTagAssignments uses highlightId, updateFlashcardTagAssignments uses flashcardId
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			const args =
 				entityType === 'highlight'
@@ -134,17 +128,13 @@ export function useTagging(
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!convexClient || !createTagMutation) {
-			throw new Error('Convex client not available (server-side rendering?)');
-		}
+		invariant(convexClient && createTagMutation, 'Convex client not available (server-side rendering?)');
 
 		state.error = null;
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			const orgId = getWorkspaceId?.();
 			const tagId = await convexClient.mutation(createTagMutation, {

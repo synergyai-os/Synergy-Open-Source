@@ -40,7 +40,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify circle renders
 		const circle = canvasElement.querySelector('circle');
 		if (!circle) throw new Error('Circle element not found');
@@ -77,7 +77,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify selected state styling
 		const circle = canvasElement.querySelector('circle');
 		if (!circle) throw new Error('Circle element not found');
@@ -119,7 +119,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify hover state styling
 		const circle = canvasElement.querySelector('circle');
 		if (!circle) throw new Error('Circle element not found');
@@ -161,7 +161,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args, userEvent }) => {
+	play={async ({ canvasElement, userEvent }) => {
 		// Click the circle
 		const circleGroup = canvasElement.querySelector('.circle-group');
 		if (!circleGroup) throw new Error('Circle group element not found');
@@ -198,7 +198,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args, userEvent }) => {
+	play={async ({ canvasElement, userEvent }) => {
 		// Hover over the circle
 		const circleGroup = canvasElement.querySelector('.circle-group');
 		if (!circleGroup) throw new Error('Circle group element not found');
@@ -246,7 +246,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify circle with children has different styling
 		const circle = canvasElement.querySelector('circle');
 		if (!circle) throw new Error('Circle element not found');
@@ -288,7 +288,7 @@
 		onMouseEnter: () => {},
 		onMouseLeave: () => {}
 	}}
-	play={async ({ canvasElement, args }) => {
+	play={async ({ canvasElement }) => {
 		// Verify label is visible when zoomed in
 		const text = canvasElement.querySelector('text');
 		if (!text) throw new Error('Text label element not found');

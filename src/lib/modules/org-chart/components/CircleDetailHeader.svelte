@@ -47,9 +47,7 @@
 	<div class="flex items-center gap-button">
 		{#if showBackButton && onBack}
 			<Button variant="ghost" size="md" iconOnly onclick={onBack} ariaLabel="Go back">
-				{#snippet children()}
-					<Icon type="chevron-left" size="md" />
-				{/snippet}
+				<Icon type="chevron-left" size="md" />
 			</Button>
 		{/if}
 		{#if editable && onNameChange}
@@ -62,11 +60,9 @@
 			/>
 		{:else if editReason}
 			<EditPermissionTooltip reason={editReason}>
-				{#snippet children()}
-					<Heading level={3} color="primary">
-						{circleName}
-					</Heading>
-				{/snippet}
+				<Heading level={3} color="primary">
+					{circleName}
+				</Heading>
 			</EditPermissionTooltip>
 		{:else}
 			<Heading level={3} color="primary">
@@ -88,19 +84,13 @@
 			/>
 		{/if}
 		{#if onEdit}
-			<Button variant="outline" size="md" onclick={onEdit}>
-				{#snippet children()}
-					Edit circle
-				{/snippet}
-			</Button>
+			<Button variant="outline" size="md" onclick={onEdit}>Edit circle</Button>
 		{/if}
 		{#if headerMenuItems.length > 0}
 			<ActionMenu items={headerMenuItems} />
 		{/if}
 		<Button variant="ghost" size="md" iconOnly onclick={onClose} ariaLabel="Close panel">
-			{#snippet children()}
-				<Icon type="close" size="md" />
-			{/snippet}
+			<Icon type="close" size="md" />
 		</Button>
 	</div>
 </header>

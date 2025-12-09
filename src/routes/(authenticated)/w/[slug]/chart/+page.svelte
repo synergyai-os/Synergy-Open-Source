@@ -4,10 +4,10 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { invariant } from '$lib/utils/invariant';
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
 	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
-	import EditCirclePanel from '$lib/modules/org-chart/components/EditCirclePanel.svelte';
 	import EditRolePanel from '$lib/modules/org-chart/components/EditRolePanel.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
@@ -37,16 +37,10 @@
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	const getWorkspaceId = () => workspaceId();
 
-	// Check if sessionId is available (prevents hydration errors)
-	const hasSessionId = $derived(() => {
-		if (!browser) return false;
-		return !!getSessionId();
-	});
-
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
 	// CRITICAL: Only create orgChart when sessionId is available to prevent hydration errors
 	if (!orgChartAPI) {
-		throw new Error('OrgChartModuleAPI not available in context');
+		invariant(false, 'OrgChartModuleAPI not available in context');
 	}
 	const orgChart =
 		browser && getSessionId()
@@ -57,6 +51,12 @@
 			: null;
 
 	const isLoading = $derived(!orgChart || orgChart.isLoading);
+
+	// CRITICAL: Use $derived for navigation stack's currentLayer to ensure reactivity
+	// Using {@const} in the template would not re-evaluate when the stack changes,
+	// because the containing {#if} block's condition (browser && orgChart) doesn't change.
+	// This caused edit panels to get stuck and not close properly.
+	const currentLayer = $derived(orgChart?.navigationStack.currentLayer ?? null);
 </script>
 
 <div class="flex h-full flex-col bg-base">
@@ -76,7 +76,7 @@
 					if (slug) {
 						goto(resolveRoute(`/w/${slug}/circles`));
 					} else {
-						goto(resolveRoute('/inbox'));
+						goto(resolveRoute('/auth/redirect'));
 					}
 				}}
 			>
@@ -113,11 +113,8 @@
 	<RoleDetailPanel {orgChart} />
 
 	<!-- Edit Panels - Conditionally rendered based on navigation stack -->
-	{@const currentLayer = orgChart.navigationStack.currentLayer}
-	{#if currentLayer?.type === 'edit-circle'}
-		<EditCirclePanel {orgChart} circleId={currentLayer.id as Id<'circles'>} />
-	{/if}
-
+	<!-- Note: currentLayer is defined as $derived in script for proper reactivity -->
+	<!-- Note: EditCirclePanel removed - edit mode now handled directly in CircleDetailPanel -->
 	{#if currentLayer?.type === 'edit-role'}
 		<EditRolePanel {orgChart} roleId={currentLayer.id as Id<'circleRoles'>} />
 	{/if}

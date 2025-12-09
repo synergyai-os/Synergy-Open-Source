@@ -4,6 +4,7 @@ import { internalAction, action } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { v } from 'convex/values';
 import { Resend } from 'resend';
+import { createError, ErrorCodes } from './errors/codes';
 
 // Internal action: Test email function - sends to randy@synergyai.nl
 // Using internalAction instead of internalMutation because actions can make HTTP requests
@@ -14,7 +15,8 @@ export const sendTestEmailInternal = internalAction({
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
-			throw new Error(
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
 				'RESEND_API_KEY environment variable is not set. Run: npx convex env set RESEND_API_KEY your-key'
 			);
 		}
@@ -39,7 +41,10 @@ export const sendTestEmailInternal = internalAction({
 			console.log('Resend API response:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
-				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
+					`Resend API error: ${JSON.stringify(result.error)}`
+				);
 			}
 
 			return {
@@ -50,7 +55,8 @@ export const sendTestEmailInternal = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending email:', error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EMAIL_SENDING_FAILED,
 				`Failed to send email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
@@ -105,7 +111,10 @@ export const sendVerificationEmail = internalAction({
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
-			throw new Error('RESEND_API_KEY environment variable is not set');
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
+				'RESEND_API_KEY environment variable is not set'
+			);
 		}
 
 		const resend = new Resend(apiKey);
@@ -196,7 +205,10 @@ export const sendVerificationEmail = internalAction({
 			console.log('Verification email sent:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
-				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
+					`Resend API error: ${JSON.stringify(result.error)}`
+				);
 			}
 
 			return {
@@ -205,7 +217,8 @@ export const sendVerificationEmail = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending verification email:', error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EMAIL_SENDING_FAILED,
 				`Failed to send verification email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
@@ -240,7 +253,10 @@ export const sendPasswordResetEmail = internalAction({
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
-			throw new Error('RESEND_API_KEY environment variable is not set');
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
+				'RESEND_API_KEY environment variable is not set'
+			);
 		}
 
 		const resend = new Resend(apiKey);
@@ -335,7 +351,10 @@ export const sendPasswordResetEmail = internalAction({
 			console.log('Password reset email sent:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
-				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
+					`Resend API error: ${JSON.stringify(result.error)}`
+				);
 			}
 
 			return {
@@ -344,7 +363,8 @@ export const sendPasswordResetEmail = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending password reset email:', error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EMAIL_SENDING_FAILED,
 				`Failed to send password reset email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
@@ -383,7 +403,10 @@ export const sendOrganizationInviteEmail = internalAction({
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
-			throw new Error('RESEND_API_KEY environment variable is not set');
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
+				'RESEND_API_KEY environment variable is not set'
+			);
 		}
 
 		const resend = new Resend(apiKey);
@@ -479,7 +502,10 @@ export const sendOrganizationInviteEmail = internalAction({
 			console.log('Organization invite email sent:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
-				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
+					`Resend API error: ${JSON.stringify(result.error)}`
+				);
 			}
 
 			return {
@@ -488,7 +514,8 @@ export const sendOrganizationInviteEmail = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending workspace invite email:', error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EMAIL_SENDING_FAILED,
 				`Failed to send workspace invite email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
@@ -529,7 +556,10 @@ export const sendCircleInviteEmail = internalAction({
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
-			throw new Error('RESEND_API_KEY environment variable is not set');
+			throw createError(
+				ErrorCodes.EXTERNAL_API_KEY_MISSING,
+				'RESEND_API_KEY environment variable is not set'
+			);
 		}
 
 		const resend = new Resend(apiKey);
@@ -624,7 +654,10 @@ export const sendCircleInviteEmail = internalAction({
 			console.log('Circle invite email sent:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
-				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
+					`Resend API error: ${JSON.stringify(result.error)}`
+				);
 			}
 
 			return {
@@ -633,7 +666,8 @@ export const sendCircleInviteEmail = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending circle invite email:', error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EMAIL_SENDING_FAILED,
 				`Failed to send circle invite email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}

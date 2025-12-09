@@ -9,6 +9,7 @@ import { browser } from '$app/environment';
 import type { ConvexClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 export type NoteState = {
 	noteId: string | null;
@@ -48,9 +49,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			state.isSaving = true;
 			state.error = null;
@@ -103,9 +102,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			state.isSaving = true;
 			state.error = null;
@@ -132,19 +129,17 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 	/**
 	 * Mark note as AI-generated
 	 */
-	async function markAsAIGenerated(): Promise<boolean> {
+	async function updateNoteAIFlag(): Promise<boolean> {
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			state.isSaving = true;
 			state.error = null;
 
-			await convexClient.mutation(api.notes.markAsAIGenerated, {
+			await convexClient.mutation(api.notes.updateNoteAIFlag, {
 				sessionId,
 				noteId: state.noteId as Id<'inboxItems'>
 			});
@@ -163,19 +158,17 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 	/**
 	 * Mark note for blog export
 	 */
-	async function markForBlogExport(slug: string): Promise<boolean> {
+	async function updateNoteExport(slug: string): Promise<boolean> {
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			state.isSaving = true;
 			state.error = null;
 
-			await convexClient.mutation(api.notes.markForBlogExport, {
+			await convexClient.mutation(api.notes.updateNoteExport, {
 				sessionId,
 				noteId: state.noteId as Id<'inboxItems'>,
 				slug
@@ -257,8 +250,8 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 		createNote,
 		updateNote,
 		saveNote,
-		markAsAIGenerated,
-		markForBlogExport,
+		updateNoteAIFlag,
+		updateNoteExport,
 		loadNote,
 		clear
 	};

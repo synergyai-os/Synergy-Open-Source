@@ -47,7 +47,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		const startTime = Date.now() + 86400000; // Tomorrow
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Product Sync',
@@ -60,7 +60,7 @@ describe('Meetings Integration Tests', () => {
 		expect(result.meetingId).toBeDefined();
 
 		// Verify meeting was created
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -82,7 +82,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		const startTime = Date.now() + 86400000;
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			circleId,
@@ -95,7 +95,7 @@ describe('Meetings Integration Tests', () => {
 		expect(result.meetingId).toBeDefined();
 
 		// Verify meeting
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -114,7 +114,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create multiple meetings
-		await t.mutation(api.meetings.create, {
+		await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Meeting 1',
@@ -123,7 +123,7 @@ describe('Meetings Integration Tests', () => {
 			visibility: 'public'
 		});
 
-		await t.mutation(api.meetings.create, {
+		await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Meeting 2',
@@ -133,7 +133,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// List meetings
-		const meetings = await t.query(api.meetings.list, {
+		const meetings = await t.query(api.modules.meetings.meetings.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -152,7 +152,7 @@ describe('Meetings Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Old Title',
@@ -162,7 +162,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Update meeting
-		await t.mutation(api.meetings.update, {
+		await t.mutation(api.modules.meetings.meetings.update, {
 			sessionId,
 			meetingId: result.meetingId,
 			title: 'New Title',
@@ -170,7 +170,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Verify update
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -187,7 +187,7 @@ describe('Meetings Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'To Delete',
@@ -196,14 +196,14 @@ describe('Meetings Integration Tests', () => {
 			visibility: 'public'
 		});
 
-		// Delete meeting
-		await t.mutation(api.meetings.deleteMeeting, {
+		// Archive meeting
+		await t.mutation(api.modules.meetings.meetings.archiveMeeting, {
 			sessionId,
 			meetingId: result.meetingId
 		});
 
-		// Verify deletion
-		const meetings = await t.query(api.meetings.list, {
+		// Verify archive
+		const meetings = await t.query(api.modules.meetings.meetings.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -226,7 +226,7 @@ describe('Meetings Integration Tests', () => {
 		const startTime = Date.now() + 86400000;
 		const endDate = Date.now() + 86400000 * 30; // 30 days
 
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Daily Standup',
@@ -240,7 +240,7 @@ describe('Meetings Integration Tests', () => {
 			}
 		});
 
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -261,7 +261,7 @@ describe('Meetings Integration Tests', () => {
 
 		const startTime = Date.now() + 86400000;
 
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Weekly Review',
@@ -275,7 +275,7 @@ describe('Meetings Integration Tests', () => {
 			}
 		});
 
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -294,7 +294,7 @@ describe('Meetings Integration Tests', () => {
 
 		const startTime = Date.now() + 86400000;
 
-		const result = await t.mutation(api.meetings.create, {
+		const result = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Monthly Planning',
@@ -307,7 +307,7 @@ describe('Meetings Integration Tests', () => {
 			}
 		});
 
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: result.meetingId
 		});
@@ -334,7 +334,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId: userId2 });
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -344,7 +344,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Add second user as attendee
-		const attendeeResult = await t.mutation(api.meetings.addAttendee, {
+		const attendeeResult = await t.mutation(api.modules.meetings.meetings.addAttendee, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			attendeeType: 'user',
@@ -354,7 +354,7 @@ describe('Meetings Integration Tests', () => {
 		expect(attendeeResult.attendeeId).toBeDefined();
 
 		// Verify attendees (creator + added user = 2)
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: meetingResult.meetingId
 		});
@@ -386,7 +386,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			circleId,
@@ -397,7 +397,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Add role attendee
-		const attendeeResult = await t.mutation(api.meetings.addAttendee, {
+		const attendeeResult = await t.mutation(api.modules.meetings.meetings.addAttendee, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			attendeeType: 'role',
@@ -407,7 +407,7 @@ describe('Meetings Integration Tests', () => {
 		expect(attendeeResult.attendeeId).toBeDefined();
 
 		// Verify attendees (creator + role = 2)
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: meetingResult.meetingId
 		});
@@ -429,7 +429,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'All-Hands',
@@ -439,7 +439,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Add circle attendee
-		const attendeeResult = await t.mutation(api.meetings.addAttendee, {
+		const attendeeResult = await t.mutation(api.modules.meetings.meetings.addAttendee, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			attendeeType: 'circle',
@@ -449,7 +449,7 @@ describe('Meetings Integration Tests', () => {
 		expect(attendeeResult.attendeeId).toBeDefined();
 
 		// Verify attendees (creator + circle = 2)
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: meetingResult.meetingId
 		});
@@ -475,7 +475,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId: userId2 });
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Test Meeting',
@@ -485,7 +485,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Add second user as attendee
-		const attendeeResult = await t.mutation(api.meetings.addAttendee, {
+		const attendeeResult = await t.mutation(api.modules.meetings.meetings.addAttendee, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			attendeeType: 'user',
@@ -493,13 +493,13 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Remove the added attendee
-		await t.mutation(api.meetings.removeAttendee, {
+		await t.mutation(api.modules.meetings.meetings.removeAttendee, {
 			sessionId,
 			attendeeId: attendeeResult.attendeeId
 		});
 
 		// Verify removal (only creator should remain)
-		const meeting = await t.query(api.meetings.get, {
+		const meeting = await t.query(api.modules.meetings.meetings.get, {
 			sessionId,
 			meetingId: meetingResult.meetingId
 		});
@@ -522,7 +522,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create circle meeting
-		await t.mutation(api.meetings.create, {
+		await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			circleId,
@@ -533,7 +533,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// Create ad-hoc meeting
-		await t.mutation(api.meetings.create, {
+		await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Ad-hoc Meeting',
@@ -543,7 +543,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// List circle meetings
-		const circleMeetings = await t.query(api.meetings.listByCircle, {
+		const circleMeetings = await t.query(api.modules.meetings.meetings.listByCircle, {
 			sessionId,
 			circleId
 		});
@@ -561,7 +561,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create private meeting (creator is automatically added as attendee)
-		const _meetingResult = await t.mutation(api.meetings.create, {
+		const _meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Private Meeting',
@@ -572,7 +572,7 @@ describe('Meetings Integration Tests', () => {
 
 		// Creator is already added as attendee, so listForUser should return this meeting
 		// List user meetings
-		const userMeetings = await t.query(api.meetings.listForUser, {
+		const userMeetings = await t.query(api.modules.meetings.meetings.listForUser, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -590,7 +590,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create public meeting
-		await t.mutation(api.meetings.create, {
+		await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
 			title: 'Public Meeting',
@@ -600,7 +600,7 @@ describe('Meetings Integration Tests', () => {
 		});
 
 		// List user meetings (should see public meeting)
-		const userMeetings = await t.query(api.meetings.listForUser, {
+		const userMeetings = await t.query(api.modules.meetings.meetings.listForUser, {
 			sessionId,
 			workspaceId: orgId
 		});

@@ -28,12 +28,12 @@
  * ```
  */
 
-import { query } from './_generated/server';
-import { v } from 'convex/values';
-import type { MutationCtx } from './_generated/server';
 import type { Change } from 'convex-helpers/server/triggers';
 import type { DataModel } from './_generated/dataModel';
 import type { Doc, Id } from './_generated/dataModel';
+import { query } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
+import { v } from 'convex/values';
 
 type EntityType =
 	| 'circle'
@@ -45,44 +45,60 @@ type EntityType =
 
 type ChangeType = 'create' | 'update' | 'archive' | 'restore';
 
-/**
- * Calculate field changes between old and new documents
- */
-function calculateFieldChanges(
-	oldDoc: any,
-	newDoc: any
-): Array<{
-	field: string;
-	before: string;
-	after: string;
-}> {
-	const changes: Array<{ field: string; before: string; after: string }> = [];
-	const allKeys = new Set([...Object.keys(oldDoc || {}), ...Object.keys(newDoc || {})]);
+type EntityDocByType = {
+	circle: Doc<'circles'>;
+	circleRole: Doc<'circleRoles'>;
+	userCircleRole: Doc<'userCircleRoles'>;
+	circleMember: Doc<'circleMembers'>;
+	circleItemCategory: Doc<'circleItemCategories'>;
+	circleItem: Doc<'circleItems'>;
+};
 
-	for (const key of allKeys) {
-		// Skip system fields
-		if (key.startsWith('_')) continue;
+type EntityDoc = EntityDocByType[EntityType];
+type EntityId = EntityDoc['_id'];
+type OrgVersionHistoryInsert = Omit<Doc<'orgVersionHistory'>, '_id' | '_creationTime'>;
+type OrgEntityChange = Change<DataModel, EntityDoc>;
 
-		const oldValue = oldDoc?.[key];
-		const newValue = newDoc?.[key];
+type SnapshotByType = {
+	circle: Pick<
+		EntityDocByType['circle'],
+		| 'name'
+		| 'slug'
+		| 'purpose'
+		| 'parentCircleId'
+		| 'status'
+		| 'circleType'
+		| 'decisionModel'
+		| 'archivedAt'
+	>;
+	circleRole: Pick<
+		EntityDocByType['circleRole'],
+		'circleId' | 'name' | 'purpose' | 'templateId' | 'status' | 'isHiring' | 'archivedAt'
+	>;
+	userCircleRole: Pick<
+		EntityDocByType['userCircleRole'],
+		'userId' | 'circleRoleId' | 'scope' | 'archivedAt'
+	>;
+	circleMember: Pick<EntityDocByType['circleMember'], 'circleId' | 'userId' | 'archivedAt'>;
+	circleItemCategory: Pick<
+		EntityDocByType['circleItemCategory'],
+		'workspaceId' | 'entityType' | 'name' | 'order' | 'isDefault' | 'archivedAt'
+	>;
+	circleItem: Pick<
+		EntityDocByType['circleItem'],
+		'categoryId' | 'entityType' | 'entityId' | 'content' | 'order' | 'archivedAt'
+	>;
+};
 
-		// Compare JSON stringified values to handle nested objects
-		if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
-			changes.push({
-				field: key,
-				before: JSON.stringify(oldValue ?? null),
-				after: JSON.stringify(newValue ?? null)
-			});
-		}
-	}
-
-	return changes.length > 0 ? changes : [];
-}
+type Snapshot<T extends EntityType> = SnapshotByType[T] | undefined;
 
 /**
  * Extract relevant fields from a document based on entity type
  */
-function extractEntityFields(entityType: EntityType, doc: any): any {
+function extractEntityFields<T extends EntityType>(
+	entityType: T,
+	doc: EntityDocByType[T] | undefined
+): Snapshot<T> {
 	if (!doc) return undefined;
 
 	switch (entityType) {
@@ -139,24 +155,27 @@ function extractEntityFields(entityType: EntityType, doc: any): any {
 				archivedAt: doc.archivedAt
 			};
 		default:
-			return undefined;
+			return undefined as Snapshot<T>;
 	}
 }
 
 /**
  * Get workspace ID from document based on entity type
  */
-function getWorkspaceId(entityType: EntityType, doc: any): Id<'workspaces'> | null {
+function getWorkspaceId(
+	entityType: EntityType,
+	doc: EntityDoc | undefined
+): Id<'workspaces'> | null {
 	if (!doc) return null;
 
 	switch (entityType) {
 		case 'circle':
+			return doc.workspaceId;
+		case 'circleRole':
+			return doc.workspaceId;
 		case 'circleItemCategory':
 		case 'circleItem':
 			return doc.workspaceId || null;
-		case 'circleRole':
-			// Need to look up circle to get workspaceId
-			return null; // Will be resolved in captureVersionHistory
 		case 'userCircleRole':
 			// Need to look up role -> circle to get workspaceId
 			return null; // Will be resolved in captureVersionHistory
@@ -171,7 +190,7 @@ function getWorkspaceId(entityType: EntityType, doc: any): Id<'workspaces'> | nu
 /**
  * Get user ID who made the change (from updatedBy, createdBy, or archivedBy)
  */
-function getChangedBy(doc: any): Id<'users'> | null {
+function getChangedBy(doc: EntityDoc | undefined): Id<'users'> | null {
 	return doc?.updatedBy || doc?.createdBy || doc?.archivedBy || null;
 }
 
@@ -185,7 +204,7 @@ function getChangedBy(doc: any): Id<'users'> | null {
 export async function captureVersionHistory(
 	ctx: MutationCtx,
 	entityType: EntityType,
-	change: Change<DataModel, any>
+	change: OrgEntityChange
 ): Promise<void> {
 	// Determine change type
 	let changeType: ChangeType;
@@ -215,6 +234,11 @@ export async function captureVersionHistory(
 	// Get the document (newDoc for insert/update, oldDoc for delete)
 	const doc = change.newDoc || change.oldDoc;
 	if (!doc) {
+		return;
+	}
+
+	const entityId: EntityId | undefined = change.newDoc?._id ?? change.oldDoc?._id;
+	if (!entityId) {
 		return;
 	}
 
@@ -255,11 +279,10 @@ export async function captureVersionHistory(
 	const after = change.newDoc ? extractEntityFields(entityType, change.newDoc) : undefined;
 
 	// Build the version history record based on entity type
-	const entityId = (change.newDoc?._id || change.oldDoc?._id) as any;
 	const changedAt = Date.now();
 
 	// Create the version history record using discriminated union
-	const historyRecord: any = {
+	const historyRecord: OrgVersionHistoryInsert = {
 		entityType,
 		workspaceId,
 		entityId,
@@ -319,7 +342,7 @@ export const getWorkspaceTimeline = query({
 	handler: async (ctx, args) => {
 		const limit = args.limit ?? 100;
 
-		let query = ctx.db
+		const historyQuery = ctx.db
 			.query('orgVersionHistory')
 			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
 			.order('desc');
@@ -327,7 +350,7 @@ export const getWorkspaceTimeline = query({
 		// Apply date filters if provided
 		// Note: We need to filter in code since the index is on workspaceId + changedAt
 		// but we can't filter changedAt directly in the index query
-		const results = await query.take(limit * 2); // Get more to account for filtering
+		const results = await historyQuery.take(limit * 2); // Get more to account for filtering
 
 		let filtered = results;
 
@@ -356,12 +379,12 @@ export const getUserChanges = query({
 	handler: async (ctx, args) => {
 		const limit = args.limit ?? 100;
 
-		let query = ctx.db
+		const userQuery = ctx.db
 			.query('orgVersionHistory')
 			.withIndex('by_user', (q) => q.eq('changedBy', args.userId))
 			.order('desc');
 
-		const results = await query.take(limit * 2); // Get more to account for filtering
+		const results = await userQuery.take(limit * 2); // Get more to account for filtering
 
 		// Filter by workspace if provided
 		let filtered = results;
@@ -381,12 +404,12 @@ export const getUserChanges = query({
 /**
  * Capture version history for a create operation
  */
-export async function captureCreate(
+export async function captureCreate<T extends EntityType>(
 	ctx: MutationCtx,
-	entityType: EntityType,
-	newDoc: any
+	entityType: T,
+	newDoc: EntityDocByType[T]
 ): Promise<void> {
-	const change: Change<DataModel, any> = {
+	const change: OrgEntityChange = {
 		id: newDoc._id,
 		operation: 'insert',
 		oldDoc: null,
@@ -398,13 +421,13 @@ export async function captureCreate(
 /**
  * Capture version history for an update operation
  */
-export async function captureUpdate(
+export async function captureUpdate<T extends EntityType>(
 	ctx: MutationCtx,
-	entityType: EntityType,
-	oldDoc: any,
-	newDoc: any
+	entityType: T,
+	oldDoc: EntityDocByType[T],
+	newDoc: EntityDocByType[T]
 ): Promise<void> {
-	const change: Change<DataModel, any> = {
+	const change: OrgEntityChange = {
 		id: newDoc._id,
 		operation: 'update',
 		oldDoc,
@@ -416,13 +439,13 @@ export async function captureUpdate(
 /**
  * Capture version history for an archive operation
  */
-export async function captureArchive(
+export async function captureArchive<T extends EntityType>(
 	ctx: MutationCtx,
-	entityType: EntityType,
-	oldDoc: any,
-	newDoc: any
+	entityType: T,
+	oldDoc: EntityDocByType[T],
+	newDoc: EntityDocByType[T]
 ): Promise<void> {
-	const change: Change<DataModel, any> = {
+	const change: OrgEntityChange = {
 		id: newDoc._id,
 		operation: 'update',
 		oldDoc,
@@ -434,13 +457,13 @@ export async function captureArchive(
 /**
  * Capture version history for a restore operation
  */
-export async function captureRestore(
+export async function captureRestore<T extends EntityType>(
 	ctx: MutationCtx,
-	entityType: EntityType,
-	oldDoc: any,
-	newDoc: any
+	entityType: T,
+	oldDoc: EntityDocByType[T],
+	newDoc: EntityDocByType[T]
 ): Promise<void> {
-	const change: Change<DataModel, any> = {
+	const change: OrgEntityChange = {
 		id: newDoc._id,
 		operation: 'update',
 		oldDoc,

@@ -26,129 +26,90 @@
 	});
 </script>
 
-<Story name="Ghost" args={{ variant: 'ghost', ariaLabel: 'Add item', size: 'md' }}>
-	{#snippet template(args)}
-		<Button
-			variant={args.variant}
-			size={args.size}
-			iconOnly
-			ariaLabel={args.ariaLabel}
-			disabled={args.disabled}
-		>
-			{#snippet children()}
-				<Icon type="add" size={args.size} />
-			{/snippet}
-		</Button>
-	{/snippet}
+<Story name="Ghost" args={{ variant: 'ghost', ariaLabel: 'Add item', size: 'md' }} let:args>
+	<Button
+		variant={args.variant}
+		size={args.size}
+		iconOnly
+		ariaLabel={args.ariaLabel}
+		disabled={args.disabled}
+	>
+		<Icon type="add" size={args.size} />
+	</Button>
 </Story>
 
-<Story name="Solid" args={{ variant: 'solid', ariaLabel: 'Delete item', size: 'md' }}>
-	{#snippet template(args)}
-		<Button
-			variant={args.variant}
-			size={args.size}
-			iconOnly
-			ariaLabel={args.ariaLabel}
-			disabled={args.disabled}
-		>
-			{#snippet children()}
-				<Icon type="close" size={args.size} />
-			{/snippet}
-		</Button>
-	{/snippet}
+<Story name="Solid" args={{ variant: 'solid', ariaLabel: 'Delete item', size: 'md' }} let:args>
+	<Button
+		variant={args.variant}
+		size={args.size}
+		iconOnly
+		ariaLabel={args.ariaLabel}
+		disabled={args.disabled}
+	>
+		<Icon type="close" size={args.size} />
+	</Button>
 </Story>
 
 <Story
 	name="Disabled"
 	args={{ variant: 'ghost', disabled: true, ariaLabel: 'Disabled button', size: 'md' }}
+	let:args
 >
-	{#snippet template(args)}
-		<Button
-			variant={args.variant}
-			size={args.size}
-			iconOnly
-			ariaLabel={args.ariaLabel}
-			disabled={args.disabled}
-		>
-			{#snippet children()}
-				<Icon type="add" size={args.size} />
-			{/snippet}
+	<Button
+		variant={args.variant}
+		size={args.size}
+		iconOnly
+		ariaLabel={args.ariaLabel}
+		disabled={args.disabled}
+	>
+		<Icon type="add" size={args.size} />
+	</Button>
+</Story>
+
+<Story name="Group">
+	<div class="flex gap-button">
+		<Button variant="ghost" iconOnly ariaLabel="Edit" size="md">
+			<Icon type="edit" size="md" />
 		</Button>
-	{/snippet}
+		<Button variant="ghost" iconOnly ariaLabel="Delete" size="md">
+			<Icon type="delete" size="md" />
+		</Button>
+		<Button variant="ghost" iconOnly ariaLabel="Share" size="md">
+			<Icon type="share" size="md" />
+		</Button>
+	</div>
 </Story>
 
-<Story name="Group" args={{ variant: 'ghost', ariaLabel: 'Actions', size: 'md' }}>
-	{#snippet template(_args)}
-		<div class="flex gap-2">
-			<Button variant="ghost" iconOnly ariaLabel="Edit" size="md">
-				{#snippet children()}
-					<Icon type="edit" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="ghost" iconOnly ariaLabel="Delete" size="md">
-				{#snippet children()}
-					<Icon type="delete" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="ghost" iconOnly ariaLabel="Share" size="md">
-				{#snippet children()}
-					<Icon type="share" size="md" />
-				{/snippet}
-			</Button>
-		</div>
-	{/snippet}
+<Story name="All Variants" args={{ size: 'md' }} let:args>
+	<div class="flex items-center gap-button">
+		<Button variant="ghost" iconOnly ariaLabel="Ghost" size={args.size}>
+			<Icon type="add" size={args.size} />
+		</Button>
+		<Button variant="solid" iconOnly ariaLabel="Solid" size={args.size}>
+			<Icon type="add" size={args.size} />
+		</Button>
+		<Button variant="primary" iconOnly ariaLabel="Primary" size={args.size}>
+			<Icon type="add" size={args.size} />
+		</Button>
+		<Button variant="secondary" iconOnly ariaLabel="Secondary" size={args.size}>
+			<Icon type="add" size={args.size} />
+		</Button>
+		<Button variant="outline" iconOnly ariaLabel="Outline" size={args.size}>
+			<Icon type="add" size={args.size} />
+		</Button>
+	</div>
 </Story>
 
-<Story name="All Variants" args={{ size: 'md', ariaLabel: 'Action' }}>
-	{#snippet template(_args)}
-		<div class="flex items-center gap-4">
-			<Button variant="ghost" iconOnly ariaLabel="Ghost" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="solid" iconOnly ariaLabel="Solid" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="primary" iconOnly ariaLabel="Primary" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="secondary" iconOnly ariaLabel="Secondary" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant="outline" iconOnly ariaLabel="Outline" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-		</div>
-	{/snippet}
-</Story>
-
-<Story name="Sizes" args={{ variant: 'ghost', ariaLabel: 'Action' }}>
-	{#snippet template(_args)}
-		<div class="flex items-center gap-4">
-			<Button variant={_args.variant} iconOnly ariaLabel="Small" size="sm">
-				{#snippet children()}
-					<Icon type="add" size="sm" />
-				{/snippet}
-			</Button>
-			<Button variant={_args.variant} iconOnly ariaLabel="Medium" size="md">
-				{#snippet children()}
-					<Icon type="add" size="md" />
-				{/snippet}
-			</Button>
-			<Button variant={_args.variant} iconOnly ariaLabel="Large" size="lg">
-				{#snippet children()}
-					<Icon type="add" size="lg" />
-				{/snippet}
-			</Button>
-		</div>
-	{/snippet}
+<Story name="Sizes" args={{ variant: 'ghost' }} let:args>
+	<div class="flex items-center gap-button">
+		<Button variant={args.variant} iconOnly ariaLabel="Small" size="sm">
+			<Icon type="add" size="sm" />
+		</Button>
+		<Button variant={args.variant} iconOnly ariaLabel="Medium" size="md">
+			<Icon type="add" size="md" />
+		</Button>
+		<Button variant={args.variant} iconOnly ariaLabel="Large" size="lg">
+			<Icon type="add" size="lg" />
+		</Button>
+	</div>
 </Story>

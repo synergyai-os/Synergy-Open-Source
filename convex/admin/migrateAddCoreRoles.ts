@@ -10,8 +10,8 @@
 import { internalMutation, mutation } from '../_generated/server';
 import { v } from 'convex/values';
 import { validateSessionAndGetUserId } from '../sessionValidation';
-import { createCoreRolesForCircle } from '../circles';
 import type { Id } from '../_generated/dataModel';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * Migration: Add core roles to all circles in a workspace
@@ -34,11 +34,17 @@ export const migrateWorkspace = mutation({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		if (membership.role !== 'owner' && membership.role !== 'admin') {
-			throw new Error('Only workspace admins can run this migration');
+			throw createError(
+				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
+				'Only workspace admins can run this migration'
+			);
 		}
 
 		// Get all active circles in workspace

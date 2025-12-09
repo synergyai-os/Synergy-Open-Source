@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { useConvexClient } from 'convex-svelte';
+import { SvelteURLSearchParams } from 'svelte';
 import {
 	getStorageKey,
 	getStorageDetailsKey,
@@ -46,12 +47,9 @@ type ModalKey = 'createWorkspace' | 'joinOrganization';
 
 export type UseOrganizations = ReturnType<typeof useWorkspaces>;
 
-const _SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
-
 export function useWorkspaces(options?: {
 	userId?: () => string | undefined;
 	sessionId?: () => string | undefined;
-	orgFromUrl?: () => string | null; // Reactive URL parameter (deprecated - handled by URL sync)
 	initialOrganizations?: WorkspaceSummary[]; // Server-side preloaded data for instant rendering
 	initialOrganizationInvites?: WorkspaceInvite[]; // Server-side preloaded data
 }) {
@@ -190,7 +188,7 @@ export function useWorkspaces(options?: {
 				lastNavigatedSlug = activeWorkspace.slug;
 				const newPath = `/w/${activeWorkspace.slug}${restOfPath}`;
 				// Remove ?org= param if present
-				const searchParams = new URLSearchParams(window.location.search);
+				const searchParams = new SvelteURLSearchParams(window.location.search);
 				searchParams.delete('org');
 				const search = searchParams.toString();
 				const resolvedPath = resolveRoute(newPath + (search ? `?${search}` : ''));

@@ -10,6 +10,7 @@
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
 import { validateSessionAndGetUserId } from '../sessionValidation';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * Query: Check if system role templates exist
@@ -62,7 +63,10 @@ export const checkCoreTemplates = query({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		// Get system-level core templates
@@ -118,7 +122,7 @@ export const checkCircleRoles = query({
 
 		const circle = await ctx.db.get(args.circleId);
 		if (!circle) {
-			throw new Error('Circle not found');
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 
 		// Verify user has access
@@ -130,7 +134,10 @@ export const checkCircleRoles = query({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		// Get all active roles in circle
@@ -144,10 +151,7 @@ export const checkCircleRoles = query({
 		// Enrich roles with template information
 		const rolesWithTemplates = await Promise.all(
 			roles.map(async (role) => {
-				let template = null;
-				if (role.templateId) {
-					template = await ctx.db.get(role.templateId);
-				}
+				const template = role.templateId ? await ctx.db.get(role.templateId) : null;
 
 				return {
 					roleId: role._id,
@@ -201,7 +205,10 @@ export const validateWorkspace = query({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		// Get all circles

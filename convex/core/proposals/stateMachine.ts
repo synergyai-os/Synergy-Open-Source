@@ -5,6 +5,8 @@
  * No side effects; suitable for unit testing.
  */
 
+import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+
 export type ProposalStatus =
 	| 'draft'
 	| 'submitted'
@@ -47,7 +49,10 @@ export function isTerminalState(status: ProposalStatus | string): boolean {
 	return TERMINAL_STATUSES.includes(status as ProposalStatus);
 }
 
-export function canTransition(current: ProposalStatus | string, next: ProposalStatus | string): boolean {
+export function canTransition(
+	current: ProposalStatus | string,
+	next: ProposalStatus | string
+): boolean {
 	if (!isProposalStatus(current) || !isProposalStatus(next)) return false;
 	return VALID_TRANSITIONS[current]?.includes(next) ?? false;
 }
@@ -59,14 +64,13 @@ export function assertTransition(
 	errorMessage?: string
 ): asserts current is ProposalStatus {
 	if (!isProposalStatus(current)) {
-		throw new Error(`Invalid proposal status: ${current}`);
+		throw createError(ErrorCodes.PROPOSAL_INVALID_STATE, `Invalid proposal status: ${current}`);
 	}
 
 	if (!canTransition(current, next)) {
-		throw new Error(
+		throw createError(
+			ErrorCodes.PROPOSAL_INVALID_STATE,
 			errorMessage ?? `Invalid proposal status transition (${context}): ${current} -> ${next}`
 		);
 	}
 }
-
-

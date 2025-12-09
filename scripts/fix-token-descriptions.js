@@ -40,7 +40,7 @@ function isConditional(value) {
  * Clean description - remove hardcoded pixel values and utility class references
  * Focus on semantic meaning only
  */
-function cleanDescription(description, tokenValue, tokenPath) {
+function cleanDescription(description, tokenValue, _tokenPath) {
 	if (!description) return '';
 
 	// If this is a reference token, clean up description
@@ -86,7 +86,7 @@ function cleanDescription(description, tokenValue, tokenPath) {
 /**
  * Update description to include reference information
  */
-function enhanceDescription(description, tokenValue, tokenPath) {
+function enhanceDescription(description, tokenValue, _tokenPath) {
 	if (!description) return '';
 
 	// For reference tokens, add reference info if not already present

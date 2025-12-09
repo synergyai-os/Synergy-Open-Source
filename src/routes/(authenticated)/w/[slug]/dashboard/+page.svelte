@@ -12,6 +12,7 @@
 	import ActionItemsList from '$lib/modules/core/components/dashboard/ActionItemsList.svelte';
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
+import { invariant } from '$lib/utils/invariant';
 
 	// Get session from page data
 	const sessionId = $derived($page.data.sessionId);
@@ -20,9 +21,9 @@
 	const getSessionId = () => sessionId();
 	const flagQuery =
 		browser && getSessionId()
-			? useQuery(api.featureFlags.checkFlag, () => {
+			? useQuery(api.featureFlags.isFlagEnabled, () => {
 					const session = getSessionId();
-					if (!session) throw new Error('sessionId required');
+					invariant(session, 'sessionId required');
 					return {
 						flag: FeatureFlags.MEETINGS_MODULE,
 						sessionId: session

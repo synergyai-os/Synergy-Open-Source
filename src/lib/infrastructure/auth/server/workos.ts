@@ -11,19 +11,29 @@ const WORKOS_BASE_URL = 'https://api.workos.com';
 // Note: Environment variable validation moved inside functions to prevent import-time errors
 // during build/deployment. Variables are checked when actually used, not when module loads.
 
-/**
- * Custom error class for WorkOS API errors that preserves HTTP status codes
- */
-export class WorkOSError extends Error {
-	statusCode: number;
-	originalError?: string;
+export type WorkOSError = Error & { statusCode: number; originalError?: string };
 
-	constructor(message: string, statusCode: number, originalError?: string) {
-		super(message);
-		this.name = 'WorkOSError';
-		this.statusCode = statusCode;
-		this.originalError = originalError;
+export function createWorkOSError(
+	message: string,
+	statusCode: number,
+	originalError?: string
+): WorkOSError {
+	const error = new Error(message) as WorkOSError;
+	error.name = 'WorkOSError';
+	error.statusCode = statusCode;
+	if (originalError) {
+		error.originalError = originalError;
 	}
+	return error;
+}
+
+export function isWorkOSError(error: unknown): error is WorkOSError {
+	if (!error || typeof error !== 'object') {
+		return false;
+	}
+
+	const candidate = error as Partial<WorkOSError>;
+	return candidate.name === 'WorkOSError' && typeof candidate.statusCode === 'number';
 }
 
 /** Validate required WorkOS environment variables are present */
@@ -509,7 +519,7 @@ export async function resetPassword(options: {
 		}
 
 		// Throw custom error that preserves HTTP status code
-		throw new WorkOSError(errorMessage, response.status, errorText);
+		throw createWorkOSError(errorMessage, response.status, errorText);
 	}
 
 	const data = (await response.json()) as unknown;

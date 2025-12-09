@@ -65,15 +65,11 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 
 		const onSelectItem = vi.fn();
 
-		const screen = render(InboxTestComponent, {
+		render(InboxTestComponent, {
 			filteredItems: () => mockItems,
 			selectedItemId: () => null,
 			onSelectItem
 		});
-
-		const composable = (
-			screen.component as unknown as TestComponentInstance
-		).getKeyboardNavigationInstance();
 
 		// Simulate J key press
 		const event = new KeyboardEvent('keydown', { key: 'j' });
@@ -122,15 +118,11 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 
 		const onSelectItem = vi.fn();
 
-		const screen = render(InboxTestComponent, {
+		render(InboxTestComponent, {
 			filteredItems: () => mockItems,
 			selectedItemId: () => 'item-2',
 			onSelectItem
 		});
-
-		const composable = (
-			screen.component as unknown as TestComponentInstance
-		).getKeyboardNavigationInstance();
 
 		// Simulate K key press
 		const event = new KeyboardEvent('keydown', { key: 'k' });
@@ -169,7 +161,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 
 		const onSelectItem = vi.fn();
 
-		const screen = render(InboxTestComponent, {
+		render(InboxTestComponent, {
 			filteredItems: () => mockItems,
 			selectedItemId: () => null,
 			onSelectItem
@@ -210,7 +202,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 
 		const onSelectItem = vi.fn();
 
-		const screen = render(InboxTestComponent, {
+		render(InboxTestComponent, {
 			filteredItems: () => mockItems,
 			selectedItemId: () => null,
 			onSelectItem

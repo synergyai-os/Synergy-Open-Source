@@ -18,6 +18,7 @@ ios/App/App/public/
 /dev-docs/**
 /marketing-docs/**
 /ai-content-blog/**
+/ai-docs/**
 
 # Cursor command templates (contain template syntax, not actual code)
 /.cursor/**

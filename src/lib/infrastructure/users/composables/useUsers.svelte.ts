@@ -12,8 +12,9 @@ import { useConvexClient } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
 import type { Id } from '$lib/convex';
-import type { UsersInfrastructureAPI, UserProfile, LinkedAccount } from '../api';
+import type { UsersInfrastructureAPI } from '../api';
 import { useUserQueries } from './useUserQueries.svelte';
+import { invariant } from '$lib/utils/invariant';
 
 export type UseUsersOptions = {
 	getSessionId: () => string | undefined;
@@ -72,14 +73,9 @@ export function useUsers(options: UseUsersOptions): UsersInfrastructureAPI {
 			profileImageUrl?: string;
 		}
 	): Promise<void> {
-		if (!convexClient) {
-			throw new Error('Convex client not available');
-		}
-
+		invariant(convexClient, 'Convex client not available');
 		const sessionId = getSessionId();
-		if (!sessionId) {
-			throw new Error('Session ID not available');
-		}
+		invariant(sessionId, 'Session ID not available');
 
 		loadingState.updateProfile = true;
 
@@ -112,7 +108,7 @@ export function useUsers(options: UseUsersOptions): UsersInfrastructureAPI {
 	}
 
 	// Return value implements UsersInfrastructureAPI interface
-	const api: UsersInfrastructureAPI = {
+	const usersApi: UsersInfrastructureAPI = {
 		get currentUser() {
 			return queries.currentUser;
 		},
@@ -129,7 +125,7 @@ export function useUsers(options: UseUsersOptions): UsersInfrastructureAPI {
 		refresh
 	};
 
-	return api;
+	return usersApi;
 }
 
 // Re-export API interface for convenience

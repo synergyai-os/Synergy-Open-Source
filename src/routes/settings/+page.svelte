@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Switch, Text, Heading, Icon, Badge, FormInput } from '$lib/components/atoms';
+	import { Switch, Text, Heading, Icon, Badge } from '$lib/components/atoms';
 	import { switchRootRecipe, switchThumbRecipe } from '$lib/design-system/recipes';
 	import { setTheme, isDark as isDarkFn } from '$lib/stores/theme.svelte';
 	import { browser } from '$app/environment';

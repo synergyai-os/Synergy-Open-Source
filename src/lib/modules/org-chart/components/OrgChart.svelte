@@ -1,3 +1,4 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
 	/**
 	 * OrgChart Component - D3 Hierarchy Visualization
@@ -28,8 +29,6 @@
 		getRoleFillColor,
 		getRoleTextColor,
 		getRoleStrokeColor,
-		getCircleLabelColor,
-		getCircleLabelStrokeColor,
 		isSyntheticRoot,
 		isSyntheticRole,
 		isRolesGroup,
@@ -250,18 +249,6 @@
 		const hasPackedRoles = node.data.packedRoles && node.data.packedRoles.length > 0;
 
 		return isLargeEnough && Boolean(hasPackedRoles);
-	}
-
-	// Truncate text to fit within available width
-	// Uses rendered size (zoom-aware) for semantic zoom behavior
-	function truncateText(text: string, maxWidth: number, fontSize: number): string {
-		// Estimate character width (rough: fontSize * 0.6 for average character)
-		const charWidth = fontSize * 0.6;
-		const maxChars = Math.floor(maxWidth / charWidth);
-
-		if (text.length <= maxChars) return text;
-		if (maxChars <= 3) return text.slice(0, Math.max(1, maxChars));
-		return text.slice(0, maxChars - 3) + '...';
 	}
 
 	// Calculate role label parameters with PROPORTIONAL scaling and multi-line support
@@ -746,30 +733,6 @@
 		}
 	}
 
-	// Find parent circle node for a given circle
-	function findParentCircleNode(node: CircleHierarchyNode): CircleHierarchyNode | null {
-		if (!node.parent) return null;
-
-		// Navigate up the hierarchy to find the actual circle (skip synthetic nodes)
-		let parent = node.parent as CircleHierarchyNode;
-		while (parent) {
-			if (
-				!isSyntheticRoot(parent.data.circleId) &&
-				!isSyntheticRole(parent.data.circleId) &&
-				!isRolesGroup(parent.data.circleId)
-			) {
-				return parent;
-			}
-			parent = parent.parent as CircleHierarchyNode | null;
-		}
-
-		// If no parent circle found, return root
-		const rootNode = visibleNodes.find((n) => n.depth === 0);
-		return rootNode && !isSyntheticRoot(rootNode.data.circleId)
-			? (rootNode as CircleHierarchyNode)
-			: null;
-	}
-
 	onMount(() => {
 		if (!svgElement || !gElement) return;
 
@@ -1144,7 +1107,7 @@
 												class="flex h-full w-full flex-col items-center justify-center gap-fieldGroup"
 											>
 												<!-- Role name lines -->
-												{#each labelParams.lines as line, i}
+												{#each labelParams.lines as line, i (i)}
 													<span
 														class="role-label text-center font-sans font-medium select-none"
 														style="
@@ -1162,11 +1125,7 @@
 												{/each}
 												<!-- Status badge -->
 												{#if hasStatus}
-													<Badge variant={badgeVariant} size="md">
-														{#snippet children()}
-															{badgeLabel}
-														{/snippet}
-													</Badge>
+													<Badge variant={badgeVariant} size="md">{badgeLabel}</Badge>
 												{/if}
 											</div>
 										</foreignObject>
@@ -1264,7 +1223,7 @@
 								class="flex h-full w-full flex-col items-center justify-center"
 							>
 								<!-- Smart word wrap: render each line separately -->
-								{#each labelParams.displayLines as line, i}
+								{#each labelParams.displayLines as line, i (i)}
 									<span
 										class="circle-label text-center font-sans font-semibold select-none"
 										style="

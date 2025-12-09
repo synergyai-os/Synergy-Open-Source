@@ -9,6 +9,7 @@ import { query, mutation } from '../_generated/server';
 import { v } from 'convex/values';
 import { requireSystemAdmin } from '../rbac/permissions';
 import type { Id } from '../_generated/dataModel';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 // ============================================================================
 // RBAC Management Queries
@@ -74,7 +75,7 @@ export const getRole = query({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Get all permissions for this role
@@ -470,7 +471,7 @@ export const createPermission = mutation({
 			.first();
 
 		if (existing) {
-			throw new Error('Permission with this slug already exists');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Permission with this slug already exists');
 		}
 
 		const now = Date.now();
@@ -509,7 +510,7 @@ export const createRole = mutation({
 			.first();
 
 		if (existing) {
-			throw new Error('Role with this slug already exists');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Role with this slug already exists');
 		}
 
 		const now = Date.now();
@@ -541,12 +542,12 @@ export const updateRole = mutation({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Prevent changes to system roles
 		if (role.isSystem) {
-			throw new Error('Cannot modify system roles');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'Cannot modify system roles');
 		}
 
 		const updates: { name?: string; description?: string; updatedAt: number } = {
@@ -580,12 +581,12 @@ export const deleteRole = mutation({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Prevent deletion of system roles
 		if (role.isSystem) {
-			throw new Error('Cannot delete system roles');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'Cannot delete system roles');
 		}
 
 		// Check if role is assigned to any users
@@ -595,7 +596,7 @@ export const deleteRole = mutation({
 			.first();
 
 		if (userRoles) {
-			throw new Error('Cannot delete role that is assigned to users');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Cannot delete role that is assigned to users');
 		}
 
 		// Delete role permissions first
@@ -676,7 +677,7 @@ export const removePermissionFromRole = mutation({
 			.first();
 
 		if (!rolePermission) {
-			throw new Error('Permission not assigned to role');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Permission not assigned to role');
 		}
 
 		await ctx.db.delete(rolePermission._id);
@@ -756,7 +757,7 @@ export const revokeUserRole = mutation({
 
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role assignment not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 		}
 
 		await ctx.db.patch(args.userRoleId, {
@@ -783,7 +784,7 @@ export const updateUserRole = mutation({
 
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role assignment not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 		}
 
 		const updates: {
@@ -841,7 +842,7 @@ export const setupDocsPermission = mutation({
 			});
 			docsViewPerm = await ctx.db.get(permissionId);
 			if (!docsViewPerm) {
-				throw new Error('Failed to create docs.view permission');
+				throw createError(ErrorCodes.GENERIC_ERROR, 'Failed to create docs.view permission');
 			}
 		}
 
@@ -852,7 +853,10 @@ export const setupDocsPermission = mutation({
 			.first();
 
 		if (!adminRole) {
-			throw new Error('Admin role not found. Please run seedRBAC first.');
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'Admin role not found. Please run seedRBAC first.'
+			);
 		}
 
 		// Step 3: Assign docs.view permission to admin role (scope: "all")
@@ -991,7 +995,7 @@ export const updateTemplateRbacPermissions = mutation({
 
 		const template = await ctx.db.get(args.templateId);
 		if (!template) {
-			throw new Error('Role template not found');
+			throw createError(ErrorCodes.TEMPLATE_NOT_FOUND, 'Role template not found');
 		}
 
 		// Validate all permission slugs exist
@@ -1002,7 +1006,10 @@ export const updateTemplateRbacPermissions = mutation({
 				.first();
 
 			if (!permission) {
-				throw new Error(`Permission "${perm.permissionSlug}" not found`);
+				throw createError(
+					ErrorCodes.GENERIC_ERROR,
+					`Permission "${perm.permissionSlug}" not found`
+				);
 			}
 		}
 

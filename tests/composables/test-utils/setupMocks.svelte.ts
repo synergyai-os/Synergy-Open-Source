@@ -216,9 +216,9 @@ vi.mock('convex-svelte', () => {
 
 			// Check for inbox item with details
 			if (
-				queryName.includes('getInboxItemWithDetails') ||
+				queryName.includes('findInboxItemWithDetails') ||
 				queryName.includes('InboxItemWithDetails') ||
-				queryName.includes('inbox:getInboxItemWithDetails')
+				queryName.includes('inbox:findInboxItemWithDetails')
 			) {
 				if ('inboxItemWithDetails' in results) {
 					const result = results.inboxItemWithDetails as {

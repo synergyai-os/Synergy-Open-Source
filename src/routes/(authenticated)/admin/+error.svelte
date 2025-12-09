@@ -53,7 +53,7 @@
 	}
 
 	function goHome() {
-		goto(resolveRoute('/inbox'));
+		goto(resolveRoute('/auth/redirect'));
 	}
 </script>
 

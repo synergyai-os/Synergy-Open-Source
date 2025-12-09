@@ -574,6 +574,7 @@ const schema = defineSchema(
 			activeAgendaItemId: v.optional(v.id('meetingAgendaItems')), // Currently active agenda item (synchronized view)
 			parentMeetingId: v.optional(v.id('meetings')), // For recurring meeting instances - links to original recurring meeting
 			deletedAt: v.optional(v.number()), // Soft delete timestamp
+			canceledAt: v.optional(v.number()), // Cancellation timestamp (distinct from archive)
 
 			createdAt: v.number(),
 			createdBy: v.id('users'),
@@ -608,6 +609,10 @@ const schema = defineSchema(
 			),
 			userId: v.optional(v.id('users')),
 			circleId: v.optional(v.id('circles')),
+
+			status: v.union(v.literal('pending'), v.literal('accepted'), v.literal('declined')),
+			respondedAt: v.optional(v.number()),
+			lastSentAt: v.number(),
 
 			createdAt: v.number(),
 			createdBy: v.id('users')

@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { CircleMember } from './useCircles.svelte';
+import { invariant } from '$lib/utils/invariant';
 
 export type UseCircleMembers = ReturnType<typeof useCircleMembers>;
 
@@ -21,10 +22,10 @@ export function useCircleMembers(options: {
 	// Query workspace members to show in dropdown
 	const orgMembersQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.workspaces.getMembers, () => {
+			? useQuery(api.workspaces.listMembers, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
-					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;

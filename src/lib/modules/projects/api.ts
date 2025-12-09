@@ -9,7 +9,6 @@
  */
 
 import type { Id } from '$lib/convex';
-import type { Doc } from '$convex/_generated/dataModel';
 
 /**
  * Task data structure

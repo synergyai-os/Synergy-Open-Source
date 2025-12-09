@@ -11,6 +11,7 @@ import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { WorkspaceSummary, WorkspaceInvite } from './useWorkspaces.svelte';
+import { invariant } from '$lib/utils/invariant';
 
 export interface UseOrganizationQueriesOptions {
 	getSessionId: () => string | undefined;
@@ -41,7 +42,7 @@ export function useWorkspaceQueries(
 		browser && getSessionId()
 			? useQuery(api.workspaces.listWorkspaces, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -51,7 +52,7 @@ export function useWorkspaceQueries(
 		browser && getSessionId()
 			? useQuery(api.workspaces.listWorkspaceInvites, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
 			: null;

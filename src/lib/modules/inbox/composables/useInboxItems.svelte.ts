@@ -9,6 +9,7 @@ import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { InboxItem } from './useKeyboardNavigation.svelte';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -39,7 +40,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 		browser && params?.sessionId
 			? useQuery(api.inbox.listInboxItems, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
-					if (!sessionId) throw new Error('sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
+					invariant(sessionId, 'sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 
 					const baseArgs: {
 						sessionId: string;

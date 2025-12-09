@@ -50,9 +50,10 @@
 	<button
 		type="button"
 		class={[...containerClasses, 'w-full border-0 bg-transparent p-0']}
+		data-user-id={userId}
 		onclick={onClick}
 	>
-		<Avatar {initials} size="md" />
+		<Avatar {initials} size="md" image={avatarImage} />
 		<div class="min-w-0 flex-1">
 			<p class="truncate text-label font-medium text-primary">{displayName}</p>
 			{#if scope}
@@ -69,8 +70,8 @@
 		</div>
 	</button>
 {:else}
-	<div class={containerClasses}>
-		<Avatar {initials} size="md" />
+	<div class={containerClasses} data-user-id={userId}>
+		<Avatar {initials} size="md" image={avatarImage} />
 		<div class="min-w-0 flex-1">
 			<p class="truncate text-label font-medium text-primary">{displayName}</p>
 			{#if scope}

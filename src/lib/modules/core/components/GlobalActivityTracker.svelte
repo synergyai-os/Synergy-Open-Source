@@ -19,8 +19,8 @@
 	const convexClient = browser ? useConvexClient() : null;
 	const inboxApi = browser
 		? {
-				getSyncProgress: makeFunctionReference(
-					'inbox:getSyncProgress'
+				findSyncProgress: makeFunctionReference(
+					'inbox:findSyncProgress'
 				) as import('convex/server').FunctionReference<
 					'query',
 					'public',
@@ -47,7 +47,7 @@
 		if (syncActivities.length === 0) return;
 
 		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, { sessionId });
+			const progress = await convexClient.query(inboxApi.findSyncProgress, { sessionId });
 
 			// Update all sync activities
 			for (const activity of syncActivities) {

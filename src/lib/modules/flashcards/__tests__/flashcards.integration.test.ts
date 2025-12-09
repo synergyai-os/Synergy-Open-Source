@@ -75,7 +75,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// Review flashcard (tests destructuring)
-		const result = await t.mutation(api.flashcards.reviewFlashcard, {
+		const result = await t.mutation(api.flashcards.updateFlashcardReview, {
 			sessionId,
 			flashcardId,
 			rating: 'good' // Valid rating: 'again', 'hard', 'good', 'easy'

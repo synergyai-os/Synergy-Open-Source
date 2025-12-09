@@ -1,4 +1,5 @@
 import { converter, formatHex } from 'culori';
+import { invariant } from '$lib/utils/invariant';
 
 const toOklch = converter('oklch');
 
@@ -11,9 +12,7 @@ const toOklch = converter('oklch');
 export function hexToOKLCH(hex: string): string {
 	const oklch = toOklch(hex);
 
-	if (!oklch) {
-		throw new Error(`Invalid hex color: ${hex}`);
-	}
+	invariant(oklch, `Invalid hex color: ${hex}`);
 
 	const { l, c, h = 0 } = oklch;
 
@@ -31,7 +30,7 @@ export function oklchToHex(oklchString: string): string {
 	const match = oklchString.match(/oklch\(([\d.]+)%\s+([\d.]+)\s+([\d.]+)\)/);
 
 	if (!match) {
-		throw new Error(`Invalid OKLCH format: ${oklchString}`);
+		invariant(false, `Invalid OKLCH format: ${oklchString}`);
 	}
 
 	const [, l, c, h] = match;
@@ -45,9 +44,7 @@ export function oklchToHex(oklchString: string): string {
 
 	const hex = formatHex(oklchObj);
 
-	if (!hex) {
-		throw new Error(`Failed to convert OKLCH to hex: ${oklchString}`);
-	}
+	invariant(hex, `Failed to convert OKLCH to hex: ${oklchString}`);
 
 	return hex;
 }
@@ -71,11 +68,11 @@ export function isValidOKLCH(color: string): boolean {
  */
 export function generateHoverColor(baseColor: string): string {
 	if (!isValidOKLCH(baseColor)) {
-		throw new Error(`Invalid OKLCH format: ${baseColor}`);
+		invariant(false, `Invalid OKLCH format: ${baseColor}`);
 	}
 
 	const match = baseColor.match(/oklch\(([\d.]+)%\s+([\d.]+)\s+([\d.]+)\)/);
-	if (!match) throw new Error('Failed to parse OKLCH');
+	invariant(match, 'Failed to parse OKLCH');
 
 	const [, l, c, h] = match;
 	const newL = Math.max(0, parseFloat(l) - 10); // Darken by 10%

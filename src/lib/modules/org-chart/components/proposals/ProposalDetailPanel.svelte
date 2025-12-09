@@ -13,8 +13,7 @@
 	import ProposalEvolutionList from '$lib/components/molecules/ProposalEvolutionList.svelte';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import type { ProposalWithDetails, ProposalStatus } from '../../composables/useProposals.svelte';
-	import type { Id } from '$lib/convex/_generated/dataModel';
-import type { UseNavigationStack } from '$lib/modules/core/api';
+	import type { UseNavigationStack } from '$lib/modules/core/api';
 
 	type Props = {
 		proposal: ProposalWithDetails | null;
@@ -270,7 +269,7 @@ import type { UseNavigationStack } from '$lib/modules/core/api';
 									Objections ({proposal.objections.length})
 								</h3>
 								<div class="flex flex-col gap-fieldGroup">
-									{#each proposal.objections as objection}
+									{#each proposal.objections as objection (objection._id || objection.objectionText)}
 										<div class="bg-error/10 border-error/20 rounded-card border inset-sm">
 											<p class="text-body text-error">{objection.objectionText}</p>
 										</div>

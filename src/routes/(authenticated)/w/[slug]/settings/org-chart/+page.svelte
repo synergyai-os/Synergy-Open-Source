@@ -1,10 +1,9 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { useConvexClient } from 'convex-svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import { Button, Heading, Switch } from '$lib/components/atoms';
+	import { Heading, Switch } from '$lib/components/atoms';
 	import { switchRootRecipe, switchThumbRecipe } from '$lib/design-system/recipes';
 	import { toast } from '$lib/utils/toast';
 	import Text from '$lib/components/atoms/Text.svelte';

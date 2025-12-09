@@ -19,7 +19,7 @@
 		result,
 		onImport,
 		importing,
-		workspaceId,
+		workspaceId: _workspaceId,
 		coreTemplates = []
 	}: {
 		result: ParseResult | null;
@@ -30,8 +30,6 @@
 	} = $props();
 
 	const canImport = $derived(result?.success && result.root !== null && result.errors.length === 0);
-
-	const hasCoreRoleWarnings = $derived((result?.coreRoleWarnings?.length ?? 0) > 0);
 
 	const stats = $derived(() => {
 		if (!result?.root) return null;

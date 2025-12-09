@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
 	import { browser } from '$app/environment';
-import { getContext } from 'svelte';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	interface Flashcard {
 		question: string;
@@ -29,8 +29,8 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 		onRejectAll: _onRejectAll
 	}: Props = $props();
 
-const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-const FlashcardComponent = coreAPI?.Flashcard;
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const FlashcardComponent = coreAPI?.Flashcard;
 
 	// Study mode state - cards are removed from queue when rated
 	let reviewQueue = $state<Flashcard[]>([]);
@@ -338,7 +338,7 @@ const FlashcardComponent = coreAPI?.Flashcard;
 									onAnswerChange={(value) => updateFlashcard('answer', value)}
 								/>
 							{:else}
-								<p class="text-secondary text-small text-center">Flashcard component unavailable</p>
+								<p class="text-small text-center text-secondary">Flashcard component unavailable</p>
 							{/if}
 						</div>
 					</div>

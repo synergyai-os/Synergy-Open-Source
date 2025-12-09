@@ -44,7 +44,11 @@
 	const thumbStyle = $derived(
 		`width: var(--sizing-toggle-thumb); 
 		 height: var(--sizing-toggle-thumb);
-		 transform: translateX(${checked ? 'calc(var(--sizing-toggle-width) - var(--sizing-toggle-thumb) - 2px)' : '2px'});`
+		 transform: translateX(${
+				checked
+					? 'calc(var(--sizing-toggle-width) - var(--sizing-toggle-thumb) - var(--spacing-0-5))'
+					: 'var(--spacing-0-5)'
+			});`
 	);
 </script>
 

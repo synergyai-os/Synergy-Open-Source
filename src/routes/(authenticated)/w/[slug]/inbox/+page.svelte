@@ -1,4 +1,5 @@
 <script lang="ts">
+	/// <reference types="@sveltejs/kit" />
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
@@ -27,6 +28,7 @@
 	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
+import { invariant } from '$lib/utils/invariant';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
@@ -44,16 +46,16 @@
 
 	const inboxApi = browser
 		? {
-				getInboxItemWithDetails: makeFunctionReference(
-					'inbox:getInboxItemWithDetails'
+				findInboxItemWithDetails: makeFunctionReference(
+					'inbox:findInboxItemWithDetails'
 				) as FunctionReference<
 					'query',
 					'public',
 					{ sessionId: string; inboxItemId: Id<'inboxItems'> },
 					InboxItemWithDetails | null
 				>,
-				syncReadwiseHighlights: makeFunctionReference(
-					'syncReadwise:syncReadwiseHighlights'
+				fetchReadwiseHighlights: makeFunctionReference(
+					'syncReadwise:fetchReadwiseHighlights'
 				) as FunctionReference<
 					'action',
 					'public',
@@ -73,7 +75,7 @@
 						errorsCount: number;
 					}
 				>,
-				getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as FunctionReference<
+				findSyncProgress: makeFunctionReference('inbox:findSyncProgress') as FunctionReference<
 					'query',
 					'public',
 					{ sessionId: string },
@@ -290,7 +292,7 @@
 		try {
 			const text = sourceText();
 			if (!text || text.trim().length === 0) {
-				throw new Error('No text content available to generate flashcards from');
+				invariant(false, 'No text content available to generate flashcards from');
 			}
 
 			// Get source metadata for prompt context
@@ -298,12 +300,10 @@
 
 			// Get sessionId for authenticated request
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			// Call AI generation with source context
-			const result = await convexClient.action(api.flashcards.generateFlashcard, {
+			const result = await convexClient.action(api.flashcards.fetchFlashcardsFromSource, {
 				sessionId,
 				text: text.trim(),
 				sourceTitle: metadata.title,
@@ -311,7 +311,7 @@
 			});
 
 			if (!result.success || !result.flashcards || result.flashcards.length === 0) {
-				throw new Error('No flashcards generated');
+				invariant(false, 'No flashcards generated');
 			}
 
 			generatedFlashcards = result.flashcards;
@@ -329,9 +329,7 @@
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			// Save all flashcards to database
 			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
@@ -344,11 +342,9 @@
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				const sessionId = getSessionId();
-				if (!sessionId) {
-					throw new Error('Session ID is required');
-				}
+				invariant(sessionId, 'Session ID is required');
 
-				await convexClient.mutation(api.inbox.markProcessed, {
+				await convexClient.mutation(api.inbox.updateProcessed, {
 					sessionId,
 					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});
@@ -367,9 +363,7 @@
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
 			// Save selected flashcards to database (with any edits applied)
 			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
@@ -382,11 +376,9 @@
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				const sessionId = getSessionId();
-				if (!sessionId) {
-					throw new Error('Session ID is required');
-				}
+				invariant(sessionId, 'Session ID is required');
 
-				await convexClient.mutation(api.inbox.markProcessed, {
+				await convexClient.mutation(api.inbox.updateProcessed, {
 					sessionId,
 					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});

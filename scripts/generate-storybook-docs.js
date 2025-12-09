@@ -94,7 +94,7 @@ function escapeMdx(value) {
 /**
  * Generate Colors.mdx
  */
-function generateColorsMdx(baseTokens, semanticTokens) {
+function generateColorsMdx(baseTokens) {
 	const colors = baseTokens.color || {};
 
 	let mdx = `import { Meta, ColorPalette, ColorItem } from '@storybook/addon-docs/blocks';
@@ -1586,7 +1586,7 @@ function main() {
 	console.log('\n📝 Generating MDX documentation...\n');
 
 	const files = [
-		{ name: 'Colors.mdx', content: generateColorsMdx(baseTokens, semanticTokens) },
+		{ name: 'Colors.mdx', content: generateColorsMdx(baseTokens) },
 		{ name: 'Typography.mdx', content: generateTypographyMdx(baseTokens) },
 		{ name: 'Spacing.mdx', content: generateSpacingMdx(baseTokens, semanticTokens) },
 		{ name: 'Shadows.mdx', content: generateShadowsMdx(baseTokens, semanticTokens) },

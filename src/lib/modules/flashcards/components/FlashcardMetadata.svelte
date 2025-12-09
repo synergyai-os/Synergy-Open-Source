@@ -8,6 +8,7 @@
 	import type { Id } from '$lib/convex';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
+import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -50,7 +51,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
@@ -63,9 +64,9 @@
 	// Query tags for this flashcard (using the correct endpoint we created)
 	const flashcardTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.getTagsForFlashcard, () => {
+			? useQuery(api.tags.listTagsForFlashcard, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						flashcardId: flashcard._id
@@ -108,9 +109,7 @@
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!tagging) {
-			throw new Error('Tagging API not available');
-		}
+		invariant(tagging, 'Tagging API not available');
 		try {
 			return await tagging.createTag(displayName, color, parentId);
 		} catch (error) {

@@ -36,6 +36,14 @@ if (!CONVEX_URL) {
 	process.exit(1);
 }
 
+const sessionId = process.env.ADMIN_SESSION_ID;
+
+if (!sessionId) {
+	console.error('❌ ADMIN_SESSION_ID not set in environment');
+	console.error('   Please export ADMIN_SESSION_ID for a system admin session.');
+	process.exit(1);
+}
+
 async function main() {
 	console.log('🚀 Enabling meetings-module feature flag...\n');
 
@@ -46,11 +54,22 @@ async function main() {
 		const targetOrgId = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w';
 
 		// Enable feature flag for workspace
-		await client.mutation(api.featureFlags.upsertFlag, {
+		const mutationArgs = {
+			sessionId,
 			flag: 'meetings-module',
 			enabled: true,
 			allowedWorkspaceIds: [targetOrgId as Id<'workspaces'>]
-		});
+		};
+
+		try {
+			await client.mutation(api.featureFlags.updateFlag, mutationArgs);
+		} catch (error) {
+			if (error instanceof Error && error.message.includes('not found')) {
+				await client.mutation(api.featureFlags.createFlag, mutationArgs);
+			} else {
+				throw error;
+			}
+		}
 
 		console.log('✅ Feature flag enabled successfully');
 		console.log('   Flag: meetings-module');
@@ -61,9 +80,9 @@ async function main() {
 		console.log('   ✅ All users in org "mx7ecpdw61qbsfj3488xaxtd7x7veq2w" can access /dashboard');
 		console.log('   ❌ Users in other orgs cannot access these routes');
 		console.log('\n🔍 Debug flag status:');
-		console.log('   npx convex run featureFlags:getFlag --flag meetings-module');
+		console.log('   npx convex run featureFlags:findFlag --flag meetings-module');
 		console.log(
-			'   npx convex run featureFlags:debugFlagEvaluation --flag meetings-module --sessionId <your-session-id>'
+			'   npx convex run featureFlags:getFlagDebugInfo --flag meetings-module --sessionId <your-session-id>'
 		);
 	} catch (error) {
 		console.error('❌ Error:', error);

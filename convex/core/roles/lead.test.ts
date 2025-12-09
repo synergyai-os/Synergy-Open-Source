@@ -46,4 +46,3 @@ describe('isLeadRequiredForCircleType', () => {
 		expect(isLeadRequiredForCircleType('empowered_team', override)).toBe(false);
 	});
 });
-

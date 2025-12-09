@@ -8,7 +8,8 @@
 import { query, mutation, action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import { v } from 'convex/values';
-import { getAuthUserId } from './auth';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
+import { validateSessionAndGetUserId } from './infrastructure/sessionValidation';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
@@ -42,10 +43,7 @@ export const getOrganizationSettings = query({
 		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			return null;
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify user is member of org
 		const membership = await ctx.db
@@ -56,7 +54,10 @@ export const getOrganizationSettings = query({
 			.first();
 
 		if (!membership) {
-			return null;
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		const settings = await ctx.db
@@ -93,12 +94,7 @@ export const updateOrganizationClaudeApiKey = action({
 		apiKey: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
-			sessionId: args.sessionId
-		});
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify user is admin (actions can't access db, need to run query)
 		const settings = await ctx.runQuery(internal.workspaceSettings.checkAdminAccess, {
@@ -106,7 +102,10 @@ export const updateOrganizationClaudeApiKey = action({
 			workspaceId: args.workspaceId
 		});
 		if (!settings?.isAdmin) {
-			throw new Error('Only workspace admins can update settings');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'Only workspace admins can update settings'
+			);
 		}
 
 		// Validate API key by making a test request to Claude
@@ -126,7 +125,7 @@ export const updateOrganizationClaudeApiKey = action({
 
 		if (!testResponse.ok) {
 			const error = await testResponse.text();
-			throw new Error(`Invalid API key: ${error}`);
+			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, `Invalid API key: ${error}`);
 		}
 
 		// Key is valid, save it
@@ -199,15 +198,15 @@ export const deleteOrganizationClaudeApiKey = mutation({
 		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify user is admin
 		const isAdmin = await isWorkspaceAdmin(ctx, userId, args.workspaceId);
 		if (!isAdmin) {
-			throw new Error('Only workspace admins can delete settings');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'Only workspace admins can delete settings'
+			);
 		}
 
 		const settings = await ctx.db
@@ -237,10 +236,7 @@ export const getOrgSettings = query({
 		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify user is member of workspace
 		const membership = await ctx.db
@@ -251,7 +247,10 @@ export const getOrgSettings = query({
 			.first();
 
 		if (!membership) {
-			throw new Error('You do not have access to this workspace');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You do not have access to this workspace'
+			);
 		}
 
 		const orgSettings = await ctx.db
@@ -316,15 +315,15 @@ export const updateOrgSettings = mutation({
 		coreRoleTemplateIds: v.optional(v.array(v.id('roleTemplates')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify user is admin
 		const isAdmin = await isWorkspaceAdmin(ctx, userId, args.workspaceId);
 		if (!isAdmin) {
-			throw new Error('Only workspace admins can update org chart settings');
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'Only workspace admins can update org chart settings'
+			);
 		}
 
 		// Find existing settings

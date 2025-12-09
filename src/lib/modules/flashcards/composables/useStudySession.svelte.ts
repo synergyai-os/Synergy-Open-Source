@@ -7,6 +7,7 @@ import { browser } from '$app/environment';
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 export type FlashcardRating = 'again' | 'hard' | 'good' | 'easy';
 
@@ -64,7 +65,7 @@ export function useStudySession(getSessionId: () => string | undefined): UseStud
 		browser && getSessionId()
 			? useQuery(api.flashcards.getDueFlashcards, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						limit: state.sessionLimit,
@@ -127,11 +128,9 @@ export function useStudySession(getSessionId: () => string | undefined): UseStud
 
 			// Submit rating to backend
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.reviewFlashcard, {
+			await convexClient.mutation(api.flashcards.updateFlashcardReview, {
 				sessionId,
 				flashcardId: currentCard._id,
 				rating,

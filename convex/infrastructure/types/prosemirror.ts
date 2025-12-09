@@ -9,5 +9,3 @@ export type ProseMirrorNode = {
 	marks?: { type: string; attrs?: Record<string, unknown> }[];
 	text?: string;
 };
-
-

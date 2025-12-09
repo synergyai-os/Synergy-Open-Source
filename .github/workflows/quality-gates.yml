@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Auth guard (Convex)
+        run: npm run guard:auth
+
       - name: Secret Scan
         uses: trufflesecurity/trufflehog@main
         with:

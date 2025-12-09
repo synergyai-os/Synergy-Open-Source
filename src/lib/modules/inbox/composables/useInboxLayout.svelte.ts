@@ -6,8 +6,20 @@
 import { browser } from '$app/environment';
 
 const STORAGE_KEY = 'inboxWidth';
-const DEFAULT_WIDTH = 400;
-const MIN_WIDTH = 175;
+const DEFAULT_WIDTH_TOKEN = '--spacing-96';
+const MIN_WIDTH_TOKEN = '--spacing-44';
+
+function spacingValue(token: string, fallback: number) {
+	if (typeof window === 'undefined') return fallback;
+	const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+	const numeric = Number.parseFloat(raw);
+	if (!Number.isFinite(numeric)) return fallback;
+	return raw.endsWith('rem') ? numeric * 16 : numeric;
+}
+
+// Fallbacks rely on token resolution; 0 keeps SSR safe without hardcoded pixels
+const defaultWidth = spacingValue(DEFAULT_WIDTH_TOKEN, 0);
+const minWidth = spacingValue(MIN_WIDTH_TOKEN, 0);
 
 export interface UseInboxLayoutReturn {
 	get inboxWidth(): number;
@@ -18,13 +30,13 @@ export interface UseInboxLayoutReturn {
 export function useInboxLayout(): UseInboxLayoutReturn {
 	// Layout state
 	const state = $state({
-		inboxWidth: DEFAULT_WIDTH
+		inboxWidth: defaultWidth
 	});
 
 	// Initialize from localStorage or defaults
 	if (browser) {
 		$effect(() => {
-			const savedInboxWidth = parseInt(localStorage.getItem(STORAGE_KEY) || String(DEFAULT_WIDTH));
+			const savedInboxWidth = parseInt(localStorage.getItem(STORAGE_KEY) || String(defaultWidth));
 			state.inboxWidth = savedInboxWidth;
 		});
 	}
@@ -39,7 +51,7 @@ export function useInboxLayout(): UseInboxLayoutReturn {
 
 	// Handle close (collapse to minimum width)
 	function handleClose() {
-		handleInboxWidthChange(MIN_WIDTH);
+		handleInboxWidthChange(minWidth);
 	}
 
 	// Return state and functions using getters for reactivity

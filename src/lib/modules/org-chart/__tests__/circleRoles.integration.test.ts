@@ -151,15 +151,15 @@ describe('Circle Roles Integration Tests', () => {
 			name: 'Temporary Role'
 		});
 
-		// Delete role
-		const result = await t.mutation(api.circleRoles.deleteRole, {
+		// Archive role
+		const result = await t.mutation(api.circleRoles.archiveRole, {
 			sessionId,
 			circleRoleId: roleId
 		});
 
 		expect(result.success).toBe(true);
 
-		// Verify deletion
+		// Verify archive
 		const roles = await t.query(api.circleRoles.listByCircle, {
 			sessionId,
 			circleId
@@ -437,8 +437,8 @@ describe('Circle Roles Integration Tests', () => {
 		});
 		expect(userRolesBefore.length).toBe(1);
 
-		// Delete role
-		await t.mutation(api.circleRoles.deleteRole, {
+		// Archive role
+		await t.mutation(api.circleRoles.archiveRole, {
 			sessionId,
 			circleRoleId: roleId
 		});

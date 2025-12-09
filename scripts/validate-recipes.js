@@ -455,7 +455,7 @@ function checkComponentSemanticToken(
 	};
 
 	// Check each pattern
-	for (const [patternName, { pattern, findToken }] of Object.entries(hardcodedPatterns)) {
+	for (const [_patternName, { pattern, findToken }] of Object.entries(hardcodedPatterns)) {
 		if (pattern.test(className)) {
 			const semanticToken = findToken(tokens);
 			if (semanticToken && utilityClasses.has(semanticToken.utility)) {

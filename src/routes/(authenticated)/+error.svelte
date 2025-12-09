@@ -12,7 +12,7 @@
 	let message = $derived(page.error?.message || 'An error occurred');
 
 	function goHome() {
-		goto(resolveRoute('/inbox'));
+		goto(resolveRoute('/auth/redirect'));
 	}
 
 	function goBack() {

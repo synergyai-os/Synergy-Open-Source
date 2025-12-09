@@ -12,12 +12,13 @@
 import { action } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Test fetching highlights from Readwise API
  * Returns raw API response so we can analyze the structure
  */
-export const testFetchHighlights = action({
+export const fetchTestHighlights = action({
 	args: {
 		// Optional: limit number of results for testing
 		limit: v.optional(v.number()),
@@ -38,7 +39,8 @@ export const testFetchHighlights = action({
 		} else {
 			// Otherwise, get from user settings (requires authentication)
 			if (!args.sessionId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.AUTH_REQUIRED,
 					'Either apiKey or sessionId must be provided. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
@@ -46,7 +48,8 @@ export const testFetchHighlights = action({
 				sessionId: args.sessionId
 			});
 			if (!userId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.AUTH_REQUIRED,
 					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
@@ -56,7 +59,10 @@ export const testFetchHighlights = action({
 				userId
 			});
 			if (!encryptedKeys?.readwiseApiKey) {
-				throw new Error('Readwise API key not found. Please add it in Settings first.');
+				throw createError(
+					ErrorCodes.EXTERNAL_API_KEY_MISSING,
+					'Readwise API key not found. Please add it in Settings first.'
+				);
 			}
 
 			// Decrypt the API key
@@ -84,7 +90,8 @@ export const testFetchHighlights = action({
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				throw new Error(
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 					`Readwise API error: ${response.status} ${response.statusText}\n${errorText}`
 				);
 			}
@@ -121,7 +128,8 @@ export const testFetchHighlights = action({
 			};
 		} catch (error) {
 			console.error(`[testReadwiseApi] Error:`, error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 				`Failed to fetch Readwise highlights: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
@@ -132,7 +140,7 @@ export const testFetchHighlights = action({
  * Test fetching books from Readwise API
  * Books represent the sources of highlights
  */
-export const testFetchBooks = action({
+export const fetchTestBooks = action({
 	args: {
 		limit: v.optional(v.number()),
 		// Optional: API key for direct testing (for use in dashboard)
@@ -150,7 +158,8 @@ export const testFetchBooks = action({
 		} else {
 			// Otherwise, get from user settings (requires authentication)
 			if (!args.sessionId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.AUTH_REQUIRED,
 					'Either apiKey or sessionId must be provided. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
@@ -158,7 +167,8 @@ export const testFetchBooks = action({
 				sessionId: args.sessionId
 			});
 			if (!userId) {
-				throw new Error(
+				throw createError(
+					ErrorCodes.AUTH_REQUIRED,
 					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
@@ -167,7 +177,10 @@ export const testFetchBooks = action({
 				userId
 			});
 			if (!encryptedKeys?.readwiseApiKey) {
-				throw new Error('Readwise API key not found. Please add it in Settings first.');
+				throw createError(
+					ErrorCodes.EXTERNAL_API_KEY_MISSING,
+					'Readwise API key not found. Please add it in Settings first.'
+				);
 			}
 
 			decryptedKey = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
@@ -191,7 +204,8 @@ export const testFetchBooks = action({
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				throw new Error(
+				throw createError(
+					ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 					`Readwise API error: ${response.status} ${response.statusText}\n${errorText}`
 				);
 			}
@@ -218,7 +232,8 @@ export const testFetchBooks = action({
 			};
 		} catch (error) {
 			console.error(`[testReadwiseApi] Error fetching books:`, error);
-			throw new Error(
+			throw createError(
+				ErrorCodes.EXTERNAL_SERVICE_FAILURE,
 				`Failed to fetch Readwise books: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}

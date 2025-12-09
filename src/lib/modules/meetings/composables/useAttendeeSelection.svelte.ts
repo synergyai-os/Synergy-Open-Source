@@ -14,6 +14,7 @@
 import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 export type Attendee = {
 	type: 'user' | 'circle';
@@ -57,9 +58,9 @@ export function useAttendeeSelection(
 	// Query users
 	const usersQuery =
 		browser && params.sessionId()
-			? useQuery(api.workspaces.getMembers, () => {
+			? useQuery(api.workspaces.listMembers, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { workspaceId: params.workspaceId(), sessionId };
 				})
 			: null;
@@ -69,7 +70,7 @@ export function useAttendeeSelection(
 		browser && params.sessionId()
 			? useQuery(api.circles.list, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { workspaceId: params.workspaceId(), sessionId };
 				})
 			: null;

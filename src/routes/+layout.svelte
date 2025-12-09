@@ -90,7 +90,7 @@
 
 				const { token } = await response.json();
 				return token;
-			} catch (error) {
+			} catch (_error) {
 				return null;
 			}
 		});

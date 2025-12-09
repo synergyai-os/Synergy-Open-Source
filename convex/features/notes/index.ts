@@ -1,0 +1,380 @@
+/**
+ * Notes Queries and Mutations
+ *
+ * Handles CRUD operations for rich text notes with AI detection and blog workflow
+ */
+
+import { query, mutation } from '../../_generated/server';
+import { v } from 'convex/values';
+// TODO: Re-enable when Doc type is needed
+// import type { Doc } from '../../_generated/dataModel';
+import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import type { Doc } from '../../_generated/dataModel';
+
+/**
+ * Create a new note
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const createNote = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		title: v.optional(v.string()),
+		content: v.string(), // ProseMirror JSON
+		contentMarkdown: v.optional(v.string()),
+		isAIGenerated: v.optional(v.boolean()),
+		workspaceId: v.optional(v.id('workspaces')),
+		circleId: v.optional(v.id('circles'))
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const now = Date.now();
+
+		const noteId = await ctx.db.insert('inboxItems', {
+			type: 'note',
+			userId,
+			processed: false, // New notes start unprocessed
+			createdAt: now,
+			updatedAt: now,
+			title: args.title,
+			content: args.content,
+			contentMarkdown: args.contentMarkdown,
+			isAIGenerated: args.isAIGenerated,
+			aiGeneratedAt: args.isAIGenerated ? now : undefined,
+			workspaceId: args.workspaceId === null ? undefined : args.workspaceId,
+			circleId: args.circleId,
+			ownershipType: args.workspaceId ? 'workspace' : args.circleId ? 'circle' : 'user'
+		});
+
+		return noteId;
+	}
+});
+
+/**
+ * Update an existing note
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const updateNote = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems'),
+		title: v.optional(v.string()),
+		content: v.optional(v.string()),
+		contentMarkdown: v.optional(v.string()),
+		isAIGenerated: v.optional(v.boolean()),
+		blogCategory: v.optional(v.string()),
+		slug: v.optional(v.string())
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		// Type-safe update data for note type only
+		const updateData: {
+			updatedAt: number;
+			title?: string;
+			content?: string;
+			contentMarkdown?: string;
+			blogCategory?: string;
+			slug?: string;
+			isAIGenerated?: boolean;
+			aiGeneratedAt?: number;
+		} = {
+			updatedAt: Date.now()
+		};
+
+		if (args.title !== undefined) updateData.title = args.title;
+		if (args.content !== undefined) updateData.content = args.content;
+		if (args.contentMarkdown !== undefined) updateData.contentMarkdown = args.contentMarkdown;
+		if (args.blogCategory !== undefined) updateData.blogCategory = args.blogCategory;
+		if (args.slug !== undefined) updateData.slug = args.slug;
+
+		if (args.isAIGenerated !== undefined) {
+			updateData.isAIGenerated = args.isAIGenerated;
+			if (args.isAIGenerated && !note.aiGeneratedAt) {
+				updateData.aiGeneratedAt = Date.now();
+			}
+		}
+
+		await ctx.db.patch(args.noteId, updateData);
+
+		return args.noteId;
+	}
+});
+
+/**
+ * Mark note as AI-generated
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const updateNoteAIFlag = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems')
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		await ctx.db.patch(args.noteId, {
+			isAIGenerated: true,
+			aiGeneratedAt: Date.now(),
+			updatedAt: Date.now()
+		});
+
+		return args.noteId;
+	}
+});
+
+/**
+ * Mark note for blog export
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const updateNoteExport = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems'),
+		slug: v.string()
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		await ctx.db.patch(args.noteId, {
+			blogCategory: 'BLOG',
+			slug: args.slug,
+			updatedAt: Date.now()
+		});
+
+		return args.noteId;
+	}
+});
+
+/**
+ * Mark note as published to blog file
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const updateNotePublished = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems'),
+		publishedTo: v.string() // File path
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		await ctx.db.patch(args.noteId, {
+			publishedTo: args.publishedTo,
+			processed: true, // Published notes are considered processed
+			processedAt: Date.now(),
+			updatedAt: Date.now()
+		});
+
+		return args.noteId;
+	}
+});
+
+/**
+ * Delete a note
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const archiveNote = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems')
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		await ctx.db.delete(args.noteId);
+
+		return { success: true };
+	}
+});
+
+/**
+ * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const updateNoteDevDocsExport = mutation({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems')
+	},
+	handler: async (ctx, args) => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+		}
+
+		if (note.type !== 'note') {
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
+		}
+
+		// Generate slug from title or use note ID
+		const title = note.title || 'untitled';
+		const slug = title
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/^-|-$/g, '');
+
+		await ctx.db.patch(args.noteId, {
+			slug: slug || note._id,
+			updatedAt: Date.now()
+		});
+
+		return { slug: slug || note._id };
+	}
+});
+
+/**
+ * List all notes for current user
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const listNotes: Query<
+	{
+		sessionId: string;
+		processed?: boolean;
+		blogOnly?: boolean;
+		workspaceId?: Id<'workspaces'>;
+		circleId?: Id<'circles'>;
+	},
+	Doc<'inboxItems'>[]
+> = query({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		processed: v.optional(v.boolean()),
+		blogOnly: v.optional(v.boolean()),
+		workspaceId: v.optional(v.id('workspaces')),
+		circleId: v.optional(v.id('circles'))
+	},
+	handler: async (ctx, args): Promise<Doc<'inboxItems'>[]> => {
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const itemsQuery = ctx.db
+			.query('inboxItems')
+			.withIndex('by_user_type', (q) => q.eq('userId', userId).eq('type', 'note'));
+
+		let items = await itemsQuery.collect();
+
+		// Filter by workspace context
+		if (args.workspaceId !== undefined) {
+			// Organization workspace
+			if (args.circleId) {
+				items = items.filter((item) => item.circleId === args.circleId);
+			} else {
+				items = items.filter((item) => item.workspaceId === args.workspaceId && !item.circleId);
+			}
+		}
+
+		// Filter by processed status
+		if (args.processed !== undefined) {
+			items = items.filter((item) => item.processed === args.processed);
+		}
+
+		// Filter for blog posts only
+		if (args.blogOnly) {
+			items = items.filter((item) => item.type === 'note' && item.blogCategory === 'BLOG');
+		}
+
+		// Sort by updatedAt or createdAt descending
+		return items.sort((a, b) => {
+			const aTime = a.type === 'note' && a.updatedAt ? a.updatedAt : a.createdAt;
+			const bTime = b.type === 'note' && b.updatedAt ? b.updatedAt : b.createdAt;
+			return bTime - aTime;
+		});
+	}
+});
+
+/**
+ * Get a single note by ID
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
+export const findNote = query({
+	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
+		noteId: v.id('inboxItems')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const note = await ctx.db.get(args.noteId);
+
+		if (!note || note.userId !== userId) {
+			return null;
+		}
+
+		if (note.type !== 'note') {
+			return null;
+		}
+
+		return note;
+	}
+});

@@ -15,6 +15,7 @@ import { useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { Doc } from '$convex/_generated/dataModel';
 import type { UseTasksOptions, UseTasksReturn } from '../api';
+import { invariant } from '$lib/utils/invariant';
 
 // Type alias for clarity - Task is just a Doc with no additional fields
 export type Task = Doc<'tasks'>;
@@ -42,7 +43,7 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 		browser && params.sessionId()
 			? useQuery(api.tasks.listByAgendaItem, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId, agendaItemId: params.agendaItemId() };
 				})
 			: null;
@@ -50,9 +51,9 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 	// Query workspace members (for user dropdown)
 	const membersQuery =
 		browser && params.sessionId()
-			? useQuery(api.workspaces.getMembers, () => {
+			? useQuery(api.workspaces.listMembers, () => {
 					const sessionId = params.sessionId();
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return { sessionId, workspaceId: params.workspaceId() };
 				})
 			: null;
@@ -63,8 +64,8 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 			? useQuery(api.circleRoles.listByCircle, () => {
 					const sessionId = params.sessionId();
 					const circleId = params.circleId?.();
-					if (!sessionId) throw new Error('sessionId required');
-					if (!circleId) throw new Error('circleId required');
+					invariant(sessionId, 'sessionId required');
+					invariant(circleId, 'circleId required');
 					return { sessionId, circleId };
 				})
 			: null;

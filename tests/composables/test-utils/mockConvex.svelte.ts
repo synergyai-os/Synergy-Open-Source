@@ -300,13 +300,13 @@ export function __getMockQueryResult(queryFn: unknown): MockQueryResult<unknown>
 	if (queryName.includes('listInboxItems')) {
 		return globalQueryResults.inboxItems ?? createMockQueryResult(createMockInboxItems());
 	}
-	if (queryName.includes('getInboxItemWithDetails')) {
+	if (queryName.includes('findInboxItemWithDetails')) {
 		return (
 			globalQueryResults.inboxItemWithDetails ??
 			createMockQueryResult(createMockInboxItemWithDetails())
 		);
 	}
-	if (queryName.includes('getSyncProgress')) {
+	if (queryName.includes('findSyncProgress')) {
 		return globalQueryResults.syncProgress ?? createMockQueryResult(createMockSyncProgress());
 	}
 

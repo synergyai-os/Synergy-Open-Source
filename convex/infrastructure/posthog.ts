@@ -11,7 +11,11 @@ type AnalyticsEvent<K extends AnalyticsEventName = AnalyticsEventName> = {
 	properties?: Record<string, unknown>;
 };
 
-async function posthogCapture(event: string, distinctId: string, properties?: Record<string, unknown>) {
+async function posthogCapture(
+	event: string,
+	distinctId: string,
+	properties?: Record<string, unknown>
+) {
 	const apiKey = process.env.PUBLIC_POSTHOG_KEY;
 	const host = process.env.PUBLIC_POSTHOG_HOST ?? 'https://app.posthog.com';
 	if (!apiKey) return;
@@ -28,7 +32,9 @@ async function posthogCapture(event: string, distinctId: string, properties?: Re
 	});
 }
 
-export async function captureAnalyticsEvent<K extends AnalyticsEventName>(event: AnalyticsEvent<K>) {
+export async function captureAnalyticsEvent<K extends AnalyticsEventName>(
+	event: AnalyticsEvent<K>
+) {
 	await posthogCapture(event.name, event.distinctId, event.properties);
 }
 

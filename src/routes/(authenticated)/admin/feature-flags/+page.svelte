@@ -42,6 +42,7 @@
 	let userSearchQuery = $state('');
 	let userSearchResult: UserFlagsResult | null = $state(null);
 	let userSearchLoading = $state(false);
+	let userNotFound = $state(false);
 	// eslint-disable-next-line svelte/no-unnecessary-state-wrap
 	let expandedFlags = $state(new SvelteSet<string>());
 
@@ -98,7 +99,7 @@
 
 	type UserFlagsResult = {
 		userEmail: string;
-		userId: string | null;
+		userId: string;
 		flags: Array<{
 			flag: string;
 			enabled: boolean;
@@ -147,15 +148,25 @@
 		if (!userSearchQuery.trim() || !sessionId) return;
 
 		userSearchLoading = true;
+		userNotFound = false;
+		userSearchResult = null;
+
 		try {
-			const result = await convexClient?.query(api.featureFlags.getFlagsForUser, {
+			const result = await convexClient?.query(api.featureFlags.findFlagsForUser, {
 				sessionId,
 				userEmail: userSearchQuery.trim()
 			});
+
+			if (!result) {
+				userNotFound = true;
+				return;
+			}
+
 			userSearchResult = result as UserFlagsResult;
 		} catch (error) {
 			console.error('Failed to search user flags:', error);
 			userSearchResult = null;
+			userNotFound = false;
 		} finally {
 			userSearchLoading = false;
 		}
@@ -245,7 +256,7 @@
 		if (!convexClient || !sessionId) return;
 
 		try {
-			await convexClient.mutation(api.featureFlags.toggleFlag, {
+			await convexClient.mutation(api.featureFlags.updateFlagState, {
 				sessionId,
 				flag: flag.flag,
 				enabled
@@ -299,7 +310,7 @@
 		const domains = parseDomains(formDomainInput);
 
 		try {
-			await convexClient.mutation(api.featureFlags.upsertFlag, {
+			const commonArgs = {
 				sessionId,
 				flag: formFlag,
 				description: formDescription.trim() || undefined,
@@ -310,7 +321,13 @@
 				allowedWorkspaceIds:
 					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'workspaces'>[]) : undefined,
 				allowedDomains: domains.length > 0 ? domains : undefined
-			});
+			};
+
+			if (editModalOpen) {
+				await convexClient.mutation(api.featureFlags.updateFlag, commonArgs);
+			} else {
+				await convexClient.mutation(api.featureFlags.createFlag, commonArgs);
+			}
 
 			createModalOpen = false;
 			editModalOpen = false;
@@ -331,7 +348,7 @@
 		if (!confirm(`Are you sure you want to delete the flag "${flag.flag}"?`)) return;
 
 		try {
-			await convexClient.mutation(api.featureFlags.deleteFlag, {
+			await convexClient.mutation(api.featureFlags.archiveFlag, {
 				sessionId,
 				flag: flag.flag
 			});
@@ -354,9 +371,9 @@
 		debugResult = null;
 
 		try {
-			// Note: debugFlagEvaluation uses the current user's sessionId
+			// Note: getFlagDebugInfo uses the current user's sessionId
 			// For evaluating other users, we'd need a separate admin debug endpoint
-			const result = await convexClient.query(api.featureFlags.debugFlagEvaluation, {
+			const result = await convexClient.query(api.featureFlags.getFlagDebugInfo, {
 				sessionId,
 				flag: debugFlagSelect
 			});
@@ -727,49 +744,53 @@
 									<h4 class="mb-content-section text-small font-semibold text-primary">
 										Results for: {userSearchResult.userEmail}
 									</h4>
-									{#if !userSearchResult.userId}
-										<p class="text-small text-secondary">User not found in system</p>
-									{:else}
-										{@const enabledFlags = userSearchResult.flags.filter((f) => f.result)}
-										{@const disabledFlags = userSearchResult.flags.filter((f) => !f.result)}
-										<div class="space-y-content-section">
-											{#if enabledFlags.length > 0}
-												<div>
-													<p class="mb-form-field-gap text-small font-medium text-primary">
-														✅ Enabled Flags ({enabledFlags.length}):
-													</p>
-													<div class="space-y-form-field-gap">
-														{#each enabledFlags as flagFlag (flagFlag.flag)}
-															<div
-																class="border-accent-primary/20 bg-accent-primary/5 px-card py-card rounded-button border"
-															>
-																<p class="text-small font-medium text-primary">{flagFlag.flag}</p>
-																<p class="text-label text-secondary">{flagFlag.reason}</p>
-															</div>
-														{/each}
-													</div>
+									{@const enabledFlags = userSearchResult.flags.filter((f) => f.result)}
+									{@const disabledFlags = userSearchResult.flags.filter((f) => !f.result)}
+									<div class="space-y-content-section">
+										{#if enabledFlags.length > 0}
+											<div>
+												<p class="mb-form-field-gap text-small font-medium text-primary">
+													✅ Enabled Flags ({enabledFlags.length}):
+												</p>
+												<div class="space-y-form-field-gap">
+													{#each enabledFlags as flagFlag (flagFlag.flag)}
+														<div
+															class="border-accent-primary/20 bg-accent-primary/5 px-card py-card rounded-button border"
+														>
+															<p class="text-small font-medium text-primary">{flagFlag.flag}</p>
+															<p class="text-label text-secondary">{flagFlag.reason}</p>
+														</div>
+													{/each}
 												</div>
-											{/if}
+											</div>
+										{/if}
 
-											{#if disabledFlags.length > 0}
-												<div>
-													<p class="mb-form-field-gap text-small font-medium text-primary">
-														❌ Disabled Flags ({disabledFlags.length}):
-													</p>
-													<div class="space-y-form-field-gap">
-														{#each disabledFlags as flagFlag (flagFlag.flag)}
-															<div
-																class="border-base px-card py-card rounded-button border bg-elevated"
-															>
-																<p class="text-small font-medium text-secondary">{flagFlag.flag}</p>
-																<p class="text-label text-tertiary">{flagFlag.reason}</p>
-															</div>
-														{/each}
-													</div>
+										{#if disabledFlags.length > 0}
+											<div>
+												<p class="mb-form-field-gap text-small font-medium text-primary">
+													❌ Disabled Flags ({disabledFlags.length}):
+												</p>
+												<div class="space-y-form-field-gap">
+													{#each disabledFlags as flagFlag (flagFlag.flag)}
+														<div
+															class="border-base px-card py-card rounded-button border bg-elevated"
+														>
+															<p class="text-small font-medium text-secondary">{flagFlag.flag}</p>
+															<p class="text-label text-tertiary">{flagFlag.reason}</p>
+														</div>
+													{/each}
 												</div>
-											{/if}
-										</div>
-									{/if}
+											</div>
+										{/if}
+									</div>
+								</div>
+							{:else if userNotFound}
+								<div
+									class="mt-settings-section border-base px-card py-card rounded-card border bg-elevated"
+								>
+									<p class="text-small text-secondary">
+										User {userSearchQuery.trim()} not found in system
+									</p>
 								</div>
 							{/if}
 						</div>

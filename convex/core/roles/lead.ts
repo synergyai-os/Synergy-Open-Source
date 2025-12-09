@@ -5,16 +5,17 @@
  */
 
 import { isLeadTemplate, type RoleTemplate } from './detection';
+import type { Id } from '../../_generated/dataModel';
 
 export type RoleCircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
 
 export type LeadRequirementMap = Partial<Record<RoleCircleType, boolean>>;
 
 export type RoleWithTemplate = {
-	templateId?: string | null;
+	templateId?: Id<'roleTemplates'> | null;
 };
 
-export type TemplateLookup = (templateId: string) => RoleTemplate | null | undefined;
+export type TemplateLookup = (templateId: Id<'roleTemplates'>) => RoleTemplate | null | undefined;
 
 const DEFAULT_LEAD_REQUIRED: Record<RoleCircleType, boolean> = {
 	hierarchy: true,
@@ -33,10 +34,7 @@ export function isLeadRequiredForCircleType(
 ): boolean {
 	const effectiveType = circleType ?? 'hierarchy';
 
-	if (
-		leadRequirementByCircleType &&
-		leadRequirementByCircleType[effectiveType] !== undefined
-	) {
+	if (leadRequirementByCircleType && leadRequirementByCircleType[effectiveType] !== undefined) {
 		return Boolean(leadRequirementByCircleType[effectiveType]);
 	}
 
@@ -49,10 +47,7 @@ export function isLeadRequiredForCircleType(
  * @param roles - Roles with optional templateId
  * @param getTemplate - Lookup function for templates
  */
-export function countLeadRoles(
-	roles: RoleWithTemplate[],
-	getTemplate: TemplateLookup
-): number {
+export function countLeadRoles(roles: RoleWithTemplate[], getTemplate: TemplateLookup): number {
 	let leadCount = 0;
 
 	for (const role of roles) {
@@ -66,4 +61,3 @@ export function countLeadRoles(
 
 	return leadCount;
 }
-

@@ -19,6 +19,7 @@
 	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
 	import ImportProposalButton from '$lib/modules/org-chart/components/proposals/ImportProposalButton.svelte';
 	import { Icon, Heading, Text, Button } from '$lib/components/atoms';
+import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		data: {
@@ -49,12 +50,10 @@
 	// Wrap in $derived to make query creation reactive
 	const templateQuery = $derived(
 		browser && session.meeting?.templateId && sessionId()
-			? useQuery(api.meetingTemplates.get, () => {
+			? useQuery(api.modules.meetings.templates.get, () => {
 					const meeting = session.meeting;
 					const sid = sessionId();
-					if (!meeting?.templateId || !sid) {
-						throw new Error('Meeting templateId and sessionId required');
-					}
+					invariant(meeting?.templateId && sid, 'Meeting templateId and sessionId required');
 					return {
 						sessionId: sid,
 						templateId: meeting.templateId
@@ -88,12 +87,12 @@
 		sessionId
 	});
 
-	// Start heartbeat on mount, stop on unmount (browser-safe pattern)
+	// Start recordHeartbeat on mount, stop on unmount (browser-safe pattern)
 	// Use untrack() to prevent infinite effect loops (SYOS-227)
 	$effect(() => {
 		if (!browser) return;
 
-		// Call heartbeat functions without tracking their internal reactive dependencies
+		// Call recordHeartbeat functions without tracking their internal reactive dependencies
 		untrack(() => {
 			presence.startHeartbeat();
 		});
@@ -183,7 +182,7 @@
 	) {
 		try {
 			// Call mutation
-			await convexClient.mutation(api.meetingAgendaItems.markStatus, {
+			await convexClient.mutation(api.modules.meetings.agendaItems.markStatus, {
 				agendaItemId: itemId,
 				sessionId: sessionId(),
 				status

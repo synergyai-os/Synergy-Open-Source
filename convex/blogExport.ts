@@ -11,6 +11,7 @@ import { api, internal } from './_generated/api';
 import type { FunctionReference } from 'convex/server';
 import type { ProseMirrorDoc, ProseMirrorNode } from '../src/lib/types/prosemirror';
 import type { Doc } from './_generated/dataModel';
+import { createError, ErrorCodes } from './infrastructure/errors/codes';
 
 /**
  * Convert ProseMirror JSON to Markdown
@@ -131,21 +132,21 @@ export const exportNoteToBlog = action({
 			sessionId: args.sessionId
 		});
 		if (!userId) {
-			throw new Error('Not authenticated');
+			throw createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated');
 		}
 
 		// Get the note
-		const note = await ctx.runQuery(api.notes.getNote, {
+		const note = await ctx.runQuery(api.notes.findNote, {
 			sessionId: args.sessionId,
 			noteId: args.noteId
 		});
 
 		if (!note) {
-			throw new Error('Note not found');
+			throw createError(ErrorCodes.NOTE_NOT_FOUND, 'Note not found');
 		}
 
 		if (note.type !== 'note') {
-			throw new Error('Item is not a note');
+			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
 		}
 
 		// Convert ProseMirror JSON to markdown
@@ -154,7 +155,7 @@ export const exportNoteToBlog = action({
 			const doc = JSON.parse(note.content);
 			markdown = prosemirrorToMarkdown(doc);
 		} catch {
-			throw new Error('Failed to parse note content');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Failed to parse note content');
 		}
 
 		// Generate frontmatter
@@ -174,7 +175,7 @@ export const exportNoteToBlog = action({
 		// The client would handle writing to the file system or triggering a webhook
 
 		// Mark note as published
-		await ctx.runMutation(api.notes.markAsPublished, {
+		await ctx.runMutation(api.notes.updateNotePublished, {
 			sessionId: args.sessionId,
 			noteId: args.noteId,
 			publishedTo: filepath

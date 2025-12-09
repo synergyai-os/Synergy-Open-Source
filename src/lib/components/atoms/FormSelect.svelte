@@ -21,6 +21,7 @@
 		disabled?: boolean;
 		allowDeselect?: boolean;
 		class?: string;
+		onchange?: ((value: string) => void) | undefined;
 	};
 
 	let {
@@ -34,7 +35,8 @@
 		required = false,
 		disabled = false,
 		allowDeselect = false,
-		class: customClass = ''
+		class: customClass = '',
+		onchange
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -58,8 +60,10 @@
 	function handleValueChange(newValue: string | undefined) {
 		if (newValue === undefined && allowDeselect) {
 			value = '';
+			onchange?.('');
 		} else if (newValue !== undefined) {
 			value = newValue;
+			onchange?.(newValue);
 		}
 	}
 </script>

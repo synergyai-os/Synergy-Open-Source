@@ -1,7 +1,8 @@
 import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
-import type { CircleMember, RoleFiller } from './useCircles.svelte';
+import type { CircleMember } from './useCircles.svelte';
+import { invariant } from '$lib/utils/invariant';
 
 export type UseCircleRoles = ReturnType<typeof useCircleRoles>;
 
@@ -26,7 +27,7 @@ export function useCircleRoles(options: {
 		return useQuery(api.circleRoles.getRoleFillers, () => {
 			const sessionId = getSessionId();
 			const roleId = getExpandedRoleId();
-			if (!sessionId || !roleId) throw new Error('sessionId and roleId required');
+			invariant(sessionId && roleId, 'sessionId and roleId required');
 			return { sessionId, circleRoleId: roleId as Id<'circleRoles'> };
 		});
 	});

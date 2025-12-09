@@ -1,4 +1,6 @@
+<!-- eslint-disable svelte/prefer-writable-derived -->
 <script lang="ts">
+	/* eslint-disable svelte/prefer-writable-derived */
 	import type { CalendarDate } from '@internationalized/date';
 	import {
 		CalendarDate as CalendarDateClass,
@@ -85,7 +87,7 @@
 	>
 		<DateField.Input {id} class={inputClasses}>
 			{#snippet children({ segments })}
-				{#each segments as { part, value: segmentValue }}
+				{#each segments as { part, value: segmentValue } (part)}
 					<DateField.Segment {part}>
 						{segmentValue}
 					</DateField.Segment>
@@ -130,11 +132,11 @@
 								<DatePicker.Heading class={datePickerHeadingRecipe()} />
 								<DatePicker.NextButton class={datePickerNavButtonRecipe()}>→</DatePicker.NextButton>
 							</DatePicker.Header>
-							{#each months as month}
+							{#each months as month (month.value)}
 								<DatePicker.Grid>
 									<DatePicker.GridHead class={datePickerGridHeadRecipe()}>
 										<DatePicker.GridRow class={datePickerGridRowRecipe()}>
-											{#each weekdays as day}
+											{#each weekdays as day (day)}
 												<DatePicker.HeadCell class={datePickerHeadCellRecipe()}>
 													{day}
 												</DatePicker.HeadCell>
@@ -142,9 +144,9 @@
 										</DatePicker.GridRow>
 									</DatePicker.GridHead>
 									<DatePicker.GridBody class={datePickerGridBodyRecipe()}>
-										{#each month.weeks as weekDates}
+										{#each month.weeks as weekDates, weekIndex (weekIndex)}
 											<DatePicker.GridRow class={datePickerGridRowRecipe()}>
-												{#each weekDates as date}
+												{#each weekDates as date, dateIndex (`${weekIndex}-${date?.toString?.() ?? dateIndex}`)}
 													<DatePicker.Cell
 														{date}
 														month={month.value}

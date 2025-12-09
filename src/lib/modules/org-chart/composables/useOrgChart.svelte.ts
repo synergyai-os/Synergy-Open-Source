@@ -4,21 +4,13 @@ import { api, type Id } from '$lib/convex';
 import { SvelteMap } from 'svelte/reactivity';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
 import { getContext } from 'svelte';
+import { invariant } from '$lib/utils/invariant';
 import type {
 	CircleSummary,
 	CircleMember,
 	RoleFiller
 } from '$lib/infrastructure/organizational-model';
 import type { CoreModuleAPI } from '$lib/modules/core/api';
-
-// Type for role template (from api.roleTemplates.list)
-type RoleTemplate = {
-	_id: Id<'roleTemplates'>;
-	name: string;
-	description?: string;
-	isCore: boolean;
-	isRequired: boolean;
-};
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
@@ -47,9 +39,7 @@ export function useOrgChart(options: {
 	const getWorkspaceId = options.workspaceId;
 
 	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-	if (!coreAPI?.useNavigationStack) {
-		throw new Error('Core navigation stack API unavailable');
-	}
+	invariant(coreAPI?.useNavigationStack, 'Core navigation stack API unavailable');
 
 	// Navigation stack for hierarchical panel navigation
 	const navigationStack = coreAPI.useNavigationStack();
@@ -106,7 +96,7 @@ export function useOrgChart(options: {
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
 				// Query will retry reactively when workspaceId becomes available
-				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 			})
 		: null;
@@ -121,7 +111,7 @@ export function useOrgChart(options: {
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
 				// Query will retry reactively when workspaceId becomes available
-				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 			})
 		: null;
@@ -135,7 +125,7 @@ export function useOrgChart(options: {
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
 				// Query will retry reactively when workspaceId becomes available
-				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 			})
 		: null;
@@ -146,7 +136,7 @@ export function useOrgChart(options: {
 		? useQuery(api.workspaceSettings.getOrgSettings, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
-				if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 			})
 		: null;
@@ -370,9 +360,7 @@ export function useOrgChart(options: {
 		browser && state.selectedRoleId
 			? useQuery(api.circleRoles.get, () => {
 					const sessionId = getSessionId();
-					if (!sessionId || !state.selectedRoleId) {
-						throw new Error('sessionId and selectedRoleId required');
-					}
+					invariant(sessionId && state.selectedRoleId, 'sessionId and selectedRoleId required');
 					return { sessionId, roleId: state.selectedRoleId };
 				})
 			: null
