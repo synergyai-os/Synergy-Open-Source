@@ -26,7 +26,7 @@ Explicit, testable statements about what must be true for CORE to be sound.
 | Identity Chain           | IDENT-01 to IDENT-09   | 9      |
 | Organizational Structure | ORG-01 to ORG-09       | 9      |
 | Circle Membership        | CMEM-01 to CMEM-04     | 4      |
-| Role Definitions         | ROLE-01 to ROLE-05     | 5      |
+| Role Definitions         | ROLE-01 to ROLE-06     | 6      |
 | Assignments              | ASSIGN-01 to ASSIGN-06 | 6      |
 | Legacy Assignments       | UCROLE-01 to UCROLE-04 | 4      |
 | Authority                | AUTH-01 to AUTH-04     | 4      |
@@ -34,7 +34,7 @@ Explicit, testable statements about what must be true for CORE to be sound.
 | History                  | HIST-01 to HIST-04     | 4      |
 | Workspaces               | WS-01 to WS-05         | 5      |
 | Cross-Domain             | XDOM-01 to XDOM-05     | 5      |
-| **Total**                |                        | **61** |
+| **Total**                |                        | **62** |
 
 ---
 
@@ -104,13 +104,18 @@ Circle members track explicit membership (separate from role assignments).
 
 Roles define positions that can be filled by assignments.
 
-| ID      | Invariant                                                             | Why                         | Check                                                | Severity |
-| ------- | --------------------------------------------------------------------- | --------------------------- | ---------------------------------------------------- | -------- |
-| ROLE-01 | Every `circleRoles.circleId` points to existing circle                | Orphaned role               | All `circleRoles.circleId` resolve via `db.get()`    | critical |
-| ROLE-02 | Every `circleRoles.workspaceId` matches `circle.workspaceId`          | Cross-workspace leak        | `circleRoles.workspaceId === circle.workspaceId`     | critical |
-| ROLE-03 | Every `circleRoles.templateId` (when set) points to existing template | Broken template reference   | All `circleRoles.templateId` resolve via `db.get()`  | warning  |
-| ROLE-04 | Role `status` is valid enum value                                     | Invalid lifecycle state     | Value in `['draft', 'active']`                       | critical |
-| ROLE-05 | Core role templates (`isCore=true`) exist for every workspace         | Bootstrap authority missing | Each workspace has Circle Lead template instantiated | critical |
+| ID      | Invariant                                                             | Why                         | Check                                                    | Severity |
+| ------- | --------------------------------------------------------------------- | --------------------------- | -------------------------------------------------------- | -------- |
+| ROLE-01 | Every `circleRoles.circleId` points to existing circle                | Orphaned role               | All `circleRoles.circleId` resolve via `db.get()`        | critical |
+| ROLE-02 | Every `circleRoles.workspaceId` matches `circle.workspaceId`          | Cross-workspace leak        | `circleRoles.workspaceId === circle.workspaceId`         | critical |
+| ROLE-03 | Every `circleRoles.templateId` (when set) points to existing template | Broken template reference   | All `circleRoles.templateId` resolve via `db.get()`      | warning  |
+| ROLE-04 | Role `status` is `draft` or `active` only                             | Invalid lifecycle state     | Value in `['draft', 'active']`; no `deleted` status      | critical |
+| ROLE-05 | Core role templates (`isCore=true`) exist for every workspace         | Bootstrap authority missing | Each workspace has Circle Lead template instantiated     | critical |
+| ROLE-06 | Roles with `archivedByPersonId` must have `archivedAt`                | Incomplete soft delete      | `archivedByPersonId` set → `archivedAt` must also be set | warning  |
+
+> **Role Deletion Model**: Roles use soft delete via `archivedAt` timestamp, not a status change.
+> When a role is "deleted", `archivedAt` is set and `archivedByPersonId` records who deleted it.
+> The `status` field (`draft`/`active`) represents lifecycle state, not deletion state.
 
 ---
 
@@ -268,6 +273,7 @@ Each invariant can be checked by:
 | 1.1     | 2025-12-11 | IDENT-08 refined for invited→archived edge case (SYOS-806) |
 | 1.2     | 2025-12-11 | Add archived workspace exclusion notes (SYOS-811)          |
 | 1.3     | 2025-12-11 | Clarify ORG-07/ORG-09 soft delete model                    |
+| 1.4     | 2025-12-11 | Add ROLE-06, clarify role soft delete model                |
 
 ---
 
