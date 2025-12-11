@@ -77,9 +77,13 @@ These define organizational structure — the nouns of the system.
 | ORG-04 | Every `circle.workspaceId` points to existing workspace                                | Orphaned circle               | All `circles.workspaceId` resolve via `db.get()`                                      | critical |
 | ORG-05 | Circle's parent belongs to same workspace                                              | Cross-workspace leak          | `circles.workspaceId === parent.workspaceId`                                          | critical |
 | ORG-06 | Circle `circleType` is valid enum value when set                                       | Invalid authority calculation | Value in `['hierarchy', 'empowered_team', 'guild', 'hybrid']` or null                 | critical |
-| ORG-07 | Circle `status` is valid enum value                                                    | Invalid lifecycle state       | Value in `['draft', 'active']`                                                        | critical |
+| ORG-07 | Circle `status` is `draft` or `active` only                                            | Invalid lifecycle state       | Value in `['draft', 'active']`; no `deleted` status                                   | critical |
 | ORG-08 | Circle `slug` is unique within workspace                                               | Broken URL routing            | `by_slug` index unique per workspace                                                  | critical |
-| ORG-09 | Archived circles have `archivedAt` timestamp set                                       | Incomplete archival           | `archivedAt IS NOT NULL` for all archived circles                                     | warning  |
+| ORG-09 | Circles with `archivedByPersonId` must have `archivedAt`                               | Incomplete soft delete        | `archivedByPersonId` set → `archivedAt` must also be set                              | warning  |
+
+> **Circle Deletion Model**: Circles use soft delete via `archivedAt` timestamp, not a status change.
+> When a circle is "deleted", `archivedAt` is set and `archivedByPersonId` records who deleted it.
+> The `status` field (`draft`/`active`) represents lifecycle state, not deletion state.
 
 ---
 
@@ -263,6 +267,7 @@ Each invariant can be checked by:
 | 1.0     | 2025-12-11 | Initial creation per SYOS-803                              |
 | 1.1     | 2025-12-11 | IDENT-08 refined for invited→archived edge case (SYOS-806) |
 | 1.2     | 2025-12-11 | Add archived workspace exclusion notes (SYOS-811)          |
+| 1.3     | 2025-12-11 | Clarify ORG-07/ORG-09 soft delete model                    |
 
 ---
 

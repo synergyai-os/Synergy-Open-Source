@@ -7,14 +7,13 @@ const VALID_CIRCLE_STATUS = new Set(['draft', 'active']);
 export const checkORG01 = internalQuery({
 	args: {},
 	handler: async (ctx): Promise<InvariantResult> => {
-		const [circles, workspaces, people] = await Promise.all([
+		const [circles, workspaces] = await Promise.all([
 			ctx.db.query('circles').collect(),
-			ctx.db.query('workspaces').collect(),
-			ctx.db.query('people').collect()
+			ctx.db.query('workspaces').collect()
 		]);
 
-		// Abandoned workspaces excluded per SYOS-806
-		const operationalWorkspaces = findOperationalWorkspaces(people);
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 
 		const rootCounts = new Map<string, number>();
 		for (const circle of circles) {
@@ -242,21 +241,19 @@ export const checkORG09 = internalQuery({
 	handler: async (ctx): Promise<InvariantResult> => {
 		const violations = (await ctx.db.query('circles').collect())
 			.filter(
-				(circle) =>
-					(circle.archivedByPersonId || circle.status === 'archived') &&
-					circle.archivedAt === undefined
+				(circle) => circle.archivedByPersonId !== undefined && circle.archivedAt === undefined
 			)
 			.map((circle) => circle._id.toString());
 
 		return makeResult({
 			id: 'ORG-09',
-			name: 'Archived circles have archivedAt timestamp set',
+			name: 'Circles with archivedByPersonId must have archivedAt',
 			severity: 'warning',
 			violations,
 			message:
 				violations.length === 0
-					? 'Archived circles carry archivedAt timestamps'
-					: `${violations.length} archived circle(s) missing archivedAt`
+					? 'All soft-deleted circles have complete archival metadata'
+					: `${violations.length} circle(s) have archivedByPersonId but missing archivedAt`
 		});
 	}
 });
