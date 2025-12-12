@@ -206,7 +206,7 @@
 					- Radial gradient positioned at top center for natural light feel
 				-->
 				<div
-					class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[oklch(55%_0.12_195_/_0.05)] via-[oklch(55%_0.06_195_/_0.02)] to-transparent"
+					class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[var(--gradient-overlay-from)] via-[var(--gradient-overlay-via)] to-transparent"
 					aria-hidden="true"
 				></div>
 				<div class="relative">

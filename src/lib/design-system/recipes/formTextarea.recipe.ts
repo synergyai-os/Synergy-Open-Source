@@ -16,15 +16,14 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * - Focus: brand border + subtle shadow glow
  * - Hover: slightly darker border
  *
- * DESIGN SYSTEM NOTE: Focus Ring (using oklch brand hue)
- * The focus ring uses `oklch(55% 0.15 195 / 0.12)` which matches our brand.primary token hue (195).
- * This ensures the glow changes if brand color changes. The oklch format is consistent with our tokens.
- * TODO: Once token build supports light/dark mode shadow tokens, migrate to --shadow-focusRing
+ * DESIGN SYSTEM NOTE: Focus Ring (using CSS variable)
+ * Uses --shadow-focusRing token which provides light/dark mode support.
+ * The token uses color-mix() for proper alpha handling in Tailwind v4.
  */
 export const formTextareaRecipe = cva(
 	// Base classes - applied to all textareas
 	// Same base styling as formInputRecipe, with resize-y for textarea
-	'rounded-input border border-strong bg-base text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none resize-y',
+	'rounded-input border border-strong bg-base text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[var(--shadow-focusRing)] focus:outline-none resize-y',
 	{
 		variants: {
 			size: {

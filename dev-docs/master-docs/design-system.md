@@ -186,7 +186,8 @@ After running `npm run tokens:build`:
 
 ```
 src/styles/tokens/
-  ├── colors.css      # Color CSS variables + conditional (light/dark)
+  ├── colors.css      # Base color tokens in @theme block (Tailwind-compatible)
+  ├── colors-conditional.css  # Conditional tokens (light/dark) - loaded via <link> tag
   ├── spacing.css     # Spacing CSS variables
   ├── typography.css  # Typography CSS variables
   ├── effects.css     # Border radius, shadows
@@ -657,11 +658,32 @@ Semantic tokens define light AND dark values:
 }
 ```
 
-Generated CSS uses `:root` for light mode and `.dark` class for dark mode:
+**Important**: Conditional tokens (light/dark mode) are split into two files:
+
+1. **`colors.css`** - Contains base tokens in `@theme` block (Tailwind-compatible)
+2. **`colors-conditional.css`** - Contains conditional overrides (`:root`, `@media`, `.light`, `.dark`)
+
+**Why split?** Tailwind CSS v4's parser cannot handle CSS selectors (`:root`, `@media`, `.light`, `.dark`) outside `@theme` blocks in imported CSS files. The conditional CSS file is loaded via a `<link>` tag in `app.html` to bypass Tailwind's parser.
+
+Generated CSS structure:
 
 ```css
+/* colors.css - @theme block only */
+@theme {
+  --color-brand-primary: oklch(55% 0.15 195);
+  --color-neutral-0: oklch(100% 0 0);
+  /* ... base tokens ... */
+}
+
+/* colors-conditional.css - Standard CSS selectors */
 :root {
   --color-bg-base: var(--color-neutral-0);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-base: var(--color-neutral-900);
+  }
 }
 
 .dark {

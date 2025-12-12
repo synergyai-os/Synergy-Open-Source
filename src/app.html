@@ -9,6 +9,9 @@
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<meta name="theme-color" content="#000000" />
+		<!-- Conditional color tokens - loaded via link to bypass Tailwind parser -->
+		<!-- Tailwind v4's parser cannot handle CSS selectors (@media, .light, .dark) outside @theme blocks -->
+		<link rel="stylesheet" href="/css/colors-conditional.css" />
 		<!-- Google Fonts: Plus Jakarta Sans + JetBrains Mono -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

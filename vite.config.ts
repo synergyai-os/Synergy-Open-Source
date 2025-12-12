@@ -52,8 +52,27 @@ const stripFileLineSelectorsPlugin = (): Plugin => {
 	};
 };
 
+// Plugin to exclude colors-conditional.css from Tailwind processing
+// Tailwind v4's parser can't handle @media queries and class selectors in imported CSS
+const excludeConditionalCssPlugin = (): Plugin => {
+	return {
+		name: 'exclude-conditional-css-from-tailwind',
+		enforce: 'pre',
+		transform(code, id) {
+			// Skip Tailwind processing for colors-conditional.css
+			// This file contains standard CSS (@media, .light, .dark) that breaks Tailwind's parser
+			if (id.includes('colors-conditional.css')) {
+				// Return the CSS as-is, bypassing Tailwind processing
+				return { code, map: null };
+			}
+			return null;
+		}
+	};
+};
+
 export default defineConfig({
 	plugins: [
+		excludeConditionalCssPlugin(), // Must be before Tailwind to intercept the file
 		viteBreakpointReplace() as Plugin, // Replace hardcoded breakpoints in @media queries with token values
 		tailwindcss(),
 		{

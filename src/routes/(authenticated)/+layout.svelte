@@ -743,7 +743,7 @@
 			- Radial gradient from top-left for natural light feel
 		-->
 		<div
-			class="pointer-events-none absolute inset-0 bg-radial-[at_0%_0%] from-[oklch(55%_0.12_195_/_0.03)] via-transparent to-transparent"
+			class="pointer-events-none absolute inset-0 bg-radial-[at_0%_0%] from-[var(--gradient-overlay-subtle-from)] via-transparent to-transparent"
 			aria-hidden="true"
 		></div>
 

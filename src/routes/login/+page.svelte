@@ -149,7 +149,7 @@
 <div class="bg-subtle relative min-h-screen overflow-hidden">
 	<!-- Radial glow: brand hue at 8% opacity - visible but subtle -->
 	<div
-		class="pointer-events-none absolute inset-0 bg-radial-[at_50%_35%] from-[oklch(55%_0.12_195_/_0.08)] via-[oklch(55%_0.06_195_/_0.03)] to-transparent"
+		class="pointer-events-none absolute inset-0 bg-radial-[at_50%_35%] from-[var(--gradient-overlay-hero-from)] via-[var(--gradient-overlay-hero-via)] to-transparent"
 		aria-hidden="true"
 	></div>
 	<div

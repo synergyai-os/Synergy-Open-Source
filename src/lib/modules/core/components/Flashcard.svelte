@@ -265,7 +265,7 @@
 	}
 
 	.card-shiny {
-		box-shadow: 0 25px 70px -10px oklch(55.4% 0.218 251.813 / 0.3);
+		box-shadow: 0 25px 70px -10px color-mix(in oklch, oklch(55.4% 0.218 251.813) 30%, transparent);
 	}
 
 	.flashcard-edit-question {

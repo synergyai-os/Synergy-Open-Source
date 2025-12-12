@@ -29,7 +29,7 @@ export const pinInputRootRecipe = cva(
 export const pinInputCellRecipe = cva(
 	// Base classes - cell styling
 	// Uses same focus pattern as formInputRecipe for consistency
-	'border-2 rounded-input border-base bg-base text-center font-bold text-primary text-body leading-none transition-all duration-200 placeholder:text-tertiary focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+	'border-2 rounded-input border-base bg-base text-center font-bold text-primary text-body leading-none transition-all duration-200 placeholder:text-tertiary focus:border-focus focus:shadow-[var(--shadow-focusRing)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
 	{
 		variants: {
 			error: {

@@ -60,7 +60,7 @@
 		"tokens:audit-conflicts": "node scripts/audit-css-conflicts.js",
 		"tokens:convert": "npx tsx scripts/convert-css-to-dtcg.ts",
 		"tokens:validate-dtcg": "npx tsx scripts/validate-dtcg.ts",
-		"tokens:build": "node scripts/build-tokens.js && npm run tokens:storybook",
+		"tokens:build": "node scripts/build-tokens.js && mkdir -p static/css && cp src/styles/tokens/colors-conditional.css static/css/colors-conditional.css && npm run tokens:storybook",
 		"tokens:storybook": "node scripts/generate-storybook-docs.js",
 		"tokens:watch": "node scripts/watch-tokens.js",
 		"recipes:validate": "node scripts/validate-recipes.js",

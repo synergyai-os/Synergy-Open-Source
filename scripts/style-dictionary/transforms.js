@@ -17,6 +17,104 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Convert OKLCH color to sRGB
+ *
+ * OKLCH is a perceptual color space. This function converts to sRGB for CSS rgba() output.
+ *
+ * @param {number} L - Lightness (0-100 as percentage, or 0-1)
+ * @param {number} C - Chroma (typically 0-0.4)
+ * @param {number} H - Hue (0-360 degrees)
+ * @returns {{r: number, g: number, b: number}} - sRGB values (0-255)
+ */
+function oklchToRgb(L, C, H) {
+	// Normalize L to 0-1 range if given as percentage
+	const l = L > 1 ? L / 100 : L;
+
+	// Convert hue to radians
+	const hRad = (H * Math.PI) / 180;
+
+	// OKLCH to OKLAB
+	const a = C * Math.cos(hRad);
+	const b = C * Math.sin(hRad);
+
+	// OKLAB to linear sRGB (using standard matrices)
+	// First: OKLAB to LMS
+	const L_ = l + 0.3963377774 * a + 0.2158037573 * b;
+	const M_ = l - 0.1055613458 * a - 0.0638541728 * b;
+	const S_ = l - 0.0894841775 * a - 1.291485548 * b;
+
+	// Cube the values (reverse of cube root in forward transform)
+	const L3 = L_ * L_ * L_;
+	const M3 = M_ * M_ * M_;
+	const S3 = S_ * S_ * S_;
+
+	// LMS to linear sRGB
+	const lr = +4.0767416621 * L3 - 3.3077115913 * M3 + 0.2309699292 * S3;
+	const lg = -1.2684380046 * L3 + 2.6097574011 * M3 - 0.3413193965 * S3;
+	const lb = -0.0041960863 * L3 - 0.7034186147 * M3 + 1.707614701 * S3;
+
+	// Linear sRGB to sRGB (gamma correction)
+	const toSrgb = (x) => {
+		if (x <= 0.0031308) {
+			return x * 12.92;
+		}
+		return 1.055 * Math.pow(x, 1 / 2.4) - 0.055;
+	};
+
+	// Convert and clamp to 0-255
+	const clamp = (x) => Math.max(0, Math.min(255, Math.round(x * 255)));
+
+	return {
+		r: clamp(toSrgb(lr)),
+		g: clamp(toSrgb(lg)),
+		b: clamp(toSrgb(lb))
+	};
+}
+
+/**
+ * Convert oklch() with alpha syntax to rgba() for Tailwind CSS v4 compatibility
+ *
+ * Tailwind CSS v4's parser doesn't support:
+ * - oklch(.../ alpha) syntax
+ * - color-mix() in CSS custom properties
+ *
+ * This function converts to rgba() which is universally supported.
+ *
+ * Input:  "oklch(55% 0.15 195 / 0.1)"
+ * Output: "rgba(0, 128, 128, 0.1)"
+ *
+ * Input:  "0 0 0 3px oklch(55% 0.15 195 / 0.12)"
+ * Output: "0 0 0 3px rgba(0, 128, 128, 0.12)"
+ *
+ * @param {string} value - CSS value (may contain oklch with alpha anywhere in string)
+ * @returns {string} - Converted value using rgba() if needed
+ */
+function convertOklchAlphaToRgba(value) {
+	if (typeof value !== 'string') {
+		return value;
+	}
+
+	// Global regex to find ALL oklch(.../ alpha) patterns in the string
+	// Matches: oklch(55% 0.15 195 / 0.1) or oklch(0% 0 0 / 0.04)
+	// Captures: (L% C H) and (alpha)
+	const oklchAlphaPattern = /oklch\(\s*([0-9.]+)%?\s+([0-9.]+)\s+([0-9.]+)\s*\/\s*([0-9.]+)\s*\)/g;
+
+	return value.replace(oklchAlphaPattern, (match, L, C, H, alpha) => {
+		// Parse values
+		const lightness = parseFloat(L);
+		const chroma = parseFloat(C);
+		const hue = parseFloat(H);
+		const alphaNum = parseFloat(alpha);
+
+		// Convert OKLCH to RGB
+		const { r, g, b } = oklchToRgb(lightness, chroma, hue);
+
+		// Return rgba() syntax
+		return `rgba(${r}, ${g}, ${b}, ${alphaNum})`;
+	});
+}
+
+/**
  * Transform: tailwind/theme
  *
  * Outputs CSS custom properties in @theme { } block format.
@@ -88,9 +186,12 @@ function transformTailwindTheme(token) {
 		const refParts = refPath.split('.');
 		const refName = refParts.join('-');
 		value = `var(--${refName})`;
-	} else if (typeof value === 'string' && (value.startsWith('var(') || value.startsWith('oklch'))) {
-		// Keep var() references and oklch colors as-is
+	} else if (typeof value === 'string' && value.startsWith('var(')) {
+		// Keep var() references as-is
 		// value is already correct, no change needed
+	} else if (typeof value === 'string' && value.startsWith('oklch')) {
+		// Convert oklch with alpha to rgba() for Tailwind CSS v4 compatibility
+		value = convertOklchAlphaToRgba(value);
 	} else if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
 		// Handle DTCG reference syntax: {fonts.sans} → var(--fonts-sans)
 		const refPath = value.slice(1, -1); // Remove { }
@@ -544,6 +645,10 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 		resolvedDark = resolveConditionalValue(darkValue, pathParts);
 	}
 
+	// Convert oklch with alpha to rgba() for Tailwind CSS v4 compatibility
+	resolvedLight = convertOklchAlphaToRgba(resolvedLight);
+	resolvedDark = convertOklchAlphaToRgba(resolvedDark);
+
 	// Get description
 	const description =
 		token.description ||
@@ -603,9 +708,9 @@ function resolveConditionalValue(value, pathParts) {
 		return value;
 	}
 
-	// Handle oklch colors - keep as-is
+	// Handle oklch colors - convert alpha syntax to rgba() for Tailwind CSS v4 compatibility
 	if (value.startsWith('oklch')) {
-		return value;
+		return convertOklchAlphaToRgba(value);
 	}
 
 	// Direct value - return as-is

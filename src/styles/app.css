@@ -9,7 +9,7 @@
 @config '../../tailwind.config.ts';
 @import 'tailwindcss';
 
-/* Design Tokens */
+/* Design Tokens - @theme blocks only (Tailwind-compatible) */
 @import './tokens/colors.css';
 @import './tokens/spacing.css';
 @import './tokens/typography.css';
