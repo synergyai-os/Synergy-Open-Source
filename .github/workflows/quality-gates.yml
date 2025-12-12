@@ -25,11 +25,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Core invariants (critical, dev)
+        run: npm run ci:invariants
+        env:
+          CONVEX_URL: ${{ secrets.TEST_CONVEX_URL }}
+          CONVEX_AUTH_TOKEN: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Auth guard (Convex)
         run: npm run guard:auth
@@ -179,7 +185,7 @@ jobs:
   #     - name: Setup Node.js
   #       uses: actions/setup-node@v4
   #       with:
-  #         node-version: '20'
+  #         node-version: '22'
   #         cache: 'npm'
   #
   #     - name: Install dependencies

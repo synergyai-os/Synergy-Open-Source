@@ -4,6 +4,9 @@
 	"version": "0.1.0",
 	"description": "Open Source Knowledge Retention System - Transform content into actionable knowledge",
 	"type": "module",
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"dev:test": "vite dev --mode test",
@@ -44,6 +47,11 @@
 		"audit:ci": "node scripts/audit-design-system.js --ci",
 		"audit:naming": "npx tsx scripts/lint-naming.ts",
 		"audit:naming:strict": "npx tsx scripts/lint-naming.ts --strict",
+		"invariants": "npx convex run internal.admin.invariants.runAll | npx tsx scripts/invariants-report.ts",
+		"invariants:critical": "npx convex run internal.admin.invariants.runAll '{\"severityFilter\":\"critical\"}' | npx tsx scripts/invariants-report.ts",
+		"invariants:identity": "npx convex run internal.admin.invariants.runAll '{\"category\":\"IDENT\"}' | npx tsx scripts/invariants-report.ts",
+		"invariants:org": "npx convex run internal.admin.invariants.runAll '{\"category\":\"ORG\"}' | npx tsx scripts/invariants-report.ts",
+		"ci:invariants": "npm run invariants:critical",
 		"tokens:report": "node scripts/token-usage-report.js",
 		"tokens:usage": "node scripts/analyze-token-usage.js",
 		"tokens:audit": "node scripts/audit-tokens.js",
@@ -75,7 +83,7 @@
 		"review": "coderabbit review",
 		"review:staged": "coderabbit review --staged",
 		"review:plain": "coderabbit review --plain",
-		"ci:quick": "npm run check && npm run check:confidentiality && npm run audit:naming && npm run recipes:validate && npm run lint && npm run build",
+		"ci:quick": "npm run check && npm run check:confidentiality && npm run audit:naming && npm run recipes:validate && npm run lint && npm run build && npm run ci:invariants",
 		"ci:local": "npm run check && npm run recipes:validate && npm run lint && npm run test:unit:server && npm run test:integration && npm run test:e2e && npm run build",
 		"chromatic": "node scripts/run-chromatic.js"
 	},
