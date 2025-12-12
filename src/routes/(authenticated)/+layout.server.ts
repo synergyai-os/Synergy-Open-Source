@@ -7,6 +7,7 @@ import type { LayoutServerLoad } from './$types';
 // Initialize module registry (registers all modules)
 import '$lib/modules';
 import { getEnabledModules, isModuleEnabled } from '$lib/modules/registry';
+import { logger } from '$lib/utils/logger';
 
 // Enforce authentication for all routes in this group
 export const load: LayoutServerLoad = async ({ locals, url }) => {
@@ -44,7 +45,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		);
 
 		// Legacy: Check circles flag directly (not yet migrated to module registry)
-		circlesEnabled = (await client.query(api.featureFlags.checkFlag, {
+		circlesEnabled = (await client.query(api.infrastructure.featureFlags.isFlagEnabled, {
 			flag: 'circles_ui_beta',
 			sessionId
 		})) as boolean;
@@ -59,83 +60,63 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	// STEP 2: Load CORE data (always needed, regardless of module flags)
 	// ============================================================================
 	// Core data is required for all authenticated routes:
-	// - Organizations: Workspace menu, organization context
+	// - Organizations: Workspace menu, workspace context
 	// - Permissions: RBAC checks, button visibility
 	// - Tags: QuickCreateModal, tagging functionality
 	// This data is NOT module-specific and should always load
 	// ============================================================================
-	// Load organizations and invites for instant workspace menu rendering
-	let organizations: unknown[] = [];
-	let organizationInvites: unknown[] = [];
+	// Load workspaces and invites for instant workspace menu rendering
+	let workspaces: unknown[] = [];
+	let workspaceInvites: unknown[] = [];
 	let permissions: unknown[] = [];
 	let tags: unknown[] = [];
 	try {
-		console.log('🔍 [layout.server] Loading organizations for sessionId:', sessionId);
+		logger.debug('layout', 'Loading workspaces', { sessionId });
 		const [orgsResult, invitesResult] = await Promise.all([
-			client.query(api.organizations.listOrganizations, { sessionId }),
-			client.query(api.organizations.listOrganizationInvites, { sessionId })
+			client.query(api.core.workspaces.index.listWorkspaces, { sessionId }),
+			client.query(api.core.workspaces.index.listWorkspaceInvites, { sessionId })
 		]);
-		organizations = orgsResult as unknown[];
-		organizationInvites = invitesResult as unknown[];
-		console.log('✅ [layout.server] Organizations loaded:', {
-			orgsCount: organizations.length,
-			invitesCount: organizationInvites.length,
-			orgs: (organizations as Array<{ organizationId?: string; name?: string }>).map((o) => ({
-				id: o?.organizationId,
+		workspaces = orgsResult as unknown[];
+		workspaceInvites = invitesResult as unknown[];
+		logger.debug('layout', 'Organizations loaded', {
+			orgsCount: workspaces.length,
+			invitesCount: workspaceInvites.length,
+			orgs: (workspaces as Array<{ workspaceId?: string; name?: string }>).map((o) => ({
+				id: o?.workspaceId,
 				name: o?.name
 			}))
 		});
 	} catch (error) {
 		// If queries fail, default to empty arrays (safe fallback)
 		// Log error but don't block page load
-		console.error('❌ [layout.server] Failed to load organizations/invites server-side:', error);
+		logger.error('layout', 'Failed to load workspaces/invites server-side', { error });
 	}
 
-	// Determine active organization for permissions/tags preload
-	// Priority: URL param (if valid) > first organization (users always have at least one workspace)
-	const orgParam = url.searchParams.get('org');
-	const orgsList = organizations as Array<{ organizationId: string }>;
+	// Determine active workspace for permissions/tags preload
+	// Path-based routing: workspace context comes from route params (/w/[slug]/)
+	// For non-workspace routes (like /account), use first workspace for preload
+	const orgsList = workspaces as Array<{ workspaceId: string }>;
+	const activeOrgId = orgsList.length > 0 ? orgsList[0].workspaceId : null;
 
-	// Redirect to onboarding if user has no organizations (SYOS-209)
-	// This check must happen AFTER loading organizations but BEFORE other queries
-	if (orgsList.length === 0 && url.pathname !== '/onboarding') {
-		throw redirect(302, '/onboarding');
-	}
-
-	// Validate orgParam: Only use it if user actually has access to that organization
-	// This prevents 500 errors when switching accounts (org param from previous account)
-	const validOrgParam =
-		orgParam && orgsList.some((org) => org.organizationId === orgParam) ? orgParam : null;
-	const activeOrgId = validOrgParam || (orgsList.length > 0 ? orgsList[0].organizationId : null);
-
-	// Log if org param was invalid (for debugging)
-	if (orgParam && !validOrgParam) {
-		console.warn('Invalid org parameter in URL (user does not have access):', {
-			orgParam,
-			userOrgs: orgsList.map((org) => org.organizationId),
-			fallbackTo: activeOrgId
-		});
-	}
-
-	// Continue with preloading permissions/tags only if we have organizations
+	// Continue with preloading permissions/tags only if we have workspaces
 	if (orgsList.length > 0) {
 		try {
-			// Preload permissions for active organization context (if available)
+			// Preload permissions for active workspace context (if available)
 			try {
 				const permissionsResult = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
 					sessionId,
-					...(activeOrgId ? { organizationId: activeOrgId as Id<'organizations'> } : {})
+					...(activeOrgId ? { workspaceId: activeOrgId as Id<'workspaces'> } : {})
 				});
 				permissions = permissionsResult as unknown[];
 			} catch (error) {
 				console.warn('Failed to load permissions server-side:', error);
 			}
 
-			// Preload tags for QuickCreateModal instant rendering (filtered by active organization)
+			// Preload tags for QuickCreateModal instant rendering (filtered by active workspace)
 			try {
-				tags = await client.query(api.tags.listAllTags, {
+				tags = await client.query(api.features.tags.index.listAllTags, {
 					sessionId,
-					...(activeOrgId ? { organizationId: activeOrgId as Id<'organizations'> } : {})
+					...(activeOrgId ? { workspaceId: activeOrgId as Id<'workspaces'> } : {})
 				});
 			} catch (error) {
 				console.warn('Failed to load tags server-side:', error);
@@ -162,9 +143,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					try {
 						// TODO: Add meetings-specific data loading here when needed
 						// Example:
-						// return await client.query(api.meetings.listUpcoming, {
+						// return await client.query(api.modules.meetings.meetings.listUpcoming, {
 						//   sessionId,
-						//   organizationId: activeOrgId as Id<'organizations'>
+						//   workspaceId: activeOrgId as Id<'workspaces'>
 						// });
 						return null;
 					} catch (error) {
@@ -182,9 +163,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					try {
 						// TODO: Add circles-specific data loading here when needed
 						// Example:
-						// return await client.query(api.circles.list, {
+						// return await client.query(api.core.circles.index.list, {
 						//   sessionId,
-						//   organizationId: activeOrgId as Id<'organizations'>
+						//   workspaceId: activeOrgId as Id<'workspaces'>
 						// });
 						return null;
 					} catch (error) {
@@ -194,6 +175,31 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					}
 				})()
 			: null;
+
+	// ============================================================================
+	// Load org branding for active workspace (Phase 2: Org Branding)
+	// ============================================================================
+	let workspaceId: string | null = null;
+	let orgBranding: { primaryColor: string; secondaryColor: string; logo?: string } | null = null;
+
+	if (activeOrgId) {
+		workspaceId = activeOrgId;
+		try {
+			const brandingResult = await client.query(api.core.workspaces.index.findBranding, {
+				sessionId: locals.auth.sessionId,
+				workspaceId: activeOrgId as Id<'workspaces'>
+			});
+			orgBranding = brandingResult as {
+				primaryColor: string;
+				secondaryColor: string;
+				logo?: string;
+			} | null;
+		} catch (error) {
+			console.warn('Failed to load org branding server-side:', error);
+			// Don't block page load if branding query fails
+			orgBranding = null;
+		}
+	}
 
 	// ============================================================================
 	// Return data to client
@@ -209,10 +215,13 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		circlesEnabled,
 		meetingsEnabled,
 		// Core data (always loaded)
-		organizations,
-		organizationInvites,
+		workspaces,
+		workspaceInvites,
 		permissions,
 		tags,
+		// Org branding (Phase 2)
+		workspaceId,
+		orgBranding,
 		// Module-specific data (only loaded if flags enabled)
 		meetingsData,
 		circlesData

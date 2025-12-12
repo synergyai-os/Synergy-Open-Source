@@ -1,0 +1,143 @@
+---
+description: Apply when editing Svelte components, CSS, or design system files
+globs: ["**/*.svelte", "**/*.css", "**/recipes/**", "**/design-system/**"]
+---
+# 🚨 DESIGN TOKEN ENFORCEMENT
+
+## ⛔ CRITICAL RULES (NON-NEGOTIABLE)
+
+### Rule 1: NEVER Create or Edit CSS Utility Files
+
+```
+src/styles/utilities/*.css  ← AUTO-GENERATED - NEVER EDIT
+```
+
+**If you need a new utility:**
+1. Add token to `design-tokens-semantic.json`
+2. Run `npm run tokens:build`
+3. Verify: `grep "^@utility my-utility" src/styles/utilities/*.css`
+
+**If pattern not supported:** Update `scripts/style-dictionary/transforms.js`, then build.
+
+---
+
+### Rule 2: NEVER Use Hardcoded Tailwind Values
+
+```svelte
+<!-- ❌ REJECTED -->
+class="px-4 py-2 gap-2 mb-4"
+class="text-gray-500 bg-blue-100"
+class="rounded-lg text-sm"
+
+<!-- ✅ REQUIRED -->
+class="px-button py-button gap-button mb-header"
+class="text-secondary bg-surface"
+class="rounded-button text-body"
+```
+
+---
+
+### Rule 3: Use Recipe System for Component Styling
+
+```svelte
+<!-- ✅ CORRECT: Recipe system -->
+<script lang="ts">
+  import { buttonRecipe } from '$lib/design-system/recipes';
+  const classes = $derived(buttonRecipe({ variant, size }));
+</script>
+<button class={classes}>
+
+<!-- ❌ WRONG: Manual token mapping -->
+<script lang="ts">
+  const classes = size === 'sm' ? 'px-2 py-1' : 'px-4 py-2';
+</script>
+```
+
+---
+
+### Rule 4: Atoms MUST NOT Accept `class` Props
+
+**🚨 CRITICAL**: Atoms are pure, self-contained components. They should NEVER accept custom `class` props.
+
+```svelte
+<!-- ❌ WRONG: Atom with custom class -->
+<Text variant="body" size="sm" class="font-medium">Hello</Text>
+<Button variant="primary" class="w-full">Click</Button>
+<Card variant="default" class={customClasses}>Content</Card>
+
+<!-- ✅ CORRECT: Use props/variants only -->
+<Text variant="body" size="sm" weight="medium">Hello</Text>
+<Button variant="primary" fullWidth>Click</Button>
+<Card variant="default">Content</Card>
+
+<!-- ✅ CORRECT: Layout primitives in parent wrapper -->
+<div class="w-full">
+  <Button variant="primary">Click</Button>
+</div>
+```
+
+**Why**:
+- Atoms should be **pure** and **predictable**
+- All styling comes from **design tokens via recipes**
+- Custom classes break **design system consistency**
+- Forces proper **variant/prop design** instead of workarounds
+
+**Migration Strategy**:
+1. If atom needs new styling → **add variant/prop** to recipe
+2. If layout needed → **wrap in parent div** with layout classes
+3. If font-weight needed → **add `weight` prop** to Text/Heading atoms
+
+**Current Status**: 
+- ⚠️ **Breaking Change**: Many atoms currently accept `class` props
+- 📋 **Migration Required**: Audit and remove `class` props from all atoms
+- 🎯 **Target**: Zero `class` props in atoms
+
+---
+
+## Quick Reference
+
+| Need | Use | NOT |
+|------|-----|-----|
+| Spacing | `gap-button`, `px-button`, `mb-header` | `gap-2`, `px-4`, `mb-8` |
+| Colors | `bg-surface`, `text-primary` | `bg-gray-100`, `text-gray-900` |
+| Radius | `rounded-button`, `rounded-card` | `rounded-lg`, `rounded-xl` |
+| Sizing | `size-icon-md` | `w-5 h-5` |
+
+---
+
+## The Sacred Cascade
+
+```
+design-tokens-semantic.json → npm run tokens:build → src/styles/utilities/*.css
+```
+
+**Never break this cascade.** All utilities come from tokens.
+
+---
+
+## Allowed Layout Primitives
+
+These are OK (structural, not design):
+- `flex`, `flex-col`, `items-center`, `justify-center`
+- `grid`, `grid-cols-*`
+- `relative`, `absolute`, `fixed`
+- `w-full`, `min-h-screen`, `overflow-hidden`
+- `font-medium`, `font-semibold` (until tokenized)
+
+---
+
+## Validation
+
+```bash
+npm run validate:design-system  # Before completing any component work
+```
+
+---
+
+## Detailed Workflow
+
+For full component refactoring process, see: `/match-design-system` command
+
+---
+
+**Last Updated**: 2025-01-27

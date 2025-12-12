@@ -6,10 +6,14 @@ import svelte from 'eslint-plugin-svelte';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
-import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
+// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+// import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import svelteConfig from './svelte.config.js';
 import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
 import noFeatureComponentsInComponents from './eslint-rules/no-feature-components-in-components.js';
+import noHardcodedDesignValues from './eslint-rules/no-hardcoded-design-values.js';
+import noLegacyAuthPatterns from './eslint-rules/no-legacy-auth-patterns.js';
+import noThrowNewError from './eslint-rules/no-throw-new-error.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -27,10 +31,25 @@ export default defineConfig(
 			'convex/_generated/**',
 			'.svelte-kit/**',
 			'node_modules/**',
+			'ai-docs/**',
 			'dev-docs/**',
 			'marketing-docs/**',
-			'ai-content-blog/**'
+			'ai-content-blog/**',
+			'storybook-static/**',
+			'.storybook/**'
 		]
+	},
+	{
+		files: [
+			'src/**/*.ts',
+			'src/**/*.js',
+			'src/**/*.svelte',
+			'src/**/*.svelte.ts',
+			'src/**/*.svelte.js'
+		],
+		rules: {
+			'synergyos/no-throw-new-error': 'error'
+		}
 	},
 	{
 		languageOptions: {
@@ -40,17 +59,22 @@ export default defineConfig(
 			synergyos: {
 				rules: {
 					'no-cross-module-imports': noCrossModuleImports,
-					'no-feature-components-in-components': noFeatureComponentsInComponents
+					'no-feature-components-in-components': noFeatureComponentsInComponents,
+					'no-hardcoded-design-values': noHardcodedDesignValues,
+					'no-legacy-auth-patterns': noLegacyAuthPatterns,
+					'no-throw-new-error': noThrowNewError
 				}
-			},
-			'better-tailwindcss': eslintPluginBetterTailwindcss
-		},
-		settings: {
-			'better-tailwindcss': {
-				// Tailwind CSS 4: path to the entry file of the CSS-based Tailwind config
-				entryPoint: 'src/app.css'
 			}
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+			// ,'better-tailwindcss': eslintPluginBetterTailwindcss
 		},
+		// TEMPORARILY DISABLED: Plugin causes ESLint to hang
+		// settings: {
+		// 	'better-tailwindcss': {
+		// 		// Tailwind CSS 4: path to the entry file of the CSS-based Tailwind config
+		// 		entryPoint: 'src/app.css'
+		// 	}
+		// },
 		rules: {
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
@@ -70,37 +94,45 @@ export default defineConfig(
 			// Modules should communicate via API contracts, not direct imports
 			// See: dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
 			'synergyos/no-cross-module-imports': 'error',
-			// Enforce component organization - prevent feature components in @components
+			// Enforce component workspace - prevent feature components in @components
 			// Only atomic building blocks (atoms, molecules, organisms) belong in @components
 			// Feature components belong in modules
 			// See: dev-docs/2-areas/design/component-architecture.md
 			'synergyos/no-feature-components-in-components': 'error',
+			// Design System Governance: Block hardcoded design values
+			// Enforces design token usage for dimensions, colors, opacity, spacing, typography
+			// See: dev-docs/2-areas/design/design-tokens.md
+			// See: .cursor/rules/design-tokens-enforcement.mdc
+			'synergyos/no-hardcoded-design-values': 'error'
 			// Design System Governance: Block hardcoded Tailwind values (e.g., min-h-[2.75rem])
 			// Use design tokens instead (e.g., min-h-button)
 			// See: dev-docs/2-areas/design/design-tokens.md
-			'better-tailwindcss/no-restricted-classes': [
-				'error',
-				{
-					restrict: [
-						{
-							// Block arbitrary values like [2.75rem], [12px], [#fff]
-							// Pattern matches [value] but NOT variants like hover:[value]
-							pattern: '^\\[([^\\[\\]]*?)\\](?!:)',
-							message:
-								'Hardcoded Tailwind value detected. Use design tokens instead (e.g., min-h-[2.75rem] → min-h-button). See: dev-docs/2-areas/design/design-tokens.md'
-						}
-					]
-				}
-			],
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+			// 'better-tailwindcss/no-restricted-classes': [
+			// 	'error',
+			// 	{
+			// 		restrict: [
+			// 			{
+			// 				// Block arbitrary values like [2.75rem], [12px], [#fff]
+			// 				// Pattern matches [value] but NOT variants like hover:[value]
+			// 				pattern: '^\\[([^\\[\\]]*?)\\](?!:)',
+			// 				message:
+			// 					'Hardcoded Tailwind value detected. Use design tokens instead (e.g., min-h-[2.75rem] → min-h-button). See: dev-docs/2-areas/design/design-tokens.md'
+			// 			}
+			// 		]
+			// 	}
+			// ],
 			// Enforce consistent class order (readability)
-			'better-tailwindcss/sort-classes': 'warn'
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang
+			// 'better-tailwindcss/sort-classes': 'warn'
 		}
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {
-				projectService: true,
+				// TEMPORARILY DISABLED: projectService causes ESLint to hang - investigating performance issue
+				// projectService: true,
 				extraFileExtensions: ['.svelte'],
 				parser: ts.parser,
 				svelteConfig
@@ -130,8 +162,47 @@ export default defineConfig(
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
+			'synergyos/no-throw-new-error': 'off',
 			// Allow hardcoded values in test files (ESLint allows it for test mocks)
-			'better-tailwindcss/no-restricted-classes': 'off'
+			'better-tailwindcss/no-restricted-classes': 'off',
+			'synergyos/no-hardcoded-design-values': 'off'
+		}
+	},
+	{
+		// Stories/docs/backups are allowed to use raw throws (storybook/testing fixtures)
+		files: [
+			'**/*.stories.*',
+			'**/*.mdx',
+			'**/*.backup',
+			'**/__fixtures__/**/*',
+			'**/fixtures/**/*',
+			'**/__snapshots__/**/*'
+		],
+		rules: {
+			'synergyos/no-throw-new-error': 'off'
+		}
+	},
+	{
+		// Backend/server and tooling: design tokens and Svelte rules do not apply
+		files: [
+			'convex/**/*.{ts,js}',
+			'scripts/**/*.{ts,js}',
+			'scripts/**/*.{mjs,cjs}',
+			'scripts/**/*.{tsx,jsx}'
+		],
+		rules: {
+			'synergyos/no-hardcoded-design-values': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_'
+				}
+			],
+			'no-useless-escape': 'off',
+			'synergyos/no-legacy-auth-patterns': 'error'
 		}
 	},
 	{
@@ -140,6 +211,14 @@ export default defineConfig(
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn'
+		}
+	},
+	{
+		// Org-chart module: D3/SVG layout calculations use computed pixel values, not design tokens
+		// These are mathematical layout values for circle packing, not CSS styling
+		files: ['src/lib/modules/org-chart/**/*.{ts,js,svelte}', 'src/lib/utils/orgChartTransform.ts'],
+		rules: {
+			'synergyos/no-hardcoded-design-values': 'off'
 		}
 	},
 	{

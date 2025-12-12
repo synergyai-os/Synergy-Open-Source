@@ -13,6 +13,7 @@ import {
 import { toast } from '$lib/utils/toast';
 import { resolveRoute } from '$lib/utils/navigation';
 import type { LinkedAccountInfo, UseAuthSessionReturn } from '../types';
+import { invariant } from '$lib/utils/invariant';
 
 interface SessionResponse {
 	authenticated: boolean;
@@ -62,15 +63,13 @@ export function useAuthSession(): UseAuthSessionReturn {
 				credentials: 'include'
 			});
 
-			if (!response.ok) {
-				throw new Error(`Failed to load session (${response.status})`);
-			}
+			invariant(response.ok, `Failed to load session (${response.status})`);
 
 			const data = (await response.json()) as SessionResponse;
 
 			state.isAuthenticated = data.authenticated;
 			state.user = data.authenticated && data.user ? data.user : null;
-			const cookieToken = readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			const cookieToken = readCookie('syos_csrf');
 			state.csrfToken = data.csrfToken ?? cookieToken;
 
 			// Cache the active account ID synchronously
@@ -89,22 +88,12 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			// Fetch and save linked account sessions from server
 			if (data.authenticated && data.user) {
-				console.log('🔍 [useAuthSession] Fetching linked account sessions...', {
-					currentUserId: data.user.userId,
-					currentUserEmail: data.user.email
-				});
 				try {
 					const linkedSessionsResponse = await fetch('/auth/linked-sessions', {
 						headers: {
 							Accept: 'application/json'
 						},
 						credentials: 'include'
-					});
-
-					console.log('📋 [useAuthSession] Linked sessions response:', {
-						ok: linkedSessionsResponse.ok,
-						status: linkedSessionsResponse.status,
-						statusText: linkedSessionsResponse.statusText
 					});
 
 					if (linkedSessionsResponse.ok) {
@@ -116,8 +105,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 								expiresAt: number;
 								userEmail: string;
 								userName?: string;
-								organizations: Array<{
-									organizationId: string;
+								workspaces: Array<{
+									workspaceId: string;
 									name: string;
 									initials: string | null;
 									slug: string | null;
@@ -126,24 +115,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 							}>;
 						};
 
-						console.log('📦 [useAuthSession] Linked sessions data received:', {
-							sessionCount: linkedSessionsData.sessions?.length ?? 0,
-							sessions: linkedSessionsData.sessions?.map((s) => ({
-								userId: s.userId,
-								email: s.userEmail,
-								sessionId: s.sessionId,
-								orgCount: s.organizations.length
-							}))
-						});
-
 						// Save each linked account session to localStorage
 						if (linkedSessionsData.sessions) {
 							for (const session of linkedSessionsData.sessions) {
-								console.log('💾 [useAuthSession] Saving session to localStorage:', {
-									userId: session.userId,
-									email: session.userEmail,
-									orgCount: session.organizations.length
-								});
 								await addSession(session.userId, {
 									sessionId: session.sessionId,
 									csrfToken: session.csrfToken,
@@ -152,26 +126,13 @@ export function useAuthSession(): UseAuthSessionReturn {
 									userName: session.userName
 								});
 
-								// Cache organizations for this account
-								if (session.organizations.length > 0) {
+								// Cache workspaces for this account
+								if (session.workspaces.length > 0) {
 									const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
 									const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${session.userId}`;
-									localStorage.setItem(cacheKey, JSON.stringify(session.organizations));
-									console.log('💾 [useAuthSession] Cached organizations:', {
-										userId: session.userId,
-										email: session.userEmail,
-										orgCount: session.organizations.length,
-										cacheKey
-									});
+									localStorage.setItem(cacheKey, JSON.stringify(session.workspaces));
 								}
-
-								console.log('✅ [useAuthSession] Session saved:', {
-									userId: session.userId,
-									email: session.userEmail
-								});
 							}
-						} else {
-							console.warn('⚠️ [useAuthSession] No sessions in response data');
 						}
 
 						// NOTE: We intentionally DON'T clean up localStorage here
@@ -193,32 +154,14 @@ export function useAuthSession(): UseAuthSessionReturn {
 			// Load all available accounts (excluding current user)
 			const allSessions = await getAllSessions();
 			const currentUserId = data.user?.userId;
-			console.log('📋 [useAuthSession] All sessions from localStorage:', {
-				totalSessions: Object.keys(allSessions).length,
-				sessions: Object.entries(allSessions).map(([userId, session]) => ({
-					userId,
-					email: session.userEmail,
-					name: session.userName,
-					sessionId: session.sessionId
-				})),
-				currentUserId
-			});
 			state.availableAccounts = Object.entries(allSessions)
 				.filter(([userId]) => userId !== currentUserId)
 				.map(([userId, session]) => ({
 					userId,
 					email: session.userEmail,
 					name: session.userName,
-					sessionId: session.sessionId // Include sessionId for querying organizations
+					sessionId: session.sessionId // Include sessionId for querying workspaces
 				}));
-			console.log('✅ [useAuthSession] Available accounts set:', {
-				count: state.availableAccounts.length,
-				accounts: state.availableAccounts.map((a) => ({
-					userId: a.userId,
-					email: a.email,
-					name: a.name
-				}))
-			});
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;
@@ -253,7 +196,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			const accountName = targetSession?.userName || targetSession?.userEmail || 'Account';
 
 			// Step 1: Unlink the account in Convex (so it won't reappear on reload)
-			const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 			if (csrfToken) {
 				try {
 					const response = await fetch('/auth/unlink-account', {
@@ -286,7 +229,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 		}
 
 		// For current account: call server to invalidate active session
-		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
@@ -339,8 +282,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 						});
 
 						if (restoreResponse.ok) {
-							// Session restored, redirect to inbox
-							window.location.href = `${resolveRoute('/inbox')}?switched=1`;
+							// Session restored, redirect via workspace resolver
+							window.location.href = `${resolveRoute('/auth/redirect')}?switched=1`;
 						} else {
 							// Failed to restore, clear all and go to login
 							console.error('Failed to restore session for next account');
@@ -386,7 +329,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 		// CRITICAL: Use CURRENT user's CSRF token, not target user's
 		// The CSRF token protects the switch action itself, not the target account
 		// Target session tokens are placeholders and will be invalid
-		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
@@ -452,7 +395,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			}
 
 			state.csrfToken = null;
-			window.location.href = result.redirect ?? redirectTo ?? resolveRoute('/inbox');
+			window.location.href = result.redirect ?? redirectTo ?? resolveRoute('/auth/redirect');
 		} catch (error) {
 			// Clear switching flag on error
 			sessionStorage.removeItem('switchingAccount');

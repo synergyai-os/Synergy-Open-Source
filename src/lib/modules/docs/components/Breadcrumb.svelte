@@ -214,6 +214,7 @@
 	}
 
 	/* Responsive: Simplify on mobile */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.breadcrumb-nav {
 			padding: 0.75rem 0 1rem 0;

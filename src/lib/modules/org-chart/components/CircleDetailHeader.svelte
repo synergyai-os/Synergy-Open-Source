@@ -1,24 +1,76 @@
 <script lang="ts">
-	import { SplitButton } from '$lib/components/atoms';
-	import { IconButton } from '$lib/components/atoms';
+	import { Button, Heading, Icon } from '$lib/components/atoms';
+	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
+	import { panelDetailHeaderRecipe } from '$lib/design-system/recipes';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 
 	type Props = {
 		circleName: string;
 		onClose: () => void;
 		onEdit?: () => void;
+		onBack?: () => void;
+		showBackButton?: boolean;
 		addMenuItems?: Array<{ label: string; onclick: () => void }>;
 		headerMenuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		editable?: boolean;
+		editReason?: string;
+		onNameChange?: (name: string) => Promise<void>;
+		class?: string;
 	};
 
-	let { circleName, onClose, onEdit, addMenuItems = [], headerMenuItems = [] }: Props = $props();
+	let {
+		circleName,
+		onClose,
+		onEdit,
+		onBack,
+		showBackButton = false,
+		addMenuItems = [],
+		headerMenuItems = [],
+		editable = false,
+		editReason,
+		onNameChange,
+		class: className = ''
+	}: Props = $props();
+
+	const headerClasses = $derived([panelDetailHeaderRecipe(), className]);
 </script>
 
-<header
-	class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
->
-	<h2 class="text-h3 font-semibold text-primary">{circleName}</h2>
-	<div class="flex items-center gap-icon">
+<!--
+	Panel Detail Header
+	- Height: 2.5rem (40px) - Standard panel header height for consistent vertical rhythm
+	- Padding: Uses panelDetailHeaderRecipe (px-panelDetailHeader = 16px horizontal, py-panelDetailHeader = 36px vertical)
+	- Styling: Recipe handles background (bg-surface) and padding
+-->
+<header class={headerClasses} style="height: 2.5rem;">
+	<div class="gap-button flex items-center">
+		{#if showBackButton && onBack}
+			<Button variant="ghost" size="md" iconOnly onclick={onBack} ariaLabel="Go back">
+				<Icon type="chevron-left" size="md" />
+			</Button>
+		{/if}
+		{#if editable && onNameChange}
+			<InlineEditText
+				value={circleName}
+				onSave={onNameChange}
+				placeholder="Circle name"
+				size="lg"
+				className="font-semibold"
+			/>
+		{:else if editReason}
+			<EditPermissionTooltip reason={editReason}>
+				<Heading level={3} color="primary">
+					{circleName}
+				</Heading>
+			</EditPermissionTooltip>
+		{:else}
+			<Heading level={3} color="primary">
+				{circleName}
+			</Heading>
+		{/if}
+	</div>
+	<div class="gap-button flex items-center">
 		{#if addMenuItems.length > 0}
 			<SplitButton
 				primaryLabel="Add"
@@ -32,27 +84,13 @@
 			/>
 		{/if}
 		{#if onEdit}
-			<button
-				type="button"
-				class="rounded-button border border-accent-primary bg-white px-card py-input-y text-button font-medium text-accent-primary transition-colors hover:bg-hover-solid"
-				onclick={onEdit}
-			>
-				Edit circle
-			</button>
+			<Button variant="outline" size="md" onclick={onEdit}>Edit circle</Button>
 		{/if}
 		{#if headerMenuItems.length > 0}
 			<ActionMenu items={headerMenuItems} />
 		{/if}
-		{#snippet closeIcon()}
-			<svg class="size-icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M6 18L18 6M6 6l12 12"
-				/>
-			</svg>
-		{/snippet}
-		<IconButton icon={closeIcon} onclick={onClose} ariaLabel="Close panel" />
+		<Button variant="ghost" size="md" iconOnly onclick={onClose} ariaLabel="Close panel">
+			<Icon type="close" size="md" />
+		</Button>
 	</div>
 </header>

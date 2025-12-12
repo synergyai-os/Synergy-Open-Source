@@ -184,11 +184,66 @@
 	<title>{data.title} | Dev Docs</title>
 </svelte:head>
 
-<div class="doc-page">
-	<article class="doc-content">
-		{@html htmlContent}
-	</article>
-</div>
+{#if data.isDirectory && data.files}
+	<div class="doc-page">
+		<article class="doc-content">
+			<header class="directory-header">
+				<h1 class="directory-title">{data.title}</h1>
+				<p class="directory-description">
+					Browse all documentation files in this directory ({data.files.length} file{data.files
+						.length !== 1
+						? 's'
+						: ''})
+				</p>
+			</header>
+
+			<div class="directory-grid">
+				{#each data.files as file (file.path)}
+					<a href={file.href} class="directory-card">
+						<div class="card-icon">
+							<svg
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+								<polyline points="14 2 14 8 20 8"></polyline>
+								<line x1="16" y1="13" x2="8" y2="13"></line>
+								<line x1="16" y1="17" x2="8" y2="17"></line>
+								<polyline points="10 9 9 9 8 9"></polyline>
+							</svg>
+						</div>
+						<div class="card-content">
+							<h3 class="card-title">{file.title}</h3>
+							<p class="card-path">{file.displayName}</p>
+						</div>
+						<div class="card-arrow">
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							>
+								<polyline points="9 18 15 12 9 6"></polyline>
+							</svg>
+						</div>
+					</a>
+				{/each}
+			</div>
+		</article>
+	</div>
+{:else}
+	<div class="doc-page">
+		<article class="doc-content">
+			{@html htmlContent}
+		</article>
+	</div>
+{/if}
 
 <style>
 	.doc-page {
@@ -230,5 +285,113 @@
 		margin: 0;
 		white-space: pre-wrap;
 		font-size: 0.875rem;
+	}
+
+	/* Directory listing styles */
+	.directory-header {
+		margin-bottom: 3rem;
+		padding-bottom: 2rem;
+		border-bottom: 2px solid var(--color-border-base);
+	}
+
+	.directory-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		color: var(--color-text-primary);
+		margin: 0 0 0.75rem 0;
+		letter-spacing: -0.02em;
+	}
+
+	.directory-description {
+		font-size: 1.125rem;
+		color: var(--color-text-secondary);
+		margin: 0;
+		line-height: 1.6;
+	}
+
+	.directory-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.directory-card {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.875rem 1rem;
+		background: var(--color-bg-surface);
+		border: 1px solid var(--color-border-base);
+		border-radius: 0.5rem;
+		text-decoration: none;
+		color: inherit;
+		transition: all 0.15s ease;
+		cursor: pointer;
+	}
+
+	.directory-card:hover {
+		border-color: var(--color-accent-primary);
+		background: var(--color-bg-hover);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	}
+
+	.card-icon {
+		flex-shrink: 0;
+		color: var(--color-accent-primary);
+		width: 20px;
+		height: 20px;
+	}
+
+	.card-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.card-title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin: 0;
+		line-height: 1.4;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.card-path {
+		font-size: 0.75rem;
+		color: var(--color-text-tertiary);
+		margin: 0.125rem 0 0 0;
+		font-family: monospace;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.card-arrow {
+		flex-shrink: 0;
+		color: var(--color-text-tertiary);
+		width: 16px;
+		height: 16px;
+		transition: transform 0.15s ease;
+	}
+
+	.directory-card:hover .card-arrow {
+		transform: translateX(4px);
+		color: var(--color-accent-primary);
+	}
+
+	@media (max-width: 768px) {
+		.directory-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.directory-title {
+			font-size: 2rem;
+		}
+
+		.directory-description {
+			font-size: 1rem;
+		}
 	}
 </style>

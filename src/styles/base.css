@@ -31,6 +31,7 @@ body {
 	margin: 0;
 	padding: 0;
 	/* Safe area insets for iOS notch and home indicator */
+	/* NOTE: These are overridden in Storybook iframe - see storybook-overrides.css */
 	padding-top: env(safe-area-inset-top);
 	padding-bottom: env(safe-area-inset-bottom);
 	background: var(--color-bg-base);
@@ -51,3 +52,8 @@ button,
 a {
 	touch-action: manipulation;
 }
+
+/* Storybook Preview Constraints - REMOVED
+ * The previous CSS was using incorrect selectors and constraining preview size incorrectly.
+ * Storybook-specific CSS is now handled in .storybook/storybook-overrides.css
+ */

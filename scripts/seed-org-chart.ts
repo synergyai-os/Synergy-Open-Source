@@ -52,8 +52,8 @@ if (!DEPLOY_KEY) {
 	process.exit(1);
 }
 
-// Target organization
-const ORG_ID = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w' as Id<'organizations'>;
+// Target workspace
+const ORG_ID = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w' as Id<'workspaces'>;
 
 async function main() {
 	const client = new ConvexHttpClient(CONVEX_URL);
@@ -64,8 +64,8 @@ async function main() {
 	console.log('');
 
 	try {
-		const result = await client.mutation(internal.seedOrgChart.seedTestDataInternal, {
-			organizationId: ORG_ID
+		const result = await client.mutation(internal.admin.seedOrgChart.seedTestDataInternal, {
+			workspaceId: ORG_ID
 		});
 
 		console.log('');

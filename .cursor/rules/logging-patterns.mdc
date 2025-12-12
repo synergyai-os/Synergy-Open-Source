@@ -1,0 +1,198 @@
+---
+description: Apply when writing or reviewing logging statements in server-side code
+globs: ["**/*.server.ts", "**/*.server.js", "**/server/**", "**/infrastructure/**"]
+---
+
+# 📝 LOGGING PATTERNS & BEST PRACTICES
+
+## 🎯 Decision Tree: When to Use What?
+
+```
+Is this log temporary/debug-only?
+├─ YES → Use console.log (will be removed before commit)
+└─ NO → Is this log needed long-term/production?
+    ├─ YES → Use logger utility (from $lib/utils/logger)
+    └─ NO → Don't log (remove it)
+```
+
+---
+
+## ✅ Use `console.log` for TEMPORARY Debugging
+
+**When**: Quick debugging, investigating a bug, one-off troubleshooting
+
+**Characteristics**:
+- ⏱️ **Temporary** - Will be removed before committing
+- 🔍 **Debug-only** - Not needed in production
+- 🎯 **Specific** - Investigating a particular issue
+- 📝 **Marked for removal** - Add `// TODO: Remove debug log` comment
+
+**Examples**:
+```typescript
+// ✅ TEMPORARY: Debugging a specific bug
+console.log('🔍 [DEBUG] User data before transform:', userData);
+// TODO: Remove debug log after fixing SYOS-123
+
+// ✅ TEMPORARY: Quick investigation
+console.log('🔍 [DEBUG] API response:', response);
+// TODO: Remove after debugging
+
+// ✅ TEMPORARY: One-off troubleshooting
+console.log('🔍 [DEBUG] State before mutation:', currentState);
+```
+
+**Rules**:
+- ✅ OK for temporary debugging
+- ❌ **MUST be removed** before committing
+- ❌ **NEVER** commit temporary console.log statements
+- ✅ Add `// TODO: Remove` comment to mark for deletion
+
+---
+
+## ✅ Use `logger` Utility for LONG-TERM Logging
+
+**When**: Production logs, error tracking, audit trails, monitoring
+
+**Characteristics**:
+- 🔄 **Persistent** - Needed long-term
+- 🏭 **Production** - Useful in deployed environments
+- 📊 **Structured** - Includes category, level, structured data
+- 🎛️ **Configurable** - Can be enabled/disabled via env vars
+
+**Usage**:
+```typescript
+import { logger } from '$lib/utils/logger';
+
+// ✅ LONG-TERM: Production logging
+logger.debug('auth', 'Resolving session', { pathname: event.url.pathname });
+logger.info('auth', 'Session established', { email: user.email });
+logger.warn('auth', 'Session expired', { sessionId, expiresAt });
+logger.error('auth', 'Failed to refresh session', { error, sessionId });
+```
+
+**Categories Available**:
+- `'auth'` - Authentication & session management
+- `'layout'` - Layout server load functions
+- `'linkedSessions'` - Linked account sessions
+- `'api'` - API endpoints
+- `'general'` - General application logs
+
+**Log Levels**:
+- `logger.debug()` - Detailed debugging (gated by DEBUG_* env vars)
+- `logger.info()` - Informational messages (gated by DEBUG_* env vars)
+- `logger.warn()` - Warnings (always shown)
+- `logger.error()` - Errors (always shown)
+
+**Enable Categories**:
+```bash
+DEBUG_AUTH=true npm run dev          # Enable auth logs
+DEBUG_LAYOUT=true npm run dev         # Enable layout logs
+DEBUG_LINKED_SESSIONS=true npm run dev # Enable linked sessions logs
+```
+
+---
+
+## ❌ NEVER Use `console.log` for Production Logs
+
+**Anti-Patterns**:
+```typescript
+// ❌ WRONG: Production log using console.log
+console.log('✅ Session established for user:', userEmail);
+
+// ❌ WRONG: Error tracking with console.log
+console.log('❌ Failed to refresh session:', error);
+
+// ❌ WRONG: Info logs that should be structured
+console.log('🔍 Loading workspaces for sessionId:', sessionId);
+```
+
+**Why This Is Wrong**:
+- ❌ No category-based filtering
+- ❌ Always visible (can't disable)
+- ❌ Not structured (hard to parse/search)
+- ❌ No log level control
+- ❌ Clutters terminal in production
+
+**Correct Approach**:
+```typescript
+// ✅ CORRECT: Use logger utility
+logger.info('auth', 'Session established', { email: userEmail });
+logger.error('auth', 'Failed to refresh session', { error });
+logger.debug('layout', 'Loading workspaces', { sessionId });
+```
+
+---
+
+## 📋 Quick Reference
+
+| Scenario | Use | Example |
+|----------|-----|---------|
+| **Temporary debugging** | `console.log` | `console.log('🔍 [DEBUG]', data); // TODO: Remove` |
+| **Production info logs** | `logger.info()` | `logger.info('auth', 'Session created', { userId })` |
+| **Production debug logs** | `logger.debug()` | `logger.debug('api', 'Request received', { path })` |
+| **Warnings** | `logger.warn()` | `logger.warn('auth', 'Session expired', { sessionId })` |
+| **Errors** | `logger.error()` | `logger.error('auth', 'Auth failed', { error })` |
+
+---
+
+## 🎯 Best Practices
+
+### 1. Structured Data
+Always pass structured data as the third parameter:
+```typescript
+// ✅ GOOD: Structured data
+logger.debug('auth', 'Session resolved', {
+  sessionId: record.sessionId,
+  expiresAt: new Date(record.expiresAt).toISOString(),
+  userEmail: record.userSnapshot?.email
+});
+
+// ❌ BAD: String concatenation
+logger.debug('auth', `Session resolved: ${sessionId} for ${email}`);
+```
+
+### 2. Meaningful Messages
+Use clear, action-oriented messages:
+```typescript
+// ✅ GOOD: Clear action
+logger.info('auth', 'Session established', { email });
+
+// ❌ BAD: Vague
+logger.info('auth', 'Done', { email });
+```
+
+### 3. Appropriate Log Levels
+- `debug` - Detailed flow information (gated)
+- `info` - Important state changes (gated)
+- `warn` - Unexpected but handled situations (always shown)
+- `error` - Failures that need attention (always shown)
+
+### 4. Category Selection
+Choose the most specific category:
+- `'auth'` - Authentication, sessions, tokens
+- `'layout'` - Layout server loads, workspace loading
+- `'linkedSessions'` - Linked account management
+- `'api'` - API endpoints, request handling
+- `'general'` - Everything else
+
+---
+
+## 🚨 Enforcement Rules
+
+1. **Before Committing**: Remove all temporary `console.log` statements
+2. **Production Logs**: Always use `logger` utility
+3. **Error/Warn Logs**: Always use `logger.error()` / `logger.warn()` (never console.log)
+4. **Structured Data**: Always pass objects, not string concatenation
+5. **Categories**: Use appropriate category for filtering
+
+---
+
+## 📚 Reference
+
+- Logger utility: `src/lib/utils/logger.ts`
+- Config: `src/lib/config.ts` (logging section)
+- Categories: `LogCategory` type in logger.ts
+
+---
+
+**Last Updated**: 2025-01-27

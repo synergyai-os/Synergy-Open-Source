@@ -154,9 +154,9 @@ describe('RBAC Permission System', () => {
 		expect(canCreate).toBe(false);
 
 		// Test: Circle-scoped permission using circleId (not resourceOwnerId)
-		// Create organization and circle for circle-scoped role test
+		// Create workspace and circle for circle-scoped role test
 		const orgId = await t.run(async (ctx) => {
-			return await ctx.db.insert('organizations', {
+			return await ctx.db.insert('workspaces', {
 				name: 'Test Org',
 				slug: `test-org-${Date.now()}`,
 				createdAt: Date.now(),
@@ -167,7 +167,7 @@ describe('RBAC Permission System', () => {
 
 		const circleId = await t.run(async (ctx) => {
 			return await ctx.db.insert('circles', {
-				organizationId: orgId,
+				workspaceId: orgId,
 				name: 'Test Circle',
 				slug: `test-circle-${Date.now()}`,
 				createdAt: Date.now(),
@@ -258,7 +258,7 @@ describe('RBAC Permission System', () => {
 		// Test: Has billing permissions (from Billing Admin role)
 		const canManageBilling = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, userId, 'organizations.manage-billing');
+			return await hasPermission(ctx, userId, 'workspaces.manage-billing');
 		});
 
 		expect(canManageBilling).toBe(true);
@@ -305,7 +305,7 @@ describe('RBAC Permission System', () => {
 				const { requirePermission } = await import('./permissions');
 				await requirePermission(ctx, userId, 'circles.create');
 			});
-		}).rejects.toThrow('Permission denied');
+		}).rejects.toThrow(/AUTHZ_INSUFFICIENT_RBAC/);
 	});
 
 	test('Permission checks are logged to audit log', async () => {

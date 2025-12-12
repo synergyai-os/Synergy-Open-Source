@@ -77,5 +77,5 @@ export const FlagDescriptions: Record<string, string> = {
 		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.',
 	// Org Chart module flags
 	[OrgChartFeatureFlags.ORG_MODULE_BETA]:
-		'Organization Module Beta - Enables organization creation, workspace settings, and team management features. Note: May be deprecated in favor of default organization features.'
+		'Organization Module Beta - Enables workspace creation, workspace settings, and team management features. Note: May be deprecated in favor of default workspace features.'
 };

@@ -17,7 +17,9 @@
 - ✅ Check design system compliance (no hardcoded values)
 - ✅ Use Context7 for design library validation (Material UI, Chakra UI, Radix UI)
 - ✅ Provide design recommendations (atomic design, composition patterns)
-- ❌ **NEVER execute code changes** (user does that)
+- ✅ **Break parent tickets into subtasks** (create Linear subtasks with `/create-tasks`)
+- ✅ **Coordinate agent workflows** (sequential → parallel patterns)
+- ❌ **NEVER execute code changes** (user spawns agents for that)
 - ❌ **NEVER update tickets** (executing agent does that)
 
 **Inherits from `/manager`:**
@@ -28,6 +30,160 @@
 - Communication style (concise, actionable)
 
 **See `/manager` command for complete workflow patterns.**
+
+---
+
+# 🚀 Design Manager Workflow (When Invoked for Ticket)
+
+**When user says `/design-manager for SYOS-XXX`:**
+
+---
+
+## 🚨🚨🚨 MANDATORY TOKEN VALIDATION CHECKPOINT 🚨🚨🚨
+
+**BEFORE instructing executor to write ANY UI/component code:**
+
+1. ⛔ **STOP** - Do not skip this step
+2. 📋 **Review implementation plan** - What values will be used?
+3. ✅ **Run token validation checklist** - See Section 5 below
+4. ❌ **If violations found** → STOP, fix plan first, then instruct
+
+**⚠️ NO EXCEPTIONS:**
+
+- Not for SVG ("attributes need actual values")
+- Not for "special cases"
+- Not for "just this once"
+- Not for "values that match tokens"
+
+**If you skip this step, executor WILL write hardcoded values.**
+
+**Continue to Section 5 for complete token validation checklist...**
+
+---
+
+## Step 1: Load Parent Ticket
+
+```typescript
+const parentTicket = await mcp_Linear_get_issue({ id: 'SYOS-XXX' });
+```
+
+## Step 2: Analyze & Break Down
+
+**Design-specific analysis:**
+
+1. **Token work** - Separate token updates from cascade testing
+2. **Component work** - Group by layer (atoms → molecules → organisms)
+3. **Module work** - Separate by module (can run parallel if different modules)
+4. **Documentation** - Always last (depends on code completion)
+5. **Validation** - Test cascade, accessibility, responsiveness
+
+**Create subtask breakdown:**
+
+- Identify logical phases (e.g., Phase 1: Atoms, Phase 2: Molecules)
+- Group work by layer/module
+- Ensure proper dependencies (tokens → utilities → components)
+- Check for parallelization opportunities
+
+## Step 3: Create Subtasks (via `/create-tasks`)
+
+**For each phase/group, create subtask:**
+
+```typescript
+// Use /create-tasks command to create subtasks
+await mcp_Linear_create_issue({
+	team: 'SYOS',
+	title: `[SYOS-XXX] Phase 1: Update Atoms Stories`,
+	description: `**Parent**: SYOS-XXX - ${parentTicket.title}
+
+[Detailed subtask description]`,
+	parentId: parentTicket.id, // Link to parent
+	projectId: parentTicket.projectId, // Inherit project
+	assigneeId: RANDY_USER_ID,
+	estimate: 2,
+	labels: [LINEAR_LABELS.feature, LINEAR_LABELS.ui]
+});
+```
+
+**Subtask naming convention:**
+
+- `[SYOS-XXX] Phase 1: Description` (clear parent reference)
+- `[SYOS-XXX] Phase 2: Description` (phase-based)
+- `[SYOS-XXX] Module: Meetings Stories` (module-based)
+
+## Step 4: Coordinate Workflow
+
+**Provide user with agent workflow:**
+
+```
+✅ SYOS-XXX broken into 4 subtasks:
+
+**Sequential (must run in order):**
+
+First do SYOS-YYY (Phase 1: Update Atoms Stories)
+↓
+Then once complete, do SYOS-ZZZ (Phase 2: Update Organisms Stories)
+
+**Parallel (can run at same time):**
+
+Then once Phase 1-2 complete, run in parallel:
+- SYOS-AAA (Module: Meetings Stories) and
+- SYOS-BBB (Module: OrgChart Stories)
+
+**Final (after all parallel complete):**
+
+Then once all complete, do SYOS-CCC (Create MDX Overview Pages + Documentation)
+
+**Command for user:**
+Spawn agents with `/go SYOS-YYY` → `/go SYOS-ZZZ` → `/go SYOS-AAA` + `/go SYOS-BBB` → `/go SYOS-CCC`
+```
+
+---
+
+# 📖 Quick Reference: Storybook Story Organization (For Agents)
+
+**This information is ALSO in `/go` command** - Agents executing Storybook work will see it there.
+
+**File Location:**
+
+- Co-locate with component (same folder)
+- Example: `ActionItemsList.svelte` → `ActionItemsList.stories.svelte`
+
+**Title Hierarchy:**
+
+```typescript
+// Design System (shared UI - used by multiple modules)
+'Design System/Atoms/ComponentName'; // Single elements
+'Design System/Molecules/ComponentName'; // 2-3 atoms composed
+'Design System/Organisms/ComponentName'; // Complex sections
+
+// Modules (feature-specific - single module only)
+'Modules/ModuleName/ComponentName'; // e.g., 'Modules/Meetings/ActionItemsList'
+```
+
+**Classification Decision Tree:**
+
+```
+Q: Is component used by multiple modules?
+→ Yes: Design System (classify as Atom/Molecule/Organism)
+→ No: Module-specific (`'Modules/ModuleName/ComponentName'`)
+
+Examples:
+- Button (used everywhere) → `'Design System/Atoms/Button'`
+- ActionItemsList (only Meetings) → `'Modules/Meetings/ActionItemsList'`
+- MeetingCard (only Meetings) → `'Modules/Meetings/MeetingCard'`
+- InboxCard (only Inbox) → `'Modules/Inbox/InboxCard'`
+```
+
+**Why this approach:**
+
+- ✅ Co-location preserves module ownership (teams own their stories)
+- ✅ Hierarchical titles organize Storybook nav (no flat chaos)
+- ✅ Aligns with atomic design + modular architecture
+- ✅ Scalable (add modules without pollution)
+
+**Context7 Validated:** Standard Storybook pattern for component organization
+
+---
 
 ---
 
@@ -705,6 +861,274 @@ Define cascade test → Agent executes → Validate results
 
 ---
 
+## 5. Pre-Implementation Token Check (MANDATORY)
+
+**⚠️ NO EXCEPTIONS - This step is MANDATORY before instructing executor to write ANY UI/component code.**
+
+**Before ANY code is written:**
+
+1. **Review implementation plan**: What spacing/colors/sizes/fonts/opacity will be used?
+2. **Check design-tokens.md**: Find semantic tokens for each value
+3. **Validate plan**: No hardcoded values (see checklist below)
+4. **Instruct executor**: Provide specific token utility names to use
+
+---
+
+### 🚨 Token Validation Checklist
+
+**Before instructing executor, verify plan has NO:**
+
+- [ ] Direct values: `16px`, `32px`, `1rem`, `2rem`, `#3b82f6`, `0.5`
+- [ ] String values that match tokens: `'1rem'` (even if it matches `--size-icon-sm`) ⭐ **CRITICAL**
+- [ ] Raw Tailwind: `px-4`, `py-2`, `gap-2`, `text-xl`, `rounded-lg`
+- [ ] Base tokens: `font-sans`, `font-mono` (use semantic: `font-heading`, `font-body`)
+
+**Plan MUST use:**
+
+- [x] Semantic utility classes: `w-icon-sm`, `px-button-x`, `bg-accent-primary`
+- [x] CSS custom properties: `var(--size-icon-sm)`, `var(--spacing-button-x)`
+
+---
+
+### 🚨🚨🚨 CRITICAL: "Matching Values" ≠ "Using Tokens" 🚨🚨🚨
+
+**This is the #1 mistake agents make. Read carefully.**
+
+**❌ WRONG THINKING:**
+
+```
+Token: --size-icon-sm = 1rem
+Agent plan: "I'll use 1rem - it matches the token!"
+Result: CASCADE BROKEN (hardcoded value doesn't update when token changes)
+```
+
+**✅ CORRECT THINKING:**
+
+```
+Token: --size-icon-sm = 1rem
+Agent plan: "I'll use w-icon-sm utility - it REFERENCES the token"
+Result: CASCADE WORKS (updates automatically when token changes)
+```
+
+**⚠️ IF PLAN CONTAINS LITERAL VALUES, IT'S HARDCODING:**
+
+- `'1rem'` → ❌ Hardcoded (even if matches `--size-icon-sm`)
+- `'32px'` → ❌ Hardcoded (even if matches `--size-icon-md`)
+- `'#3b82f6'` → ❌ Hardcoded (even if matches `--color-accent-primary`)
+- `w-icon-sm` → ✅ Token reference (uses `var(--size-icon-sm)`)
+- `var(--size-icon-sm)` → ✅ Token reference (direct CSS custom property)
+
+**Rule**: If you're typing a number/color/size as a STRING, you're doing it wrong.
+
+---
+
+### ⚠️ Special Case: SVG Dimensions
+
+**Agent's common rationalization:**
+
+> "SVG attributes need actual values, so I'll hardcode `1rem`, `2rem`"
+
+**Why this is COMPLETELY WRONG:**
+
+- Hardcoded `width="1rem"` → Breaks token cascade
+- If `--size-icon-sm` changes to `1.5rem`, hardcoded SVG still uses `1rem`
+- You've duplicated token values instead of referencing them
+
+**CORRECT approach for SVG sizing:**
+
+```svelte
+<!-- ❌ WRONG: Hardcoded SVG attributes (even with "matching" rem values) -->
+<svg width="1rem" height="1rem">
+	<!-- Hardcoded! Doesn't update when token changes -->
+</svg>
+
+<!-- ✅ CORRECT: CSS classes that REFERENCE tokens -->
+<svg class="w-icon-sm h-icon-sm animate-spin">
+	<!-- Uses var(--size-icon-sm) - updates when token changes ✅ -->
+</svg>
+```
+
+**Why CSS classes work with SVG:**
+
+- CSS `width`/`height` properties apply to `<svg>` elements
+- Classes like `w-icon-sm` use `var(--size-icon-sm)` internally
+- Token cascade maintained - change token, all SVGs update automatically
+
+**If CSS conflicts with SVG attributes:**
+
+- Use CSS classes only, remove `width`/`height` attributes
+- OR adjust CSS to not conflict
+- **NEVER** hardcode values as a "workaround"
+
+**There are NO special cases. NO exceptions. Not for SVG, not for anything.**
+
+---
+
+### 🎯 The Cascade Test (Use This to Validate)
+
+**Ask yourself**: "If I change `--size-icon-sm` from `1rem` to `1.5rem` in `design-system.json`, will this code update automatically?"
+
+- **YES** → Using tokens correctly ✅
+- **NO** → Hardcoding, cascade broken ❌
+
+**Examples:**
+
+```svelte
+<!-- Cascade Test: Change --size-icon-sm from 1rem to 1.5rem -->
+
+<!-- ❌ FAILS: Hardcoded value stays 1rem -->
+<svg width="1rem" height="1rem">
+
+<!-- ✅ PASSES: Automatically updates to 1.5rem -->
+<svg class="w-icon-sm h-icon-sm">
+```
+
+**Apply this test to EVERY value in the implementation plan.**
+
+**No special cases. No exceptions. No "but this is different..."**
+
+---
+
+### 🧠 Mental Model: What "Using Tokens" Actually Means
+
+**❌ NOT Using Tokens (even if values match):**
+
+```svelte
+<!-- All hardcoded, cascade broken -->
+<div style="width: 1rem">           <!-- Matches --size-icon-sm but hardcoded -->
+<svg width="32px" height="32px">    <!-- Matches --size-icon-md but hardcoded -->
+const size = '1rem';                <!-- Matches token but hardcoded -->
+```
+
+**Why wrong**: Changing the token in `design-system.json` doesn't update these values.
+
+---
+
+**✅ Using Tokens (references that update automatically):**
+
+```svelte
+<!-- All reference tokens, cascade works -->
+<div class="w-icon-sm">                       <!-- Uses var(--size-icon-sm) ✅ -->
+<svg class="w-icon-md h-icon-md">            <!-- Uses var(--size-icon-md) ✅ -->
+<div style="width: var(--size-icon-sm)">     <!-- Direct token reference ✅ -->
+```
+
+**Why right**: Changing the token automatically updates all references.
+
+---
+
+### Token Categories Checklist:
+
+When reviewing implementation plans, check for:
+
+- [ ] **Spacing** → `px-button-x`, `py-nav-item`, `gap-icon` (NOT `px-4`, `py-2`)
+- [ ] **Colors** → `bg-elevated`, `text-primary`, `border-base` (NOT `bg-gray-900`)
+- [ ] **Typography** → `text-h1`, `text-body`, `text-label` (NOT `text-2xl`, `text-sm`)
+- [ ] **Fonts** → `font-heading`, `font-body`, `font-code` (NOT `font-sans`, `font-mono`)
+- [ ] **Opacity** → `opacity-disabled`, `opacity-hover` (NOT `opacity-50`, `0.5`)
+- [ ] **Sizes** → `w-icon-sm`, `h-button-md` (NOT `width="1rem"`, `32px`)
+- [ ] **Border Radius** → `rounded-button`, `rounded-card` (NOT `rounded-md`)
+- [ ] **Breakpoints** → `md:`, `lg:`, `xl:` responsive utilities (NOT `640px`, `768px`)
+
+**Rule**: If plan contains literal px/rem/hex values, STOP and fix before instructing executor.
+
+---
+
+### Example Workflow:
+
+```
+Task: Create loading spinner component with size variants
+
+❌ WRONG PLAN:
+"Use 1rem, 2rem, 3rem for small/medium/large sizes"
+→ STOP! Hardcoded rem values (even though they match tokens)
+
+✅ CORRECT WORKFLOW:
+1. Check design-tokens.md → Found --size-icon-sm/md/lg
+2. Validate plan: Will use w-icon-sm/md/lg utilities ✅
+3. Instruct executor: "Use CSS classes w-icon-sm, w-icon-md, w-icon-lg (NOT hardcoded rem values)"
+4. Expected code: class="w-icon-sm h-icon-sm" (references token)
+5. Cascade test passes: Changing token updates all components ✅
+```
+
+---
+
+**Reference**: `dev-docs/2-areas/design/design-tokens.md` - Complete token catalog
+
+**Why mandatory**:
+
+- Design manager validates token usage BEFORE code is written
+- Prevents hardcoded values from ever being created
+- Saves refactoring time and maintains design system integrity
+- No exceptions - even for SVG, "special cases", or "values that match tokens"
+
+---
+
+## ⚠️ When Creating New Component Recipes → Use Recipe Validation
+
+**CRITICAL: Let Recipe Validation Guide You**
+
+**Scenario**: Creating a new component with size/variant props.
+
+**✅ CORRECT Approach (Recipe System):**
+
+1. Create recipe file: `src/lib/design-system/recipes/[component].recipe.ts`
+2. Define variants with utility classes
+3. Run `npm run recipes:validate` immediately
+4. If validation fails → Follow suggestions to fix class names
+5. Re-run validation until clean
+
+**Example:**
+
+```typescript
+// button.recipe.ts
+export const buttonRecipe = cva('rounded font-semibold', {
+	variants: {
+		size: {
+			sm: 'size-iconsm', // Validation ensures these exist
+			md: 'size-iconmd',
+			lg: 'size-iconlg'
+		}
+	}
+});
+```
+
+**Run validation:**
+
+```bash
+npm run recipes:validate
+
+# If errors:
+✗ Line 17: Class 'icon-sm' not found
+→ Did you mean: 'size-iconsm'
+
+# Fix and re-run until:
+✓ All recipes validated successfully
+```
+
+**Why this works:**
+
+- ✅ Recipe validation catches wrong class names automatically
+- ✅ Suggestions guide to correct utilities
+- ✅ No need to manually map props to tokens
+- ✅ Single source of truth (recipe file)
+
+**When to ask user:**
+
+- Creating entirely new utility class (not in CSS yet)
+- Unsure if utility exists or needs to be created
+- Component has unique requirements outside standard variants
+
+4. Verify with ESLint
+
+**Remember**: Asking for clarification is ALWAYS better than:
+
+- Disabling ESLint
+- Using hardcoded values
+- Guessing and potentially choosing the wrong token
+
+---
+
 # 🎨 Design Manager Role Summary
 
 **Core Responsibilities:**
@@ -713,11 +1137,14 @@ Define cascade test → Agent executes → Validate results
 2. **Validate quality** (cascade, WCAG, dark mode)
 3. **Use Context7** (validate against industry standards)
 4. **Check compliance** (no hardcoded values, proper classification)
-5. **Provide recommendations** (composition patterns, token usage)
+5. **Pre-implementation token validation** (catch hardcoded values BEFORE code is written) ⭐ **NEW**
+6. **Provide recommendations** (composition patterns, token usage)
 
 **Key Principles:**
 
 - **Design Manager guides, user executes** - Clear role separation
+- **Token validation BEFORE code** - NO exceptions, catch hardcoded values in planning phase ⭐ **CRITICAL**
+- **"Matching ≠ Using"** - Hardcoded `1rem` is NOT using `--size-icon-sm`, even if values match
 - **Context7 for validation** - Industry standards, not guesses
 - **Accessibility first** - WCAG 2.1 AA minimum
 - **Cascade testing** - Token changes must propagate
@@ -732,7 +1159,7 @@ Define cascade test → Agent executes → Validate results
 
 ---
 
-**Last Updated**: 2025-11-21  
+**Last Updated**: 2025-11-22 (Strengthened token validation based on agent feedback)
 **Purpose**: Design system manager/mentor for SynergyOS - Product Design + Deep Design Systems expertise  
 **Inherits From**: `/manager` - Core workflow patterns  
-**Key Difference**: Design-specific expertise, Context7 validation, accessibility focus
+**Key Difference**: Design-specific expertise, Context7 validation, accessibility focus, **MANDATORY pre-implementation token validation with NO exceptions**

@@ -8,6 +8,7 @@
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
 import { requireSystemAdmin } from '../rbac/permissions';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 /**
  * List all users
@@ -44,20 +45,20 @@ export const listAllUsers = query({
 export const getUserById = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users')
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const user = await ctx.db.get(args.userId);
+		const user = await ctx.db.get(args.targetUserId);
 		if (!user) {
-			throw new Error('User not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User not found');
 		}
 
 		// Get user's roles
 		const userRoles = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
 		const roles = await Promise.all(
@@ -70,7 +71,7 @@ export const getUserById = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,

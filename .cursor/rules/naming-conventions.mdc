@@ -1,0 +1,19 @@
+---
+alwaysApply: true
+---
+- Always follow Function Naming Conventions in dev-docs/master-docs/architecture.md (Code Standards → Function Naming Conventions).
+- Prefixes:
+  - find___ => returns T | null
+  - get___ => returns T (non-null; may throw if missing)
+  - list___ => returns T[] (non-null array)
+  - is___ / has___ / can___ => boolean
+  - create___ => returns Id
+  - update___ => void or T
+  - archive___ / restore___ => void
+  - fetch___ => external API call
+  - parse___ => parsing
+  - require___ => returns T or throws
+  - ensure___ => void or throws
+  - with___ => wraps a callback
+- Modifier: my___ scopes to the authenticated user.
+- Do not introduce unknown prefixes (e.g., delete___, upsert___). Rename to match the table.

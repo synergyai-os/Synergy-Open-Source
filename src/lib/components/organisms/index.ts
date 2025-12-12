@@ -23,12 +23,14 @@ export * as Menubar from './Menubar.svelte';
 // Layout Organisms
 export * as Accordion from './Accordion.svelte';
 export { default as SidebarToggle } from './SidebarToggle.svelte';
-export { default as ThemeToggle } from './ThemeToggle.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 
 // Error Organisms
 export { default as ErrorBoundary } from './ErrorBoundary.svelte';
 export { default as RateLimitError } from './RateLimitError.svelte';
+
+// Auth Organisms
+export { default as LoginBox } from './LoginBox.svelte';
 
 // Complex Form Organisms
 export * as Calendar from './Calendar.svelte';
@@ -39,3 +41,4 @@ export * as Command from './Command.svelte';
 export * as Collapsible from './Collapsible.svelte';
 export * as Toolbar from './Toolbar.svelte';
 export { default as StackedPanel } from './StackedPanel.svelte';
+export type { PanelContext } from './StackedPanel.svelte';

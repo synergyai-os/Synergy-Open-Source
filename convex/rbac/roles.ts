@@ -6,8 +6,8 @@
 
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from '../auth';
-import { validateSessionAndGetUserId } from '../sessionValidation';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 import { requirePermission } from './permissions';
 
 /**
@@ -17,23 +17,20 @@ import { requirePermission } from './permissions';
 export const assignRole = mutation({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users'),
+		assigneeUserId: v.id('users'),
 		roleSlug: v.string(),
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		resourceType: v.optional(v.string()),
 		resourceId: v.optional(v.string()),
 		expiresAt: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx, args.sessionId);
-		if (!actingUserId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Check permission
 		await requirePermission(ctx, actingUserId, 'users.change-roles', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			circleId: args.circleId
 		});
 
@@ -44,18 +41,18 @@ export const assignRole = mutation({
 			.first();
 
 		if (!role) {
-			throw new Error(`Role not found: ${args.roleSlug}`);
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, `Role not found: ${args.roleSlug}`);
 		}
 
 		// Check if user already has this role
 		const existingRole = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', args.userId).eq('roleId', role._id))
+			.withIndex('by_user_role', (q) => q.eq('userId', args.assigneeUserId).eq('roleId', role._id))
 			.filter((q) => {
 				let filter = q.eq(q.field('revokedAt'), undefined);
 
-				if (args.organizationId) {
-					filter = q.and(filter, q.eq(q.field('organizationId'), args.organizationId));
+				if (args.workspaceId) {
+					filter = q.and(filter, q.eq(q.field('workspaceId'), args.workspaceId));
 				}
 
 				if (args.circleId) {
@@ -67,14 +64,14 @@ export const assignRole = mutation({
 			.first();
 
 		if (existingRole) {
-			throw new Error(`User already has role: ${args.roleSlug}`);
+			throw createError(ErrorCodes.GENERIC_ERROR, `User already has role: ${args.roleSlug}`);
 		}
 
 		// Assign role
 		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.userId,
+			userId: args.assigneeUserId,
 			roleId: role._id,
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			circleId: args.circleId,
 			resourceType: args.resourceType,
 			resourceId: args.resourceId,
@@ -97,20 +94,17 @@ export const revokeRole = mutation({
 		userRoleId: v.id('userRoles')
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx, args.sessionId);
-		if (!actingUserId) {
-			throw new Error('Not authenticated');
-		}
+		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get user role
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role not found');
 		}
 
 		// Check permission
 		await requirePermission(ctx, actingUserId, 'users.change-roles', {
-			organizationId: userRole.organizationId,
+			workspaceId: userRole.workspaceId,
 			circleId: userRole.circleId
 		});
 
@@ -129,7 +123,7 @@ export const revokeRole = mutation({
 export const getUserRoles = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
@@ -146,7 +140,7 @@ export const getUserRoles = query({
 			if (ur.revokedAt) return false;
 			if (ur.expiresAt && ur.expiresAt < now) return false;
 
-			if (args.organizationId && ur.organizationId && ur.organizationId !== args.organizationId) {
+			if (args.workspaceId && ur.workspaceId && ur.workspaceId !== args.workspaceId) {
 				return false;
 			}
 
@@ -165,7 +159,7 @@ export const getUserRoles = query({
 					userRoleId: ur._id,
 					roleSlug: role?.slug,
 					roleName: role?.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt

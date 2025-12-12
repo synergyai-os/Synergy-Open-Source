@@ -26,7 +26,10 @@ export const POST: RequestHandler = async (event) => {
 
 	try {
 		// Get active session for target user
-		const targetSession = await getActiveSessionRecordForUser(targetUserId);
+		const targetSession = await getActiveSessionRecordForUser({
+			sessionId: event.locals.auth.sessionId,
+			targetUserId
+		});
 
 		if (!targetSession) {
 			return json({ error: 'No active session found for this account' }, { status: 404 });

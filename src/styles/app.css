@@ -1,29 +1,28 @@
+@source not '../../node_modules';
+@source not '../../.svelte-kit';
+@source not '../../scripts';
+@source not '../../dev-docs';
+@source not '../../tests';
+@source not '../../e2e';
+@source not '../../.cursor';
+@source '../**/*.{svelte,ts,js,html}';
+@config '../../tailwind.config.ts';
 @import 'tailwindcss';
 
-/* Modular CSS Architecture
- * 
- * This file imports all design tokens and utilities from domain-specific files.
- * 
- * Structure:
- * - tokens/ - Design tokens (@theme blocks)
- * - utilities/ - Utility classes (@utility blocks)
- * - base.css - Base HTML styles
- * 
- * See: SYOS-373 - Split app.css into Modular Architecture
- */
-
-/* Design Tokens */
+/* Design Tokens - @theme blocks only (Tailwind-compatible) */
 @import './tokens/colors.css';
 @import './tokens/spacing.css';
 @import './tokens/typography.css';
-@import './tokens/sizes.css';
 @import './tokens/effects.css';
+@import './tokens/breakpoints.css';
+@import './tokens/opacity.css';
 
 /* Utilities */
 @import './utilities/spacing-utils.css';
 @import './utilities/color-utils.css';
 @import './utilities/component-utils.css';
 @import './utilities/typography-utils.css';
+@import './utilities/opacity-utils.css';
 
 /* Base Styles */
 @import './base.css';

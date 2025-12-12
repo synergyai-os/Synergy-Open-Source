@@ -7,46 +7,39 @@
 	 * Separate from Badge (static status indicators).
 	 *
 	 * @see SYOS-393 - Create Chip Component
+	 *
+	 * Uses Recipe System (CVA) for type-safe variant management.
+	 * See: src/lib/design-system/recipes/chip.recipe.ts
 	 */
 
 	import type { Snippet } from 'svelte';
+	import {
+		chipRecipe,
+		chipCloseButtonRecipe,
+		type ChipVariantProps
+	} from '$lib/design-system/recipes';
 
-	type ChipVariant = 'default' | 'primary';
-
-	type Props = {
+	type Props = ChipVariantProps & {
 		label?: string;
-		variant?: ChipVariant;
 		onDelete?: () => void;
 		children?: Snippet;
 		class?: string;
 	};
 
 	let {
-		label = '',
 		variant = 'default',
+		label = '',
 		onDelete = undefined,
 		children,
 		class: className = '',
 		...rest
 	}: Props = $props();
 
-	// Base classes using design tokens - compact Linear-style design
-	// Use chip gap token for proper spacing between label and close button
-	const baseClasses =
-		'inline-flex items-center gap-chip rounded-chip text-chip transition-colors-token';
+	// Apply recipe for chip styling
+	const chipClasses = $derived([chipRecipe({ variant }), className]);
 
-	// Variant-specific classes using design tokens - subtle, less prominent
-	const variantClasses: Record<ChipVariant, string> = {
-		default: 'bg-tag/50 text-tag border border-base/50',
-		primary: 'bg-accent-primary/80 text-primary'
-	};
-
-	const chipClasses = `${baseClasses} ${variantClasses[variant]} px-chip py-chip ${className}`;
-
-	// Remove button - compact but still accessible
-	// Use chip close padding token, ensure proper alignment with flex centering
-	const removeClasses =
-		'p-chip-close rounded-chip transition-colors-token hover:bg-hover-solid focus:outline-none focus:ring-1 focus:ring-accent-primary flex items-center justify-center -mr-chip-close';
+	// Apply recipe for close button styling
+	const removeClasses = $derived(chipCloseButtonRecipe());
 </script>
 
 <span class={chipClasses} {...rest}>

@@ -2,14 +2,16 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { Button, FormInput } from '$lib/components/ui';
+	import { Button, FormInput } from '$lib/components/atoms';
 	import { RateLimitError } from '$lib/components/organisms';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const redirectTarget = $derived(
-		$page.url.searchParams.get('redirect') ?? $page.url.searchParams.get('redirectTo') ?? '/inbox'
+		$page.url.searchParams.get('redirect') ??
+			$page.url.searchParams.get('redirectTo') ??
+			'/auth/redirect'
 	);
 
 	let email = $state('');
@@ -150,18 +152,18 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base">
+<div class="bg-base min-h-screen">
 	<div
-		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="py-system-content mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
+			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-sm"
 		>
-			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-2xl font-semibold tracking-tight text-primary">Create your account</h1>
-				<p class="text-sm text-secondary">
+			<header class="gap-form-section flex flex-col text-center">
+				<h1 class="text-h2 text-primary font-semibold tracking-tight">Create your account</h1>
+				<p class="text-small text-secondary">
 					Already using SynergyOS?
-					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
+					<a href={resolveRoute('/login')} class="hover:text-accent-hover text-accent-primary"
 						>Sign in instead</a
 					>.
 				</p>
@@ -173,14 +175,14 @@
 				</div>
 			{:else if errorMessage}
 				<div
-					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
+					class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border"
 				>
-					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+					<p class="text-small text-error-secondary font-medium">{errorMessage}</p>
 				</div>
 			{/if}
 
-			<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
-				<div class="flex gap-form-section">
+			<form class="mt-content-section gap-form-section flex flex-col" onsubmit={handleSubmit}>
+				<div class="gap-form-section flex">
 					<FormInput
 						type="text"
 						name="firstName"
@@ -221,7 +223,7 @@
 						required={true}
 						autocomplete="new-password"
 					/>
-					<p class="mt-1 text-xs text-tertiary">
+					<p class="mt-section-y text-label text-tertiary">
 						Must be at least 8 characters and not contain parts of your email (e.g., "randyhereman")
 					</p>
 				</div>
@@ -245,7 +247,7 @@
 				</Button>
 			</form>
 
-			<p class="mt-content-section text-center text-label text-secondary">
+			<p class="mt-content-section text-label text-secondary text-center">
 				By creating an account, you agree to our Terms of Service and Privacy Policy.
 			</p>
 		</div>

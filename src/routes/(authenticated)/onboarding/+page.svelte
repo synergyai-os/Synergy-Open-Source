@@ -2,49 +2,50 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 
 	let orgName = $state('');
 	let isCreating = $state(false);
 	let errorMessage = $state<string | null>(null);
 
 	async function handleCreate() {
-		if (!orgName.trim() || !organizations) return;
+		if (!orgName.trim() || !workspaces) return;
 
 		isCreating = true;
 		errorMessage = null;
 
 		try {
-			await organizations.createOrganization({ name: orgName.trim() });
-			// Redirect to /org/circles after successful creation with org context
-			// Wait a moment for activeOrganizationId to be set
-			const orgId = organizations.activeOrganizationId;
-			if (orgId) {
-				goto(resolveRoute(`/org/circles?org=${orgId}`));
-			} else {
-				// Fallback: redirect without org param (will be set from context)
-				goto(resolveRoute('/org/circles'));
-			}
+			await workspaces.createWorkspace({ name: orgName.trim() });
+			// Redirect to /w/:slug/circles after successful creation
+			// Wait a moment for activeWorkspace to be updated with slug
+			const checkSlug = () => {
+				const slug = workspaces?.activeWorkspace?.slug;
+				if (slug) {
+					goto(resolveRoute(`/w/${slug}/circles`));
+				} else {
+					// Retry after a short delay
+					setTimeout(checkSlug, 50);
+				}
+			};
+			checkSlug();
 		} catch (error) {
-			console.error('Failed to create organization:', error);
-			errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
+			console.error('Failed to create workspace:', error);
+			errorMessage = error instanceof Error ? error.message : 'Failed to create workspace';
 		} finally {
 			isCreating = false;
 		}
 	}
 </script>
 
-<div class="flex h-screen items-center justify-center bg-base">
-	<div
-		class="w-full max-w-md rounded-lg border border-base bg-surface px-inbox-container py-inbox-container"
-	>
+<div class="bg-base flex h-screen items-center justify-center">
+	<div class="border-base bg-surface px-page py-page w-full max-w-md rounded-lg border">
 		<div class="space-y-6">
 			<div>
-				<h1 class="text-xl font-semibold text-primary">Create Your Organization</h1>
-				<p class="mt-2 text-sm text-secondary">
-					Get started by creating your organization. This will be your workspace for team
+				<h1 class="text-primary text-xl font-semibold">Create Your Organization</h1>
+				<p class="text-secondary mt-2 text-sm">
+					Get started by creating your workspace. This will be your workspace for team
 					collaboration.
 				</p>
 			</div>
@@ -57,10 +58,10 @@
 				}}
 			>
 				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Organization name</span>
+					<span class="text-primary text-sm font-medium">Organization name</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
-						placeholder="e.g. Axon Labs"
+						class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full rounded-md border px-2 text-sm focus:outline-none"
+						placeholder="e.g. SynergyOS Labs"
 						bind:value={orgName}
 						required
 						minlength={2}
@@ -80,7 +81,7 @@
 					<button
 						type="submit"
 						disabled={isCreating || !orgName.trim()}
-						class="text-on-solid rounded-md bg-accent-primary px-button-x py-button-y text-sm font-medium disabled:opacity-50"
+						class="text-on-solid bg-accent-primary px-button-x py-button-y rounded-md text-sm font-medium disabled:opacity-50"
 					>
 						{isCreating ? 'Creating...' : 'Create'}
 					</button>

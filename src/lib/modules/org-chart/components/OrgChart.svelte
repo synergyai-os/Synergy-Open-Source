@@ -1,5 +1,21 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
+	/**
+	 * OrgChart Component - D3 Hierarchy Visualization
+	 *
+	 * ⚠️ DESIGN SYSTEM EXCEPTION:
+	 * This component uses explicit pixel values for SVG text rendering and D3 calculations.
+	 * This is an acceptable exception per design system guidelines (see design-tokens.md).
+	 *
+	 * Rationale:
+	 * - SVG text positioning requires precise pixel values
+	 * - D3 scale transformations use pixel values for coordinate space
+	 * - CSS variables don't reliably size SVG text elements
+	 *
+	 * Related: SYOS-520 (Component Audit), SYOS-514 (Recipe System POC), SYOS-522 (Document SVG Exception)
+	 */
 	import { onMount, onDestroy } from 'svelte';
+	import { browser } from '$app/environment';
 	import { pack as d3Pack, type HierarchyNode } from 'd3-hierarchy';
 	import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
 	import { select } from 'd3-selection';
@@ -9,6 +25,10 @@
 		transformToHierarchy,
 		calculateCircleValue,
 		getCircleColor,
+		getCircleStrokeColor,
+		getRoleFillColor,
+		getRoleTextColor,
+		getRoleStrokeColor,
 		isSyntheticRoot,
 		isSyntheticRole,
 		isRolesGroup,
@@ -18,15 +38,22 @@
 	} from '$lib/utils/orgChartTransform';
 	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
+	import CircleContextMenu from './CircleContextMenu.svelte';
+	import RoleContextMenu from './RoleContextMenu.svelte';
+	import { Badge } from '$lib/components/atoms';
 
 	let {
 		orgChart,
 		width = 1000,
-		height = 800
+		height = 800,
+		workspaceId,
+		workspaceSlug
 	}: {
 		orgChart: UseOrgChart;
 		width?: number;
 		height?: number;
+		workspaceId?: string;
+		workspaceSlug?: string;
 	} = $props();
 
 	let svgElement: SVGSVGElement | undefined = $state();
@@ -36,6 +63,9 @@
 	let currentView: [number, number, number] = $state([0, 0, width]);
 	let focusNode: CircleHierarchyNode | null = $state(null);
 	let currentZoomLevel = $state(1.0); // Track zoom level from D3 transform
+
+	// Role hover state (local to chart, not exposed to composable)
+	let hoveredRoleId: Id<'circleRoles'> | null = $state(null);
 
 	// Reactive calculation of pack layout using $derived (Svelte 5 pattern)
 	const packedNodes = $derived.by(() => {
@@ -87,11 +117,6 @@
 					// Calculate position relative to circle center (not group center)
 					const relativeX = node.x - circleNode.x;
 					const relativeY = node.y - circleNode.y;
-
-					// Debug logging to verify role radius after packing
-					console.log(
-						`📍 Role "${roleData.name}" in "${circleNode.data.name}" (depth ${circleNode.depth}): r=${node.r.toFixed(2)}, value=${node.value?.toFixed(2) ?? 'N/A'}`
-					);
 
 					// Initialize packedRoles array if it doesn't exist
 					if (!(circleNode.data as CircleNode).packedRoles) {
@@ -197,9 +222,11 @@
 	);
 
 	// Initialize focus node and view when nodes are first available
+	// Set root circle as focus (visual active state) but don't open panel
 	$effect(() => {
 		if (visibleNodes.length > 0 && !focusNode) {
-			const rootNode = packedNodes[0];
+			// Find the root circle (depth 0, first visible node)
+			const rootNode = visibleNodes.find((node) => node.depth === 0);
 			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
 				// Calculate bounds of all visible nodes to fit entire chart
 				// Use visibleNodes which already filters out synthetic nodes
@@ -207,6 +234,7 @@
 				focusNode = rootNode as CircleHierarchyNode;
 				// Initialize zoom level to show labels
 				currentZoomLevel = 1.0;
+				// Don't call selectCircle() - panel should not auto-open on initial load
 			}
 		}
 	});
@@ -223,76 +251,405 @@
 		return isLargeEnough && Boolean(hasPackedRoles);
 	}
 
-	// Truncate text to fit within circle radius
-	function truncateText(text: string, maxWidth: number, fontSize: number): string {
-		// Estimate character width (rough: fontSize * 0.6 for average character)
-		const charWidth = fontSize * 0.6;
-		const maxChars = Math.floor(maxWidth / charWidth);
+	// Calculate role label parameters with PROPORTIONAL scaling and multi-line support
+	// Font size is a fixed ratio of circle radius - scales perfectly with zoom
+	function getRoleLabelParams(role: RoleNode): {
+		fontSize: number;
+		lineHeight: number;
+		lines: string[];
+	} {
+		// Font size proportional to role radius (SVG units)
+		// 0.22 ratio allows 2 lines with comfortable spacing
+		const fontSize = role.r * 0.22;
+		const lineHeight = fontSize * 1.25;
 
-		if (text.length <= maxChars) return text;
-		return text.slice(0, Math.max(1, maxChars - 3)) + '...';
+		// Max text width: 1.6x radius = 80% of diameter (10% padding each side)
+		const maxTextWidth = role.r * 1.6;
+		const charWidth = fontSize * 0.55;
+		const maxCharsPerLine = Math.floor(maxTextWidth / charWidth);
+
+		// Split name into lines (max 2 lines)
+		const lines = splitIntoLines(role.name, maxCharsPerLine, 2);
+
+		return { fontSize, lineHeight, lines };
+	}
+
+	// Split text into lines with word-aware breaking
+	function splitIntoLines(text: string, maxChars: number, maxLines: number): string[] {
+		// If it fits on one line, return as-is
+		if (text.length <= maxChars) {
+			return [text];
+		}
+
+		const words = text.split(/\s+/);
+		const lines: string[] = [];
+		let currentLine = '';
+
+		for (const word of words) {
+			if (lines.length >= maxLines) break;
+
+			const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+			if (testLine.length <= maxChars) {
+				currentLine = testLine;
+			} else if (currentLine === '') {
+				// Single word too long - truncate it
+				if (lines.length === maxLines - 1) {
+					// Last line: truncate with ellipsis
+					lines.push(word.slice(0, maxChars - 1) + '…');
+					currentLine = '';
+					break;
+				} else {
+					// Not last line: truncate and continue
+					lines.push(word.slice(0, maxChars));
+					currentLine = '';
+				}
+			} else {
+				// Push current line, start new with this word
+				lines.push(currentLine);
+				currentLine = word;
+			}
+		}
+
+		// Add remaining text
+		if (currentLine && lines.length < maxLines) {
+			if (currentLine.length > maxChars) {
+				lines.push(currentLine.slice(0, maxChars - 1) + '…');
+			} else {
+				lines.push(currentLine);
+			}
+		} else if (currentLine && lines.length === maxLines) {
+			// Truncate last line if there's more text
+			const lastLine = lines[lines.length - 1];
+			if (lastLine && !lastLine.endsWith('…')) {
+				lines[lines.length - 1] = lastLine.slice(0, maxChars - 1) + '…';
+			}
+		}
+
+		return lines.length > 0 ? lines : [text.slice(0, maxChars)];
+	}
+
+	// Process circle name for display: smart word wrap + truncation
+	// Returns array of lines (max 2) with proper word breaks
+	function processCircleName(
+		name: string,
+		maxCharsPerLine: number
+	): { lines: string[]; wasTruncated: boolean } {
+		// Short names fit on one line
+		if (name.length <= maxCharsPerLine) {
+			return { lines: [name], wasTruncated: false };
+		}
+
+		const words = name.split(/\s+/);
+		const lines: string[] = [];
+		let currentLine = '';
+		let wasTruncated = false;
+
+		for (const word of words) {
+			// If we already have 2 lines, we need to truncate
+			if (lines.length >= 2) {
+				wasTruncated = true;
+				break;
+			}
+
+			const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+			if (testLine.length <= maxCharsPerLine) {
+				// Word fits on current line
+				currentLine = testLine;
+			} else if (currentLine === '') {
+				// Word itself is too long - truncate it
+				if (lines.length === 0) {
+					// First line: truncate word
+					currentLine = word.slice(0, maxCharsPerLine - 3) + '...';
+					wasTruncated = true;
+				} else {
+					// Second line: truncate word
+					lines.push(word.slice(0, maxCharsPerLine - 3) + '...');
+					wasTruncated = true;
+					currentLine = '';
+					break;
+				}
+			} else {
+				// Start new line with this word
+				lines.push(currentLine);
+				currentLine = word;
+			}
+		}
+
+		// Don't forget the last line
+		if (currentLine && lines.length < 2) {
+			// Check if we need to truncate the last line
+			if (currentLine.length > maxCharsPerLine) {
+				lines.push(currentLine.slice(0, maxCharsPerLine - 3) + '...');
+				wasTruncated = true;
+			} else {
+				lines.push(currentLine);
+			}
+		} else if (currentLine && lines.length >= 2) {
+			// We have leftover text that doesn't fit
+			wasTruncated = true;
+			// Add ellipsis to last line if not already there
+			if (lines[1] && !lines[1].endsWith('...')) {
+				const lastLine = lines[1];
+				if (lastLine.length > maxCharsPerLine - 3) {
+					lines[1] = lastLine.slice(0, maxCharsPerLine - 3) + '...';
+				} else {
+					lines[1] = lastLine + '...';
+				}
+			}
+		}
+
+		return { lines, wasTruncated };
+	}
+
+	// Calculate circle label parameters based on RENDERED size (semantic zoom)
+	// As zoom increases, we show the name at appropriate visual size
+	function getCircleLabelParams(node: CircleHierarchyNode): {
+		fontSize: number;
+		labelWidth: number;
+		labelHeight: number;
+		yOffset: number;
+		displayLines: string[]; // Processed text lines for display
+	} {
+		const name = node.data.name;
+
+		// Use RENDERED radius for semantic zoom behavior
+		const renderedRadius = node.r * currentZoomLevel;
+
+		// Base visual font size scales with rendered radius
+		// Larger circles = larger text, but capped for readability
+		let baseVisualFontSize = Math.max(12, Math.min(renderedRadius / 5, 20));
+
+		// LONG NAME ADJUSTMENT: Slightly smaller font for names > 20 chars
+		if (name.length > 20) {
+			baseVisualFontSize *= 0.85;
+		}
+		if (name.length > 30) {
+			baseVisualFontSize *= 0.9; // Additional reduction for very long names
+		}
+
+		// Depth multiplier: root circles get slightly larger text
+		const depthMultiplier = Math.max(0.7, 2.0 - node.depth * 0.3);
+
+		// Final visual font size with MIN and MAX caps
+		const visualFontSize = Math.max(10, Math.min(baseVisualFontSize * depthMultiplier, 32));
+
+		// Convert to SVG space (counter-scale)
+		const svgFontSize = visualFontSize / currentZoomLevel;
+
+		// Label dimensions based on rendered size, converted to SVG space
+		const visualLabelWidth = Math.min(renderedRadius * 1.6, 300);
+		const svgLabelWidth = visualLabelWidth / currentZoomLevel;
+
+		// Calculate max characters per line based on visual width and font size
+		const visualCharWidth = visualFontSize * 0.55;
+		const maxCharsPerLine = Math.floor(visualLabelWidth / visualCharWidth);
+
+		// Process the name for display (smart word wrap + truncation)
+		const { lines: displayLines } = processCircleName(name, maxCharsPerLine);
+
+		// Adjust label height based on number of lines
+		const lineCount = displayLines.length;
+		const svgLabelHeight = svgFontSize * (1.3 * lineCount + 0.5);
+
+		// Position label toward TOP of circle if it has children (to avoid overlap)
+		const hasChildren = node.children && node.children.length > 0;
+		const yOffset = hasChildren ? -node.r * 0.3 : 0;
+
+		return {
+			fontSize: svgFontSize,
+			labelWidth: svgLabelWidth,
+			labelHeight: svgLabelHeight,
+			yOffset,
+			displayLines
+		};
 	}
 
 	// Determine if circle name should be visible
-	// Show labels for all circles that meet size requirements (accounting for zoom)
+	// Uses depth-relative visibility to avoid overlap (Holaspirit pattern)
 	function shouldShowCircleName(node: CircleHierarchyNode): boolean {
-		// Always show root level circles (highest level)
-		const isRootLevel = node.depth === 0;
-		if (isRootLevel) {
-			return true;
-		}
-
 		// Calculate rendered size (radius * zoom level)
 		const renderedRadius = node.r * currentZoomLevel;
 
-		// Show if rendered size is large enough to display readable label
-		// Minimum readable size: 40px rendered radius = ~10px font size
-		const isLargeEnough = renderedRadius > 40;
+		// Minimum size threshold - don't show labels for tiny circles
+		if (renderedRadius < 50) {
+			return false;
+		}
 
-		// Show if zoomed in enough (zoom level > 1.1)
-		const isZoomedIn = currentZoomLevel > 1.1;
+		// Check if this circle has visible children
+		const hasVisibleChildren =
+			node.children &&
+			node.children.some((child) => {
+				const childNode = child as CircleHierarchyNode;
+				// Child is visible if it's not synthetic and has meaningful size
+				return (
+					!isSyntheticRole(childNode.data.circleId) &&
+					!isRolesGroup(childNode.data.circleId) &&
+					childNode.r * currentZoomLevel > 80
+				);
+			});
 
-		// Show if focused (for context when zooming into specific circle)
+		// DEPTH-RELATIVE VISIBILITY (Holaspirit pattern):
+		// Hide parent labels when children are prominent
+		// This prevents overlap between parent name and child circles
+		if (hasVisibleChildren) {
+			// Check if children are taking up significant visual space
+			const childrenRenderedSize = node.children!.reduce((sum, child) => {
+				const childNode = child as CircleHierarchyNode;
+				if (!isSyntheticRole(childNode.data.circleId) && !isRolesGroup(childNode.data.circleId)) {
+					return sum + childNode.r * currentZoomLevel;
+				}
+				return sum;
+			}, 0);
+
+			// If children occupy significant space relative to parent, hide parent label
+			const childrenRatio = childrenRenderedSize / renderedRadius;
+			if (childrenRatio > 1.5) {
+				// Only show if this is the focused circle (user explicitly selected it)
+				const isFocused = focusNode?.data.circleId === node.data.circleId;
+				return isFocused;
+			}
+		}
+
+		// Show if focused (user explicitly selected this circle)
 		const isFocused = focusNode?.data.circleId === node.data.circleId;
+		if (isFocused) {
+			return true;
+		}
 
-		// Show if parent/child of focused (Observable pattern)
-		const isRelatedToFocused =
-			focusNode &&
-			(node === focusNode ||
-				(focusNode.parent !== null && node === focusNode.parent) ||
-				(focusNode.parent !== null && node.parent === focusNode));
+		// Show if it's a relatively large circle
+		if (renderedRadius > 100) {
+			return true;
+		}
 
-		return isLargeEnough || isZoomedIn || isFocused || Boolean(isRelatedToFocused);
+		// Show if zoomed in enough that this depth is prominent
+		const isZoomedIn = currentZoomLevel > 1.5;
+		if (isZoomedIn && renderedRadius > 60) {
+			return true;
+		}
+
+		return false;
 	}
 
-	// Determine if role label should be visible (accounting for zoom and circle name priority)
-	function shouldShowRoleLabel(role: RoleNode, circleNode: CircleHierarchyNode): boolean {
+	// Determine if role label should be visible (based purely on rendered size)
+	// Holaspirit pattern: roles become readable when zoomed in close enough
+	function shouldShowRoleLabel(role: RoleNode, _circleNode: CircleHierarchyNode): boolean {
 		// Calculate rendered size (radius * zoom level)
 		const renderedRadius = role.r * currentZoomLevel;
 
-		// Hide if rendered size is too small (minimum readable: 12px rendered = ~6px font)
-		if (renderedRadius < 12) {
-			return false;
+		// Show label when role is large enough to be readable (minimum: 20px rendered radius)
+		// This is independent of circle name visibility - roles show their own labels
+		// when zoomed in close enough, regardless of what else is visible
+		return renderedRadius >= 20;
+	}
+
+	// Calculate role opacity based on rendered size (progressive disclosure)
+	// Holaspirit pattern: roles are low opacity when small, higher when larger
+	function getRoleOpacity(role: RoleNode): number {
+		const renderedRadius = role.r * currentZoomLevel;
+
+		// Progressive opacity: 0.3 at minimum visible size, 1.0 at readable size
+		// Minimum visible: 8px rendered → opacity 0.3
+		// Readable size: 25px rendered → opacity 1.0
+		const minSize = 8;
+		const maxSize = 25;
+		const minOpacity = 0.3;
+		const maxOpacity = 1.0;
+
+		if (renderedRadius <= minSize) {
+			return minOpacity;
+		}
+		if (renderedRadius >= maxSize) {
+			return maxOpacity;
 		}
 
-		// Hide role labels when circle name is visible (prioritize circle name)
-		// Only show role labels if circle name is NOT visible
-		const circleNameVisible = shouldShowCircleName(circleNode);
-		if (circleNameVisible) {
-			return false;
-		}
+		// Linear interpolation between min and max
+		const t = (renderedRadius - minSize) / (maxSize - minSize);
+		return minOpacity + t * (maxOpacity - minOpacity);
+	}
 
-		return true;
+	// ============================================================================
+	// PROPORTIONAL STROKE-WIDTH CALCULATIONS
+	// ============================================================================
+	// SVG stroke-width is in SVG coordinate space, not screen pixels.
+	// For visual consistency, stroke-width should scale proportionally with radius.
+	// Smaller circles get thinner strokes, larger circles get thicker strokes.
+
+	/**
+	 * Calculate proportional stroke-width for role circles
+	 * Uses radius as base, with min/max bounds for readability
+	 */
+	function getRoleStrokeWidth(radius: number, state: 'selected' | 'hover' | 'default'): number {
+		// State multipliers - selected gets thickest, hover gets medium, default is subtle
+		const multipliers = {
+			selected: 0.08,
+			hover: 0.06,
+			default: 0.04
+		};
+
+		const multiplier = multipliers[state];
+		const baseWidth = radius * multiplier;
+
+		// Clamp to reasonable bounds (in SVG coordinate space)
+		const minMax = {
+			selected: { min: 1, max: 3 },
+			hover: { min: 0.8, max: 2 },
+			default: { min: 0.5, max: 1.5 }
+		};
+
+		const { min, max } = minMax[state];
+		return Math.max(min, Math.min(baseWidth, max));
+	}
+
+	/**
+	 * Calculate proportional stroke-width for circle containers
+	 * Uses radius as base, scaled by state (active/hover/default)
+	 */
+	function getCircleStrokeWidth(
+		radius: number,
+		state: 'active' | 'hover' | 'hasChildren' | 'none'
+	): number {
+		// State multipliers - active/hover states get thicker strokes
+		const multipliers = {
+			active: 0.025,
+			hover: 0.02,
+			hasChildren: 0.015,
+			none: 0
+		};
+
+		const multiplier = multipliers[state];
+		if (multiplier === 0) return 0;
+
+		const baseWidth = radius * multiplier;
+
+		// Clamp to reasonable bounds
+		const minMax = {
+			active: { min: 1.5, max: 4 },
+			hover: { min: 1, max: 3 },
+			hasChildren: { min: 0.8, max: 2 },
+			none: { min: 0, max: 0 }
+		};
+
+		const { min, max } = minMax[state];
+		return Math.max(min, Math.min(baseWidth, max));
 	}
 
 	// D3 Zoom behavior for trackpad/mouse wheel
 	let zoomBehavior: ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null = null;
 
 	// Smooth zoom to a specific node using interpolateZoom
-	function _zoomToNode(node: CircleHierarchyNode, duration = 500) {
-		if (!svgElement || !gElement) return;
+	function zoomToNode(node: CircleHierarchyNode, duration = 500) {
+		if (!svgElement || !gElement || !zoomBehavior) return;
 
-		const targetView: [number, number, number] = [node.x, node.y, node.r * 2];
+		// Calculate viewWidth to fit circle with padding in BOTH dimensions
+		// This ensures the full circle is visible with 20px padding on all sides
+		const diameter = node.r * 2;
+		const padding = 40; // 20px top + 20px bottom (or left + right)
+		const maxRenderedDiameter = Math.min(width, height) - padding;
+		const viewWidth = (width * diameter) / maxRenderedDiameter;
+
+		const targetView: [number, number, number] = [node.x, node.y, viewWidth];
 		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
 		const t = transition()
 			.duration(duration)
@@ -307,19 +664,73 @@
 				// Update zoom level for label visibility
 				currentZoomLevel = k;
 
-				// Update transform
+				// Calculate transform
+				const transform = zoomIdentity
+					.translate(width / 2, height / 2)
+					.scale(k)
+					.translate(-view[0], -view[1]);
+
+				// Update transform on group element
 				if (gElement) {
-					select(gElement).attr(
-						'transform',
-						`translate(${width / 2},${height / 2}) scale(${k}) translate(${-view[0]},${-view[1]})`
-					);
+					select(gElement).attr('transform', transform.toString());
+				}
+
+				// Sync D3 zoom behavior state
+				if (svgElement && zoomBehavior) {
+					select(svgElement).call(zoomBehavior.transform, transform);
 				}
 			};
 		});
 
 		// Update focus node (triggers reactive label visibility and role visibility)
+		// Don't call selectCircle() to avoid opening the modal - focusNode handles visual active state
 		focusNode = node;
-		orgChart.selectCircle(node.data.circleId);
+	}
+
+	// Zoom out to show full chart (root view)
+	function zoomToRoot(duration = 500) {
+		if (!svgElement || !gElement || !zoomBehavior || visibleNodes.length === 0) return;
+
+		const bounds = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+		const targetView: [number, number, number] = bounds;
+		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
+		const t = transition()
+			.duration(duration)
+			.ease((t) => t * (2 - t)); // easeOutQuad
+
+		t.tween('zoom', () => {
+			return (t: number) => {
+				const view = interpolator(t);
+				currentView = view;
+				const k = width / view[2];
+
+				// Update zoom level for label visibility
+				currentZoomLevel = k;
+
+				// Calculate transform
+				const transform = zoomIdentity
+					.translate(width / 2, height / 2)
+					.scale(k)
+					.translate(-view[0], -view[1]);
+
+				// Update transform on group element
+				if (gElement) {
+					select(gElement).attr('transform', transform.toString());
+				}
+
+				// Sync D3 zoom behavior state
+				if (svgElement && zoomBehavior) {
+					select(svgElement).call(zoomBehavior.transform, transform);
+				}
+			};
+		});
+
+		// Find root circle and set as focus
+		const rootNode = visibleNodes.find((node) => node.depth === 0);
+		if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
+			focusNode = rootNode as CircleHierarchyNode;
+			// Don't call selectCircle() to avoid opening the modal
+		}
 	}
 
 	onMount(() => {
@@ -341,25 +752,24 @@
 			});
 
 		// Apply zoom to SVG
-		select(svgElement).call(zoomBehavior);
+		// Prevent browser zoom takeover when reaching scale limits (Option 1 from D3 docs)
+		select(svgElement)
+			.call(zoomBehavior)
+			.on('wheel', (event) => event.preventDefault());
 
 		// Initial zoom to fit entire chart (synchronous, no setTimeout)
 		// Use visibleNodes which already has roles extracted and filtered
 		if (visibleNodes.length > 0) {
-			const root = packedNodes[0];
-			if (root && !isSyntheticRoot(root.data.circleId)) {
+			// Find the root circle (depth 0, first visible node)
+			const rootNode = visibleNodes.find((node) => node.depth === 0);
+			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
 				// Calculate bounds of all visible nodes to fit entire chart
-				if (visibleNodes.length > 0) {
-					currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
-					focusNode = root as CircleHierarchyNode;
-					currentZoomLevel = 1.0;
-				} else {
-					// Fallback to root node if no visible nodes
-					const rootNode = root as CircleHierarchyNode;
-					currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
-					focusNode = rootNode;
-					currentZoomLevel = 1.0;
-				}
+				currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+				focusNode = rootNode as CircleHierarchyNode;
+				currentZoomLevel = 1.0;
+
+				// Don't call selectCircle() - panel should not auto-open on initial load
+				// focusNode is set for visual active state only
 
 				// Apply initial transform
 				if (gElement) {
@@ -404,8 +814,20 @@
 			return;
 		}
 
-		// Open circle detail panel - no auto-zoom, user controls zoom manually
-		orgChart.selectCircle(node.data.circleId);
+		// Check if this circle is already active
+		const isActive = focusNode?.data.circleId === node.data.circleId;
+
+		if (isActive) {
+			// Click on active circle → open modal
+			orgChart.selectCircle(node.data.circleId);
+		} else {
+			// Click on non-active circle → make it active and zoom to it
+			if (node.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(node);
+			}
+		}
 	}
 
 	function handleCircleMouseEnter(node: CircleHierarchyNode) {
@@ -416,9 +838,27 @@
 		orgChart.setHover(null);
 	}
 
-	function handleRoleClick(event: MouseEvent, role: RoleNode) {
+	function handleRoleClick(
+		event: MouseEvent,
+		role: RoleNode,
+		parentCircleNode: CircleHierarchyNode
+	) {
 		event.stopPropagation();
-		orgChart.selectRole(role.roleId, 'chart');
+
+		// Check if parent circle is active
+		const isParentActive = focusNode?.data.circleId === parentCircleNode.data.circleId;
+
+		if (isParentActive) {
+			// Role is in active circle → open role modal
+			orgChart.selectRole(role.roleId, 'chart');
+		} else {
+			// Role is in non-active circle → make parent active and zoom to it
+			if (parentCircleNode.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(parentCircleNode);
+			}
+		}
 	}
 
 	// Zoom controls
@@ -439,44 +879,34 @@
 	}
 
 	function handleResetView() {
-		// Reset zoom and pan to initial view (fit entire chart)
-		if (visibleNodes.length > 0 && svgElement && gElement) {
-			const bounds = calculateBounds(visibleNodes as CircleHierarchyNode[]);
-			currentView = bounds;
-			currentZoomLevel = 1.0;
-
-			const k = width / bounds[2];
-			const resetTransform = zoomIdentity
-				.translate(width / 2, height / 2)
-				.scale(k)
-				.translate(-bounds[0], -bounds[1]);
-
-			select(gElement).attr('transform', resetTransform.toString());
-			if (zoomBehavior) {
-				select(svgElement).call(zoomBehavior.transform, resetTransform);
-			}
-		} else if (svgElement && zoomBehavior) {
-			// Fallback: just reset to identity
-			select(svgElement).call(zoomBehavior.transform, zoomIdentity);
-		}
+		// Reset zoom and pan to initial view (fit entire chart) - use smooth zoom
+		zoomToRoot();
 		orgChart.resetView();
 	}
 
-	// Handle background click - close any open panels
+	// Handle background click - zoom view to show active circle
 	function handleBackgroundClick() {
-		// Close circle and role panels
-		orgChart.selectCircle(null);
-		orgChart.selectRole(null, null);
+		// Zoom view to show the active circle
+		if (focusNode) {
+			if (focusNode.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(focusNode);
+			}
+		} else {
+			// No active circle, zoom to root
+			zoomToRoot();
+		}
 	}
 </script>
 
-<div class="relative h-full w-full overflow-hidden rounded-card border border-base bg-surface">
+<div class="bg-surface relative h-full w-full overflow-hidden">
 	<!-- Zoom Controls -->
 	<div
-		class="bg-elevated/95 absolute top-4 right-4 z-10 flex flex-col gap-icon rounded-card p-control-panel-padding shadow-card-hover backdrop-blur-sm"
+		class="bg-elevated/95 shadow-card-hover gap-button rounded-card inset-md absolute top-4 right-4 z-10 flex flex-col backdrop-blur-sm"
 	>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleZoomIn}
 			aria-label="Zoom in"
 		>
@@ -490,7 +920,7 @@
 			</svg>
 		</button>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleZoomOut}
 			aria-label="Zoom out"
 		>
@@ -498,9 +928,9 @@
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
 			</svg>
 		</button>
-		<div class="my-1 h-px bg-border-base"></div>
+		<div class="bg-border-base my-1 h-px"></div>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleResetView}
 			aria-label="Reset view"
 		>
@@ -518,7 +948,7 @@
 	<!-- SVG Container -->
 	<svg
 		bind:this={svgElement}
-		class="h-full w-full cursor-move"
+		class="h-full w-full cursor-move touch-none"
 		viewBox="0 0 {width} {height}"
 		preserveAspectRatio="xMidYMid meet"
 		role="button"
@@ -538,11 +968,25 @@
 		<g bind:this={gElement} class="circles">
 			<!-- First pass: Render circles and roles (without names) -->
 			{#each visibleNodes as node (node.data.circleId)}
+				{@const isFocused = focusNode?.data.circleId === node.data.circleId}
 				{@const isSelected = orgChart.selectedCircleId === node.data.circleId}
+				{@const isActive = isFocused || isSelected}
 				{@const isHovered = orgChart.hoveredCircleId === node.data.circleId}
 				{@const hasChildren = node.children && node.children.length > 0}
-				{@const color = getCircleColor(node.depth)}
+				{@const circleFill = getCircleColor()}
+				{@const circleStroke = isActive
+					? getCircleStrokeColor('active')
+					: isHovered
+						? getCircleStrokeColor('hover')
+						: getCircleStrokeColor('default')}
 				{@const showRoles = shouldShowRoles(node)}
+				{@const circleStrokeState = isActive
+					? 'active'
+					: isHovered
+						? 'hover'
+						: hasChildren
+							? 'hasChildren'
+							: 'none'}
 
 				<!-- Group positioned at node's x,y (D3 pack layout pattern) -->
 				<g
@@ -560,54 +1004,41 @@
 					}}
 					style="pointer-events: all;"
 				>
-					<!-- Circle -->
+					<!-- Circle - light fill for all depths, stroke indicates state -->
+					<!-- Stroke-width scales proportionally with radius for visual consistency -->
 					<circle
 						cx="0"
 						cy="0"
 						r={node.r}
-						fill={color}
-						fill-opacity={isSelected ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
-						stroke={isSelected
-							? 'var(--color-accent-primary)'
-							: isHovered
-								? color
-								: hasChildren
-									? color
-									: 'none'}
-						stroke-width={isSelected ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
-						stroke-opacity={isSelected ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+						fill={circleFill}
+						fill-opacity={hasChildren ? 0.7 : 0.85}
+						stroke={circleStroke}
+						stroke-width={getCircleStrokeWidth(node.r, circleStrokeState)}
+						stroke-opacity={isActive ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+						stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
 						style="pointer-events: all;"
 					/>
 
 					<!-- Role circles (packed alongside child circles by D3 pack layout) -->
 					{#if showRoles && node.data.packedRoles}
-						{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
-						{@const nameAreaHeight = fontSize + 8}
-						{@const nameAreaTop = -fontSize / 2 - 4}
-						<!-- Define mask that excludes the center area where circle name is -->
+						<!-- ClipPath to keep roles inside circle boundary -->
 						<defs>
-							<mask id="mask-{node.data.circleId}">
-								<!-- White = visible, Black = hidden -->
-								<!-- Show entire circle -->
-								<circle cx="0" cy="0" r={node.r} fill="white" />
-								<!-- Hide center area where circle name is -->
-								<rect
-									x={-node.r * 2}
-									y={nameAreaTop}
-									width={node.r * 4}
-									height={nameAreaHeight}
-									fill="black"
-								/>
-							</mask>
-							<!-- Also keep circle clipPath for boundary -->
 							<clipPath id="clip-{node.data.circleId}">
 								<circle cx="0" cy="0" r={node.r} />
 							</clipPath>
 						</defs>
-						<!-- Group with mask and clipPath to ensure roles stay inside circle and never cover name -->
-						<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+						<!-- Group with clipPath to ensure roles stay inside circle -->
+						<g clip-path="url(#clip-{node.data.circleId})">
 							{#each node.data.packedRoles as role (role.roleId)}
 								{@const roleLabelVisible = shouldShowRoleLabel(role, node)}
+								{@const roleOpacity = getRoleOpacity(role)}
+								{@const isRoleSelected = orgChart.selectedRoleId === role.roleId}
+								{@const isRoleHovered = hoveredRoleId === role.roleId}
+								{@const roleState = isRoleSelected
+									? 'selected'
+									: isRoleHovered
+										? 'hover'
+										: 'default'}
 								<g
 									transform="translate({role.x},{role.y})"
 									class="role-circle-group cursor-pointer"
@@ -615,50 +1046,157 @@
 									tabindex="0"
 									onclick={(e) => {
 										e.stopPropagation();
-										handleRoleClick(e, role);
+										handleRoleClick(e, role, node);
+									}}
+									onmouseenter={() => {
+										hoveredRoleId = role.roleId;
+									}}
+									onmouseleave={() => {
+										hoveredRoleId = null;
 									}}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === ' ') {
 											e.stopPropagation();
-											handleRoleClick(e as unknown as MouseEvent, role);
+											handleRoleClick(e as unknown as MouseEvent, role, node);
 										}
 									}}
 									style="pointer-events: all;"
 								>
-									<!-- Role circle -->
+									<!-- Role circle - progressive opacity based on zoom/size (Holaspirit pattern) -->
+									<!-- Stroke-width scales proportionally with radius for visual consistency -->
 									<circle
 										cx="0"
 										cy="0"
 										r={role.r}
-										fill="white"
-										fill-opacity="0.9"
-										stroke={color}
-										stroke-width="1"
-										stroke-opacity="0.6"
+										fill={getRoleFillColor()}
+										fill-opacity={isRoleSelected
+											? 1
+											: isRoleHovered
+												? Math.min(1, roleOpacity + 0.3)
+												: roleOpacity}
+										stroke={getRoleStrokeColor()}
+										stroke-width={getRoleStrokeWidth(role.r, roleState)}
+										stroke-opacity={isRoleSelected
+											? 1
+											: isRoleHovered
+												? Math.min(1, roleOpacity * 0.8)
+												: roleOpacity * 0.5}
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label (only if large enough and circle name not visible) -->
+									<!-- Role name label with badge - using foreignObject for HTML/CSS support -->
 									{#if roleLabelVisible}
-										{@const fontSize = Math.max(6, Math.min(role.r / 2, 10))}
-										{@const maxTextWidth = role.r * 1.6}
-										{@const truncatedName = truncateText(role.name, maxTextWidth, fontSize)}
-										<text
-											x="0"
-											y="0"
-											text-anchor="middle"
-											dominant-baseline="middle"
-											class="role-label pointer-events-none select-none"
-											fill="black"
-											fill-opacity="0.85"
-											font-size={fontSize}
-											style="text-shadow: 0 0 2px rgba(255,255,255,0.8);"
+										{@const labelParams = getRoleLabelParams(role)}
+										{@const lineCount = labelParams.lines.length}
+										{@const totalHeight = (lineCount - 1) * labelParams.lineHeight}
+										{@const labelHeight = totalHeight + labelParams.fontSize}
+										{@const labelWidth = role.r * 1.6}
+										{@const hasStatus = role.status === 'draft' || role.isHiring}
+										{@const status =
+											role.status === 'draft' ? 'draft' : role.isHiring ? 'hiring' : undefined}
+										{@const badgeVariant = status === 'hiring' ? 'warning' : 'default'}
+										{@const badgeLabel = status === 'hiring' ? 'Hiring' : 'Draft'}
+										<foreignObject
+											x={-labelWidth / 2}
+											y={-labelHeight / 2}
+											width={labelWidth}
+											height={labelHeight}
+											class="pointer-events-none overflow-visible"
 										>
-											{truncatedName}
-										</text>
+											<div
+												xmlns="http://www.w3.org/1999/xhtml"
+												class="gap-fieldGroup flex h-full w-full flex-col items-center justify-center"
+											>
+												<!-- Role name lines -->
+												{#each labelParams.lines as line, i (i)}
+													<span
+														class="role-label text-center font-sans font-medium select-none"
+														style="
+															font-size: {labelParams.fontSize}px;
+															color: {getRoleTextColor()};
+															text-shadow: 
+																0 0 3px var(--color-component-orgChart-circle-fill),
+																0 0 6px var(--color-component-orgChart-circle-fill),
+																0 1px 2px rgba(0,0,0,0.3);
+															line-height: {labelParams.lineHeight}px;
+														"
+													>
+														{line}
+													</span>
+												{/each}
+												<!-- Status badge -->
+												{#if hasStatus}
+													<Badge variant={badgeVariant} size="md">{badgeLabel}</Badge>
+												{/if}
+											</div>
+										</foreignObject>
 									{/if}
 								</g>
 							{/each}
 						</g>
+					{/if}
+
+					<!-- Context Menu Overlay: foreignObject with transparent div for right-click -->
+					{#if browser && workspaceId && workspaceSlug && !isSyntheticRole(node.data.circleId)}
+						{@const circleDiameter = node.r * 2}
+						<foreignObject
+							x={-node.r}
+							y={-node.r}
+							width={circleDiameter}
+							height={circleDiameter}
+							class="pointer-events-all"
+							style="overflow: visible;"
+						>
+							<div xmlns="http://www.w3.org/1999/xhtml" class="h-full w-full">
+								<CircleContextMenu
+									circleId={node.data.circleId}
+									circleName={node.data.name}
+									workspaceId={workspaceId as Id<'workspaces'>}
+									{workspaceSlug}
+									onLeftClick={(e) => {
+										// Forward left-click to circle's click handler
+										handleCircleClick(e, node);
+									}}
+									onRoleCreated={() => {
+										// Refresh org chart data - circles query will auto-refresh
+									}}
+									onCircleCreated={() => {
+										// Refresh org chart data - circles query will auto-refresh
+									}}
+								/>
+							</div>
+						</foreignObject>
+					{/if}
+
+					<!-- Role Context Menus: Render AFTER circle context menu so they appear on top -->
+					{#if browser && showRoles && node.data.packedRoles && node.data.workspaceId}
+						{#each node.data.packedRoles as role (role.roleId)}
+							{@const roleDiameter = role.r * 2}
+							<!-- Context Menu Overlay for Role: foreignObject positioned at role location -->
+							<!-- Positioned relative to circle center (already in circle's group transform) -->
+							<g transform="translate({role.x},{role.y})">
+								<foreignObject
+									x={-role.r}
+									y={-role.r}
+									width={roleDiameter}
+									height={roleDiameter}
+									class="pointer-events-all"
+									style="overflow: visible;"
+								>
+									<div xmlns="http://www.w3.org/1999/xhtml" class="h-full w-full">
+										<RoleContextMenu
+											roleId={role.roleId}
+											roleName={role.name}
+											workspaceId={node.data.workspaceId}
+											onLeftClick={(e) => {
+												// Forward left-click to role's click handler
+												e.stopPropagation();
+												handleRoleClick(e, role, node);
+											}}
+										/>
+									</div>
+								</foreignObject>
+							</g>
+						{/each}
 					{/if}
 				</g>
 			{/each}
@@ -666,36 +1204,43 @@
 			<!-- Second pass: Render circle names on top (sorted by depth descending so root appears on top) -->
 			{#each visibleNodes.slice().sort((a, b) => b.depth - a.depth) as node (node.data.circleId)}
 				{@const showCircleName = shouldShowCircleName(node)}
-				{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
-				{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
-				{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
-				{@const maxTextWidth = node.r * 1.8}
-				{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
+				{@const labelParams = getCircleLabelParams(node)}
 				{#if showCircleName}
-					<g transform="translate({node.x},{node.y})">
-						<!-- Background rectangle using design token (sidebar-badge-bg with opacity) -->
-						<rect
-							x={-maxTextWidth / 2 - 4}
-							y={-fontSize / 2 - 2}
-							width={maxTextWidth + 8}
-							height={fontSize + 4}
-							fill="oklch(37.2% 0.044 257.287 / 0.85)"
-							rx="2"
-							class="pointer-events-none"
-						/>
-						<text
-							x="0"
-							y="0"
-							text-anchor="middle"
-							dominant-baseline="middle"
-							class="circle-name-label pointer-events-none font-bold select-none"
-							fill="white"
-							fill-opacity="1"
-							style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
-							font-size={fontSize}
+					<!-- Position at circle center + yOffset (moves label up for circles with children) -->
+					<g transform="translate({node.x},{node.y + labelParams.yOffset})">
+						<!-- foreignObject allows HTML text with full CSS/design system support -->
+						<!-- Semantic zoom: label dimensions adapt to current zoom level -->
+						<!-- yOffset positions label toward top to avoid child overlap -->
+						<foreignObject
+							x={-labelParams.labelWidth / 2}
+							y={-labelParams.labelHeight / 2}
+							width={labelParams.labelWidth}
+							height={labelParams.labelHeight}
+							class="pointer-events-none overflow-visible"
 						>
-							{truncatedName}
-						</text>
+							<div
+								xmlns="http://www.w3.org/1999/xhtml"
+								class="flex h-full w-full flex-col items-center justify-center"
+							>
+								<!-- Smart word wrap: render each line separately -->
+								{#each labelParams.displayLines as line, i (i)}
+									<span
+										class="circle-label text-center font-sans font-semibold select-none"
+										style="
+											font-size: {labelParams.fontSize}px;
+											color: var(--color-component-orgChart-label-text);
+											text-shadow: 
+												0 0 3px var(--color-component-orgChart-circle-fill),
+												0 0 6px var(--color-component-orgChart-circle-fill),
+												0 1px 2px rgba(0,0,0,0.3);
+											line-height: 1.3;
+										"
+									>
+										{line}
+									</span>
+								{/each}
+							</div>
+						</foreignObject>
 					</g>
 				{/if}
 			{/each}
@@ -707,7 +1252,7 @@
 		<div class="absolute inset-0 flex items-center justify-center">
 			<div class="text-center">
 				<svg
-					class="mx-auto mb-4 size-icon-xl text-secondary"
+					class="size-icon-xl text-secondary mb-header mx-auto"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -720,22 +1265,30 @@
 					/>
 				</svg>
 				<p class="text-button text-secondary">No circles to display</p>
-				<p class="mt-1 text-label text-tertiary">Create circles to see the org chart</p>
+				<p class="text-label text-tertiary mt-fieldGroup">Create circles to see the org chart</p>
 			</div>
 		</div>
 	{/if}
 </div>
 
 <style>
+	/* Remove focus outline from SVG container - prevents blue border around org chart */
+	svg:focus {
+		outline: none;
+	}
+
+	svg:focus-visible {
+		outline: none;
+	}
+
 	.circle-group:focus {
 		outline: none;
 	}
 
 	.circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
-		stroke-width: 3;
-		outline: 2px solid var(--color-accent-primary);
-		outline-offset: 4px;
+		/* stroke-width handled by inline proportional calculation */
+		outline: none;
 	}
 
 	/* Smooth transitions for all interactions */
@@ -756,9 +1309,8 @@
 
 	.role-circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
-		stroke-width: 2;
-		outline: 2px solid var(--color-accent-primary);
-		outline-offset: 2px;
+		/* stroke-width handled by inline proportional calculation */
+		outline: none;
 	}
 
 	/* Smooth transitions for role interactions */
@@ -771,7 +1323,7 @@
 
 	.role-circle-group:hover circle {
 		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-		stroke-width: 2;
-		stroke-opacity: 0.8;
+		/* stroke-width handled by inline proportional calculation */
+		/* stroke-opacity handled by inline calculation */
 	}
 </style>

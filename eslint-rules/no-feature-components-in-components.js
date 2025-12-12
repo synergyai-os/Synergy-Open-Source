@@ -22,8 +22,8 @@
  */
 function isFeatureFolder(folderName) {
 	// ai-tools excluded temporarily - will become its own module (future work)
-	// See: ai-docs/tasks/SYOS-XXX-component-reorganization.md
-	const featureFolders = ['control-panel', 'dashboard', 'my-mind'];
+	// Note: Component reorganization task doc was deleted (SYOS-542) - task never implemented
+	const featureFolders = ['control-panel', 'dashboard'];
 	return featureFolders.includes(folderName);
 }
 

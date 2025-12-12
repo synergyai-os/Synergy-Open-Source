@@ -68,7 +68,7 @@ test.describe('Registration with Email Verification', () => {
 		await hiddenInput.fill(codeData.code);
 
 		// Step 7: Verification should succeed and redirect to onboarding (new users without orgs)
-		// New users are redirected to /onboarding to create their first organization
+		// New users are redirected to /onboarding to create their first workspace
 		await expect(page).toHaveURL(/\/onboarding/, { timeout: 10000 });
 		console.log('✅ Registration and verification complete - redirected to onboarding');
 
@@ -192,10 +192,8 @@ test.describe('Password Reset Flow', () => {
 		await page.fill('input[type="email"]', 'randy+cicduser@synergyai.nl');
 		await page.click('button[type="submit"]');
 
-		// Should show success message (more specific selector to avoid strict mode violation)
-		await expect(
-			page.locator('.text-sm.font-medium.text-primary:has-text("Check your email")')
-		).toBeVisible();
+		// Should show success message (use data-testid to avoid class drift)
+		await expect(page.getByTestId('forgot-password-success')).toBeVisible();
 	});
 
 	test('should reset password with valid token', async ({ page }) => {

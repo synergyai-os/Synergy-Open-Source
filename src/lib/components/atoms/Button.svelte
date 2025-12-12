@@ -2,16 +2,14 @@
 	import { Button as BitsButton } from 'bits-ui';
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { ButtonVariant, ButtonSize } from '../ui/types';
+	import { buttonRecipe, type ButtonVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
-			variant?: ButtonVariant;
-			size?: ButtonSize;
+		ButtonVariantProps & {
 			iconOnly?: boolean;
 			ariaLabel?: string;
 			href?: string;
-			onclick?: () => void;
+			onclick?: (e?: MouseEvent) => void;
 			children: Snippet;
 			class?: string;
 			type?: 'button' | 'submit' | 'reset';
@@ -41,33 +39,26 @@
 		console.warn('Button: ariaLabel required when iconOnly=true for accessibility');
 	}
 
-	// Base classes using design tokens
-	const baseClasses =
-		'inline-flex items-center justify-center rounded-button transition-colors-token';
+	// Use recipe system for variant and size
+	// Note: When iconOnly=true with ghost/solid variants, recipe applies simplified styles
+	// (no typography, shadows, or lift effects - optimized for icon-only buttons)
+	const recipeClasses = $derived(buttonRecipe({ variant, size }));
 
-	// Variant-specific classes using design tokens
-	const variantClasses = {
-		primary: 'bg-accent-primary text-primary hover:bg-accent-hover disabled:opacity-50',
-		secondary:
-			'bg-elevated border border-base text-primary hover:border-accent-primary disabled:opacity-50',
-		outline:
-			'border border-base text-primary hover:bg-hover-solid disabled:opacity-50 disabled:hover:bg-elevated'
-	};
+	// Handle iconOnly: override padding when iconOnly is true
+	// Icon-only buttons use square padding instead of x/y padding
+	const iconOnlySizeClasses = $derived(
+		iconOnly
+			? {
+					sm: 'px-button-sm py-button-sm',
+					md: 'button-icon',
+					lg: 'button-icon'
+				}[size]
+			: undefined
+	);
 
-	// Size-specific classes using design tokens (conditional based on iconOnly)
-	const sizeClasses = iconOnly
-		? {
-				sm: 'p-nav-item',
-				md: 'p-button-icon',
-				lg: 'p-button-icon'
-			}
-		: {
-				sm: 'px-nav-item py-nav-item gap-icon text-small',
-				md: 'px-button-x py-button-y gap-icon text-button',
-				lg: 'px-button-x py-button-y gap-icon text-body'
-			};
-
-	const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+	// Combine recipe classes with iconOnly size override and custom className
+	// Array syntax handles empty strings/undefined automatically
+	const buttonClasses = $derived([recipeClasses, iconOnlySizeClasses, className]);
 </script>
 
 {#if href}

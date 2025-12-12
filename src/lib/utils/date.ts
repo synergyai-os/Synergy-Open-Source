@@ -1,7 +1,12 @@
 /**
  * Date formatting utilities
  * Shared date formatting functions used across components
+ *
+ * Uses global locale defaults: day/month/year format, Monday-first week
+ * See: src/lib/utils/locale.ts
  */
+
+import { DEFAULT_LOCALE, DEFAULT_DATETIME_FORMAT, DEFAULT_SHORT_DATE_FORMAT } from './locale';
 
 /**
  * Format a timestamp as a relative date string (e.g., "4d", "1w", "1mo")
@@ -63,20 +68,29 @@ export function formatRelativeDateLong(timestamp?: number): string {
 
 /**
  * Format a timestamp as a locale-aware date string
- * Full date format for detail views (e.g., "January 15, 2024 at 2:30 PM")
+ * Full date format for detail views (e.g., "15 January 2024 at 2:30 PM")
+ * Uses day/month/year format (en-GB locale)
  *
  * @param timestamp - Unix timestamp in milliseconds
- * @param locale - Locale string (default: 'en-US')
+ * @param locale - Locale string (default: 'en-GB' for day/month/year format)
  * @returns Formatted date string
  */
-export function formatDate(timestamp?: number, locale = 'en-US'): string {
+export function formatDate(timestamp?: number, locale = DEFAULT_LOCALE): string {
 	if (!timestamp) return '';
 	const date = new Date(timestamp);
-	return date.toLocaleDateString(locale, {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit'
-	});
+	return date.toLocaleDateString(locale, DEFAULT_DATETIME_FORMAT);
+}
+
+/**
+ * Format a timestamp as a short date string (e.g., "15 Jan 2024")
+ * Uses day/month/year format (en-GB locale)
+ *
+ * @param timestamp - Unix timestamp in milliseconds
+ * @param locale - Locale string (default: 'en-GB' for day/month/year format)
+ * @returns Formatted short date string
+ */
+export function formatShortDate(timestamp?: number, locale = DEFAULT_LOCALE): string {
+	if (!timestamp) return '';
+	const date = new Date(timestamp);
+	return date.toLocaleDateString(locale, DEFAULT_SHORT_DATE_FORMAT);
 }

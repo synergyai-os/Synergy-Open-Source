@@ -1,13 +1,79 @@
 import { defineConfig } from 'vitest/config';
+import type { Plugin } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { viteBreakpointReplace } from './scripts/vite-breakpoint-replace.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const createStripFileLinePlugin = () => ({
+	postcssPlugin: 'strip-file-line-selectors',
+	Once(root) {
+		root.walkRules((rule) => {
+			if (/\[file\\:lines?\]/.test(rule.selector)) {
+				rule.remove();
+			}
+		});
+	}
+});
+createStripFileLinePlugin.postcss = true;
+
+const stripFileLineSelectorsPlugin = (): Plugin => {
+	const scrub = (code: string) =>
+		code
+			.replace(/\.\[file\\:lines?\]\{file:lines?;?\}/g, '')
+			.replace(/,\s*\.\[file\\:lines?\]/g, '')
+			.replace(/\.\[file\\:lines?\]\s*,/g, '');
+
+	return {
+		name: 'strip-file-line-selectors',
+		enforce: 'post',
+		transform(code, id) {
+			// Tailwind CSS v4 sometimes runs CSS modules with query params (e.g. ?direct/?inline)
+			if (!/\.css($|\?)/.test(id)) return null;
+			const cleaned = scrub(code);
+			return cleaned === code ? null : { code: cleaned, map: null };
+		},
+		generateBundle(_, bundle) {
+			for (const [fileName, chunk] of Object.entries(bundle)) {
+				if (fileName.endsWith('.css') && chunk.type === 'asset') {
+					const content = chunk.source.toString();
+					const cleaned = scrub(content);
+
+					if (cleaned !== content) {
+						chunk.source = cleaned;
+						console.log(`[strip-file-line-selectors] Cleaned ${fileName}`);
+					}
+				}
+			}
+		}
+	};
+};
+
+// Plugin to exclude colors-conditional.css from Tailwind processing
+// Tailwind v4's parser can't handle @media queries and class selectors in imported CSS
+const excludeConditionalCssPlugin = (): Plugin => {
+	return {
+		name: 'exclude-conditional-css-from-tailwind',
+		enforce: 'pre',
+		transform(code, id) {
+			// Skip Tailwind processing for colors-conditional.css
+			// This file contains standard CSS (@media, .light, .dark) that breaks Tailwind's parser
+			if (id.includes('colors-conditional.css')) {
+				// Return the CSS as-is, bypassing Tailwind processing
+				return { code, map: null };
+			}
+			return null;
+		}
+	};
+};
+
 export default defineConfig({
 	plugins: [
+		excludeConditionalCssPlugin(), // Must be before Tailwind to intercept the file
+		viteBreakpointReplace() as Plugin, // Replace hardcoded breakpoints in @media queries with token values
 		tailwindcss(),
 		{
 			name: 'redirect-markdown',
@@ -24,6 +90,7 @@ export default defineConfig({
 				});
 			}
 		},
+		stripFileLineSelectorsPlugin(),
 		sveltekit()
 	],
 	server: {
@@ -43,6 +110,11 @@ export default defineConfig({
 			// SvelteKit aliases for Vitest support
 			$convex: path.resolve(__dirname, './convex'),
 			$tests: path.resolve(__dirname, './tests')
+		}
+	},
+	css: {
+		postcss: {
+			plugins: [createStripFileLinePlugin()]
 		}
 	},
 	test: {

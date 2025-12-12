@@ -1,723 +1,394 @@
 <script lang="ts">
 	/**
-	 * CreateMeetingModal - Full meeting creation form
-	 * Features: title, template, date/time, duration, recurrence, attendees, privacy
+	 * CreateMeetingModal - 3-step stepper wizard for meeting creation
+	 * Step 1: Attendees & Meeting Type
+	 * Step 2: Date, Time & Recurrence
+	 * Step 3: Finalize (Title, Review)
 	 */
 
-	import { Dialog } from 'bits-ui';
-	import { useConvexClient, useQuery } from 'convex-svelte';
-	import { api } from '$lib/convex';
-	import { browser } from '$app/environment';
-	import { toast } from 'svelte-sonner';
 	import type { Id } from '$lib/convex';
-	import { Button, ToggleGroup } from '$lib/components/ui';
-	import { ToggleSwitch } from '$lib/components/molecules';
+	import { Button, Text, Icon, Heading, FormInput, Combobox } from '$lib/components/atoms';
+	import Stepper from '$lib/components/molecules/Stepper.svelte';
+	import { DateTimeField } from '$lib/components/molecules';
+	import * as Dialog from '$lib/components/organisms/Dialog.svelte';
 	import AttendeeSelector from './AttendeeSelector.svelte';
-
-	type Attendee = {
-		type: 'user' | 'circle';
-		id: Id<'users'> | Id<'circles'>;
-		name: string;
-		email?: string;
-	};
+	import RecurrenceField from './RecurrenceField.svelte';
+	import { useMeetingForm } from '../composables/useMeetingForm.svelte';
 
 	interface Props {
 		open: boolean;
 		onClose: () => void;
-		organizationId: string;
+		workspaceId: string;
 		sessionId: string;
 		circles?: Array<{ _id: Id<'circles'>; name: string }>;
 	}
 
-	let { open = $bindable(), onClose, organizationId, sessionId, circles = [] }: Props = $props();
+	let { open = $bindable(), onClose, workspaceId, sessionId, circles = [] }: Props = $props();
 
-	// Form state
-	const state = $state({
-		title: '',
-		selectedTemplateId: '' as Id<'meetingTemplates'> | '',
-		circleId: '' as Id<'circles'> | '',
-		startDate: '',
-		startTime: '',
-		duration: 60,
-		visibility: 'public' as 'public' | 'circle' | 'private',
-		recurrenceEnabled: false,
-		recurrence: {
-			frequency: 'weekly' as 'daily' | 'weekly' | 'monthly',
-			interval: 1,
-			daysOfWeek: [] as string[], // For ToggleGroup: string[] for multiple, single string for single mode
-			endDate: '' as string
-		},
-		selectedAttendees: [] as Attendee[]
+	// Use composable for all logic
+	const form = useMeetingForm({
+		workspaceId: () => workspaceId,
+		sessionId: () => sessionId,
+		circles: () => circles,
+		onSuccess: onClose
 	});
-
-	// Fetch templates
-	const templatesQuery =
-		browser && organizationId && sessionId
-			? useQuery(api.meetingTemplates.list, () => ({
-					organizationId: organizationId as Id<'organizations'>,
-					sessionId
-				}))
-			: null;
-
-	const templates = $derived((templatesQuery?.data ?? []).filter((t) => t._id));
-
-	// Get Convex client for mutations
-	const convexClient = browser ? useConvexClient() : null;
-
-	// Helper: Parse date/time to timestamp
-	function parseDateTime(date: string, time: string): number {
-		return new Date(`${date}T${time}`).getTime();
-	}
-
-	// Helper: Get upcoming meeting dates for preview
-	const upcomingMeetings = $derived.by(() => {
-		if (!state.recurrenceEnabled || !state.startDate || !state.startTime) return [];
-
-		const startTimestamp = parseDateTime(state.startDate, state.startTime);
-		const upcoming: Date[] = [];
-		const startDate = new Date(startTimestamp);
-		const maxMeetings = 7; // Show 7 meetings to see full weekly pattern
-
-		if (state.recurrence.frequency === 'weekly' && state.recurrence.daysOfWeek.length > 0) {
-			const selectedDay = parseInt(state.recurrence.daysOfWeek[0], 10);
-			const startDayOfWeek = startDate.getDay();
-
-			// Always include start date as first meeting
-			upcoming.push(new Date(startDate));
-
-			// If start day differs from selected recurring day, add recurring instances
-			if (startDayOfWeek !== selectedDay) {
-				// Find first occurrence of selected day after start date
-				let currentTime = startDate.getTime() + 24 * 60 * 60 * 1000; // Start from day after
-				let currentDate = new Date(currentTime);
-
-				// Find first matching day
-				while (currentDate.getDay() !== selectedDay) {
-					currentTime += 24 * 60 * 60 * 1000;
-					currentDate = new Date(currentTime);
-				}
-
-				// Add next recurring meetings (we already have start date)
-				for (let i = 0; i < maxMeetings - 1; i++) {
-					upcoming.push(new Date(currentTime));
-					currentTime += 7 * state.recurrence.interval * 24 * 60 * 60 * 1000;
-				}
-			} else {
-				// Start day matches recurring day - just add next occurrences
-				let currentTime = startDate.getTime();
-				for (let i = 1; i < maxMeetings; i++) {
-					currentTime += 7 * state.recurrence.interval * 24 * 60 * 60 * 1000;
-					upcoming.push(new Date(currentTime));
-				}
-			}
-		} else if (state.recurrence.frequency === 'daily') {
-			// Daily: respect selected days (if any specified)
-			if (state.recurrence.daysOfWeek.length > 0) {
-				// Always include start date as first meeting
-				upcoming.push(new Date(startDate));
-
-				// Then find subsequent matching days
-				let currentTime = startDate.getTime() + 24 * 60 * 60 * 1000; // Start from day after
-				let count = 1; // Already have start date
-
-				while (count < maxMeetings) {
-					const currentDate = new Date(currentTime);
-					const dayOfWeek = currentDate.getDay();
-					if (state.recurrence.daysOfWeek.includes(dayOfWeek.toString())) {
-						upcoming.push(new Date(currentTime));
-						count++;
-					}
-					currentTime += 24 * 60 * 60 * 1000;
-				}
-			} else {
-				// No specific days - truly daily (every day)
-				for (let i = 0; i < maxMeetings; i++) {
-					const time = startDate.getTime() + i * state.recurrence.interval * 24 * 60 * 60 * 1000;
-					upcoming.push(new Date(time));
-				}
-			}
-		} else if (state.recurrence.frequency === 'monthly') {
-			for (let i = 0; i < maxMeetings; i++) {
-				// For monthly, we need to properly handle month boundaries
-				const date = new Date(startDate.getTime());
-				// Use setMonth which doesn't mutate if we create new instances each time
-				const newDate = new Date(
-					date.getFullYear(),
-					date.getMonth() + i * state.recurrence.interval,
-					date.getDate(),
-					date.getHours(),
-					date.getMinutes()
-				);
-				upcoming.push(newDate);
-			}
-		}
-
-		return upcoming;
-	});
-
-	// Helper: Convert daysOfWeek string[] to number[] for calculations
-	const _daysOfWeekNumbers = $derived(state.recurrence.daysOfWeek.map((day) => parseInt(day, 10)));
-
-	// Helper message for weekly recurrence
-	const weeklyScheduleMessage = $derived.by(() => {
-		if (
-			state.recurrence.frequency !== 'weekly' ||
-			state.recurrence.daysOfWeek.length === 0 ||
-			!state.startDate
-		) {
-			return null;
-		}
-
-		const startDate = new Date(state.startDate);
-		const startDayOfWeek = startDate.getDay();
-		const selectedDay = parseInt(state.recurrence.daysOfWeek[0], 10);
-
-		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		const startDayName = dayNames[startDayOfWeek];
-		const selectedDayName = dayNames[selectedDay];
-
-		// Format start date
-		const startDateFormatted = startDate.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric'
-		});
-
-		if (startDayOfWeek === selectedDay) {
-			// Same day: recurring starts immediately
-			return `Your meeting will repeat every ${selectedDayName}, starting ${startDateFormatted}.`;
-		} else {
-			// Different day: first on start date, then recurring on selected day
-			// Find first occurrence of selected day after start date
-			let currentTime = startDate.getTime() + 24 * 60 * 60 * 1000; // Start from next day
-			let firstRecurrence = new Date(currentTime);
-
-			while (firstRecurrence.getDay() !== selectedDay) {
-				currentTime += 24 * 60 * 60 * 1000;
-				firstRecurrence = new Date(currentTime);
-			}
-
-			const firstRecurrenceFormatted = firstRecurrence.toLocaleDateString('en-US', {
-				month: 'short',
-				day: 'numeric'
-			});
-
-			return `First meeting on ${startDayName}, ${startDateFormatted}. Then recurring every ${selectedDayName}, starting ${firstRecurrenceFormatted}.`;
-		}
-	});
-
-	// Helper message for daily recurrence
-	const dailyScheduleMessage = $derived.by(() => {
-		if (
-			state.recurrence.frequency !== 'daily' ||
-			state.recurrence.daysOfWeek.length === 0 ||
-			!state.startDate
-		) {
-			return null;
-		}
-
-		const startDate = new Date(state.startDate);
-		const startDayOfWeek = startDate.getDay();
-		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-		// Check if start date is today
-		const today = new Date();
-		const isToday =
-			startDate.getDate() === today.getDate() &&
-			startDate.getMonth() === today.getMonth() &&
-			startDate.getFullYear() === today.getFullYear();
-
-		// Get selected day names (create copy before sorting to avoid mutation)
-		const selectedDayNames = [...state.recurrence.daysOfWeek]
-			.map((day) => parseInt(day, 10))
-			.sort((a, b) => a - b)
-			.map((day) => dayNames[day]);
-
-		// Format list: "Monday, Tuesday, and Wednesday"
-		let dayList = '';
-		if (selectedDayNames.length === 1) {
-			dayList = selectedDayNames[0];
-		} else if (selectedDayNames.length === 2) {
-			dayList = `${selectedDayNames[0]} and ${selectedDayNames[1]}`;
-		} else {
-			const lastDay = selectedDayNames[selectedDayNames.length - 1];
-			const otherDays = selectedDayNames.slice(0, -1).join(', ');
-			dayList = `${otherDays}, and ${lastDay}`;
-		}
-
-		// Check if start date is in the selected pattern
-		const startDayInPattern = state.recurrence.daysOfWeek.includes(startDayOfWeek.toString());
-
-		if (startDayInPattern) {
-			// Start date IS in selected pattern
-			return `Meeting repeats on ${dayList}.`;
-		} else {
-			// Start date NOT in selected pattern
-			if (isToday) {
-				return `Meeting starts today, then repeats on ${dayList}.`;
-			} else {
-				const startDayName = dayNames[startDayOfWeek];
-				return `Meeting starts on ${startDayName}, then repeats on ${dayList}.`;
-			}
-		}
-	});
-
-	// Auto-select days based on frequency and start date
-	$effect(() => {
-		if (!state.recurrenceEnabled) return;
-
-		if (state.recurrence.frequency === 'weekly' && state.startDate) {
-			// Weekly: Pre-select day based on start date
-			const startDate = new Date(state.startDate);
-			const dayOfWeek = startDate.getDay();
-			state.recurrence.daysOfWeek = [dayOfWeek.toString()];
-		} else if (state.recurrence.frequency === 'daily') {
-			// Daily: Pre-select weekdays (Mon-Fri = 1-5)
-			state.recurrence.daysOfWeek = ['1', '2', '3', '4', '5'];
-		}
-	});
-
-	// Submit form
-	async function handleSubmit() {
-		if (!state.title.trim()) {
-			toast.error('Meeting title is required');
-			return;
-		}
-
-		if (!state.startDate || !state.startTime) {
-			toast.error('Please select start date and time');
-			return;
-		}
-
-		try {
-			const startTime = parseDateTime(state.startDate, state.startTime);
-
-			const recurrence = state.recurrenceEnabled
-				? {
-						frequency: state.recurrence.frequency,
-						interval: state.recurrence.interval,
-						daysOfWeek:
-							state.recurrence.frequency === 'weekly' || state.recurrence.frequency === 'daily'
-								? state.recurrence.daysOfWeek.length > 0
-									? state.recurrence.daysOfWeek.map((day) => parseInt(day, 10))
-									: undefined
-								: undefined,
-						endDate: state.recurrence.endDate
-							? new Date(state.recurrence.endDate).getTime()
-							: undefined
-					}
-				: undefined;
-
-			const result = await convexClient?.mutation(api.meetings.create, {
-				sessionId,
-				organizationId: organizationId as Id<'organizations'>,
-				circleId: state.circleId || undefined,
-				templateId: state.selectedTemplateId || undefined,
-				title: state.title,
-				startTime,
-				duration: state.duration,
-				visibility: state.visibility,
-				recurrence
-			});
-
-			// Add attendees after meeting creation
-			const meetingId = result?.meetingId;
-			if (meetingId && state.selectedAttendees.length > 0) {
-				for (const attendee of state.selectedAttendees) {
-					try {
-						await convexClient?.mutation(api.meetings.addAttendee, {
-							sessionId,
-							meetingId: meetingId as Id<'meetings'>,
-							attendeeType: attendee.type,
-							userId: attendee.type === 'user' ? (attendee.id as Id<'users'>) : undefined,
-							circleId: attendee.type === 'circle' ? (attendee.id as Id<'circles'>) : undefined
-						});
-					} catch (error) {
-						console.error(`Failed to add attendee ${attendee.name}:`, error);
-						// Continue with other attendees even if one fails
-					}
-				}
-			}
-
-			toast.success('Meeting created successfully');
-			resetForm();
-			onClose();
-		} catch (error) {
-			console.error('Failed to create meeting:', error);
-			toast.error('Failed to create meeting');
-		}
-	}
-
-	// Reset form
-	function resetForm() {
-		state.title = '';
-		state.selectedTemplateId = '';
-		state.circleId = '';
-		state.startDate = '';
-		state.startTime = '';
-		state.duration = 60;
-		state.visibility = 'public';
-		state.recurrenceEnabled = false;
-		state.recurrence = {
-			frequency: 'weekly',
-			interval: 1,
-			daysOfWeek: [] as string[],
-			endDate: ''
-		};
-		state.selectedAttendees = [];
-	}
 
 	// Set default date/time when modal opens
 	$effect(() => {
-		if (open && !state.startDate) {
-			const now = new Date();
-			state.startDate = now.toISOString().split('T')[0];
-			state.startTime = now.toTimeString().slice(0, 5);
+		if (open) {
+			form.initializeDefaultDateTime();
 		}
 	});
 
-	const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+	// Prepare template options for Combobox (meeting types)
+	const templateOptions = $derived(() => {
+		return form.templates.map((t) => ({ value: t._id, label: t.name }));
+	});
+
+	// Prepare circle options for Combobox
+	const circleOptions = $derived(() => {
+		return circles.map((c) => ({ value: c._id, label: c.name }));
+	});
+
+	// Get selected circle name for display
+	const selectedCircleName = $derived(() => {
+		if (!form.circleId) return null;
+		return circles.find((c) => c._id === form.circleId)?.name ?? null;
+	});
+
+	// Check if governance template is selected without circle (soft validation hint)
+	const showGovernanceHint = $derived(() => {
+		if (!form.selectedTemplateId || form.circleId) return false;
+		const selectedTemplate = form.templates.find((t) => t._id === form.selectedTemplateId);
+		// Check for "Governance" or "Consent Meeting" template names (per AD-8)
+		return selectedTemplate?.name === 'Governance' || selectedTemplate?.name === 'Consent Meeting';
+	});
+
+	// Stepper steps configuration
+	const steps = [
+		{ id: 'attendees-type', label: 'Attendees & Type' },
+		{ id: 'date-time', label: 'Date & Time' },
+		{ id: 'finalize', label: 'Finalize' }
+	];
+
+	// Handle step navigation
+	function handleStepChange(stepIndex: number) {
+		form.goToStep(stepIndex);
+	}
 </script>
 
 <Dialog.Root {open} onOpenChange={(value) => !value && onClose()}>
 	<Dialog.Portal>
+		<!--
+			Dialog Overlay
+			- Uses bg-black/50 for backdrop color (matches other modals)
+			- z-50 matches other modals (overlay and content both z-50)
+			- Animation classes are Bits UI data attributes (framework-specific, acceptable)
+		-->
 		<Dialog.Overlay
-			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
 		/>
+		<!--
+			Dialog Content
+			- Uses Dialog.Content directly (Bits UI component) with custom styling
+			- Animation classes are Bits UI data attributes (framework-specific, acceptable)
+		-->
 		<Dialog.Content
-			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(800px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-dialog border border-base bg-elevated text-text-primary shadow-card-hover"
+			class="border-base shadow-card-hover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-modal bg-elevated card-padding fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto border"
 		>
-			<div class="flex flex-col gap-content-section p-modal-padding">
+			<div class="gap-form flex flex-col">
 				<!-- Header -->
 				<div class="flex items-center justify-between">
-					<Dialog.Title class="text-h2 font-semibold">Add meeting</Dialog.Title>
-					<Button
-						variant="outline"
-						iconOnly
-						ariaLabel="Close"
-						onclick={onClose}
-						class="!border-0 text-text-tertiary hover:text-text-primary"
-					>
-						<svg class="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
+					<Dialog.Title>
+						<Heading level="3">Add meeting</Heading>
+					</Dialog.Title>
+					<Button variant="ghost" iconOnly ariaLabel="Close" onclick={onClose}>
+						<Icon type="close" size="md" />
 					</Button>
 				</div>
 
+				<!-- Stepper -->
+				<Stepper
+					{steps}
+					currentStep={form.currentStep}
+					onStepChange={handleStepChange}
+					canNavigateToStep={form.canNavigateToStep}
+				/>
+
 				<!-- Form -->
 				<form
-					onsubmit={(e) => (e.preventDefault(), handleSubmit())}
-					class="flex flex-col gap-content-section"
+					onsubmit={(e) => (e.preventDefault(), form.handleSubmit())}
+					class="gap-form flex flex-col"
 				>
-					<div class="grid grid-cols-3 gap-content-section">
-						<!-- Left Column (2/3) -->
-						<div class="col-span-2 flex flex-col gap-form-section">
-							<!-- Title -->
+					<!-- Step 1: Attendees & Meeting Type -->
+					{#if form.currentStep === 0}
+						<div class="gap-form flex flex-col">
+							<!-- Meeting Type (Required) -->
 							<div>
-								<label
-									for="title"
-									class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
-									>Title</label
-								>
-								<input
-									id="title"
-									type="text"
-									bind:value={state.title}
-									class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-									placeholder="Meeting title"
+								<Combobox
+									id="meeting-type"
+									label="Meeting Type"
+									bind:value={form.selectedTemplateId}
+									options={templateOptions()}
+									size="md"
+									allowDeselect={false}
+									showLabel={true}
+									required={true}
 								/>
+								{#if form.stepErrors[0].length > 0 && form.stepErrors[0].some( (e) => e.includes('type') )}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[0].find((e) => e.includes('type'))}
+									</Text>
+								{/if}
 							</div>
 
-							<!-- Template (Optional) -->
+							<!-- Circle (Optional - for governance meetings) -->
 							<div>
-								<label
-									for="template"
-									class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
-								>
-									Template <span class="text-text-tertiary">(optional)</span>
-								</label>
-								<select
-									id="template"
-									bind:value={state.selectedTemplateId}
-									class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-								>
-									<option value="">
-										{templates.length === 0
-											? 'No templates available (none)'
-											: 'None (ad-hoc meeting)'}
-									</option>
-									{#each templates as template (template._id)}
-										<option value={template._id}>{template.name}</option>
-									{/each}
-								</select>
-							</div>
-
-							<!-- Circle (Optional) -->
-							{#if circles.length > 0}
-								<div>
-									<label
-										for="circle"
-										class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
-										>Circle (optional)</label
-									>
-									<select
-										id="circle"
-										bind:value={state.circleId}
-										class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-									>
-										<option value="">Ad-hoc meeting (no circle)</option>
-										{#each circles as circle (circle._id)}
-											<option value={circle._id}>{circle.name}</option>
-										{/each}
-									</select>
-								</div>
-							{/if}
-
-							<!-- Start Date/Time -->
-							<div>
-								<fieldset class="mb-form-field-gap">
-									<legend class="text-body-sm block font-medium text-text-primary"
-										>Start date</legend
-									>
-									<div class="grid grid-cols-3 gap-icon">
-										<div class="col-span-1">
-											<label for="meeting-start-date" class="sr-only">Date</label>
-											<input
-												id="meeting-start-date"
-												type="date"
-												bind:value={state.startDate}
-												class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-											/>
-										</div>
-										<div class="col-span-1">
-											<label for="meeting-start-time" class="sr-only">Time</label>
-											<input
-												id="meeting-start-time"
-												type="time"
-												bind:value={state.startTime}
-												class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-											/>
-										</div>
-										<div class="col-span-1 flex items-center gap-icon">
-											<label for="meeting-duration" class="sr-only">Duration (minutes)</label>
-											<input
-												id="meeting-duration"
-												type="number"
-												bind:value={state.duration}
-												min="5"
-												max="480"
-												class="w-input-sm rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-											/>
-											<span class="text-body-sm text-text-secondary">minutes</span>
-										</div>
-									</div>
-								</fieldset>
-							</div>
-
-							<!-- Recurrence -->
-							<div class="flex flex-col gap-form-section">
-								<div class="flex items-center gap-icon">
-									<ToggleSwitch
-										checked={state.recurrenceEnabled}
-										onChange={(checked) => (state.recurrenceEnabled = checked)}
-									/>
-									<span class="text-body-sm font-medium text-text-primary">Repeat this meeting</span
-									>
-								</div>
-
-								{#if state.recurrenceEnabled}
-									<div
-										class="flex flex-col gap-form-section border-l-2 border-accent-primary pl-form-section-gap"
-									>
-										<!-- Frequency -->
-										<div class="flex items-center gap-icon">
-											<span class="text-body-sm text-text-secondary">Every</span>
-											<input
-												type="number"
-												bind:value={state.recurrence.interval}
-												min="1"
-												max="99"
-												class="w-input-xs px-input-x-sm py-input-y-sm text-body-sm rounded-input border border-border-base bg-surface text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-											/>
-											<select
-												bind:value={state.recurrence.frequency}
-												class="py-input-y-sm text-body-sm rounded-input border border-border-base bg-surface px-input-x text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-											>
-												<option value="daily">Day(s)</option>
-												<option value="weekly">Week(s)</option>
-												<option value="monthly">Month(s)</option>
-											</select>
-										</div>
-
-										<!-- Days of Week (for weekly and daily) -->
-										{#if state.recurrence.frequency === 'weekly' || state.recurrence.frequency === 'daily'}
-											<div>
-												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
-													>On</span
-												>
-												<div class="inline-flex flex-nowrap items-center gap-icon">
-													{#if state.recurrence.frequency === 'weekly'}
-														{@const selectedDay = state.recurrence.daysOfWeek[0] || ''}
-														<ToggleGroup.Root
-															type="single"
-															value={selectedDay}
-															onValueChange={(value) => {
-																if (value !== null && value !== undefined) {
-																	state.recurrence.daysOfWeek = [value];
-																}
-															}}
-															class="inline-flex flex-nowrap gap-icon"
-														>
-															{#each dayNames as day, index (index)}
-																<ToggleGroup.Item
-																	value={index.toString()}
-																	class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
-																>
-																	{day}
-																</ToggleGroup.Item>
-															{/each}
-														</ToggleGroup.Root>
-													{:else}
-														<ToggleGroup.Root
-															type="multiple"
-															bind:value={state.recurrence.daysOfWeek}
-															class="inline-flex flex-nowrap gap-icon"
-														>
-															{#each dayNames as day, index (index)}
-																<ToggleGroup.Item
-																	value={index.toString()}
-																	class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
-																>
-																	{day}
-																</ToggleGroup.Item>
-															{/each}
-														</ToggleGroup.Root>
-													{/if}
-												</div>
-
-												<!-- Schedule Helper Messages -->
-												{#if weeklyScheduleMessage}
-													<div
-														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
-													>
-														<span class="text-button">💡</span>
-														<span>{weeklyScheduleMessage}</span>
-													</div>
-												{:else if dailyScheduleMessage}
-													<div
-														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
-													>
-														<span class="text-button">💡</span>
-														<span>{dailyScheduleMessage}</span>
-													</div>
-												{/if}
-											</div>
-										{/if}
-
-										<!-- Upcoming Meetings Preview -->
-										{#if upcomingMeetings.length > 0}
-											<div>
-												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
-													>Upcoming {upcomingMeetings.length} Meetings</span
-												>
-												<div class="flex gap-icon">
-													{#each upcomingMeetings as date (date.getTime())}
-														<div
-															class="bg-surface-tertiary rounded-card px-input-x py-input-y text-center"
-														>
-															<div class="text-label font-medium text-accent-primary">
-																{date.toLocaleDateString('en-US', { month: 'short' })}
-															</div>
-															<div class="text-body-sm font-medium text-text-primary">
-																{date.getDate()}
-															</div>
-															<div class="text-label text-text-secondary">
-																{date.getFullYear()}
-															</div>
-														</div>
-													{/each}
-												</div>
-											</div>
-										{/if}
-
-										<!-- Info message -->
-										<div
-											class="flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
-										>
-											<span class="text-button">ℹ️</span>
-											<span
-												>The recurrence has no end: the next {upcomingMeetings.length} meetings are shown
-												to preview the pattern. Additional ones will appear as they occur.</span
-											>
-										</div>
-									</div>
+								<Combobox
+									id="meeting-circle"
+									label="Circle"
+									bind:value={form.circleId}
+									options={circleOptions()}
+									size="md"
+									allowDeselect={true}
+									showLabel={true}
+									required={false}
+									placeholder="Select a circle (optional)"
+								/>
+								<Text variant="label" color="secondary" as="p" class="mt-fieldGroup">
+									Link this meeting to a circle for governance features (e.g., proposal import).
+									Leave empty for ad-hoc meetings.
+								</Text>
+								{#if showGovernanceHint()}
+									<Text variant="label" color="warning" as="p" class="mt-fieldGroup">
+										⚠️ Governance meetings typically require a circle for proposal import.
+									</Text>
 								{/if}
 							</div>
 
 							<!-- Attendees -->
-							<AttendeeSelector
-								bind:selectedAttendees={state.selectedAttendees}
-								onAttendeesChange={(attendees) => {
-									state.selectedAttendees = attendees;
-								}}
-								organizationId={organizationId as Id<'organizations'>}
-								{sessionId}
-							/>
-						</div>
+							<div>
+								<AttendeeSelector
+									bind:selectedAttendees={form.selectedAttendees}
+									onAttendeesChange={(attendees) => {
+										form.selectedAttendees = attendees;
+									}}
+									workspaceId={workspaceId as Id<'workspaces'>}
+									{sessionId}
+								/>
+								{#if form.stepErrors[0].length > 0 && form.stepErrors[0].some( (e) => e.includes('attendee') )}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[0].find((e) => e.includes('attendee'))}
+									</Text>
+								{/if}
+							</div>
 
-						<!-- Right Column (1/3) -->
-						<div class="flex flex-col gap-form-section">
 							<!-- Privacy -->
 							<div>
 								<fieldset>
-									<legend class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
-										>Privacy</legend
-									>
-									<div class="flex flex-col gap-icon">
-										<label class="flex items-start gap-icon">
+									<legend>
+										<Text
+											variant="body"
+											size="sm"
+											color="default"
+											as="span"
+											class="mb-fieldGroup block font-medium"
+										>
+											Privacy
+										</Text>
+									</legend>
+									<div class="gap-fieldGroup flex flex-col">
+										<label class="gap-fieldGroup flex items-start">
 											<input
 												type="radio"
-												bind:group={state.visibility}
+												bind:group={form.visibility}
 												value="public"
-												class="mt-spacing-icon-gap-sm"
+												class="mt-fieldGroup"
 											/>
 											<div>
-												<div class="text-body-sm font-medium text-text-primary">Public</div>
-												<div class="text-label text-text-secondary">
-													All organization members can see this meeting and access to the report
-												</div>
+												<Text variant="body" size="sm" color="default" as="div" class="font-medium"
+													>Public</Text
+												>
+												<Text variant="label" color="secondary" as="div">
+													All workspace members can see this meeting and access to the report
+												</Text>
 											</div>
 										</label>
-										<label class="flex items-start gap-icon">
+										<label class="gap-fieldGroup flex items-start">
 											<input
 												type="radio"
-												bind:group={state.visibility}
+												bind:group={form.visibility}
 												value="private"
-												class="mt-spacing-icon-gap-sm"
+												class="mt-fieldGroup"
 											/>
 											<div>
-												<div class="text-body-sm font-medium text-text-primary">Private</div>
-												<div class="text-label text-text-secondary">
+												<Text variant="body" size="sm" color="default" as="div" class="font-medium"
+													>Private</Text
+												>
+												<Text variant="label" color="secondary" as="div">
 													Only invited attendees can see this meeting
-												</div>
+												</Text>
 											</div>
 										</label>
 									</div>
 								</fieldset>
 							</div>
 						</div>
-					</div>
+					{/if}
+
+					<!-- Step 2: Date, Time & Recurrence -->
+					{#if form.currentStep === 1}
+						<div class="gap-form flex flex-col">
+							<!-- Start Date/Time with natural language format -->
+							<DateTimeField
+								id="meeting-datetime"
+								bind:date={form.startDate}
+								bind:time={form.startTime}
+								bind:duration={form.duration}
+								required={true}
+								dateError={form.stepErrors[1].find((e) => e.includes('date')) || null}
+								timeError={form.stepErrors[1].find((e) => e.includes('time')) || null}
+								durationError={form.stepErrors[1].find((e) => e.includes('Duration')) || null}
+							/>
+
+							<!-- Recurrence -->
+							<RecurrenceField
+								enabled={form.recurrenceEnabled}
+								frequency={form.recurrenceFrequency}
+								interval={form.recurrenceInterval}
+								daysOfWeek={form.recurrenceDaysOfWeek}
+								upcomingMeetings={form.upcomingMeetings}
+								weeklyScheduleMessage={form.weeklyScheduleMessage}
+								dailyScheduleMessage={form.dailyScheduleMessage}
+								onEnabledChange={(enabled) => {
+									form.recurrenceEnabled = enabled;
+								}}
+								onFrequencyChange={(frequency) => {
+									form.recurrenceFrequency = frequency;
+								}}
+								onIntervalChange={(interval) => {
+									form.recurrenceInterval = interval;
+								}}
+								onDaysOfWeekChange={(days) => {
+									form.recurrenceDaysOfWeek = days;
+								}}
+							/>
+							{#if form.stepErrors[1].some((e) => e.includes('recurrence') || e.includes('day'))}
+								<Text variant="label" color="error" as="div">
+									{form.stepErrors[1].find((e) => e.includes('recurrence') || e.includes('day'))}
+								</Text>
+							{/if}
+						</div>
+					{/if}
+
+					<!-- Step 3: Finalize -->
+					{#if form.currentStep === 2}
+						<div class="gap-form flex flex-col">
+							<!-- Title -->
+							<div>
+								<FormInput
+									id="title"
+									label="Meeting Title"
+									type="text"
+									bind:value={form.title}
+									placeholder="Meeting title"
+									required={true}
+								/>
+								{#if form.stepErrors[2].length > 0}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[2][0]}
+									</Text>
+								{/if}
+							</div>
+
+							<!-- Summary Preview -->
+							<div class="border-base rounded-card bg-surface inset-md border">
+								<Text
+									variant="body"
+									size="sm"
+									color="default"
+									as="div"
+									class="mb-fieldGroup font-medium"
+								>
+									Summary
+								</Text>
+								<div class="gap-fieldGroup flex flex-col">
+									<div>
+										<Text variant="label" color="secondary" as="span">Type:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.templates.find((t) => t._id === form.selectedTemplateId)?.name ||
+												'Not selected'}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Circle:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{selectedCircleName() ?? 'None (ad-hoc meeting)'}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Attendees:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.selectedAttendees.length === 0
+												? 'None'
+												: form.selectedAttendees.map((a) => a.name).join(', ')}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Date & Time:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{#if form.startDate && form.startTime}
+												{form.startDate.month}/{form.startDate.day}/{form.startDate.year} at {String(
+													form.startTime.hour
+												).padStart(2, '0')}:{String(form.startTime.minute).padStart(2, '0')}
+											{:else}
+												Not set
+											{/if}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Duration:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.duration} minutes
+										</Text>
+									</div>
+									{#if form.recurrenceEnabled}
+										<div>
+											<Text variant="label" color="secondary" as="span">Recurrence:</Text>
+											<Text variant="body" size="sm" color="default" as="span">
+												{form.recurrenceFrequency} (every {form.recurrenceInterval})
+											</Text>
+										</div>
+									{/if}
+									<div>
+										<Text variant="label" color="secondary" as="span">Privacy:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.visibility === 'public' ? 'Public' : 'Private'}
+										</Text>
+									</div>
+								</div>
+							</div>
+						</div>
+					{/if}
 
 					<!-- Actions -->
 					<div
-						class="flex justify-end gap-button-group border-t border-border-base pt-content-section"
+						class="border-border-base gap-fieldGroup flex justify-between border-t"
+						style="padding-top: var(--spacing-form-sectionGap);"
 					>
-						<Button variant="outline" type="button" onclick={onClose}>Close</Button>
-						<Button variant="primary" type="submit">Schedule</Button>
+						<div>
+							{#if form.currentStep > 0}
+								<Button variant="outline" type="button" onclick={form.previousStep}>Back</Button>
+							{/if}
+						</div>
+						<div class="gap-fieldGroup flex">
+							<Button variant="outline" type="button" onclick={onClose}>Close</Button>
+							{#if form.currentStep < 2}
+								<Button variant="primary" type="button" onclick={form.nextStep}>Next</Button>
+							{:else}
+								<Button variant="primary" type="submit">Schedule</Button>
+							{/if}
+						</div>
 					</div>
 				</form>
 			</div>

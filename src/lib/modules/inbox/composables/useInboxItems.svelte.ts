@@ -9,12 +9,13 @@ import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { InboxItem } from './useKeyboardNavigation.svelte';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
 	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
-	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
+	activeWorkspaceId?: (() => string | null) | string | null; // Function or value for reactivity
 	activeCircleId?: (() => string | null) | string | null; // Function or value for reactivity
 }
 
@@ -37,25 +38,15 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 	// This automatically subscribes to changes and updates when new items are added during sync
 	const inboxQuery =
 		browser && params?.sessionId
-			? useQuery(api.inbox.listInboxItems, () => {
+			? useQuery(api.features.inbox.index.listInboxItems, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
-					if (!sessionId) {
-						// Return a sentinel value instead of null to satisfy type checker
-						// The query will be skipped when sessionId is not available
-						return { sessionId: '', processed: false } as {
-							sessionId: string;
-							processed: boolean;
-							filterType?: string;
-							organizationId?: Id<'organizations'> | null;
-							circleId?: Id<'circles'>;
-						};
-					}
+					invariant(sessionId, 'sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 
 					const baseArgs: {
 						sessionId: string;
 						processed: boolean;
 						filterType?: string;
-						organizationId?: Id<'organizations'> | null;
+						workspaceId?: Id<'workspaces'> | null;
 						circleId?: Id<'circles'>;
 					} = {
 						sessionId, // Required for session validation
@@ -63,16 +54,16 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 					};
 
 					// Add workspace context (handle both function and value)
-					// Defensive: Handle null organizationId (should not happen - users always have orgs).
+					// Defensive: Handle null workspaceId (should not happen - users always have orgs).
 					// This is for backwards compatibility with legacy data or edge cases.
 					const orgId =
-						typeof params?.activeOrganizationId === 'function'
-							? params.activeOrganizationId()
-							: params?.activeOrganizationId;
+						typeof params?.activeWorkspaceId === 'function'
+							? params.activeWorkspaceId()
+							: params?.activeWorkspaceId;
 					if (orgId !== undefined) {
 						// Defensive: Pass null explicitly for backwards compatibility (legacy data handling).
 						// Cast to Id type for type safety
-						baseArgs.organizationId = orgId as Id<'organizations'> | null;
+						baseArgs.workspaceId = orgId as Id<'workspaces'> | null;
 					}
 
 					const circleId =

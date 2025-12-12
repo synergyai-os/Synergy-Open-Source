@@ -1,3 +1,5 @@
+import { invariant } from '$lib/utils/invariant';
+
 type JwtPayload = {
 	email?: string;
 	name?: string;
@@ -12,8 +14,8 @@ export type PosthogIdentity = {
 };
 
 function decodeBase64Url(input: string): string {
-	const padding = input.length % 4 === 0 ? 0 : 4 - (input.length % 4);
-	const normalized = `${input.replace(/-/g, '+').replace(/_/g, '/')}${'='.repeat(padding)}`;
+	const padLength = input.length % 4 === 0 ? 0 : 4 - (input.length % 4);
+	const normalized = `${input.replace(/-/g, '+').replace(/_/g, '/')}${'='.repeat(padLength)}`;
 
 	if (typeof atob === 'function') {
 		return atob(normalized);
@@ -23,7 +25,7 @@ function decodeBase64Url(input: string): string {
 		return Buffer.from(normalized, 'base64').toString('utf-8');
 	}
 
-	throw new Error('Unable to decode base64 string in current environment');
+	invariant(false, 'Unable to decode base64 string in current environment');
 }
 
 function decodeJwtPayload(token: string): JwtPayload | null {

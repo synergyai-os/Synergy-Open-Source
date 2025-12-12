@@ -13,8 +13,8 @@ declare global {
 					lastName?: string;
 					name?: string;
 					activeWorkspace?: {
-						type: 'personal' | 'organization';
-						id: string | null; // null for personal, org ID for organization
+						type: 'personal' | 'workspace';
+						id: string | null; // null for personal, org ID for workspace
 						name?: string; // Display name
 					};
 				} | null;

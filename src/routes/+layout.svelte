@@ -32,7 +32,18 @@
 			});
 
 			beforeNavigate(() => posthog.capture('$pageleave'));
-			afterNavigate(() => posthog.capture('$pageview'));
+			afterNavigate(() => {
+				posthog.capture('$pageview');
+
+				const params = new URLSearchParams(window.location.search);
+				const fallbackReason = params.get('auth_fallback');
+				if (fallbackReason) {
+					posthog.capture('auth_redirect_fallback', {
+						reason: fallbackReason,
+						path: window.location.pathname
+					});
+				}
+			});
 
 			posthogReady = true;
 		});
@@ -57,45 +68,29 @@
 
 	// Set Convex auth token when user is authenticated
 	$effect(() => {
-		console.log('🔍 Convex auth $effect triggered:', {
-			browser,
-			hasConvexClient: !!convexClient,
-			isAuthenticated: data.isAuthenticated,
-			userEmail: data.user?.email
-		});
-
 		if (!browser || !convexClient) {
-			console.log('⏸️  Skipping Convex auth setup (no browser or client)');
 			return;
 		}
 
 		if (!data.isAuthenticated) {
-			console.log('🔓 User not authenticated, clearing Convex auth');
 			convexClient.setAuth(async () => null);
 			return;
 		}
 
-		console.log('🔐 Setting up Convex auth for authenticated user');
-
 		// Fetch WorkOS access token and set it on Convex client
 		convexClient.setAuth(async () => {
-			console.log('🔍 Fetching WorkOS access token for Convex...');
-
 			try {
 				const response = await fetch('/auth/token', {
 					credentials: 'include'
 				});
 
 				if (!response.ok) {
-					console.error('❌ Failed to fetch auth token:', response.status);
 					return null;
 				}
 
 				const { token } = await response.json();
-				console.log('✅ WorkOS token fetched successfully:', token ? 'present' : 'missing');
 				return token;
-			} catch (error) {
-				console.error('❌ Error fetching auth token:', error);
+			} catch (_error) {
 				return null;
 			}
 		});

@@ -76,7 +76,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 
 		// Create verification code and send email (single public action)
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-		await convex.action(api.verification.createAndSendVerificationCode, {
+		await convex.action(api.infrastructure.auth.verification.createAndSendVerificationCode, {
 			email,
 			type: 'registration',
 			firstName: firstName || undefined,

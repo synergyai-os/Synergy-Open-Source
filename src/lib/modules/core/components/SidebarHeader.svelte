@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import OrganizationSwitcher from '$lib/modules/core/organizations/components/OrganizationSwitcher.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import WorkspaceSwitcher from '$lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	type OrganizationInfo = {
-		organizationId: string;
+		workspaceId: string;
 		name: string;
 		initials?: string;
 		slug?: string;
@@ -17,7 +17,7 @@
 		name: string | null;
 		firstName: string | null;
 		lastName: string | null;
-		organizations?: OrganizationInfo[];
+		workspaces?: OrganizationInfo[];
 	};
 
 	type Props = {
@@ -42,7 +42,7 @@
 	};
 
 	let {
-		workspaceName = 'Axon',
+		workspaceName = 'SynergyOS',
 		accountEmail = 'user@example.com',
 		linkedAccounts = [],
 		onSettings,
@@ -61,66 +61,58 @@
 		sidebarCollapsed = false,
 		isHovered = false
 	}: Props = $props();
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228, svelte-reactivity.md#L910 for full pattern documentation
-	const organizationInvites = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizationInvites ?? [];
+	const workspaceInvites = $derived(() => {
+		if (!workspaces) return [];
+		return workspaces.workspaceInvites ?? [];
 	});
 	const organizationSummaries = $derived(() => {
-		if (!organizations) {
-			console.log('🔍 [SidebarHeader] No organizations context');
+		if (!workspaces) {
 			return [];
 		}
-		const orgs = organizations.organizations ?? [];
-		console.log('🔍 [SidebarHeader] Organization summaries:', {
-			hasOrganizations: !!organizations,
-			orgsLength: orgs.length,
-			orgs: orgs.map((o) => ({ id: o?.organizationId, name: o?.name }))
-		});
-		return orgs;
+		return workspaces.workspaces ?? [];
 	});
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
-	const activeOrganization = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganization ?? null;
+	const activeWorkspace = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspace ?? null;
 	});
 	const isLoading = $derived(() => {
-		if (!organizations) return false;
-		return organizations.isLoading ?? false;
+		if (!workspaces) return false;
+		return workspaces.isLoading ?? false;
 	});
 </script>
 
-<!-- Sticky Header -->
+<!-- Sticky Header - Compact, no border, aligned with nav items -->
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-sidebar bg-sidebar px-header py-system-header"
+	class="bg-sidebar sticky top-0 z-10 flex flex-shrink-0 items-center justify-between gap-2"
+	style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 >
 	{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 		<!-- Workspace Menu with Logo and Name - Takes remaining space -->
 		<div class="min-w-0 flex-1">
-			<OrganizationSwitcher
-				organizations={organizationSummaries()}
-				activeOrganizationId={activeOrganizationId()}
-				activeOrganization={activeOrganization()}
-				organizationInvites={organizationInvites()}
+			<WorkspaceSwitcher
+				workspaces={organizationSummaries()}
+				activeWorkspaceId={activeWorkspaceId()}
+				activeWorkspace={activeWorkspace()}
+				workspaceInvites={workspaceInvites()}
 				{accountEmail}
 				accountName={workspaceName}
 				{linkedAccounts}
 				{sidebarCollapsed}
 				variant="sidebar"
 				isLoading={isLoading()}
-				onSelectOrganization={(organizationId) =>
-					organizations?.setActiveOrganization(organizationId)}
-				onCreateOrganization={() => organizations?.openModal('createOrganization')}
-				onJoinOrganization={() => organizations?.openModal('joinOrganization')}
-				onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
-				onDeclineOrganizationInvite={(inviteId) =>
-					organizations?.declineOrganizationInvite(inviteId)}
+				onSelectOrganization={(workspaceId) => workspaces?.setActiveWorkspace(workspaceId)}
+				onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
+				onJoinOrganization={() => workspaces?.openModal('joinOrganization')}
+				onAcceptOrganizationInvite={(code) => workspaces?.acceptOrganizationInvite(code)}
+				onDeclineOrganizationInvite={(inviteId) => workspaces?.declineOrganizationInvite(inviteId)}
 				onSettings={() => onSettings?.()}
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}
@@ -139,11 +131,11 @@
 			<button
 				type="button"
 				onclick={() => onSearch?.()}
-				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
+				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
 				aria-label="Search"
 			>
 				<svg
-					class="h-4 w-4"
+					class="size-icon-sm"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -160,11 +152,11 @@
 			<button
 				type="button"
 				onclick={() => onEdit?.()}
-				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
+				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
 				aria-label="Edit"
 			>
 				<svg
-					class="h-4 w-4"
+					class="size-icon-sm"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

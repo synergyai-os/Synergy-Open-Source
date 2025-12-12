@@ -75,7 +75,7 @@ export function useAgendaNotes(params: UseAgendaNotesParams): UseAgendaNotesRetu
 			state.saveState = 'saving';
 			state.saveError = null;
 
-			await convexClient.mutation(api.meetingAgendaItems.updateNotes, {
+			await convexClient.mutation(api.modules.meetings.agendaItems.updateNotes, {
 				sessionId,
 				agendaItemId,
 				notes: content

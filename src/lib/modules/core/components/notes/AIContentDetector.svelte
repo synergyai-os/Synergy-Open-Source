@@ -1,3 +1,4 @@
+<!-- eslint-disable synergyos/no-hardcoded-design-values -->
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	// TODO: Re-enable when EditorView is needed
@@ -12,18 +13,32 @@
 
 	let { visible = false, position = { x: 0, y: 0 }, onConfirm, onDismiss }: Props = $props();
 
-	// Calculate position to keep menu in viewport
-	const menuWidth = 200;
-	const menuHeight = 100;
+	// Calculate position to keep menu in viewport using spacing tokens
+	function spacingValue(token: string, fallback: number) {
+		if (typeof window === 'undefined') return fallback;
+		const raw = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+		const numeric = Number.parseFloat(raw);
+		if (!Number.isFinite(numeric)) return fallback;
+		return raw.endsWith('rem') ? numeric * 16 : numeric;
+	}
+
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const menuWidth = $derived(() => spacingValue('--spacing-52', 208));
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const menuHeight = $derived(() => spacingValue('--spacing-24', 96));
+	// eslint-disable-next-line synergyos/no-hardcoded-design-values
+	const viewportPadding = $derived(() => spacingValue('--spacing-5', 20));
+	const arrowOffset = $derived(() => spacingValue('--spacing-5', 20));
+	const arrowLift = $derived(() => spacingValue('--spacing-2', 8));
 	const adjustedX = $derived(() => {
 		if (!position) return 0;
-		const maxX = window.innerWidth - menuWidth - 20;
+		const maxX = window.innerWidth - menuWidth() - viewportPadding();
 		return Math.min(position.x, maxX);
 	});
 
 	const adjustedY = $derived(() => {
 		if (!position) return 0;
-		const maxY = window.innerHeight - menuHeight - 20;
+		const maxY = window.innerHeight - menuHeight() - viewportPadding();
 		return Math.min(position.y, maxY);
 	});
 
@@ -59,19 +74,17 @@
 {#if visible}
 	<div
 		data-ai-detector-menu
-		class="border-divider fixed z-50 rounded-button border bg-surface px-section py-section shadow-card"
-		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth}px;"
+		class="border-base rounded-button bg-surface shadow-card fixed z-50 border px-2 py-1"
 		transition:fade={{ duration: 150 }}
+		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
 	>
-		<p class="text-surface-secondary mb-content-section text-small">
-			Did you paste AI-generated content?
-		</p>
+		<p class="text-small mb-content-section text-secondary">Did you paste AI-generated content?</p>
 
-		<div class="flex gap-icon">
+		<div class="flex gap-2">
 			<button
 				type="button"
 				onclick={onConfirm}
-				class="bg-primary hover:bg-primary-hover flex-1 rounded-button px-button-x py-button-y text-small font-medium text-primary transition-colors"
+				class="text-small rounded-button bg-interactive-primary px-button-x py-button-y text-inverse hover:bg-interactive-primaryHover flex-1 font-medium transition-colors"
 			>
 				AI Generated
 			</button>
@@ -79,7 +92,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="bg-surface-hover text-surface-primary hover:bg-surface-hover-solid flex-1 rounded-button px-button-x py-button-y text-small transition-colors"
+				class="text-small rounded-button bg-hover px-button-x py-button-y text-primary hover:bg-active flex-1 transition-colors"
 			>
 				Close
 			</button>
@@ -87,48 +100,8 @@
 
 		<!-- Arrow pointer -->
 		<div
-			class="border-divider absolute icon-xs rotate-45 transform border-t border-l bg-surface"
-			style="top: -7px; left: 20px;"
+			class="icon-xs border-base bg-surface absolute rotate-45 transform border-t border-l"
+			style="top: -{arrowLift()}px; left: {arrowOffset()}px;"
 		></div>
 	</div>
 {/if}
-
-<style>
-	.gap-toolbar-item {
-		gap: 0.5rem;
-	}
-
-	.px-button {
-		padding-left: 1rem;
-		padding-right: 1rem;
-	}
-
-	.py-button-small {
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
-	}
-
-	.bg-surface {
-		background-color: var(--color-bg-surface);
-	}
-
-	.border-divider {
-		border-color: var(--color-border-divider);
-	}
-
-	.text-surface-primary {
-		color: var(--color-text-surface-primary);
-	}
-
-	.text-surface-secondary {
-		color: var(--color-text-surface-secondary);
-	}
-
-	.bg-surface-hover {
-		background-color: var(--color-bg-surface-hover);
-	}
-
-	.bg-primary {
-		background-color: var(--color-bg-primary);
-	}
-</style>

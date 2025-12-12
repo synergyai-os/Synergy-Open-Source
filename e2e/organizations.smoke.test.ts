@@ -1,13 +1,13 @@
 /**
  * E2E Smoke Tests for Organization Flows
  *
- * Tests critical user workflows for organization management:
+ * Tests critical user workflows for workspace management:
  * - Organization switching (click switcher → select org → verify URL/UI updates)
  * - Organization creation (open modal → fill name → submit → verify success)
  * - Persistence across reloads (switch org → reload → verify same org active)
  * - URL parameter handling (?org={id} → verify switches automatically)
  *
- * These tests serve as regression tests before refactoring useOrganizations composable (SYOS-255).
+ * These tests serve as regression tests before refactoring useWorkspaces composable (SYOS-255).
  */
 
 import { test, expect } from './fixtures';
@@ -24,8 +24,8 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		});
 	});
 
-	test('should switch organization via dropdown', async ({ page }) => {
-		// Get initial organization name from switcher trigger
+	test('should switch workspace via dropdown', async ({ page }) => {
+		// Get initial workspace name from switcher trigger
 		const switcherTrigger = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
@@ -35,38 +35,38 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		const initialOrgText = await switcherTrigger.textContent();
 		expect(initialOrgText).toBeTruthy();
 
-		// Click organization switcher trigger to open dropdown
+		// Click workspace switcher trigger to open dropdown
 		await switcherTrigger.click();
 		await page.waitForTimeout(500); // Wait for dropdown animation
 
-		// Find all organization items in dropdown (they have organization names)
-		// Organizations are listed as DropdownMenu.Item with textValue={organization.name}
+		// Find all workspace items in dropdown (they have workspace names)
+		// Organizations are listed as DropdownMenu.Item with textValue={workspace.name}
 		const orgItems = page.locator('[role="menuitem"]').filter({ hasText: /Owner|Admin|Member/i });
 		const orgCount = await orgItems.count();
 
 		if (orgCount < 2) {
-			// User only has one organization, can't test switching
-			console.log('User has only one organization, skipping switch test');
+			// User only has one workspace, can't test switching
+			console.log('User has only one workspace, skipping switch test');
 			// Close dropdown
 			await page.keyboard.press('Escape');
 			return;
 		}
 
-		// Get second organization (different from current)
+		// Get second workspace (different from current)
 		const secondOrgItem = orgItems.nth(1);
 		const secondOrgName = await secondOrgItem.locator('span').first().textContent();
 		expect(secondOrgName).toBeTruthy();
 
-		// Click second organization to switch
+		// Click second workspace to switch
 		await secondOrgItem.click();
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(2000); // Wait for organization switch to complete
+		await page.waitForTimeout(2000); // Wait for workspace switch to complete
 
 		// Verify URL doesn't have ?org= param (should be cleaned up)
 		const url = page.url();
 		expect(url).not.toContain('?org=');
 
-		// Verify switcher shows new organization name
+		// Verify switcher shows new workspace name
 		// Note: Organization name might be truncated, so we check it's different
 		const newSwitcherText = await switcherTrigger.textContent();
 		expect(newSwitcherText).toBeTruthy();
@@ -82,14 +82,14 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		const activeOrgId = await page.evaluate(() => {
 			// Check for account-specific key pattern: activeOrganizationId_{userId}
 			const keys = Object.keys(localStorage);
-			const orgKey = keys.find((k) => k.startsWith('activeOrganizationId'));
+			const orgKey = keys.find((k) => k.startsWith('activeWorkspaceId'));
 			return orgKey ? localStorage.getItem(orgKey) : null;
 		});
 		expect(activeOrgId).toBeTruthy();
 	});
 
-	test('should create organization via modal', async ({ page }) => {
-		// Click organization switcher trigger
+	test('should create workspace via modal', async ({ page }) => {
+		// Click workspace switcher trigger
 		const switcherTrigger = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
@@ -98,20 +98,20 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		await switcherTrigger.click();
 		await page.waitForTimeout(500);
 
-		// Click "Create organization" menu item (direct item in dropdown, not nested)
+		// Click "Create workspace" menu item (direct item in dropdown, not nested)
 		const createOrgButton = page
 			.locator('[role="menuitem"]')
-			.filter({ hasText: 'Create organization' });
+			.filter({ hasText: 'Create workspace' });
 		await expect(createOrgButton).toBeVisible({ timeout: 5000 });
 		await createOrgButton.click();
 
 		// Wait for modal to open (use role selector to target dialog heading, not dropdown item)
-		await expect(page.getByRole('heading', { name: 'Create organization' })).toBeVisible({
+		await expect(page.getByRole('heading', { name: 'Create workspace' })).toBeVisible({
 			timeout: 5000
 		});
 		await expect(page.locator('text=Spin up a new workspace')).toBeVisible();
 
-		// Fill organization name
+		// Fill workspace name
 		const orgName = `Test Org ${Date.now()}`;
 		const nameInput = page.locator('input[placeholder*="e.g."], input[type="text"]').first();
 		await expect(nameInput).toBeVisible();
@@ -130,35 +130,35 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		});
 
 		// Wait for modal to close
-		await expect(page.locator('text=Create organization')).not.toBeVisible({ timeout: 5000 });
+		await expect(page.locator('text=Create workspace')).not.toBeVisible({ timeout: 5000 });
 
-		// Verify organization switch occurred (switcher should show new org)
+		// Verify workspace switch occurred (switcher should show new org)
 		await page.waitForLoadState('networkidle');
 		await page.waitForTimeout(2000); // Wait for switch to complete
 
 		const switcherText = await switcherTrigger.textContent();
 		expect(switcherText).toBeTruthy();
-		// New organization name should appear in switcher (might be truncated)
+		// New workspace name should appear in switcher (might be truncated)
 		if (switcherText) {
 			expect(switcherText.toLowerCase()).toContain(orgName.slice(0, 10).toLowerCase());
 		}
 
-		// Verify new organization appears in dropdown list
+		// Verify new workspace appears in dropdown list
 		await switcherTrigger.click();
 		await page.waitForTimeout(500);
 		const orgInList = page.locator('[role="menuitem"]').filter({ hasText: orgName.slice(0, 15) });
 		await expect(orgInList).toBeVisible({ timeout: 5000 });
 	});
 
-	test('should persist organization selection across page reloads', async ({ page }) => {
-		// Get initial organization
+	test('should persist workspace selection across page reloads', async ({ page }) => {
+		// Get initial workspace
 		const switcherTrigger = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
 			.first();
 		await expect(switcherTrigger).toBeVisible({ timeout: 5000 });
 
-		// Open dropdown to see organizations
+		// Open dropdown to see workspaces
 		await switcherTrigger.click();
 		await page.waitForTimeout(500);
 
@@ -166,25 +166,25 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		const orgCount = await orgItems.count();
 
 		if (orgCount < 1) {
-			console.log('User has no organizations, skipping persistence test');
+			console.log('User has no workspaces, skipping persistence test');
 			await page.keyboard.press('Escape');
 			return;
 		}
 
-		// Get first organization name
+		// Get first workspace name
 		const firstOrgItem = orgItems.first();
 		const firstOrgName = await firstOrgItem.locator('span').first().textContent();
 		expect(firstOrgName).toBeTruthy();
 
-		// Select first organization (might already be selected, but ensure it's active)
+		// Select first workspace (might already be selected, but ensure it's active)
 		await firstOrgItem.click();
 		await page.waitForLoadState('networkidle');
 		await page.waitForTimeout(2000);
 
-		// Get active organization ID from localStorage before reload
+		// Get active workspace ID from localStorage before reload
 		const orgIdBeforeReload = await page.evaluate(() => {
 			const keys = Object.keys(localStorage);
-			const orgKey = keys.find((k) => k.startsWith('activeOrganizationId'));
+			const orgKey = keys.find((k) => k.startsWith('activeWorkspaceId'));
 			return orgKey ? localStorage.getItem(orgKey) : null;
 		});
 		expect(orgIdBeforeReload).toBeTruthy();
@@ -194,15 +194,15 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		await page.waitForLoadState('networkidle');
 		await page.waitForTimeout(2000);
 
-		// Verify same organization is still active
+		// Verify same workspace is still active
 		const orgIdAfterReload = await page.evaluate(() => {
 			const keys = Object.keys(localStorage);
-			const orgKey = keys.find((k) => k.startsWith('activeOrganizationId'));
+			const orgKey = keys.find((k) => k.startsWith('activeWorkspaceId'));
 			return orgKey ? localStorage.getItem(orgKey) : null;
 		});
 		expect(orgIdAfterReload).toBe(orgIdBeforeReload);
 
-		// Verify switcher shows same organization
+		// Verify switcher shows same workspace
 		const switcherAfterReload = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
@@ -218,9 +218,9 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		}
 	});
 
-	test('should switch organization via URL parameter', async ({ page }) => {
-		// First, get an organization ID from the current state
-		// Open dropdown to see organizations
+	test('should switch workspace via URL parameter', async ({ page }) => {
+		// First, get an workspace ID from the current state
+		// Open dropdown to see workspaces
 		const switcherTrigger = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
@@ -233,32 +233,32 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		const orgCount = await orgItems.count();
 
 		if (orgCount < 2) {
-			console.log('User has less than 2 organizations, skipping URL param test');
+			console.log('User has less than 2 workspaces, skipping URL param test');
 			await page.keyboard.press('Escape');
 			return;
 		}
 
-		// Get second organization's ID from data attribute or text
+		// Get second workspace's ID from data attribute or text
 		// Since we can't easily get the ID from UI, we'll use a different approach:
 		// Switch to second org first, get its ID from localStorage, then test URL param
 		const secondOrgItem = orgItems.nth(1);
 		const secondOrgName = await secondOrgItem.locator('span').first().textContent();
 		expect(secondOrgName).toBeTruthy();
 
-		// Click second organization
+		// Click second workspace
 		await secondOrgItem.click();
 		await page.waitForLoadState('networkidle');
 		await page.waitForTimeout(2000);
 
-		// Get the organization ID that was set
+		// Get the workspace ID that was set
 		const secondOrgId = await page.evaluate(() => {
 			const keys = Object.keys(localStorage);
-			const orgKey = keys.find((k) => k.startsWith('activeOrganizationId'));
+			const orgKey = keys.find((k) => k.startsWith('activeWorkspaceId'));
 			return orgKey ? localStorage.getItem(orgKey) : null;
 		});
 		expect(secondOrgId).toBeTruthy();
 
-		// Switch back to first organization
+		// Switch back to first workspace
 		await switcherTrigger.click();
 		await page.waitForTimeout(500);
 		const firstOrgItem = orgItems.first();
@@ -269,21 +269,21 @@ test.describe('Organization Flows - Smoke Tests', () => {
 		// Now navigate with ?org= parameter pointing to second org
 		await page.goto(`/inbox?org=${secondOrgId}`);
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(2000); // Wait for organization switch to process
+		await page.waitForTimeout(2000); // Wait for workspace switch to process
 
 		// Verify URL parameter was cleaned up (removed)
 		const url = page.url();
 		expect(url).not.toContain('?org=');
 
-		// Verify organization switched to second org
+		// Verify workspace switched to second org
 		const finalOrgId = await page.evaluate(() => {
 			const keys = Object.keys(localStorage);
-			const orgKey = keys.find((k) => k.startsWith('activeOrganizationId'));
+			const orgKey = keys.find((k) => k.startsWith('activeWorkspaceId'));
 			return orgKey ? localStorage.getItem(orgKey) : null;
 		});
 		expect(finalOrgId).toBe(secondOrgId);
 
-		// Verify switcher shows second organization
+		// Verify switcher shows second workspace
 		const finalSwitcher = page
 			.locator('button')
 			.filter({ hasText: /Select workspace|Owner|Admin|Member/i })

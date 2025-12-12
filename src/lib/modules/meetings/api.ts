@@ -17,13 +17,13 @@ export interface Meeting {
 	_id: Id<'meetings'> | string; // Synthetic ID for React keys (recurring instances)
 	originalMeetingId?: Id<'meetings'>; // Real Convex ID for navigation/queries
 	_creationTime: number;
-	organizationId: Id<'organizations'> | string;
+	workspaceId: Id<'workspaces'> | string;
 	circleId?: Id<'circles'> | string;
-	templateId?: Id<'meetingTemplates'> | string;
+	templateId: Id<'meetingTemplates'> | string; // Required: template defines meeting type/structure
 	title: string;
 	startTime: number;
 	duration: number;
-	visibility: 'public' | 'circle' | 'private';
+	visibility: 'public' | 'private';
 	recurrence?: {
 		frequency: 'daily' | 'weekly' | 'monthly';
 		interval: number;
@@ -31,17 +31,20 @@ export interface Meeting {
 		endDate?: number;
 	};
 	attendeeCount?: number;
+	invitedUsers?: Array<{ personId: string; name: string }>;
 	createdAt: number;
-	createdBy: Id<'users'> | string;
+	createdByPersonId: Id<'people'> | string;
 	updatedAt: number;
 	closedAt?: number; // Meeting session closed timestamp
+	viewerPersonId?: Id<'people'> | string;
+	recorderPersonId?: Id<'people'> | string;
 }
 
 /**
  * Options for useMeetings composable
  */
 export interface UseMeetingsOptions {
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 	sessionId: () => string | undefined;
 	circleFilter?: () => string | undefined;
 }
@@ -87,7 +90,7 @@ export interface UseMeetingsReturn {
 export interface UseMeetingSessionOptions {
 	meetingId: () => Id<'meetings'> | undefined;
 	sessionId: () => string | undefined;
-	userId: () => Id<'users'> | undefined;
+	personId?: () => Id<'people'> | undefined;
 }
 
 /**
@@ -140,12 +143,7 @@ export interface UseMeetingSessionReturn {
 	get elapsedTimeFormatted(): string;
 
 	/**
-	 * Whether current user is the meeting secretary
-	 */
-	get isSecretary(): boolean;
-
-	/**
-	 * Start the meeting (secretary only)
+	 * Start the meeting
 	 */
 	startMeeting(): Promise<void>;
 

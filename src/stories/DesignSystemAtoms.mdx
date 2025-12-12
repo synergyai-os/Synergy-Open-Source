@@ -1,0 +1,190 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Atoms" />
+
+<style>
+	{`
+    .atom-header {
+      background: linear-gradient(135deg, oklch(55% 0.15 195 / 0.15) 0%, oklch(55% 0.15 195 / 0.05) 100%);
+      border: 1px solid oklch(55% 0.15 195 / 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .atom-icon {
+      width: 64px;
+      height: 64px;
+      background: oklch(55% 0.15 195);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    
+    .atom-icon-inner {
+      width: 32px;
+      height: 32px;
+      background: oklch(75% 0.14 65);
+      border-radius: 50%;
+    }
+    
+    .atom-content h1 {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: oklch(100% 0 0);
+      margin: 0 0 4px 0;
+    }
+    
+    .atom-content p {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+    
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: oklch(55% 0.15 195 / 0.2);
+      color: oklch(65% 0.12 195);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      margin-bottom: 16px;
+    }
+  `}
+</style>
+
+<div className="atom-header">
+	<div className="atom-icon">
+		<div className="atom-icon-inner" />
+	</div>
+	<div className="atom-content">
+		<h1>Atoms</h1>
+		<p>
+			Single interactive elements with design tokens applied. The foundation of the design system.
+		</p>
+	</div>
+</div>
+
+<span className="level-badge">⚛️ Level 1 of 5 in Atomic Design</span>
+
+Atoms are the smallest building blocks—reusable, self-contained components with no business logic.
+
+---
+
+## 🎯 What Are Atoms?
+
+Atoms are the smallest building blocks:
+
+- ✅ Single responsibility (one element, one purpose)
+- ✅ No internal state (or minimal UI state only)
+- ✅ Design tokens applied automatically
+- ✅ Fully accessible (WCAG compliant)
+- ✅ Type-safe (TypeScript props)
+
+---
+
+## 📦 Available Atoms
+
+### Buttons & Actions
+
+- **Button**: Primary, Secondary, Outline variants with sizes
+- **IconButton**: Icon-only button for toolbars
+- **SplitButton**: Button with dropdown menu
+- **Toggle**: Toggle button for on/off states
+- **ToggleGroup**: Group of toggle buttons
+
+### Form Inputs
+
+- **FormInput**: Text input with label and error states
+- **FormTextarea**: Multi-line text input
+- **Checkbox**: Checkbox input with label
+- **Switch**: Toggle switch for settings
+- **RadioGroup**: Radio button group
+- **PinInput**: Multi-digit PIN input (verification codes)
+- **Slider**: Range slider input
+
+### Display Components
+
+- **Badge**: Status badge with variants
+- **Chip**: Removable chip/tag component
+- **Card**: Container card with variants (default, elevated, outlined)
+- **Avatar**: User avatar with fallback
+- **Icon**: SVG icon component
+- **Text**: Typography component with semantic sizes
+- **Heading**: Heading component (h1-h6)
+- **Label**: Form label component
+- **Separator**: Visual divider
+
+### Feedback & Status
+
+- **Loading**: Spinner loading indicator
+- **LoadingOverlay**: Full-page loading overlay
+- **Progress**: Progress bar
+- **Meter**: Meter/gauge component
+- **StatusPill**: Status indicator pill
+- **Tooltip**: Hover tooltip
+
+### Layout & Structure
+
+- **AspectRatio**: Maintain aspect ratio container
+- **ScrollArea**: Scrollable container with custom scrollbar
+
+---
+
+## 🎨 Usage Pattern
+
+```svelte
+<script>
+	import { Button } from '$lib/components/atoms';
+</script>
+
+<!-- Primary button -->
+<Button variant="primary" size="md" onclick={handleClick}>Click me</Button>
+
+<!-- Secondary button -->
+<Button variant="secondary" size="sm">Cancel</Button>
+
+<!-- With icon -->
+<Button variant="primary">
+	<Icon name="plus" class="icon-md" />
+	Add Item
+</Button>
+```
+
+---
+
+## 🔄 Token Cascade
+
+All atoms use design tokens automatically:
+
+- **Spacing**: `px-button-x`, `py-button-y`, `gap-icon`
+- **Colors**: `bg-accent-primary`, `text-primary`, `border-base`
+- **Typography**: `text-button`, `text-h1`, `text-body`
+- **Borders**: `rounded-button`, `rounded-card`, `rounded-input`
+
+**Change tokens → Atoms update automatically** ✅
+
+---
+
+## 📚 Related Documentation
+
+- **Design System Overview**: `Design System/Overview`
+- **Token Reference**: `Docs/Token Reference`
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+- **Design Principles**: `dev-docs/2-areas/design/design-principles.md`
+
+---
+
+**Last Updated**: November 2025

@@ -5,6 +5,7 @@
 	import { api } from '$lib/convex';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Tag = {
 		_id: Id<'tags'>;
@@ -13,20 +14,20 @@
 	};
 
 	type Organization = {
-		organizationId: string;
+		workspaceId: string;
 		name: string;
 		slug: string;
 	};
 
 	type Props = {
 		tag: Tag;
-		organizations: Organization[];
+		workspaces: Organization[];
 		isSharing: boolean;
-		onShare: (shareWith: 'organization', targetId: string) => void;
+		onShare: (shareWith: 'workspace', targetId: string) => void;
 		onClose: () => void;
 	};
 
-	let { tag, organizations, isSharing, onShare, onClose }: Props = $props();
+	let { tag, workspaces, isSharing, onShare, onClose }: Props = $props();
 
 	const getSessionId = () => $page.data.sessionId;
 	let selectedOrganization = $state<string>('');
@@ -34,9 +35,9 @@
 	// Fetch item counts for this tag
 	const itemCountsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.countTagItems, () => {
+			? useQuery(api.features.tags.index.getTagItemCount, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						tagId: tag._id
@@ -47,14 +48,14 @@
 
 	// Auto-select first org if available
 	onMount(() => {
-		if (organizations.length > 0) {
-			selectedOrganization = organizations[0].organizationId;
+		if (workspaces.length > 0) {
+			selectedOrganization = workspaces[0].workspaceId;
 		}
 	});
 
 	function handleSubmit() {
 		if (!selectedOrganization) return;
-		onShare('organization', selectedOrganization);
+		onShare('workspace', selectedOrganization);
 	}
 
 	// Handle backdrop click
@@ -76,20 +77,20 @@
 
 <!-- Modal Backdrop -->
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-modal-padding"
+	class="p-modal-padding fixed inset-0 z-50 flex items-center justify-center bg-black/50"
 	onclick={handleBackdropClick}
 	role="presentation"
 >
 	<!-- Modal Content -->
 	<div
-		class="w-full max-w-md rounded-card border border-base bg-elevated shadow-card"
+		class="border-base rounded-card bg-elevated shadow-card w-full max-w-md border"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="modal-title"
 	>
 		<!-- Modal Header -->
-		<div class="border-b border-base px-card py-card">
-			<h2 id="modal-title" class="flex items-center gap-icon text-h3 font-semibold text-primary">
+		<div class="border-base px-card py-card border-b">
+			<h2 id="modal-title" class="text-h3 text-primary flex items-center gap-2 font-semibold">
 				<div class="icon-xs flex-shrink-0 rounded-full" style="background-color: {tag.color}"></div>
 				Transfer "{tag.displayName}"
 			</h2>
@@ -97,36 +98,36 @@
 
 		<!-- Modal Body -->
 		<div class="space-y-content-section px-card py-card">
-			{#if organizations.length === 0}
+			{#if workspaces.length === 0}
 				<div class="text-small text-secondary">
-					<p class="mb-form-field-gap">You're not part of any organizations yet.</p>
-					<p class="text-tertiary">Create or join an organization to share tags with your team.</p>
+					<p class="mb-form-field-gap">You're not part of any workspaces yet.</p>
+					<p class="text-tertiary">Create or join an workspace to share tags with your team.</p>
 				</div>
 			{:else}
 				<!-- Transfer To -->
 				<div>
 					<label
-						for="organization-select"
-						class="mb-form-field-gap block text-small font-medium text-primary"
+						for="workspace-select"
+						class="mb-form-field-gap text-small text-primary block font-medium"
 					>
-						Transfer to organization
+						Transfer to workspace
 					</label>
 					<select
-						id="organization-select"
+						id="workspace-select"
 						bind:value={selectedOrganization}
-						class="w-full rounded-input border border-base bg-base px-input-x py-input-y text-small text-primary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base text-small focus:ring-accent-primary rounded-input bg-base px-input-x py-input-y text-primary w-full border focus:border-transparent focus:ring-2 focus:outline-none"
 						disabled={isSharing}
 					>
-						{#each organizations as org (org.organizationId)}
-							<option value={org.organizationId}>{org.name}</option>
+						{#each workspaces as org (org.workspaceId)}
+							<option value={org.workspaceId}>{org.name}</option>
 						{/each}
 					</select>
 				</div>
 
 				<!-- Items to Transfer -->
 				{#if itemCounts.total > 0}
-					<div class="rounded-card border border-base bg-base px-card py-card">
-						<p class="mb-form-field-gap text-small font-medium text-primary">This will transfer:</p>
+					<div class="border-base px-card py-card rounded-card bg-base border">
+						<p class="mb-form-field-gap text-small text-primary font-medium">This will transfer:</p>
 						<ul class="space-y-form-field-gap text-small text-secondary">
 							<li>• The collection itself</li>
 							{#if itemCounts.highlights > 0}
@@ -141,11 +142,11 @@
 
 				<!-- Warning Message -->
 				<div
-					class="rounded-card border border-accent-primary/20 bg-accent-primary/10 px-card py-card"
+					class="border-accent-primary/20 bg-accent-primary/10 px-card py-card rounded-card border"
 				>
-					<div class="flex gap-icon">
+					<div class="flex gap-2">
 						<svg
-							class="mt-form-field-gap size-icon-md flex-shrink-0 text-accent-primary"
+							class="mt-form-field-gap size-icon-md text-accent-primary flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -158,7 +159,7 @@
 							/>
 						</svg>
 						<div class="text-small">
-							<p class="mb-form-field-gap font-medium text-accent-primary">After transferring:</p>
+							<p class="mb-form-field-gap text-accent-primary font-medium">After transferring:</p>
 							<ul class="space-y-form-field-gap text-label text-tertiary">
 								<li>• Organization will own this collection</li>
 								<li>• All members can view and contribute</li>
@@ -173,22 +174,22 @@
 
 		<!-- Modal Footer -->
 		<div
-			class="flex items-center justify-end gap-content-section border-t border-base px-card py-card"
+			class="gap-content-section border-base px-card py-card flex items-center justify-end border-t"
 		>
 			<button
 				type="button"
 				onclick={onClose}
 				disabled={isSharing}
-				class="px-button-x py-button-y text-small font-medium text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+				class="text-small px-button-x py-button-y text-secondary hover:text-primary font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Cancel
 			</button>
-			{#if organizations.length > 0}
+			{#if workspaces.length > 0}
 				<button
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="flex items-center gap-icon rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary transition-colors hover:bg-accent-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-small hover:bg-accent-primary/90 rounded-button bg-accent-primary px-button-x py-button-y text-primary flex items-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
 						<svg class="icon-sm animate-spin" fill="none" viewBox="0 0 24 24">

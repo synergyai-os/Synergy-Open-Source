@@ -10,7 +10,7 @@ const serverUrl = isDev ? 'http://192.168.68.110:5173' : undefined;
 
 const config: CapacitorConfig = {
 	appId: 'com.axon.app',
-	appName: 'Axon',
+	appName: 'SynergyOS',
 	webDir: 'www',
 	// Enable live reload in development
 	server: isDev

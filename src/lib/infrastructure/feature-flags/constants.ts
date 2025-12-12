@@ -12,7 +12,7 @@
  * @example
  * ```typescript
  * import { FeatureFlags } from '$lib/infrastructure/feature-flags';
- * const enabled = await checkFlag(FeatureFlags.NOTES_PROSEMIRROR_BETA, userId);
+ * const enabled = await isFlagEnabled(FeatureFlags.NOTES_PROSEMIRROR_BETA, userId);
  * ```
  */
 

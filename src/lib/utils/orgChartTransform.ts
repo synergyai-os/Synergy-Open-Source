@@ -8,6 +8,8 @@ import type { HierarchyNode as D3HierarchyNode } from 'd3-hierarchy';
 export type RoleNode = {
 	roleId: Id<'circleRoles'>;
 	name: string;
+	status?: 'draft' | 'active'; // Role status
+	isHiring?: boolean; // Open position flag
 	x: number; // Position relative to parent circle center (0,0)
 	y: number;
 	r: number; // Radius of role circle
@@ -18,7 +20,7 @@ export type RoleNode = {
  */
 export type CircleNode = {
 	circleId: Id<'circles'>;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	name: string;
 	slug: string;
 	purpose?: string;
@@ -26,7 +28,12 @@ export type CircleNode = {
 	parentName?: string | null;
 	memberCount: number;
 	roleCount?: number; // Number of roles in this circle
-	roles?: Array<{ roleId: Id<'circleRoles'>; name: string }>; // Raw roles from backend
+	roles?: Array<{
+		roleId: Id<'circleRoles'>;
+		name: string;
+		status?: 'draft' | 'active';
+		isHiring?: boolean;
+	}>; // Raw roles from backend
 	packedRoles?: RoleNode[]; // Packed role positions (calculated after main layout)
 	createdAt: number;
 	updatedAt?: number;
@@ -56,7 +63,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 		// Return empty hierarchy with synthetic root
 		const syntheticRoot: CircleNode = {
 			circleId: '' as Id<'circles'>,
-			organizationId: '' as Id<'organizations'>,
+			workspaceId: '' as Id<'workspaces'>,
 			name: 'Organization',
 			slug: 'root',
 			memberCount: 0,
@@ -69,17 +76,10 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	const circleMap = new Map<Id<'circles'>, CircleNode>();
 	circles.forEach((circle) => {
 		circleMap.set(circle.circleId, circle);
-		console.log(
-			`🗺️ Circle "${circle.name}" (${circle.circleId}) → parent: ${circle.parentCircleId || 'NONE'}`
-		);
 	});
 
 	// Find root circles (no parent)
 	const rootCircles = circles.filter((c) => !c.parentCircleId);
-	console.log(
-		`🌱 Found ${rootCircles.length} root circles:`,
-		rootCircles.map((c) => c.name)
-	);
 
 	// Build children map (includes both child circles AND roles as synthetic circles)
 	const childrenMap = new Map<Id<'circles'>, CircleNode[]>();
@@ -90,7 +90,6 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 				childrenMap.set(parent, []);
 			}
 			childrenMap.get(parent)!.push(circle);
-			console.log(`👶 "${circle.name}" is child of parent ID: ${parent}`);
 		}
 	});
 
@@ -106,21 +105,28 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 			// Create synthetic circle nodes for individual roles
 			const roleCircles: CircleNode[] = circle.roles.map((role) => ({
 				circleId: `__role__${role.roleId}` as Id<'circles'>, // Synthetic ID
-				organizationId: circle.organizationId,
+				workspaceId: circle.workspaceId,
 				name: role.name,
 				slug: `role-${role.roleId}`,
 				parentCircleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Parent is roles group, not circle
 				memberCount: 0,
 				roleCount: 0,
 				createdAt: circle.createdAt,
-				// Store original role data for later extraction
-				roles: [{ roleId: role.roleId, name: role.name }]
+				// Store original role data for later extraction (including status/isHiring)
+				roles: [
+					{
+						roleId: role.roleId,
+						name: role.name,
+						status: role.status,
+						isHiring: role.isHiring
+					}
+				]
 			}));
 
 			// Create synthetic "roles group" node that contains all roles
 			const rolesGroupNode: CircleNode = {
 				circleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Synthetic grouping ID
-				organizationId: circle.organizationId,
+				workspaceId: circle.workspaceId,
 				name: 'Roles',
 				slug: `roles-group-${circle.circleId}`,
 				parentCircleId: circle.circleId, // Parent is the actual circle
@@ -135,20 +141,8 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 
 			// Add roles group to childrenMap so buildHierarchy can find its children (roles)
 			childrenMap.set(`__roles_group__${circle.circleId}` as Id<'circles'>, roleCircles);
-
-			console.log(
-				`🎭 Added ${roleCircles.length} roles as grouped synthetic circles to "${circle.name}"`
-			);
 		}
 	});
-
-	console.log(
-		`📊 Children map:`,
-		Array.from(childrenMap.entries()).map(([parentId, children]) => ({
-			parentId,
-			childrenNames: children.map((c) => c.name)
-		}))
-	);
 
 	// Helper function to calculate depth of a circle by traversing parent chain
 	function _calculateCircleDepth(circleId: Id<'circles'>): number {
@@ -217,7 +211,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	// This ensures roles in root circles get correct parent depth
 	const syntheticRoot: CircleNode = {
 		circleId: '__root__' as Id<'circles'>,
-		organizationId: circles[0].organizationId,
+		workspaceId: circles[0].workspaceId,
 		name: 'Organization',
 		slug: 'root',
 		memberCount: circles.reduce((sum, c) => sum + c.memberCount, 0),
@@ -271,19 +265,14 @@ export function calculateCircleValue(
 		}
 
 		// Base sizes: larger for higher hierarchy levels
-		// D3 pack layout scales circles proportionally - with many siblings, need much larger values
+		// D3 pack layout: radius ∝ √value, so for 1.5x radius we need 2.25x value
 		// Roles are now nested: Circle → Roles Group → Role (extra constraint level)
-		// Depth 0: Much bigger (1000 → r ~100-120) - big green circle roles (compensate for roles group nesting)
-		// Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
-		// Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
-		// Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
-		const baseSizes = [1000, 500, 100, 35]; // depth 0, 1, 2, 3+
+		// Depth 0: Root circle roles (2250 → r ~1.5x bigger than before)
+		// Depth 1: Sub-circle roles (500 → r ~35-40)
+		// Depth 2: Sub-sub-circle roles (100 → r ~22-23)
+		// Depth 3+: Deepest roles (35 → r ~17-18)
+		const baseSizes = [2250, 500, 100, 35]; // depth 0, 1, 2, 3+
 		const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
-
-		// Debug logging to verify depth calculation
-		console.log(
-			`🎭 Role "${circle.name}": storedParentDepth=${circle._parentDepth ?? 'N/A'}, adjustedParentDepth=${parentDepth}, baseSize=${baseSize}, parent=${node?.parent?.data?.name ?? 'none'}`
-		);
 
 		return baseSize;
 	}
@@ -316,17 +305,86 @@ export function calculateCircleValue(
 }
 
 /**
- * Get color for circle based on depth level
+ * ============================================================================
+ * ORG CHART COLOR SYSTEM
+ * ============================================================================
+ *
+ * Design Philosophy:
+ * - CIRCLES are containers (teams, departments) → light, subtle, background-like
+ * - ROLES are entities (positions, people) → solid, prominent, foreground-like
+ *
+ * Why single color for all circle depths?
+ * - Scales to unlimited depth without running out of colors
+ * - Hierarchy communicated through: nesting, size, stroke weight
+ * - Avoids semantic confusion (no status colors misused for depth)
+ *
+ * Interactive States:
+ * - Default: light fill, subtle stroke
+ * - Hover (non-active): DASHED stroke, increased opacity
+ * - Active/Selected: SOLID primary stroke
+ *
+ * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for full documentation
+ * ============================================================================
  */
-export function getCircleColor(depth: number): string {
-	const colors = [
-		'hsl(210, 70%, 60%)', // Level 0 (root) - blue
-		'hsl(140, 60%, 55%)', // Level 1 - green
-		'hsl(30, 80%, 60%)', // Level 2 - orange
-		'hsl(280, 60%, 65%)', // Level 3 - purple
-		'hsl(0, 70%, 60%)' // Level 4+ - red
-	];
-	return colors[Math.min(depth, colors.length - 1)];
+
+/**
+ * Get fill color for circles (containers)
+ * Returns the same color for ALL depths - hierarchy shown through nesting/size
+ */
+export function getCircleColor(_depth?: number): string {
+	// Single color for all depths - uses semantic token with light/dark mode support
+	return 'var(--color-component-orgChart-circle-fill)';
+}
+
+/**
+ * Get stroke color for circles based on state
+ */
+export function getCircleStrokeColor(state: 'default' | 'hover' | 'active'): string {
+	switch (state) {
+		case 'active':
+			return 'var(--color-component-orgChart-circle-strokeActive)';
+		case 'hover':
+			return 'var(--color-component-orgChart-circle-strokeHover)';
+		default:
+			return 'var(--color-component-orgChart-circle-stroke)';
+	}
+}
+
+/**
+ * Get fill color for roles (entities)
+ */
+export function getRoleFillColor(state: 'default' | 'hover' = 'default'): string {
+	return state === 'hover'
+		? 'var(--color-component-orgChart-role-fillHover)'
+		: 'var(--color-component-orgChart-role-fill)';
+}
+
+/**
+ * Get text color for role labels
+ */
+export function getRoleTextColor(): string {
+	return 'var(--color-component-orgChart-role-text)';
+}
+
+/**
+ * Get stroke color for roles
+ */
+export function getRoleStrokeColor(): string {
+	return 'var(--color-component-orgChart-role-stroke)';
+}
+
+/**
+ * Get text color for circle labels
+ */
+export function getCircleLabelColor(): string {
+	return 'var(--color-component-orgChart-label-text)';
+}
+
+/**
+ * Get stroke color for circle labels (text outline for readability)
+ */
+export function getCircleLabelStrokeColor(): string {
+	return 'var(--color-component-orgChart-label-stroke)';
 }
 
 /**
@@ -339,7 +397,12 @@ export function getCircleColor(depth: number): string {
  * @returns Array of RoleNode with calculated positions
  */
 export function packRolesInsideCircle(
-	roles: Array<{ roleId: Id<'circleRoles'>; name: string }>,
+	roles: Array<{
+		roleId: Id<'circleRoles'>;
+		name: string;
+		status?: 'draft' | 'active';
+		isHiring?: boolean;
+	}>,
 	parentRadius: number,
 	padding: number = 3
 ): RoleNode[] {
@@ -407,6 +470,8 @@ export function packRolesInsideCircle(
 			roleNodes.push({
 				roleId: roles[roleIndex].roleId,
 				name: roles[roleIndex].name,
+				status: roles[roleIndex].status,
+				isHiring: roles[roleIndex].isHiring,
 				x,
 				y,
 				r

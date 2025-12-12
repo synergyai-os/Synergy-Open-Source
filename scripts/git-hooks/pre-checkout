@@ -1,0 +1,28 @@
+#!/bin/sh
+# Pre-checkout hook - Prevent accidental branch switching with uncommitted work
+#
+# This hook blocks branch switching when uncommitted changes exist,
+# preventing accidental work loss. User must explicitly confirm to proceed.
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+  echo ""
+  echo "⚠️  WARNING: You have uncommitted changes!"
+  echo ""
+  echo "Modified/untracked files:"
+  git status --short
+  echo ""
+  echo "Options:"
+  echo "  1. Commit changes: git add . && git commit -m 'message'"
+  echo "  2. Stash changes: git stash"
+  echo "  3. Abort checkout: Press Ctrl+C"
+  echo ""
+  read -p "Continue checkout anyway? (yes/no): " confirm
+  if [ "$confirm" != "yes" ]; then
+    echo "❌ Checkout aborted. Resolve uncommitted changes first."
+    exit 1
+  fi
+fi
+
+exit 0
+

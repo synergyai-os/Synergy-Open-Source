@@ -1,7 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Working with Linear - Critical Rules
 
 **Purpose**: Essential rules that MUST be followed when creating Linear tickets.

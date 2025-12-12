@@ -8,9 +8,9 @@
 import { vi } from 'vitest';
 import type { ConvexClient } from '$lib/types/convex';
 import type {
-	OrganizationSummary,
-	OrganizationInvite
-} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	WorkspaceSummary,
+	WorkspaceInvite
+} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 /**
  * Mock Convex client with configurable mutation responses
@@ -21,7 +21,7 @@ export function createMockConvexClient(
 	return {
 		query: vi.fn(),
 		mutation: vi.fn(async (fnRef: unknown, args: unknown) => {
-			// Extract function name from reference (e.g., "organizations:createOrganization")
+			// Extract function name from reference (e.g., "workspaces:createWorkspace")
 			let fnName = '';
 			try {
 				fnName = typeof fnRef === 'string' ? fnRef : String(fnRef);
@@ -79,12 +79,12 @@ export function createMockQueryResult<T>(
 }
 
 /**
- * Mock organizations data for tests
+ * Mock workspaces data for tests
  */
-export function createMockOrganizations(): OrganizationSummary[] {
+export function createMockOrganizations(): WorkspaceSummary[] {
 	return [
 		{
-			organizationId: 'org-1',
+			workspaceId: 'org-1',
 			name: 'Test Organization 1',
 			initials: 'TO1',
 			slug: 'test-org-1',
@@ -95,7 +95,7 @@ export function createMockOrganizations(): OrganizationSummary[] {
 			teamCount: 0
 		},
 		{
-			organizationId: 'org-2',
+			workspaceId: 'org-2',
 			name: 'Test Organization 2',
 			initials: 'TO2',
 			slug: 'test-org-2',
@@ -109,13 +109,13 @@ export function createMockOrganizations(): OrganizationSummary[] {
 }
 
 /**
- * Mock organization invites data for tests
+ * Mock workspace invites data for tests
  */
-export function createMockOrganizationInvites(): OrganizationInvite[] {
+export function createMockOrganizationInvites(): WorkspaceInvite[] {
 	return [
 		{
 			inviteId: 'invite-1',
-			organizationId: 'org-3',
+			workspaceId: 'org-3',
 			organizationName: 'Test Organization 3',
 			role: 'member',
 			invitedBy: 'user-1',
@@ -127,13 +127,133 @@ export function createMockOrganizationInvites(): OrganizationInvite[] {
 }
 
 /**
+ * Mock inbox items data for tests
+ */
+export function createMockInboxItems(): Array<{
+	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	personId: string;
+	workspaceId?: string;
+	processed: boolean;
+	createdAt: number;
+	title: string;
+	snippet: string;
+	tags: string[];
+}> {
+	return [
+		{
+			_id: 'item-1',
+			type: 'readwise_highlight',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
+			processed: false,
+			createdAt: Date.now() - 3600000,
+			title: 'Test Highlight 1',
+			snippet: 'This is a test highlight snippet',
+			tags: ['test', 'highlight']
+		},
+		{
+			_id: 'item-2',
+			type: 'photo_note',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
+			processed: false,
+			createdAt: Date.now() - 7200000,
+			title: 'Test Photo Note',
+			snippet: 'This is a test photo note',
+			tags: ['photo']
+		},
+		{
+			_id: 'item-3',
+			type: 'manual_text',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
+			processed: false,
+			createdAt: Date.now() - 10800000,
+			title: 'Test Manual Text',
+			snippet: 'This is a test manual text entry',
+			tags: ['manual']
+		}
+	];
+}
+
+/**
+ * Mock inbox item with details for tests
+ */
+export function createMockInboxItemWithDetails() {
+	return {
+		_id: 'item-1',
+		type: 'readwise_highlight' as const,
+		personId: 'person-1',
+		workspaceId: 'workspace-1',
+		processed: false,
+		createdAt: Date.now() - 3600000,
+		title: 'Test Highlight 1',
+		snippet: 'This is a test highlight snippet',
+		highlightId: 'highlight-1',
+		highlight: {
+			_id: 'highlight-1',
+			userId: 'user-1',
+			sourceId: 'source-1',
+			text: 'This is the highlight text',
+			externalId: 'rw-123',
+			externalUrl: 'https://readwise.io/highlight/123',
+			highlightedAt: Date.now() - 3600000,
+			updatedAt: Date.now() - 3600000,
+			createdAt: Date.now() - 3600000
+		},
+		source: {
+			_id: 'source-1',
+			userId: 'user-1',
+			authorId: 'author-1',
+			title: 'Test Book',
+			category: 'books',
+			sourceType: 'book',
+			externalId: 'rw-book-123',
+			numHighlights: 10,
+			updatedAt: Date.now() - 3600000,
+			createdAt: Date.now() - 3600000
+		},
+		author: {
+			_id: 'author-1',
+			userId: 'user-1',
+			name: 'Test Author',
+			createdAt: Date.now() - 3600000
+		},
+		tags: [
+			{
+				_id: 'tag-1',
+				personId: 'person-1',
+				name: 'test',
+				createdAt: Date.now() - 3600000
+			}
+		]
+	};
+}
+
+/**
+ * Mock sync progress for tests
+ */
+export function createMockSyncProgress() {
+	return {
+		step: 'Importing highlights...',
+		current: 5,
+		total: 10,
+		message: 'Importing highlight 5 of 10...'
+	};
+}
+
+/**
  * Global mock state for convex-svelte hooks
  * Used by test files to configure mocks before importing composables
  */
 let globalMockClient: ConvexClient | null = null;
 let globalQueryResults: {
-	organizations?: MockQueryResult<OrganizationSummary[]>;
-	organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+	workspaces?: MockQueryResult<WorkspaceSummary[]>;
+	workspaceInvites?: MockQueryResult<WorkspaceInvite[]>;
+	inboxItems?: MockQueryResult<unknown[]>;
+	inboxItemWithDetails?: MockQueryResult<unknown>;
+	syncProgress?: MockQueryResult<unknown>;
 } = {};
 
 /**
@@ -143,8 +263,11 @@ let globalQueryResults: {
 export function setupConvexMocks(
 	mockClient: ConvexClient,
 	queryResults: {
-		organizations?: MockQueryResult<OrganizationSummary[]>;
-		organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+		workspaces?: MockQueryResult<WorkspaceSummary[]>;
+		workspaceInvites?: MockQueryResult<WorkspaceInvite[]>;
+		inboxItems?: MockQueryResult<unknown[]>;
+		inboxItemWithDetails?: MockQueryResult<unknown>;
+		syncProgress?: MockQueryResult<unknown>;
 	} = {}
 ) {
 	globalMockClient = mockClient;
@@ -172,13 +295,24 @@ export function __getMockQueryResult(queryFn: unknown): MockQueryResult<unknown>
 	const queryName = String(queryFn);
 
 	if (queryName.includes('listOrganizations')) {
-		return globalQueryResults.organizations ?? createMockQueryResult(createMockOrganizations());
+		return globalQueryResults.workspaces ?? createMockQueryResult(createMockOrganizations());
 	}
 	if (queryName.includes('listOrganizationInvites')) {
 		return (
-			globalQueryResults.organizationInvites ??
-			createMockQueryResult(createMockOrganizationInvites())
+			globalQueryResults.workspaceInvites ?? createMockQueryResult(createMockOrganizationInvites())
 		);
+	}
+	if (queryName.includes('listInboxItems')) {
+		return globalQueryResults.inboxItems ?? createMockQueryResult(createMockInboxItems());
+	}
+	if (queryName.includes('findInboxItemWithDetails')) {
+		return (
+			globalQueryResults.inboxItemWithDetails ??
+			createMockQueryResult(createMockInboxItemWithDetails())
+		);
+	}
+	if (queryName.includes('findSyncProgress')) {
+		return globalQueryResults.syncProgress ?? createMockQueryResult(createMockSyncProgress());
 	}
 
 	// Default: return loading state

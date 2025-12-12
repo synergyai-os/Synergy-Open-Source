@@ -4,7 +4,8 @@
  * Uses prosemirror-highlight with lowlight (highlight.js wrapper)
  */
 
-import { Plugin, PluginKey, Transaction } from 'prosemirror-state';
+import { Plugin, PluginKey } from 'prosemirror-state';
+import type { Transaction } from 'prosemirror-state';
 import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { createHighlightPlugin } from 'prosemirror-highlight';
 import { createParser } from 'prosemirror-highlight/lowlight';

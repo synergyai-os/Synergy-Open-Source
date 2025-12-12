@@ -17,8 +17,8 @@
 	const priorityConfig = {
 		none: { icon: '---', label: 'No priority', color: 'text-tertiary' },
 		low: { icon: '▁', label: 'Low', color: 'text-tertiary' },
-		medium: { icon: '▃', label: 'Medium', color: 'text-yellow-500' }, // TODO: Add warning token
-		high: { icon: '▅', label: 'High', color: 'text-orange-500' }, // TODO: Add warning token
+		medium: { icon: '▃', label: 'Medium', color: 'text-warning' },
+		high: { icon: '▅', label: 'High', color: 'text-warning-high' },
 		urgent: { icon: '▇', label: 'Urgent', color: 'text-error' }
 	};
 
@@ -27,7 +27,7 @@
 
 <button
 	type="button"
-	class="inline-flex items-center gap-icon-wide rounded-button bg-transparent px-section py-section text-button font-normal transition-colors hover:bg-hover-solid {config.color}"
+	class="gap-2-wide text-button hover:bg-hover-solid rounded-button inline-flex items-center bg-transparent px-2 py-1 font-normal transition-colors {config.color}"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(priority)}
 >

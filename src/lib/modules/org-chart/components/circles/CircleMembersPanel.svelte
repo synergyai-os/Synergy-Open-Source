@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
-	import { useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
-	import type { UseCircles, CircleMember } from '../../composables/useCircles.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import {
+		useCircleMembers,
+		type UseCircles,
+		type CircleMember
+	} from '$lib/infrastructure/organizational-model';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	let {
 		circles,
@@ -19,58 +20,48 @@
 
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get organizationId from context (passed from parent page)
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const getOrganizationId = () => organizations?.activeOrganizationId ?? undefined;
+	// Get workspaceId from context (passed from parent page)
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const getWorkspaceId = () => workspaces?.activeWorkspaceId ?? undefined;
 
-	// Query organization members to show in dropdown
-	const orgMembersQuery =
-		browser && getSessionId() && getOrganizationId()
-			? useQuery(api.organizations.getMembers, () => {
-					const sessionId = getSessionId();
-					const organizationId = getOrganizationId();
-					if (!sessionId || !organizationId)
-						throw new Error('sessionId and organizationId required');
-					return { sessionId, organizationId: organizationId as Id<'organizations'> };
-				})
-			: null;
+	// Use composable for circle members queries
+	const circleMembers = useCircleMembers({
+		sessionId: getSessionId,
+		workspaceId: getWorkspaceId,
+		members: () => members
+	});
 
-	const orgMembers = $derived(orgMembersQuery?.data ?? []);
-
-	// Filter out users who are already members
-	const availableUsers = $derived(
-		orgMembers.filter((user) => !members.some((m) => m.userId === user.userId))
-	);
+	const availableUsers = $derived(circleMembers.availableUsers);
 
 	let selectedUserId = $state('');
 
 	async function handleAddMember() {
 		if (!selectedUserId) return;
 
-		await circles.addMember({ circleId, userId: selectedUserId });
+		await circles.addMember({ circleId, memberUserId: selectedUserId });
 		selectedUserId = ''; // Reset selection
 	}
 
 	async function handleRemoveMember(userId: string) {
 		if (confirm('Remove this member from the circle?')) {
-			await circles.removeMember({ circleId, userId });
+			await circles.removeMember({ circleId, memberUserId: userId });
 		}
 	}
 </script>
 
-<div class="flex h-full flex-col rounded-card border border-base bg-surface">
+<div class="border-base rounded-card bg-surface flex h-full flex-col border">
 	<!-- Panel Header -->
-	<div class="border-b border-base px-nav-item py-nav-item">
-		<h2 class="text-button font-semibold text-primary">Members</h2>
-		<p class="mt-1 text-label text-secondary">{members.length} members</p>
+	<div class="border-base py-nav-item px-button-sm-x border-b">
+		<h2 class="text-button text-primary font-semibold">Members</h2>
+		<p class="text-label text-secondary mt-fieldGroup">{members.length} members</p>
 	</div>
 
 	<!-- Add Member Form -->
-	<div class="border-b border-base px-nav-item py-nav-item">
-		<div class="flex gap-icon">
+	<div class="border-base py-nav-item px-button-sm-x border-b">
+		<div class="gap-button flex">
 			<select
 				bind:value={selectedUserId}
-				class="flex-1 rounded-button border border-base bg-elevated px-input-x py-input-y text-button text-primary focus:border-accent-primary focus:outline-none"
+				class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary flex-1 border focus:outline-none"
 				disabled={circles.loading.addMember || availableUsers.length === 0}
 			>
 				<option value="">
@@ -85,7 +76,7 @@
 			<button
 				onclick={handleAddMember}
 				disabled={!selectedUserId || circles.loading.addMember}
-				class="text-on-solid rounded-button bg-accent-primary px-card py-input-y text-button font-medium hover:bg-accent-hover disabled:opacity-50"
+				class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y hover:bg-accent-hover font-medium disabled:opacity-50"
 			>
 				{circles.loading.addMember ? 'Adding...' : 'Add'}
 			</button>
@@ -93,7 +84,7 @@
 	</div>
 
 	<!-- Members List -->
-	<div class="flex-1 overflow-y-auto px-nav-item py-nav-item">
+	<div class="py-nav-item px-button-sm-x flex-1 overflow-y-auto">
 		{#if members.length === 0}
 			<div class="flex h-32 items-center justify-center text-center">
 				<p class="text-button text-secondary">No members yet</p>
@@ -102,20 +93,20 @@
 			<div class="space-y-2">
 				{#each members as member (member.userId)}
 					<div
-						class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-nav-item"
+						class="border-base px-card py-nav-item rounded-button bg-elevated flex items-center justify-between border"
 					>
 						<div class="min-w-0 flex-1">
-							<p class="truncate text-button font-medium text-primary">
+							<p class="text-button text-primary truncate font-medium">
 								{member.name || member.email}
 							</p>
 							{#if member.name}
-								<p class="truncate text-label text-secondary">{member.email}</p>
+								<p class="text-label text-secondary truncate">{member.email}</p>
 							{/if}
 						</div>
 						<button
 							onclick={() => handleRemoveMember(member.userId)}
 							disabled={circles.loading.removeMember}
-							class="ml-2 rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary disabled:opacity-50"
+							class="hover:bg-sidebar-hover rounded-button inset-sm text-secondary hover:text-primary ml-2 disabled:opacity-50"
 							title="Remove member"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

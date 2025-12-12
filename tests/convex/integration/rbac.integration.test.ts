@@ -39,9 +39,11 @@ describe('RBAC Integration Tests', () => {
 
 	it('should get all roles', async () => {
 		const t = convexTest(schema, modules);
+		const { sessionId, userId } = await createTestSession(t);
+		cleanupQueue.push({ userId });
 		const roleId = await createTestRole(t, 'test-role', 'Test Role');
 
-		const roles = await t.query(api.rbac.queries.getRoles, {});
+		const roles = await t.query(api.rbac.queries.getRoles, { sessionId });
 
 		expect(roles).toBeDefined();
 		expect(Array.isArray(roles)).toBe(true);
@@ -55,9 +57,11 @@ describe('RBAC Integration Tests', () => {
 
 	it('should get all permissions', async () => {
 		const t = convexTest(schema, modules);
+		const { sessionId, userId } = await createTestSession(t);
+		cleanupQueue.push({ userId });
 		const permId = await createTestPermission(t, 'test-permission', 'Test Permission');
 
-		const permissions = await t.query(api.rbac.queries.getPermissions, {});
+		const permissions = await t.query(api.rbac.queries.getPermissions, { sessionId });
 
 		expect(permissions).toBeDefined();
 		expect(Array.isArray(permissions)).toBe(true);
@@ -71,11 +75,14 @@ describe('RBAC Integration Tests', () => {
 
 	it('should get permissions for a specific role', async () => {
 		const t = convexTest(schema, modules);
+		const { sessionId, userId } = await createTestSession(t);
+		cleanupQueue.push({ userId });
 		const roleId = await createTestRole(t, 'manager', 'Manager');
 		const permId = await createTestPermission(t, 'users.view', 'View Users');
 		await assignPermissionToRole(t, roleId, permId, 'all');
 
 		const result = await t.query(api.rbac.queries.getPermissionsForRole, {
+			sessionId,
 			roleSlug: 'manager'
 		});
 
@@ -108,13 +115,13 @@ describe('RBAC Integration Tests', () => {
 		const adminRole = await createTestRole(t, 'admin', 'Admin');
 		const viewPermission = await createTestPermission(t, 'users.view', 'View Users');
 		await assignPermissionToRole(t, adminRole, viewPermission, 'all');
-		await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+		await assignRoleToUser(t, adminUserId, adminRole, { workspaceId: orgId });
 
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Check permission
 		const result = await t.run(async (ctx) => {
-			return await hasPermission(ctx, adminUserId, 'users.view', { organizationId: orgId });
+			return await hasPermission(ctx, adminUserId, 'users.view', { workspaceId: orgId });
 		});
 
 		expect(result).toBe(true);
@@ -167,7 +174,7 @@ describe('RBAC Integration Tests', () => {
 		const circleId = await t.run(async (ctx) => {
 			const now = Date.now();
 			return await ctx.db.insert('circles', {
-				organizationId: orgId,
+				workspaceId: orgId,
 				name: 'Test Circle',
 				slug: 'test-circle',
 				createdAt: now,
@@ -180,7 +187,7 @@ describe('RBAC Integration Tests', () => {
 		const updatePermission = await createTestPermission(t, 'circles.update', 'Update Circle');
 		await assignPermissionToRole(t, circleLeadRole, updatePermission, 'own');
 		await assignRoleToUser(t, teamLeadUserId, circleLeadRole, {
-			organizationId: orgId,
+			workspaceId: orgId,
 			circleId
 		});
 
@@ -231,7 +238,7 @@ describe('RBAC Integration Tests', () => {
 		const teamLeadRole = await createTestRole(t, 'team-lead', 'Team Lead');
 		const viewPermission = await createTestPermission(t, 'users.view', 'View Users');
 		await assignPermissionToRole(t, teamLeadRole, viewPermission, 'all');
-		await assignRoleToUser(t, userId, teamLeadRole, { organizationId: orgId });
+		await assignRoleToUser(t, userId, teamLeadRole, { workspaceId: orgId });
 
 		cleanupQueue.push({ userId, orgId });
 
@@ -243,7 +250,7 @@ describe('RBAC Integration Tests', () => {
 		});
 
 		const canViewUsers = await t.run(async (ctx) => {
-			return await hasPermission(ctx, userId, 'users.view', { organizationId: orgId });
+			return await hasPermission(ctx, userId, 'users.view', { workspaceId: orgId });
 		});
 
 		expect(canEditProfile).toBe(true);

@@ -4,45 +4,227 @@
 	// import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 
-	// Debug flag for overlay logging (set to false to disable production logs)
-	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
-	import OrganizationModals from '$lib/modules/core/organizations/components/OrganizationModals.svelte';
+	import WorkspaceModals from '$lib/infrastructure/workspaces/components/WorkspaceModals.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { invariant } from '$lib/utils/invariant';
 	import { setContext } from 'svelte';
-	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import { useWorkspaces } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
 	import { createCoreModuleAPI } from '$lib/modules/core/api';
 	import { createFlashcardsModuleAPI } from '$lib/modules/flashcards/api';
 	import { createOrgChartModuleAPI } from '$lib/modules/org-chart/api';
 	import type {
-		OrganizationSummary,
-		OrganizationInvite
-	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+		WorkspaceSummary,
+		WorkspaceInvite
+	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { SHORTCUTS } from '$lib/modules/core/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
 	import { page } from '$app/stores';
-	// TODO: Re-enable when Id type is needed
-	// import type { Id } from '$lib/convex';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import type { Id } from '$lib/convex';
+	import { generateHoverColor } from '$lib/utils/color-conversion';
+	import { PUBLIC_CONVEX_URL } from '$env/static/public';
+	import { getPlatform } from '$lib/utils/platform';
 
 	let { children, data } = $props();
 
 	// Check if we're on an admin route - skip authenticated layout for admin routes
 	const isAdminRoute = $derived(browser ? $page.url.pathname.startsWith('/admin') : false);
 
-	// Initialize organizations composable with sessionId and server-side preloaded data
-	// Returns OrganizationsModuleAPI interface (enables loose coupling - see SYOS-295)
-	const organizations = useOrganizations({
+	// Check if we're on a settings route - hide main sidebar for settings routes
+	const isSettingsRoute = $derived(browser ? $page.url.pathname.includes('/settings') : false);
+
+	// Initialize workspaces composable with sessionId and server-side preloaded data
+	// Returns WorkspacesModuleAPI interface (enables loose coupling - see SYOS-295)
+	const workspaces = useWorkspaces({
 		userId: () => data.user?.userId,
 		sessionId: () => data.sessionId,
-		orgFromUrl: () => $page.url.searchParams.get('org'),
+		orgFromUrl: () => null, // Path-based routing, no query params
 		// Server-side preloaded data for instant workspace menu rendering
 		// Cast unknown[] to proper types (server-side data is typed as unknown[] for safety)
-		initialOrganizations: data.organizations as unknown as OrganizationSummary[],
-		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[]
+		initialOrganizations: data.workspaces as unknown as WorkspaceSummary[],
+		initialOrganizationInvites: data.workspaceInvites as unknown as WorkspaceInvite[]
 	});
-	setContext('organizations', organizations);
+	setContext('workspaces', workspaces);
+
+	// Phase 2C: Load org branding reactively (updates on workspace switch)
+	// Use workspaces.activeWorkspaceId for reactive updates (not data.workspaceId)
+	const getSessionId = () => data.sessionId;
+
+	// Reactive activeWorkspaceId (Svelte 5 pattern - matches tags/+page.svelte)
+	// Returns a function that can be called reactively inside useQuery
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
+	});
+
+	// Load branding for ALL orgs (to generate CSS for all orgs at once)
+	// This prevents CSS loss when switching workspaces
+	const allOrgBrandingQuery =
+		browser && getSessionId()
+			? useQuery(api.core.workspaces.index.getAllOrgBranding, () => {
+					const sessionId = getSessionId();
+					invariant(sessionId, 'sessionId required');
+					return { sessionId };
+				})
+			: null;
+
+	// Load RBAC details for dev console logging
+	const rbacDetailsQuery =
+		browser && import.meta.env.DEV && getSessionId()
+			? useQuery(api.rbac.queries.getUserRBACDetails, () => {
+					const sessionId = getSessionId();
+					invariant(sessionId, 'sessionId required');
+					const workspaceId = activeWorkspaceId();
+					return {
+						sessionId,
+						workspaceId: workspaceId as Id<'workspaces'> | undefined
+					};
+				})
+			: null;
+
+	// Log RBAC details when available (dev mode only) - adds to existing dev info
+	$effect(() => {
+		if (!browser || !import.meta.env.DEV || !rbacDetailsQuery?.data) return;
+
+		const rbacData = rbacDetailsQuery.data;
+		const pathname = window.location.pathname;
+		const isWorkspaceRoute = pathname.startsWith('/w/');
+		const convexUrlSanitized = PUBLIC_CONVEX_URL
+			? PUBLIC_CONVEX_URL.split('/').slice(0, 3).join('/') + '/...'
+			: 'not configured';
+
+		// Format RBAC data to match existing console log structure
+		const rbacInfo = {
+			systemRoles: rbacData.systemRoles.map((role) => ({
+				roleSlug: role.roleSlug,
+				roleName: role.roleName,
+				permissions: role.permissions.map((p) => ({
+					slug: p.slug,
+					scope: p.scope,
+					description: p.description
+				}))
+			})),
+			activeWorkspaceRoles: rbacData.activeWorkspaceRoles.map((role) => ({
+				roleSlug: role.roleSlug,
+				roleName: role.roleName,
+				circleId: role.circleId ?? null,
+				permissions: role.permissions.map((p) => ({
+					slug: p.slug,
+					scope: p.scope,
+					description: p.description
+				}))
+			})),
+			allWorkspaceRoles: rbacData.workspaceRoles.map((ws) => ({
+				workspaceId: ws.workspaceId,
+				workspaceName: ws.workspaceName,
+				roles: ws.roles.map((role) => ({
+					roleSlug: role.roleSlug,
+					roleName: role.roleName,
+					circleId: role.circleId ?? null
+				}))
+			}))
+		};
+
+		// Log complete dev info with RBAC included
+		console.log('🔍 SynergyOS Dev Info', {
+			auth: {
+				userId: data.user?.userId ?? null,
+				email: data.user?.email ?? null,
+				name: accountName() ?? null,
+				workosId: data.user?.workosId ?? null,
+				isAuthenticated: isAuthenticated,
+				sessionId: data.sessionId ?? null
+			},
+			workspace: {
+				activeId: workspaces?.activeWorkspaceId ?? null,
+				activeName: workspaceName() ?? null,
+				totalCount: workspaces?.workspaces?.length ?? 0,
+				invitesCount: workspaces?.workspaceInvites?.length ?? 0,
+				isSwitching: workspaces?.isSwitching ?? false
+			},
+			features: {
+				circles: circlesEnabled,
+				meetings: meetingsEnabled,
+				dashboard: dashboardEnabled
+			},
+			route: {
+				pathname,
+				isWorkspaceRoute
+			},
+			environment: {
+				mode: import.meta.env.DEV ? 'development' : 'production',
+				platform: getPlatform(),
+				convexUrl: convexUrlSanitized,
+				isMobile
+			},
+			state: {
+				isAccountSwitching: isAccountSwitching,
+				isOrgSwitching: isOrgSwitching,
+				isLoading: workspaces?.isLoading ?? false
+			},
+			rbac: rbacInfo
+		});
+	});
+
+	// Org branding state (Phase 2: Org Branding)
+	// Use reactive query result, fallback to SSR data for initial render
+	const workspaceId = $derived(activeWorkspaceId() ?? data.workspaceId ?? null);
+
+	// Generate org branding CSS for ALL orgs (prevents CSS loss on workspace switch)
+	const orgBrandingCSS = $derived.by(() => {
+		// Get all org branding from query (fallback to empty object)
+		const allBranding =
+			(allOrgBrandingQuery?.data as
+				| Record<string, { primaryColor: string; secondaryColor: string; logo?: string }>
+				| null
+				| undefined) ?? {};
+
+		// Generate CSS for each org with branding
+		// Use :root.org-{id} for higher specificity than :root alone
+		const cssRules: string[] = [];
+		for (const [orgId, branding] of Object.entries(allBranding)) {
+			if (branding?.primaryColor) {
+				const hoverColor = generateHoverColor(branding.primaryColor);
+				cssRules.push(
+					`:root.org-${orgId} { --color-brand-primary: ${branding.primaryColor}; --color-brand-secondary: ${branding.secondaryColor}; --color-brand-primaryHover: ${hoverColor}; }`
+				);
+			}
+		}
+
+		return cssRules.join('\n');
+	});
+
+	const orgBrandingStyleId = 'org-branding-styles';
+
+	// Apply org branding CSS into dedicated style tag to avoid HTML injection
+	$effect(() => {
+		if (!browser) return;
+		const styleEl = document.getElementById(orgBrandingStyleId);
+		if (!styleEl) return;
+		styleEl.textContent = orgBrandingCSS || '';
+	});
+
+	// Apply org class on client (idempotent - same as SSR, reactive to workspace switches)
+	$effect(() => {
+		if (browser && workspaceId) {
+			// Remove ALL org-* classes to ensure clean state (handles SSR issues and workspace switches)
+			const htmlElement = document.documentElement;
+			const classesToRemove: string[] = [];
+			htmlElement.classList.forEach((cls) => {
+				if (cls.startsWith('org-')) {
+					classesToRemove.push(cls);
+				}
+			});
+			classesToRemove.forEach((cls) => htmlElement.classList.remove(cls));
+
+			// Add new org class
+			htmlElement.classList.add(`org-${workspaceId}`);
+		}
+	});
 
 	// Initialize core module API and provide via context
 	// Enables loose coupling - other modules can use global components and composables without direct imports (see SYOS-308, SYOS-322)
@@ -52,7 +234,6 @@
 	// Extract global components and composables from CoreModuleAPI
 	const Sidebar = coreAPI.Sidebar;
 	const GlobalActivityTracker = coreAPI.GlobalActivityTracker;
-	const AppTopBar = coreAPI.AppTopBar;
 	const QuickCreateModal = coreAPI.QuickCreateModal;
 	const useGlobalShortcuts = coreAPI.useGlobalShortcuts;
 
@@ -76,23 +257,6 @@
 	const meetingsEnabled = $derived(data.meetingsEnabled ?? false);
 	const dashboardEnabled = $derived(data.meetingsEnabled ?? false); // Dashboard uses meetings module flag
 
-	// DEBUG: Log feature flag evaluation in browser console
-	$effect(() => {
-		if (browser) {
-			console.log('[DEBUG] Feature flags (client-side):', {
-				sessionId: data.sessionId,
-				userId: data.user?.userId,
-				userEmail: data.user?.email,
-				activeOrganizationId: organizations.activeOrganizationId,
-				circlesEnabled,
-				meetingsEnabled,
-				serverData: {
-					circlesEnabled: data.circlesEnabled,
-					meetingsEnabled: data.meetingsEnabled
-				}
-			});
-		}
-	});
 	const loadingOverlay = useLoadingOverlay();
 	setContext('loadingOverlay', loadingOverlay);
 	const isAuthenticated = $derived(data.isAuthenticated);
@@ -102,7 +266,9 @@
 			? `${data.user.firstName} ${data.user.lastName}`
 			: accountEmail()
 	);
-	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
+	// Derive workspace name from active workspace (source of truth)
+	// If not available yet (loading), will be undefined (handled gracefully by UI)
+	const workspaceName = $derived(() => workspaces?.activeWorkspace?.name);
 
 	// Account switching state (for page reloads)
 	// CRITICAL: ALWAYS initialize as false - NEVER read from sessionStorage during initialization
@@ -111,7 +277,7 @@
 	let accountSwitchingState = $state<{
 		isSwitching: boolean;
 		switchingTo: string | null;
-		switchingToType: 'personal' | 'organization';
+		switchingToType: 'personal' | 'workspace';
 		startTime: number | null;
 		endTime: number | null; // Track when account switching ended to suppress org switching overlay
 	}>({
@@ -125,7 +291,7 @@
 	// Combined switching state: Show single overlay for account + org switching
 	// When account switching is active, extend it to cover org switching (no separate overlay)
 	const isAccountSwitching = $derived(accountSwitchingState.isSwitching);
-	const isOrgSwitching = $derived(organizations?.isSwitching ?? false);
+	const isOrgSwitching = $derived(workspaces?.isSwitching ?? false);
 
 	// Detect if this is an account switch (has switchingAccount flag) vs workspace switch (same account)
 	// Account switch: Show "Switching account" → "Loading workspace"
@@ -158,32 +324,7 @@
 	// Determine subtitle: "account" during account switch, "workspace" during org switch
 	// IMPORTANT: Only use 'account' when account switching is active (not the flag - prevents pre-reload overlay)
 	// During org switching, always use 'workspace' (not the org name) for consistent messaging
-	const switchingSubtitle = $derived.by(() => {
-		const result = isAccountSwitching ? 'account' : 'workspace';
-		console.log('🔍 [SUBTITLE] Computing switchingSubtitle', {
-			result,
-			isAccountSwitching,
-			hasSwitchingAccountFlag,
-			isOrgSwitching,
-			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
-			switchingTo: organizations?.switchingTo
-		});
-		return result;
-	});
-
-	// Log subtitle changes (separate effect for debugging)
-	$effect(() => {
-		if (!browser) return;
-		console.log('🔄 [OVERLAY] Subtitle changed', {
-			subtitle: switchingSubtitle,
-			isAccountSwitching,
-			isOrgSwitching,
-			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
-			switchingTo: organizations?.switchingTo
-		});
-	});
+	const switchingSubtitle = $derived(isAccountSwitching ? 'account' : 'workspace');
 
 	// Global overlay show state (for logging)
 	// CRITICAL: Hide global overlay during account/workspace switching to prevent "Loading [account name]" from showing
@@ -196,52 +337,12 @@
 			!isOrgSwitching
 	);
 
-	// Log global overlay state
-	$effect(() => {
-		if (!browser) return;
-		if (globalOverlayShow || loadingOverlay.show) {
-			console.log('🌐 [GLOBAL OVERLAY] State', {
-				show: globalOverlayShow,
-				loadingOverlayShow: loadingOverlay.show,
-				shouldShowSwitchingOverlay,
-				hasSwitchingAccountFlag,
-				isAccountSwitching,
-				isOrgSwitching,
-				flow: loadingOverlay.flow,
-				title: loadingOverlay.title,
-				subtitle: loadingOverlay.subtitle,
-				subtitleType: typeof loadingOverlay.subtitle,
-				subtitleLength: loadingOverlay.subtitle?.length,
-				customStages: loadingOverlay.customStages,
-				// Check if subtitle contains account name (this would cause "Loading [name]")
-				hasAccountName:
-					loadingOverlay.subtitle?.includes('Randy') ||
-					loadingOverlay.subtitle?.includes('Hereman') ||
-					loadingOverlay.subtitle?.includes('Fifth')
-			});
-		}
-	});
-
-	// Log overlay visibility changes
-	$effect(() => {
-		if (!browser) return;
-		console.log('🔄 [OVERLAY] Visibility check', {
-			shouldShow: shouldShowSwitchingOverlay,
-			isAccountSwitching,
-			isOrgSwitching,
-			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
-			subtitle: switchingSubtitle
-		});
-	});
-
 	// Clear account switching state immediately when org switching starts
 	// This ensures subtitle switches from 'account' to 'workspace' smoothly
 	$effect(() => {
 		if (!browser) return;
 
-		if (organizations?.isSwitching && accountSwitchingState.isSwitching) {
-			console.log('🔄 [ACCOUNT SWITCH] Org switching started - clearing account switching state');
+		if (workspaces?.isSwitching && accountSwitchingState.isSwitching) {
 			accountSwitchingState.isSwitching = false;
 			accountSwitchingState.switchingTo = null;
 			accountSwitchingState.switchingToType = 'personal';
@@ -257,12 +358,6 @@
 	// 2. Data has loaded and minimum duration elapsed (implicit org change or no change)
 	$effect(() => {
 		if (!browser || !accountSwitchingState.isSwitching || !accountSwitchingState.startTime) {
-			if (browser && accountSwitchingState.isSwitching) {
-				console.log('⏸️ [ACCOUNT SWITCH] Effect skipped', {
-					hasStartTime: !!accountSwitchingState.startTime,
-					isSwitching: accountSwitchingState.isSwitching
-				});
-			}
 			return;
 		}
 
@@ -270,19 +365,8 @@
 		const elapsed = Date.now() - accountSwitchingState.startTime;
 		const minimumAccountSwitchDuration = 1000; // Show "Switching account" for at least 1 second
 		const minimumTotalDuration = 3000; // Total overlay duration (account + workspace loading)
-		const orgSwitching = organizations?.isSwitching ?? false;
-		const dataLoaded = !organizations?.isLoading; // Data has finished loading
-
-		console.log('🔄 [ACCOUNT SWITCH] Monitoring transition', {
-			elapsed,
-			minimumAccountSwitchDuration,
-			minimumTotalDuration,
-			orgSwitching,
-			dataLoaded,
-			canTransition:
-				(orgSwitching || (dataLoaded && elapsed >= minimumTotalDuration)) &&
-				elapsed >= minimumAccountSwitchDuration
-		});
+		const orgSwitching = workspaces?.isSwitching ?? false;
+		const dataLoaded = !workspaces?.isLoading; // Data has finished loading
 
 		// Transition when:
 		// 1. Org switching starts AND minimum account switch duration elapsed, OR
@@ -292,14 +376,6 @@
 			(dataLoaded && elapsed >= minimumTotalDuration);
 
 		if (shouldTransition) {
-			console.log('✅ [ACCOUNT SWITCH] Transitioning', {
-				elapsed,
-				orgSwitching,
-				dataLoaded,
-				orgSwitchingTo: organizations?.switchingTo,
-				reason: orgSwitching ? 'org-switching-started' : 'data-loaded-minimum-duration'
-			});
-
 			// If org switching is already active, just clear account switching state
 			// The org switching overlay will continue showing "Loading workspace"
 			if (orgSwitching) {
@@ -307,35 +383,6 @@
 				accountSwitchingState.switchingTo = null;
 				accountSwitchingState.switchingToType = 'personal';
 				accountSwitchingState.startTime = null;
-			} else if (dataLoaded && organizations?.setActiveOrganization && browser) {
-				// Data loaded but no org switching - process URL params if they exist
-				// URL sync was suppressed during account switching, now it can process the org param
-				const urlParams = new URLSearchParams(window.location.search);
-				const urlOrgParam = urlParams.get('org');
-
-				if (
-					urlOrgParam &&
-					organizations.organizations?.some((org) => org.organizationId === urlOrgParam)
-				) {
-					// Process URL param - this will trigger org switching with "Loading workspace"
-					console.log('🔄 [ACCOUNT SWITCH] Processing URL param after account switch', {
-						orgId: urlOrgParam
-					});
-					// Trigger org switching - it will handle the overlay transition
-					// Don't clear account switching state here - let the org switching effect handle it
-					// The subtitle will automatically switch from 'account' to 'workspace' when org switching starts
-					organizations.setActiveOrganization(urlOrgParam);
-					// Account switching will be cleared when org switching becomes active (handled by reactive effect)
-				} else {
-					// No URL param and no org switching - just hide overlay
-					// Don't trigger org switching unnecessarily
-					accountSwitchingState.isSwitching = false;
-					accountSwitchingState.switchingTo = null;
-					accountSwitchingState.switchingToType = 'personal';
-					accountSwitchingState.startTime = null;
-					// Ensure flag is cleared
-					flagState.hasFlag = false;
-				}
 			} else {
 				// Fallback: just clear account switching state
 				accountSwitchingState.isSwitching = false;
@@ -365,17 +412,9 @@
 		if (shouldShowSwitchingOverlay && window.__hasStaticOverlay) {
 			const staticOverlay = document.getElementById('__switching-overlay');
 			if (staticOverlay) {
-				console.log(
-					'🧹 [STATIC OVERLAY CLEANUP] Hiding static overlay immediately (Svelte overlay will show)',
-					{
-						staticOverlayFound: !!staticOverlay,
-						shouldShowSwitchingOverlay
-					}
-				);
 				// Remove immediately (no fade) - LoadingOverlay will show immediately after
 				if (staticOverlay.parentNode) {
 					staticOverlay.remove();
-					console.log('✅ [STATIC OVERLAY CLEANUP] Static overlay removed from DOM');
 				}
 				delete window.__hasStaticOverlay;
 			} else {
@@ -384,16 +423,58 @@
 		}
 	});
 
-	// Track if component has been mounted for at least 100ms
-	// This prevents overlay from showing during client-side navigation before page reload
-	let mountedAt = $state<number | null>(null);
-
 	// Check for account switching flag on mount
 	onMount(() => {
 		if (!browser) return;
 
-		// Record mount time
-		mountedAt = Date.now();
+		// Developer console log - only in development mode
+		if (import.meta.env.DEV) {
+			const pathname = window.location.pathname;
+			const isWorkspaceRoute = pathname.startsWith('/w/');
+
+			// Sanitize Convex URL (show only first part for security)
+			const convexUrlSanitized = PUBLIC_CONVEX_URL
+				? PUBLIC_CONVEX_URL.split('/').slice(0, 3).join('/') + '/...'
+				: 'not configured';
+
+			console.log('🔍 SynergyOS Dev Info', {
+				auth: {
+					userId: data.user?.userId ?? null,
+					email: data.user?.email ?? null,
+					name: accountName() ?? null,
+					workosId: data.user?.workosId ?? null,
+					isAuthenticated: isAuthenticated,
+					sessionId: data.sessionId ?? null
+				},
+				workspace: {
+					activeId: workspaces?.activeWorkspaceId ?? null,
+					activeName: workspaceName() ?? null,
+					totalCount: workspaces?.workspaces?.length ?? 0,
+					invitesCount: workspaces?.workspaceInvites?.length ?? 0,
+					isSwitching: workspaces?.isSwitching ?? false
+				},
+				features: {
+					circles: circlesEnabled,
+					meetings: meetingsEnabled,
+					dashboard: dashboardEnabled
+				},
+				route: {
+					pathname,
+					isWorkspaceRoute
+				},
+				environment: {
+					mode: import.meta.env.DEV ? 'development' : 'production',
+					platform: getPlatform(),
+					convexUrl: convexUrlSanitized,
+					isMobile
+				},
+				state: {
+					isAccountSwitching: isAccountSwitching,
+					isOrgSwitching: isOrgSwitching,
+					isLoading: workspaces?.isLoading ?? false
+				}
+			});
+		}
 
 		// Don't remove static overlay immediately - wait until Svelte overlay is ready
 		// This prevents flicker (blur on → blur off → blur on)
@@ -406,20 +487,10 @@
 				const parsed = JSON.parse(switchingData);
 				const flagAge = Date.now() - (parsed.startTime || 0);
 
-				console.log('🚀 [ACCOUNT SWITCH] Processing account switch flag (AFTER page reload)', {
-					accountName: parsed.accountName,
-					startTime: parsed.startTime,
-					currentTime: Date.now(),
-					flagAge,
-					mountedAt,
-					timeSinceMount: mountedAt ? Date.now() - mountedAt : null
-				});
-
 				// CRITICAL: Only process flag if it was set BEFORE this component mounted
 				// If flag was set very recently (< 100ms), it's from current click - ignore it
 				// This prevents overlay from showing during client-side navigation before page reload
 				if (flagAge < 100) {
-					console.log('⏸️ [ACCOUNT SWITCH] Ignoring flag - too recent (from current click)');
 					sessionStorage.removeItem('switchingAccount');
 					return;
 				}
@@ -443,7 +514,6 @@
 				// The $effect above will reactively transition when org switching starts or data loads
 				// Safety timeout: If neither happens within 10s, clear account switching anyway
 				const safetyTimeout = setTimeout(() => {
-					console.log('⏰ [ACCOUNT SWITCH] Safety timeout triggered - clearing account switching');
 					if (accountSwitchingState.isSwitching) {
 						accountSwitchingState.isSwitching = false;
 						accountSwitchingState.switchingTo = null;
@@ -484,7 +554,8 @@
 	let quickCreateInitialType = $state<'note' | 'flashcard' | 'highlight' | null>(null);
 	let isMobile = $state(false);
 	let sidebarCollapsed = $state(false);
-	let sidebarWidth = $state(286);
+	// Initial state will be set from token in browser initialization below
+	let sidebarWidth = $state(0); // Will be set from token in browser block
 
 	// Get current view from page URL
 	const getCurrentView = () => {
@@ -492,23 +563,54 @@
 		const path = window.location.pathname;
 		if (path.includes('/flashcards')) return 'flashcards';
 		if (path.includes('/tags')) return 'tags';
-		if (path.includes('/my-mind')) return 'my_mind';
 		if (path.includes('/study')) return 'study';
 		return 'inbox';
 	};
 
 	// Initialize client-only state from browser APIs
 	if (browser) {
-		// Mobile detection
-		isMobile = window.innerWidth < 768;
+		// Mobile detection - uses breakpoint token from design-system.json
+		const getBreakpointMd = () => {
+			const breakpointMd = getComputedStyle(document.documentElement)
+				.getPropertyValue('--breakpoint-md')
+				.trim();
+			return breakpointMd ? parseInt(breakpointMd, 10) : 768; // Fallback to 768px
+		};
+		isMobile = window.innerWidth < getBreakpointMd();
 		window.addEventListener('resize', () => {
-			isMobile = window.innerWidth < 768;
+			isMobile = window.innerWidth < getBreakpointMd();
 		});
 
-		// Load sidebar width from localStorage
-		const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '286');
-		// Ensure width is at least the minimum (192px) to prevent sidebar from being invisible
-		sidebarWidth = Math.max(192, savedSidebarWidth);
+		// Technical constants (not design values): rem-to-px conversion factor
+		const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
+		// Fallback values matching token defaults (used only if token read fails)
+		const SIDEBAR_EXPANDED_FALLBACK_PX = 286; // Matches --size-sidebar-expanded token
+		const SIDEBAR_COLLAPSED_FALLBACK_PX = 208; // Matches --size-sidebar-minWidth token
+
+		// Helper to read sidebar width token and convert rem to pixels
+		const getSidebarWidthToken = (tokenName: string, fallbackPx: number): number => {
+			const tokenValue = getComputedStyle(document.documentElement)
+				.getPropertyValue(tokenName)
+				.trim();
+			if (!tokenValue) return fallbackPx;
+			const remValue = parseFloat(tokenValue);
+			return remValue * REM_TO_PX_FACTOR; // Convert rem to pixels using standard browser rem base
+		};
+
+		// Load sidebar width from localStorage, fallback to expanded token (286px)
+		const expandedWidth = getSidebarWidthToken(
+			'--size-sidebar-expanded',
+			SIDEBAR_EXPANDED_FALLBACK_PX
+		);
+		const collapsedWidth = getSidebarWidthToken(
+			'--size-sidebar-collapsed',
+			SIDEBAR_COLLAPSED_FALLBACK_PX
+		);
+		const savedSidebarWidth = parseInt(
+			localStorage.getItem('sidebarWidth') || expandedWidth.toString()
+		);
+		// Ensure width is at least the minimum (collapsed width) to prevent sidebar from being invisible
+		sidebarWidth = Math.max(collapsedWidth, savedSidebarWidth);
 	}
 
 	function handleSidebarWidthChange(width: number) {
@@ -565,26 +667,26 @@
 
 		// CMD+1/2/3/4/5/6/7/8/9 - Organization switching shortcuts
 		// Organizations only (no personal workspace) - SYOS-209
-		// Support up to 9 organizations (CMD+1 through CMD+9)
+		// Support up to 9 workspaces (CMD+1 through CMD+9)
 		for (let i = 1; i <= 9; i++) {
 			shortcuts.register({
 				key: i.toString(),
 				meta: true,
 				handler: () => {
-					if (!organizations) return;
+					if (!workspaces) return;
 
-					// Build organization list: Organizations only (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
+					// Build workspace list: Organizations only (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
 					const workspaceIndex = i - 1; // Convert to 0-based index
-					const orgList = organizations.organizations ?? [];
+					const orgList = workspaces.workspaces ?? [];
 
 					// CMD+1-9 → Organizations (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
 					const targetOrg = orgList[workspaceIndex];
 
 					if (targetOrg) {
-						organizations.setActiveOrganization(targetOrg.organizationId);
+						workspaces.setActiveWorkspace(targetOrg.workspaceId);
 						toast.success(`Switched to ${targetOrg.name}`);
 					} else {
-						// No organization at this index - show info toast
+						// No workspace at this index - show info toast
 						toast.info(`No workspace at position ${i}. Create one to use CMD+${i}.`);
 					}
 				},
@@ -620,47 +722,94 @@
 	});
 </script>
 
+<!-- Inject org branding CSS (SSR-rendered, no FOUC) -->
+<svelte:head>
+	<style id="org-branding-styles"></style>
+</svelte:head>
+
 {#if isAdminRoute}
 	<!-- Admin routes use their own layout - skip authenticated layout -->
 	{@render children()}
 {:else if isAuthenticated}
-	<div class="flex h-screen overflow-hidden">
-		<!-- Shared Sidebar Component -->
-		<Sidebar
-			{inboxCount}
-			{isMobile}
-			{sidebarCollapsed}
-			onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
-			{sidebarWidth}
-			onSidebarWidthChange={handleSidebarWidthChange}
-			{createMenuOpen}
-			onCreateMenuChange={(open) => (createMenuOpen = open)}
-			onQuickCreate={(trigger) => {
-				quickCreateTrigger = trigger;
-				quickCreateInitialType = null; // Show command palette
-				quickCreateModalOpen = true;
-			}}
-			user={data.user}
-			{circlesEnabled}
-			{meetingsEnabled}
-			{dashboardEnabled}
-		/>
+	<!--
+		Shell Layout Pattern (Linear/Notion inspired)
+		- Outer shell: base background (darkest) with subtle brand gradient
+		- Inner content: floating elevated card with rounded corners, border, shadow
+	-->
+	<div class="bg-base relative flex h-screen overflow-hidden">
+		<!--
+			Shell Background Gradient
+			- Uses brand hue (195) at 3% opacity for subtle depth
+			- Radial gradient from top-left for natural light feel
+		-->
+		<div
+			class="pointer-events-none absolute inset-0 bg-radial-[at_0%_0%] from-[var(--gradient-overlay-subtle-from)] via-transparent to-transparent"
+			aria-hidden="true"
+		></div>
 
-		<!-- Main Content Area -->
-		<div class="flex flex-1 flex-col overflow-hidden">
-			<AppTopBar
-				{organizations}
+		<!-- Shared Sidebar Component - Hidden on settings routes -->
+		{#if !isSettingsRoute}
+			<Sidebar
+				{inboxCount}
 				{isMobile}
 				{sidebarCollapsed}
-				onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
-				accountName={accountName()}
-				accountEmail={accountEmail()}
-				workspaceName={workspaceName()}
+				onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
+				{sidebarWidth}
+				onSidebarWidthChange={handleSidebarWidthChange}
+				{createMenuOpen}
+				onCreateMenuChange={(open) => (createMenuOpen = open)}
+				onQuickCreate={(trigger) => {
+					quickCreateTrigger = trigger;
+					quickCreateInitialType = null; // Show command palette
+					quickCreateModalOpen = true;
+				}}
+				user={data.user}
+				{circlesEnabled}
+				{meetingsEnabled}
+				{dashboardEnabled}
 			/>
-			<div class="flex-1 overflow-hidden">
+		{/if}
+
+		<!-- Main Content Area - Floating Card (skip for settings routes) -->
+		{#if isSettingsRoute}
+			<!-- Settings routes use full-width layout (no shell pattern) -->
+			<div class="flex flex-1 flex-col overflow-hidden">
 				{@render children()}
 			</div>
-		</div>
+		{:else}
+			<!-- Regular routes use shell layout pattern -->
+			<div
+				class="relative flex flex-1 flex-col overflow-hidden"
+				style="padding: var(--spacing-2); padding-left: 0;"
+			>
+				<!--
+					Content Card Container
+					- Rounded corners (rounded-xl = 16px)
+					- Subtle border for soft definition (not harsh)
+					- Soft shadow for depth
+					- Elevated background (lighter than sidebar for contrast)
+				-->
+				<div
+					class="border-subtle bg-elevated flex flex-1 flex-col overflow-hidden rounded-xl border shadow-sm"
+				>
+					<!-- Top Bar with matching rounded corners -->
+					<!-- <div class="rounded-t-xl bg-surface">
+						<AppTopBar
+							{workspaces}
+							{isMobile}
+							{sidebarCollapsed}
+							onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+							accountName={accountName()}
+							accountEmail={accountEmail()}
+							workspaceName={workspaceName()}
+						/>
+					</div> -->
+					<div class="flex-1 overflow-y-auto">
+						{@render children()}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Global Activity Tracker -->
 		<GlobalActivityTracker />
@@ -672,15 +821,15 @@
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
 			sessionId={data.sessionId}
-			organizationId={organizations?.activeOrganizationId ?? null}
+			workspaceId={workspaces?.activeWorkspaceId ?? null}
 			initialTags={data.tags}
 		/>
 
 		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->
-		{#if organizations}
-			<OrganizationModals
-				{organizations}
-				activeOrganizationName={organizations.activeOrganization?.name ?? null}
+		{#if workspaces}
+			<WorkspaceModals
+				{workspaces}
+				activeOrganizationName={workspaces.activeWorkspace?.name ?? null}
 			/>
 		{/if}
 
@@ -688,59 +837,7 @@
 		<!-- Single continuous overlay that transitions from "Switching account" to "Loading workspace" -->
 		{#if shouldShowSwitchingOverlay}
 			{@const subtitleValue = switchingSubtitle}
-			{@const logRender = () => {
-				if (!browser) return;
-				if (!DEBUG_OVERLAY_LOGGING) return;
-
-				// Check for any existing overlays in DOM
-				const allOverlays = Array.from(
-					document.querySelectorAll('[id*="overlay"], [class*="overlay"], [style*="z-index:999"]')
-				);
-				const staticOverlay = document.getElementById('__switching-overlay');
-				const staticOverlayHeading = staticOverlay?.querySelector('h2');
-
-				console.log('🎨 [LOADING OVERLAY] Rendering workspace-switching overlay', {
-					shouldShow: shouldShowSwitchingOverlay,
-					subtitle: subtitleValue,
-					subtitleType: typeof subtitleValue,
-					subtitleLength: subtitleValue?.length,
-					isAccountSwitching,
-					isOrgSwitching,
-					accountState: accountSwitchingState.isSwitching,
-					orgState: organizations?.isSwitching,
-					accountStartTime: accountSwitchingState.startTime,
-					orgSwitchingTo: organizations?.switchingTo,
-					hasSwitchingAccountFlag,
-					flagState: flagState.hasFlag,
-					// DOM state checks
-					staticOverlayExists: !!staticOverlay,
-					staticOverlayHeadingText: staticOverlayHeading?.textContent,
-					staticOverlayFullText: staticOverlay?.textContent?.substring(0, 150),
-					allOverlaysCount: allOverlays.length,
-					allOverlaysInfo: allOverlays.map((el) => ({
-						id: el.id,
-						className: el.className,
-						textContent: el.textContent?.substring(0, 80),
-						zIndex: window.getComputedStyle(el).zIndex
-					}))
-				});
-			}}
-			{@const _log = logRender()}
 			<LoadingOverlay show={true} flow="workspace-switching" subtitle={subtitleValue} />
-		{:else}
-			{@const logNotShowing = () => {
-				if (!browser) return;
-				if (!DEBUG_OVERLAY_LOGGING) return;
-
-				console.log('🎨 [LOADING OVERLAY] Overlay NOT showing', {
-					shouldShowSwitchingOverlay,
-					isAccountSwitching,
-					isOrgSwitching,
-					accountState: accountSwitchingState.isSwitching,
-					orgState: organizations?.isSwitching
-				});
-			}}
-			{@const _log = logNotShowing()}
 		{/if}
 
 		<!-- Global Loading Overlay (for account registration, linking, workspace creation) -->
@@ -755,9 +852,9 @@
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
-	<div class="flex h-screen items-center justify-center bg-base">
+	<div class="bg-base flex h-screen items-center justify-center">
 		<div class="text-center">
-			<p class="mb-4 text-primary">Please log in to continue</p>
+			<p class="mb-content-section text-primary">Please log in to continue</p>
 			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>

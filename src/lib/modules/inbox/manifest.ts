@@ -1,7 +1,7 @@
 /**
  * Inbox Module Manifest
  *
- * Inbox module provides knowledge collection and organization functionality:
+ * Inbox module provides knowledge collection and workspace functionality:
  * - Readwise sync integration
  * - Inbox item management
  * - Tag management
@@ -18,14 +18,14 @@ import type { InboxModuleAPI } from './api';
 /**
  * Inbox module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for organizations context)
+ * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities)
  * **Feature Flag**: null (always enabled)
  * **API**: InboxModuleAPI (currently minimal, ready for future expansion)
  */
 export const inboxModule: ModuleManifest = {
 	name: 'inbox',
 	version: '1.0.0',
-	dependencies: ['core'],
+	dependencies: ['shared-ui'],
 	featureFlag: null, // Always enabled
 	api: undefined as InboxModuleAPI | undefined // Type reference for API contract
 };

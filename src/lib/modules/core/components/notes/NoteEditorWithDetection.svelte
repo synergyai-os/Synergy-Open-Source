@@ -103,7 +103,7 @@
 	{:else}
 		<!-- SSR placeholder -->
 		<div
-			class="h-full min-h-[200px] w-full rounded-input border border-base bg-input px-input-x py-input-y text-tertiary"
+			class="border-base bg-input rounded-input px-input-x py-input-y text-tertiary h-full min-h-[200px] w-full border"
 		>
 			{placeholder}
 		</div>

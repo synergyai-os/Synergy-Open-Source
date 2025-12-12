@@ -1,355 +1,195 @@
 # save
 
-**Purpose**: Capture knowledge locally by updating patterns. **NO COMMIT** - Files saved locally only (saves time/tokens).
+Capture learnings from work session. Update patterns or rules.
+
+**Key Principle**: One canonical pattern per concept. Merge before add.
 
 ---
 
-# 🚨🚨🚨 CRITICAL: Linear Ticket Required 🚨🚨🚨
-
-## ⛔ **DO NOT PROCEED WITHOUT LINEAR TICKET ID**
-
-**BEFORE doing ANYTHING (analyzing, updating patterns):**
-
-### Step 1: Check for Linear Ticket ID
-
-**Look in the conversation for:**
-
-- "SYOS-123" or "SYOS-XXX" format
-- "ticket SYOS-123"
-- "Linear ticket"
-- Any mention of a Linear issue ID
-
-### Step 2: Decision
-
-**IF NO TICKET ID FOUND:**
-
-**If user says "create new ticket" or "we have no ticket yet":**
-
-→ **Refer to `/start` command** - Ticket creation workflow is handled there
-
-**If user doesn't say "create new ticket":**
+## Document Hierarchy
 
 ```
-❌ STOP IMMEDIATELY - I cannot save work without a Linear ticket ID.
-
-Please provide:
-- Linear ticket ID (e.g., SYOS-123)
-- OR say "create new ticket" and I'll help you create one using /start
-
-Once I have a ticket ID, I'll proceed with saving.
+ARCHITECTURE.md          → Principles, structure (rarely changes)
+DESIGN-SYSTEM.md         → Styling, tokens, recipes (rarely changes)
+        ↓
+Patterns (patterns/)     → Solved problems (grows over time)
+Rules (.cursor/rules/)   → Proactive constraints (grows slowly)
 ```
 
-**IF TICKET ID FOUND:**
+**When to update what:**
 
-1. **Get ticket details** using `mcp_Linear_get_issue({ id: 'SYOS-123' })`
-2. **Check project ID** (REQUIRED unless user explicitly says "no"):
-   - If missing → Ask user: "Ticket SYOS-123 has no project ID. Which project should this belong to? (Say 'no project' to skip)"
-   - If user says "no project" → Continue (only exception)
-   - If user provides project → Get/create project → Update ticket with `projectId`
-   - If project ID exists → Continue
-3. **Check assignee** (ALWAYS set to Randy):
-   - If missing or not Randy → Update ticket with `assignee: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'`
-   - **Note**: Use `assignee` (not `assigneeId`) for `update_issue`
-4. **Check estimate** (ALWAYS numeric):
-   - If missing or label (like "m") → Convert to numeric (m=3, s=2, l=4, etc.) and update ticket
-   - Use `estimate: 0-5` (numeric, not label)
-   - Default to `2` (s) if cannot determine
-
-**DO NOT:**
-
-- ❌ Analyze work (until ticket validated)
-- ❌ Update patterns (until ticket validated)
-- ❌ Do ANY work (until ticket validated)
-
-**ONLY AFTER ticket validated → Continue below**
+| Learning Type | Update |
+|---------------|--------|
+| New architectural principle | architecture.md (rare, needs review) |
+| New design system pattern | design-system.md (rare, needs review) |
+| Solved a bug/problem | patterns/ (common) |
+| Preventing repeated mistakes | rules/ (when 2+ occurrences) |
 
 ---
 
-## ✅ Workflow
+## Workflow
 
-### 0. 🚨 Validate Linear Ticket (DO THIS FIRST)
+### 1. Analyze Session
 
-**Before analyzing, validate the Linear ticket:**
+**Frame as outcome:**
+- WHO benefits? (user, developer, AI)
+- WHAT value delivered?
+- WHAT type of work?
+  - 🎯 FEATURE - New capability
+  - 🐛 BUGFIX - Fix broken functionality
+  - 🔧 TECH-DEBT - Code quality
+  - 📚 DOCS - Documentation
+  - 🔒 RISK - Security, critical fix
 
-1. **Get ticket details** → Check project ID, assignee, estimate (see above)
-2. **Note**: We're saving locally only (no commit), so we won't update Linear ticket with commit info
+### 2. Search First (MANDATORY)
 
-**See**: `/start` command for Linear constants and ticket update workflow
+**⛔ Never add pattern without searching.**
 
----
+Run 3+ searches:
 
-### 1. Analyze Session - Frame as User Story + Flow Metrics
+```bash
+# By symptom
+grep -r "error message" dev-docs/2-areas/patterns/
 
-**Think outcome-driven, not output-driven:**
+# By concept
+grep -r "reactivity\|state" dev-docs/2-areas/patterns/
 
-- **WHO** benefits from this change? (user, developer, contributor, AI assistant)
-- **WHAT VALUE** was delivered? (faster workflow, less errors, better UX)
-- **WHAT SLICE** was completed? (thin, end-to-end functionality that provides value)
-
-**Flow Distribution - Categorize the work:**
-
-- **🎯 [FEATURE]** - New capability for users
-- **🐛 [BUGFIX]** - Fix broken functionality
-- **🔧 [TECH-DEBT]** - Code quality, refactoring, architecture
-- **📚 [DOCS]** - Documentation, patterns, guides
-- **🔒 [RISK]** - Security, critical hotfixes, data integrity
-
-**Flow Metrics Capture:**
-
-- **Type**: feature | bugfix | tech-debt | docs | refactor
-- **Scope**: inbox | notes | flashcards | sync | auth | ui | composables | docs | commands
-- **Size**: small (<4h) | medium (4-16h) | large (>16h)
-- **Flow Days**: Total days from start to done
-- **Active Hours**: Actual coding/thinking time
-- **Blocked Hours**: Time waiting for something
-- **Files Changed**: Count from git stat
-- **Impact**: high | medium | low (value/risk assessment)
-
-**See**: `/start` command for complete Linear constants and workflow
-
----
-
-### 2. Audit Existing Patterns
-
-**🔍 Search Strategy (use grep tool in parallel):**
-
-1. **Search INDEX**: `grep` in `dev-docs/2-areas/patterns/INDEX.md` for symptom keywords
-2. **Search domain files**: `grep` in `dev-docs/2-areas/patterns/*.md` for related patterns
-3. **Check line numbers**: Found patterns reference exact line numbers (e.g., #L810)
+# By component
+grep -r "NavItem\|Sidebar" dev-docs/2-areas/patterns/
+```
 
 **Decision tree:**
 
-- **Exact match exists** → Update existing pattern (add edge case, enhance example)
-- **Similar pattern exists** → Add new pattern + link to related (#L references)
-- **Nothing found** → Create new pattern in appropriate domain file
-
-**⚠️ DON'T read `patterns-and-lessons.md`** - it's just a redirect file. Go directly to domain files.
-
----
-
-### 3. Update Patterns ⭐ DO THIS FIRST
-
-**⚠️ CRITICAL**: Always update patterns to capture knowledge!
-
-#### If Updating Existing Pattern:
-
-1. Open domain file (svelte-reactivity.md, etc.)
-2. Find pattern by line number (#L10, #L50, etc.)
-3. Enhance: Add edge case to Root Cause, add example to Fix section, update Related links
-4. **Don't change line numbers** (keep L10, L50 stable)
-
-#### If Adding New Pattern:
-
-1. Choose domain file:
-   - Svelte 5 reactivity → `dev-docs/2-areas/patterns/svelte-reactivity.md`
-   - Convex integration → `dev-docs/2-areas/patterns/convex-integration.md`
-   - UI/UX → `dev-docs/2-areas/patterns/ui-patterns.md`
-   - PostHog → `dev-docs/2-areas/patterns/analytics.md`
-
-2. Add pattern with **next line number** (gaps of 30-50):
-
-   ```markdown
-   ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY]
-
-   **Symptom**: One-line description
-   **Root Cause**: One-line cause
-   **Fix**: [code example]
-
-   **Apply when**: When to use
-   **Related**: #L[OTHER] (Description)
-   ```
-
-3. **Validate with Context7** (if library-specific)
-
-4. **Update `dev-docs/2-areas/patterns/INDEX.md`**:
-   - Add symptom → line number in appropriate severity table
-   - Choose severity: 🔴 Critical (breaks functionality), 🟡 Important (common issue), 🟢 Reference (best practice)
-
----
-
-### 4. Consider Rule Building ⭐ NEW
-
-**⚠️ CRITICAL**: After updating patterns, consider if a **rule** should be created to prevent the mistake proactively.
-
-**When to create a rule** (vs pattern):
-
-- ✅ Mistake happened **2+ times** OR is **critical** (breaks functionality, security, CI)
-- ✅ Mistake can be **prevented proactively** (constraint/validation)
-- ✅ Rule can be **< 100 lines** (keep rules short)
-
-**Decision Tree**:
-
 ```
-Mistake occurred during session
-├─ Is it critical? (breaks functionality, security, CI)
-│  ├─ Yes → Create rule (proactive prevention)
-│  └─ No → Continue below
-├─ Has it happened 2+ times?
-│  ├─ Yes → Create rule (prevent repetition)
-│  └─ No → Continue below
-├─ Can it be prevented proactively? (constraint/validation)
-│  ├─ Yes → Create rule
-│  └─ No → Pattern is sufficient (reactive solution)
+Found existing pattern?
+├─ YES, one covers it → ENHANCE (add edge case, update example)
+├─ YES, multiple similar → CONSOLIDATE into ONE canonical
+├─ YES, but outdated → UPDATE with current approach
+└─ NO, genuinely new → ADD new pattern
 ```
 
-**If decision = Rule**:
+### 3. Update Patterns
 
-1. **Check existing rules**:
-   - Search `.cursor/rules/*.mdc` for related rule
-   - If exists → Enhance existing rule (add edge case, strengthen language)
-   - If not exists → Create new rule
+**Location**: `dev-docs/2-areas/patterns/`
 
-2. **Create/update rule**:
-   - **Location**: `.cursor/rules/[topic].mdc`
-   - **Format**: See `.cursor/rules/BUILDING-RULES.md` for complete format
-   - **Frontmatter**: `alwaysApply: true` OR `globs` for scoping
-   - **Structure**: Purpose → Context → Problem → Bad Example → Good Example → Rules → Validation
+**Domain files:**
+- `svelte-reactivity.md` - Svelte 5 patterns
+- `convex-integration.md` - Convex patterns
+- `ui-patterns.md` - UI/UX patterns
+- `design-system-patterns.md` - Design system patterns
 
-3. **Document in session**:
-   - "Created rule `.cursor/rules/[topic].mdc` to prevent [mistake]"
-   - OR "Enhanced rule `.cursor/rules/[topic].mdc` with edge case [description]"
-   - Decision: "Chose rule over pattern because [reason]"
+**Pattern format:**
 
-**Rule Format Example**:
+```markdown
+## #L[NUMBER]: Pattern Name [🔴/🟡/🟢] 
 
-````markdown
----
-alwaysApply: true
-# OR use globs for scoped rules:
-# globs: ["**/*.svelte", "**/*.ts"]
----
+**Keywords**: keyword1, keyword2, component-name
 
-# Rule Title
+**Principle**: One-line generalizable lesson
 
-**Purpose**: One-line description
+**Symptom**: What triggers this pattern
 
-**Context**: Mistake that triggered this rule
+**Root Cause**: Why the problem occurs
 
-## Problem
+**Pattern**: Solution approach
 
-**What happens**: Description of mistake
-**Why it happens**: Root cause
-**Impact**: What breaks
-
-## ❌ Bad Example
-
-```typescript
-const bad = any; // ❌ Wrong
-```
-````
-
-## ✅ Good Example
-
-```typescript
-const good: string = 'value'; // ✅ Correct
+**Implementation:**
+```code
+// Example
 ```
 
-## Rules
+**Anti-Patterns**: What NOT to do
 
-**NEVER do X** → Use Y instead
-**ALWAYS do Z** → Validation step
-
-**Validation**: How to check before implementing
-
+**Related**: #L[OTHER]
 ```
 
-**Reference**: `.cursor/rules/BUILDING-RULES.md` - Complete rule building process and examples
+**Always update INDEX.md** with keyword and line reference.
 
-**When to use Rules vs Patterns**:
+### 4. Consider Rule Building
 
-- **Rules**: Proactive constraints (always enforced, prevent mistakes)
-- **Patterns**: Reactive solutions (lookup when problems occur)
+**When to create rule vs pattern:**
 
-**See**: `.cursor/rules/BUILDING-RULES.md` for complete decision tree and examples
+| Criteria | Action |
+|----------|--------|
+| Happened 2+ times | Create rule |
+| Critical (breaks CI, security) | Create rule |
+| Can be prevented proactively | Create rule |
+| One-off fix | Pattern is sufficient |
 
+**Rule location**: `.cursor/rules/[topic].mdc`
+
+**Rule format:**
+```markdown
+---
+globs: ["*.svelte", "*.ts"]  # or alwaysApply: true
 ---
 
-### 5. Save Locally ✅
+# Rule Name
 
-**Files are saved locally** - No commit step (saves time/tokens).
+[Purpose]
 
-**What's saved:**
+## ✅ Do
+[Good example]
 
-- Pattern updates in domain files
-- INDEX.md updates
-- All file changes remain in working directory
+## ❌ Don't
+[Bad example]
 
-**No git operations** - Files are ready for you to review and commit when ready.
+## Why
+[Reasoning]
+```
+
+### 5. Cleanup Duplicates
+
+While updating, actively consolidate:
+
+- **DELETE** fully redundant patterns
+- **MARK SUPERSEDED** if replaced by better version
+- **MERGE** similar patterns into canonical
+
+**Goal**: Pattern count stays same or decreases.
 
 ---
 
 ## Checklist
 
-**Before Saving:**
+Before saving:
+- [ ] Searched 3+ variations
+- [ ] Found ALL related patterns
+- [ ] Decided: Enhance / Consolidate / Add
+- [ ] If duplicates → Consolidated
+- [ ] Pattern has Keywords field
+- [ ] Updated INDEX.md
+- [ ] Considered rule building
 
-- [ ] **🚨 Linear ticket ID present** in conversation (SYOS-XXX format)
-- [ ] **Got ticket details** → Validated project ID, assignee (Randy), numeric estimate
-- [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
-- [ ] Searched domain files in parallel
-- [ ] Updated domain file with pattern/enhancement (search_replace)
-- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
-- [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
-- [ ] **Considered rule building** → Decided rule vs pattern, created/enhanced rule if needed
-
-**After Saving:**
-
-- [ ] Files saved locally (no commit)
-- [ ] Reported status: "✅ Patterns updated locally. Files ready for review."
+After saving:
+- [ ] Pattern count same or decreased
+- [ ] Report: "✅ Patterns updated. Count: X (was Y)"
 
 ---
 
-## Quick AI Workflow
+## Quick Flow
 
 ```
+1. Analyze → What type of work? What was learned?
 
-0. 🚨 Check for Linear ticket ID (STOP if missing)
-   → If missing and user says "create new ticket" → Refer to /start
+2. Search → 3+ grep searches in patterns/
 
-1. Validate Linear ticket FIRST:
-   - Get ticket details → Check project ID, assignee, estimate
-   - Note: No Linear update needed (saving locally only)
+3. Decide → Enhance existing / Consolidate / Add new
 
-2. Analyze → Frame as user story + flow metrics + distribution
-   - WHO benefits? WHAT VALUE? WHAT SLICE?
-   - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
+4. Update → Pattern file + INDEX.md
 
-3. Search patterns (use grep, batch parallel reads):
-   - INDEX: dev-docs/2-areas/patterns/INDEX.md
-   - Domain files: svelte-reactivity.md, convex-integration.md, etc.
-   - ⚠️ DON'T read patterns-and-lessons.md (redirect)
+5. Consider rule → 2+ occurrences? Critical? → Create rule
 
-4. Update patterns:
-   - Add/update domain file with search_replace
-   - Update INDEX.md symptom table
-   - Use line numbers for references (#L810)
+6. Cleanup → Delete/merge duplicates
 
-5. Consider rule building:
-   - Decision: Rule vs pattern (use decision tree)
-   - If rule → Create/update `.cursor/rules/[topic].mdc`
-   - Document: "Created/enhanced rule [name] to prevent [mistake]"
-   - See: `.cursor/rules/BUILDING-RULES.md` for complete process
-
-6. Save locally (NO COMMIT):
-   → Files saved in working directory
-   → Ready for review and commit when you're ready
-
-7. Report status:
-   → Confirm: "✅ Patterns updated locally. Files saved. Ready for review."
-
+7. Report → Pattern count
 ```
 
 ---
 
 ## Related
 
-- **Linear Workflow**: `/start` command - Complete Linear constants and workflow
-- **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
-- **Rule Building**: `.cursor/rules/BUILDING-RULES.md` - Complete rule building process
-- **Rules Best Practices**: `.cursor/rules/README.md` - Rule optimization and format
-- **Ticket Creation**: `/start` command - Handles ticket creation workflow
-
----
-
-**Last Updated**: 2025-11-20
-**Purpose**: Local knowledge capture (no commit) - saves time/tokens
-```
+- **Patterns**: `dev-docs/2-areas/patterns/INDEX.md`
+- **Rules**: `.cursor/rules/`
+- **Architecture**: `dev-docs/master-docs/architecture.md`
+- **Design System**: `dev-docs/master-docs/design-system.md`

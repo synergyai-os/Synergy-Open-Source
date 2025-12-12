@@ -1,0 +1,156 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Modules" />
+
+# Modules
+
+Feature-specific components organized by domain. Modules contain business logic and domain-specific behavior, built on top of the Design System atoms.
+
+---
+
+## 🎯 What Are Modules?
+
+Modules are feature-specific components:
+
+- ✅ Domain-specific (Inbox, Meetings, Org Chart, etc.)
+- ✅ Business logic included (data fetching, mutations, validation)
+- ✅ Built on Design System atoms
+- ✅ Module-specific composables for state management
+- ✅ Connected to backend (Convex queries/mutations)
+
+---
+
+## 📦 Available Modules
+
+### Meetings
+
+**Purpose**: Meeting management, agenda items, action items, decisions
+
+**Components**:
+
+- MeetingCard, TodayMeetingCard
+- AgendaItemView
+- ActionItemsList, DecisionsList
+- CreateMeetingModal
+- AttendeeSelector, SecretarySelector
+- SecretaryConfirmationDialog
+
+**Storybook**: `Modules/Meetings/ComponentName`
+
+**Location**: `src/lib/modules/meetings/components/`
+
+---
+
+### Org Chart
+
+**Purpose**: Organizational structure, circles, roles, members
+
+**Components**:
+
+- OrgChart (nested bubble chart visualization)
+- CircleDetailPanel, RoleDetailPanel
+- CircleMembersPanel, CircleRolesPanel
+- CreateCircleModal
+- CategoryHeader, CircleDetailHeader, RoleDetailHeader
+- RoleCard, PanelBreadcrumbBar
+
+**Storybook**: `Modules/OrgChart/ComponentName`
+
+**Location**: `src/lib/modules/org-chart/components/`
+
+---
+
+### Inbox
+
+**Purpose**: Knowledge collection, message management
+
+**Components**:
+
+- InboxCard
+
+**Storybook**: `Modules/Inbox/ComponentName`
+
+**Location**: `src/lib/modules/inbox/components/`
+
+---
+
+## 🏗️ Architecture
+
+### Module Structure
+
+```
+src/lib/modules/[module-name]/
+├── components/          # Module-specific components
+├── composables/        # State management (.svelte.ts)
+├── types.ts            # Module-specific types
+└── api.ts              # Module API contract (if exposed)
+```
+
+### Separation of Concerns
+
+**Components** (UI only):
+
+- Render markup
+- Use composables for data/logic
+- No `useQuery` calls directly
+- No business logic
+
+**Composables** (Logic only):
+
+- Data fetching (`useQuery`, mutations)
+- Business logic (validation, transformations)
+- State management (`$state`, `$derived`)
+- Side effects (`$effect`)
+
+---
+
+## 🎨 Usage Pattern
+
+```svelte
+<script>
+	import { ActionItemsList } from '$lib/modules/meetings/components';
+	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
+
+	// Use composable for data/logic
+	const data = useTasks({ agendaItemId, sessionId, workspaceId });
+</script>
+
+<!-- Component handles UI, composable handles logic -->
+<ActionItemsList {data} />
+```
+
+---
+
+## 🔄 Design System Integration
+
+Modules use Design System atoms:
+
+```svelte
+<!-- Module component uses Design System atoms -->
+<script>
+	import { Button, Card } from '$lib/components/atoms';
+</script>
+
+<Card variant="elevated">
+	<Button variant="primary" onclick={handleAction}>Create Meeting</Button>
+</Card>
+```
+
+**Benefits**:
+
+- ✅ Consistent styling (design tokens cascade)
+- ✅ Accessibility (atoms are WCAG compliant)
+- ✅ Type safety (shared types)
+- ✅ Easy updates (change atom, updates module)
+
+---
+
+## 📚 Related Documentation
+
+- **Design System**: `Design System/Overview`
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+- **Modularity**: `dev-docs/2-areas/architecture/modularity-refactoring-analysis.md`
+
+---
+
+**Last Updated**: November 2025

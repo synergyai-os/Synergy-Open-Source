@@ -35,7 +35,7 @@
 
 <button
 	type="button"
-	class="inline-flex items-center gap-icon-wide rounded-button bg-transparent px-section py-section text-button font-normal text-secondary transition-colors hover:bg-hover-solid"
+	class="gap-2-wide text-button hover:bg-hover-solid rounded-button text-secondary inline-flex items-center bg-transparent px-2 py-1 font-normal transition-colors"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(assignee)}
 >
@@ -44,7 +44,7 @@
 			<img src={assignee.avatar} alt={assignee.name} class="icon-md rounded-avatar" />
 		{:else}
 			<div
-				class="flex icon-md items-center justify-center rounded-avatar text-label font-medium text-primary"
+				class="icon-md rounded-avatar text-label text-primary flex items-center justify-center font-medium"
 				style="background-color: {assignee.color}"
 			>
 				{assignee.initials}

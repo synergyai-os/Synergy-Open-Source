@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
 	import { browser } from '$app/environment';
-	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	interface Flashcard {
 		question: string;
@@ -27,6 +28,9 @@
 		onApproveSelected,
 		onRejectAll: _onRejectAll
 	}: Props = $props();
+
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const FlashcardComponent = coreAPI?.Flashcard;
 
 	// Study mode state - cards are removed from queue when rated
 	let reviewQueue = $state<Flashcard[]>([]);
@@ -208,22 +212,22 @@
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<!-- Modal viewport height (sm:h-[90vh]) - intentionally hardcoded as viewport-relative sizing -->
 		<Dialog.Content
-			class="fixed inset-0 z-50 flex h-full w-full flex-col overflow-hidden border-base bg-elevated shadow-card-hover sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[90vh] sm:max-w-dialog-wide sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-card sm:border"
+			class="border-base shadow-card-hover sm:max-w-dialog-wide bg-elevated sm:rounded-card fixed inset-0 z-50 flex h-full w-full flex-col overflow-hidden sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:border"
 		>
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
+				class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-b"
 			>
 				<div class="min-w-0 flex-1">
-					<h2 class="mb-marketing-text text-h3 font-semibold text-primary">Review Flashcards</h2>
-					<div class="flex flex-col gap-icon text-small sm:flex-row sm:items-center sm:gap-icon">
+					<h2 class="mb-marketing-text text-h3 text-primary font-semibold">Review Flashcards</h2>
+					<div class="text-small flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
 						{#if sourceContext}
 							<p class="text-secondary">From: {sourceContext}</p>
 						{/if}
 						{#if sourceContext}
-							<span class="hidden text-secondary sm:inline">•</span>
+							<span class="text-secondary hidden sm:inline">•</span>
 						{/if}
-						<p class="font-medium text-primary">{progressText}</p>
+						<p class="text-primary font-medium">{progressText}</p>
 					</div>
 				</div>
 				<Dialog.Close type="button" onclick={onClose} class="dialog-close-button flex-shrink-0">
@@ -240,12 +244,12 @@
 
 			<!-- Content - Flashcard Display (Centered) -->
 			<div
-				class="relative flex flex-1 items-center justify-center overflow-auto px-inbox-container py-inbox-container"
+				class="px-inbox-container py-inbox-container relative flex flex-1 items-center justify-center overflow-auto"
 			>
 				{#if reviewQueue.length === 0}
-					<div class="py-readable-quote text-center">
+					<div class="text-center" style="padding-block: var(--spacing-8);">
 						<div class="mb-content-section text-h1">✅</div>
-						<p class="mb-marketing-text text-h3 font-semibold text-primary">Review Complete!</p>
+						<p class="mb-marketing-text text-h3 text-primary font-semibold">Review Complete!</p>
 						<p class="text-secondary">
 							Approved: {approvedCards.length} • Rejected: {rejectedCards.length}
 						</p>
@@ -253,12 +257,13 @@
 				{:else if currentCard}
 					<!-- Hotkey Hint: Decline (Left) -->
 					<div
-						class="absolute left-inbox-container z-20 flex flex-col items-center gap-icon opacity-60"
+						class="left-inbox-container absolute z-20 flex flex-col items-center gap-2 opacity-60"
 					>
-						<div class="flex flex-col items-center gap-control-item-gap">
+						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex size-keyboard-key items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="border-base rounded-card bg-elevated flex items-center justify-center border-2 shadow-sm"
+								style="width: 3rem; height: 3rem;"
 							>
 								<svg
 									class="size-icon-md text-secondary"
@@ -275,7 +280,7 @@
 								</svg>
 							</div>
 							<!-- Small label -->
-							<span class="text-label font-medium text-secondary">Decline</span>
+							<span class="text-label text-secondary font-medium">Decline</span>
 						</div>
 					</div>
 
@@ -290,15 +295,14 @@
 						<!-- Visual Feedback Overlay -->
 						{#if showFeedback}
 							<div
-								class="absolute inset-0 z-10 flex items-center justify-center rounded-card {showFeedback ===
+								class="rounded-card absolute inset-0 z-10 flex items-center justify-center {showFeedback ===
 								'approved'
 									? 'bg-success/20'
 									: 'bg-error/20'}"
 							>
 								<svg
-									class="size-quote-decoration {showFeedback === 'approved'
-										? 'text-success'
-										: 'text-error'}"
+									class={showFeedback === 'approved' ? 'text-success' : 'text-error'}
+									style="width: 5rem; height: 5rem;"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -324,25 +328,30 @@
 
 						<!-- Flashcard Component -->
 						<div class="relative h-full w-full">
-							<FlashcardComponent
-								flashcard={currentCard}
-								{isFlipped}
-								onFlip={handleFlip}
-								editable={editMode}
-								onQuestionChange={(value) => updateFlashcard('question', value)}
-								onAnswerChange={(value) => updateFlashcard('answer', value)}
-							/>
+							{#if FlashcardComponent}
+								<FlashcardComponent
+									flashcard={currentCard}
+									{isFlipped}
+									onFlip={handleFlip}
+									editable={editMode}
+									onQuestionChange={(value) => updateFlashcard('question', value)}
+									onAnswerChange={(value) => updateFlashcard('answer', value)}
+								/>
+							{:else}
+								<p class="text-small text-secondary text-center">Flashcard component unavailable</p>
+							{/if}
 						</div>
 					</div>
 
 					<!-- Hotkey Hint: Accept (Right) -->
 					<div
-						class="absolute right-inbox-container z-20 flex flex-col items-center gap-icon opacity-60"
+						class="right-inbox-container absolute z-20 flex flex-col items-center gap-2 opacity-60"
 					>
-						<div class="flex flex-col items-center gap-control-item-gap">
+						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex size-keyboard-key items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="border-base rounded-card bg-elevated flex items-center justify-center border-2 shadow-sm"
+								style="width: 3rem; height: 3rem;"
 							>
 								<svg
 									class="size-icon-md text-secondary"
@@ -359,7 +368,7 @@
 								</svg>
 							</div>
 							<!-- Small label -->
-							<span class="text-label font-medium text-secondary">Accept</span>
+							<span class="text-label text-secondary font-medium">Accept</span>
 						</div>
 					</div>
 				{/if}

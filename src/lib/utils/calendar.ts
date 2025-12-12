@@ -47,9 +47,12 @@ export function generateICS(meeting: Meeting, organizationName?: string): string
 		rrule = `FREQ=${freq};INTERVAL=${interval}`;
 
 		// Add BYDAY for weekly recurrence
+		// Note: Our system uses 0=Monday, 6=Sunday, but ICS uses SU, MO, TU, WE, TH, FR, SA
+		// Map our day indices to ICS day abbreviations
 		if (meeting.recurrence.frequency === 'weekly' && meeting.recurrence.daysOfWeek) {
+			const icsDayMap = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU']; // 0=Monday -> MO, 6=Sunday -> SU
 			const days = meeting.recurrence.daysOfWeek
-				.map((day) => ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][day])
+				.map((day) => icsDayMap[parseInt(day, 10)])
 				.join(',');
 			rrule += `;BYDAY=${days}`;
 		}

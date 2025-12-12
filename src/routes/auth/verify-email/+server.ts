@@ -29,11 +29,14 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 		// Verify the code
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-		const verificationResult = await convex.mutation(api.verification.verifyCode, {
-			email,
-			code,
-			type: 'registration'
-		});
+		const verificationResult = await convex.mutation(
+			api.infrastructure.auth.verification.verifyCode,
+			{
+				email,
+				code,
+				type: 'registration'
+			}
+		);
 
 		if (!verificationResult.success) {
 			console.error('❌ Verification failed:', verificationResult.error);
@@ -88,7 +91,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		// Sync user to Convex
 		console.log('🔍 Syncing user to Convex...');
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -131,7 +135,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		event.cookies.delete('registration_pending', { path: '/' });
 
 		// Check if user registered from invite link - accept invite automatically
-		let redirectTo = registrationData.redirect ?? '/inbox';
+		let redirectTo = registrationData.redirect ?? '/auth/redirect';
 		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
 
 		if (inviteMatch) {
@@ -139,36 +143,40 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 			console.log('🔍 User registered from invite link, accepting invite:', inviteCode);
 
 			try {
-				// Get invite details (organization invites only)
-				const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+				// Get invite details (workspace invites only)
+				const inviteDetails = await convex.query(api.core.workspaces.index.findInviteByCode, {
+					sessionId,
 					code: inviteCode
 				});
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
-					redirectTo = '/inbox';
-				} else if (inviteDetails.type === 'organization') {
-					// Accept organization invite
-					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
-						sessionId,
-						code: inviteCode
-					});
+					redirectTo = '/auth/redirect';
+				} else if (inviteDetails.type === 'workspace') {
+					// Accept workspace invite
+					const acceptResult = await convex.mutation(
+						api.core.workspaces.index.acceptOrganizationInvite,
+						{
+							sessionId,
+							code: inviteCode
+						}
+					);
 
 					console.log(
-						'✅ Organization invite accepted, redirecting to organization:',
-						acceptResult.organizationId
+						'✅ Organization invite accepted, redirecting to workspace:',
+						acceptResult.workspaceId
 					);
-					redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
+					redirectTo = `/org/circles?org=${acceptResult.workspaceId}`;
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);
-					redirectTo = '/inbox';
+					redirectTo = '/auth/redirect';
 				}
 			} catch (inviteError) {
 				console.error('❌ Failed to accept invite:', inviteError);
 				// If invite acceptance fails, redirect to inbox instead
 				// User can manually accept invite later if needed
-				redirectTo = '/inbox';
+				redirectTo = '/auth/redirect';
 			}
 		}
 

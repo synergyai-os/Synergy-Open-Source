@@ -1,0 +1,175 @@
+---
+alwaysApply: true
+---
+# SynergyOS AI Development Guide
+
+**Purpose**: Navigation hub for AI agents. Points to source of truth documents.
+
+**Last Updated**: 2025-12-06
+
+---
+
+## Document Selection
+
+| Task | Read First | Then Reference |
+|------|------------|----------------|
+| Backend logic, domain code, structure | `dev-docs/master-docs/architecture.md` | — |
+| UI component, styling, tokens, recipes | `dev-docs/master-docs/design-system.md` | — |
+| Auth changes | `dev-docs/master-docs/architecture.md` | `workos-convex-auth-architecture.md` |
+| Permission/access control | `dev-docs/master-docs/architecture.md` | `rbac/rbac-architecture.md` |
+| Debugging, fixing issues | `dev-docs/2-areas/patterns/INDEX.md` | Domain-specific pattern file |
+| Readability conventions (supplement) | `dev-docs/master-docs/code-style-notes.md` | — |
+| Product direction | `dev-docs/master-docs/product-vision.md` | `product-strategy.md`, `target-personas.md` |
+
+---
+
+## Source of Truth Documents
+
+### Architecture (`dev-docs/master-docs/architecture.md`)
+
+- 25 architecture principles (numbered, enforceable)
+- Directory structure (backend + frontend)
+- Dependency rules (`infrastructure/ ← core/ ← features/`)
+- Domain cohesion model
+- Authority vs RBAC distinction
+- Testing strategy
+- Decision records
+
+**Use for**: Where code goes, how layers interact, what principles to follow.
+
+### Design System (`dev-docs/master-docs/design-system.md`)
+
+- Token architecture (cascade rule)
+- Recipe system (CVA)
+- Component styling approach
+- Visual design principles
+- Common mistakes to avoid
+
+**Use for**: How to style components, which tokens to use, recipe patterns.
+
+### Patterns (`dev-docs/2-areas/patterns/INDEX.md`)
+
+- Solved problems indexed by symptom
+- Domain-specific pattern files
+- Searchable by keyword
+
+**Use for**: Debugging, finding existing solutions, learning from past fixes.
+
+---
+
+## Quick Rules (Always Apply)
+
+### 1. Domain Cohesion
+
+Everything about a domain lives together:
+
+```
+/convex/core/circles/
+├── schema.ts       # Data definitions
+├── queries.ts      # Reads
+├── mutations.ts    # Writes
+├── rules.ts        # Business logic
+├── index.ts        # Public exports
+└── circles.test.ts # Tests
+```
+
+**No judgment calls**: "Add circle query" → `/convex/core/circles/queries.ts`
+
+### 2. Recipe System for Styling
+
+```typescript
+// ✅ CORRECT: Use recipe
+const classes = buttonRecipe({ variant: 'primary', size: 'md' });
+
+// ❌ WRONG: Hardcoded values
+const classes = 'bg-blue-500 px-4 py-2';
+```
+
+### 3. Semantic Tokens Only
+
+```svelte
+<!-- ✅ CORRECT -->
+<div class="bg-surface text-primary gap-button">
+
+<!-- ❌ WRONG -->
+<div class="bg-gray-100 text-gray-900 gap-2">
+```
+
+### 4. Business Logic in Convex
+
+```typescript
+// ✅ Business logic in Convex mutation
+export const create = mutation({
+  handler: async (ctx, args) => {
+    // Validation here
+    // Authorization here
+    // Then write
+  }
+});
+
+// ❌ Business logic in Svelte component
+function validateAndSave() { /* Wrong place */ }
+```
+
+### 5. Never Edit Generated Files
+
+```
+src/styles/utilities/*.css  ← AUTO-GENERATED - NEVER EDIT
+```
+
+To add utilities: `design-tokens-semantic.json` → `npm run tokens:build`
+
+---
+
+## Domain Terminology
+
+| ✅ Use | ❌ Never Use |
+|--------|-------------|
+| Circle | Team |
+| Role | Job, Position |
+| Proposal | Ticket, Request |
+| Tension | Issue, Problem |
+| Consent | Approval, Sign-off |
+| Circle Lead | Manager, Boss |
+| Authority | Permission |
+
+---
+
+## Commands Reference
+
+| Command | Purpose |
+|---------|---------|
+| `/start` | Begin a new task |
+| `/validate` | Verify completed work against ticket |
+| `/audit-codebase` | Full architecture audit |
+| `/audit-plan` | Evaluate proposed change before implementation |
+| `/audit-code` | Single file/module audit |
+| `/create-tasks` | Create Linear tickets from plans |
+| `/task-template` | Generate pre-coding analysis document |
+| `/save` | Capture learnings, update patterns |
+| `/match-design-system` | Refactor component to design system compliance |
+
+## Rule Enforcement (mental model)
+- **Editor**: ESLint/Prettier/TypeScript warn as you type.
+- **Pre-commit**: Run lint/format/typecheck locally before committing (and any hooks that may exist). Fix blockers before pushing.
+- **PR/CI**: CI re-runs ESLint/TypeScript; reviewers check architecture/pattern compliance. PR fails if checks fail.
+
+---
+
+## Before Starting Any Task
+
+1. **Identify the work type**: Backend? Frontend? Bug fix? Feature?
+2. **Read the source of truth doc**: Architecture or Design System
+3. **Check patterns**: `dev-docs/2-areas/patterns/INDEX.md`
+4. **Use Context7**: For library-specific docs (Svelte 5, Convex, Bits UI)
+
+---
+
+## Tech Stack
+
+- **Frontend**: SvelteKit 5 + Svelte 5 Runes + TypeScript
+- **UI**: Bits UI + Tailwind CSS 4 + Semantic Design Tokens
+- **Backend**: Convex (real-time database & serverless)
+- **Auth**: WorkOS AuthKit
+
+For implementation details, see `dev-docs/master-docs/architecture.md`.

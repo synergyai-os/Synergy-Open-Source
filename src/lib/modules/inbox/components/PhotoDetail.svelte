@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
 
 	type Props = {
@@ -19,20 +19,20 @@
 
 <div class="px-inbox-container py-inbox-container">
 	<!-- Header -->
-	<div class="mb-content-padding flex items-center gap-icon">
+	<div class="mb-content-padding flex items-center gap-2">
 		<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
 			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 			</svg>
 			<span class="text-small">Back</span>
 		</Button>
-		<h2 class="flex-1 text-h3 font-bold text-primary">Photo Note</h2>
+		<h2 class="text-h3 text-primary flex-1 font-bold">Photo Note</h2>
 	</div>
 
 	<!-- Image -->
 	<div class="mb-content-padding">
 		<div
-			class="flex aspect-video w-full items-center justify-center rounded-card border-2 border-dashed border-base bg-surface"
+			class="border-base rounded-card bg-surface flex aspect-video w-full items-center justify-center border-2 border-dashed"
 		>
 			<span class="text-tertiary">📷 Image: {item.imageFileId}</span>
 		</div>
@@ -41,32 +41,32 @@
 	<!-- Source -->
 	{#if item.source}
 		<div
-			class="mb-marketing-title-to-lead rounded-card border border-accent-primary bg-surface px-inbox-container py-inbox-container"
+			class="mb-marketing-title-to-lead px-inbox-container py-inbox-container rounded-card border-accent-primary bg-surface border"
 		>
-			<p class="text-small font-semibold text-primary">Source</p>
+			<p class="text-small text-primary font-semibold">Source</p>
 			<p class="text-small text-secondary">{item.source}</p>
 		</div>
 	{/if}
 
 	<!-- Transcribed Text (Editable) -->
 	<div class="mb-marketing-title-to-lead">
-		<p class="mb-marketing-text text-small font-medium text-secondary">Transcribed Text</p>
+		<p class="mb-marketing-text text-small text-secondary font-medium">Transcribed Text</p>
 		<textarea
 			bind:value={editedText}
-			class="w-full resize-none rounded-card border border-base bg-base px-input-x py-input-y font-mono text-small text-primary"
+			class="border-base text-small rounded-card bg-base px-input-x py-input-y font-code text-primary w-full resize-none border"
 			rows="8"
 		></textarea>
 		<p class="text-label text-tertiary">You can edit the transcribed text</p>
 	</div>
 
 	<!-- Actions -->
-	<div class="flex flex-col gap-form-section">
+	<div class="gap-form-section flex flex-col">
 		<Button variant="outline" onclick={handleSkip}>⏭️ Skip</Button>
 	</div>
 
 	<!-- Metadata -->
-	<div class="mt-content-padding border-t border-base pt-content-padding">
-		<div class="flex items-center justify-between text-label text-tertiary">
+	<div class="mt-content-padding border-base pt-content-padding border-t">
+		<div class="text-label text-tertiary flex items-center justify-between">
 			<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
 			<span>ID: {item._id}</span>
 		</div>

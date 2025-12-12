@@ -1,0 +1,1 @@
+// Migrated to lifecycle.ts

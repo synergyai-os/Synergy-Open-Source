@@ -1,0 +1,95 @@
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import * as ToggleGroup from './ToggleGroup.svelte';
+	import { toggleGroupRootRecipe, toggleGroupItemRecipe } from '$lib/design-system/recipes';
+
+	const { Story } = defineMeta({
+		component: ToggleGroup.Root,
+		title: 'Design System/Atoms/ToggleGroup',
+		tags: ['autodocs'],
+		argTypes: {
+			type: {
+				control: { type: 'select' },
+				options: ['single', 'multiple']
+			}
+		}
+	});
+</script>
+
+<Story name="Single" args={{ type: 'single', value: 'mon' }}>
+	{#snippet template(args)}
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="mon" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
+			<ToggleGroup.Item value="tue" class={toggleGroupItemRecipe()}>Tue</ToggleGroup.Item>
+			<ToggleGroup.Item value="wed" class={toggleGroupItemRecipe()}>Wed</ToggleGroup.Item>
+			<ToggleGroup.Item value="thu" class={toggleGroupItemRecipe()}>Thu</ToggleGroup.Item>
+			<ToggleGroup.Item value="fri" class={toggleGroupItemRecipe()}>Fri</ToggleGroup.Item>
+			<ToggleGroup.Item value="sat" class={toggleGroupItemRecipe()}>Sat</ToggleGroup.Item>
+			<ToggleGroup.Item value="sun" class={toggleGroupItemRecipe()}>Sun</ToggleGroup.Item>
+		</ToggleGroup.Root>
+	{/snippet}
+</Story>
+
+<Story name="Multiple" args={{ type: 'multiple', value: ['mon', 'wed', 'fri'] }}>
+	{#snippet template(args)}
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="mon" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
+			<ToggleGroup.Item value="tue" class={toggleGroupItemRecipe()}>Tue</ToggleGroup.Item>
+			<ToggleGroup.Item value="wed" class={toggleGroupItemRecipe()}>Wed</ToggleGroup.Item>
+			<ToggleGroup.Item value="thu" class={toggleGroupItemRecipe()}>Thu</ToggleGroup.Item>
+			<ToggleGroup.Item value="fri" class={toggleGroupItemRecipe()}>Fri</ToggleGroup.Item>
+			<ToggleGroup.Item value="sat" class={toggleGroupItemRecipe()}>Sat</ToggleGroup.Item>
+			<ToggleGroup.Item value="sun" class={toggleGroupItemRecipe()}>Sun</ToggleGroup.Item>
+		</ToggleGroup.Root>
+	{/snippet}
+</Story>
+
+<Story name="SizeOptions" args={{ type: 'single', value: 'sm' }}>
+	{#snippet template(args)}
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="sm" class={toggleGroupItemRecipe()}>SM</ToggleGroup.Item>
+			<ToggleGroup.Item value="md" class={toggleGroupItemRecipe()}>MD</ToggleGroup.Item>
+			<ToggleGroup.Item value="lg" class={toggleGroupItemRecipe()}>LG</ToggleGroup.Item>
+			<ToggleGroup.Item value="xl" class={toggleGroupItemRecipe()}>XL</ToggleGroup.Item>
+		</ToggleGroup.Root>
+	{/snippet}
+</Story>
+
+<Story name="ViewOptions" args={{ type: 'single', value: 'grid' }}>
+	{#snippet template(args)}
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="grid" class={toggleGroupItemRecipe()}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					class="h-4 w-4"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+					/>
+				</svg>
+			</ToggleGroup.Item>
+			<ToggleGroup.Item value="list" class={toggleGroupItemRecipe()}>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					class="h-4 w-4"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6h16M4 12h16M4 18h16"
+					/>
+				</svg>
+			</ToggleGroup.Item>
+		</ToggleGroup.Root>
+	{/snippet}
+</Story>

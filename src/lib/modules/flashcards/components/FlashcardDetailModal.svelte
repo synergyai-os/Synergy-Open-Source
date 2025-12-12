@@ -3,11 +3,13 @@
 	import { page } from '$app/stores';
 	import { Dialog } from 'bits-ui';
 	import { useConvexClient } from 'convex-svelte';
-	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 	import FlashcardMetadata from './FlashcardMetadata.svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -37,6 +39,9 @@
 	// TODO: Re-enable when needed
 	// const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
+
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const FlashcardComponent = coreAPI?.Flashcard;
 
 	// State
 	let currentIndex = $state(initialIndex);
@@ -180,11 +185,9 @@
 		isSaving = true;
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.updateFlashcard, {
+			await convexClient.mutation(api.features.flashcards.index.updateFlashcard, {
 				sessionId,
 				flashcardId: currentCard._id,
 				question: questionValue,
@@ -216,11 +219,9 @@
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.deleteFlashcard, {
+			await convexClient.mutation(api.features.flashcards.index.archiveFlashcard, {
 				sessionId,
 				flashcardId: currentCard._id
 			});
@@ -265,13 +266,13 @@
 >
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
-		<Dialog.Content class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base">
+		<Dialog.Content class="bg-base fixed inset-0 z-50 flex flex-col overflow-hidden">
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
+				class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-b"
 			>
 				<div class="min-w-0 flex-1">
-					<h2 class="text-h3 font-semibold text-primary">
+					<h2 class="text-h3 text-primary font-semibold">
 						{collectionName || 'Flashcards'}
 					</h2>
 					<p class="text-small text-secondary">{progressText}</p>
@@ -289,30 +290,30 @@
 			</div>
 
 			<!-- Content Area -->
-			<div class="flex min-h-0 flex-1 overflow-hidden bg-base">
+			<div class="bg-base flex min-h-0 flex-1 overflow-hidden">
 				<!-- Left: Card View -->
 				<div
-					class="flex flex-1 items-center justify-center overflow-auto bg-base px-inbox-container py-inbox-container"
+					class="px-inbox-container py-inbox-container bg-base flex flex-1 items-center justify-center overflow-auto"
 				>
 					{#if currentCard}
 						<div class="flashcard-modal-container relative transition-all duration-400">
 							{#if isEditing}
 								<!-- Edit Mode -->
 								<div
-									class="flex h-full w-full flex-col overflow-hidden rounded-card border-2 border-accent-primary bg-elevated shadow-card-hover"
+									class="shadow-card-hover rounded-card border-accent-primary bg-elevated flex h-full w-full flex-col overflow-hidden border-2"
 								>
 									<div
-										class="flex flex-1 flex-col overflow-auto px-inbox-container py-inbox-container"
+										class="px-inbox-container py-inbox-container flex flex-1 flex-col overflow-auto"
 									>
 										<div class="mb-form-section">
 											<label
 												for="flashcard-question"
-												class="block text-small font-medium text-secondary">Question</label
+												class="text-small text-secondary block font-medium">Question</label
 											>
 											<textarea
 												id="flashcard-question"
 												bind:value={questionValue}
-												class="w-full resize-none rounded-button border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary rounded-button bg-base text-primary w-full resize-none border focus:ring-2 focus:outline-none"
 												rows="4"
 												placeholder="Question..."
 											></textarea>
@@ -320,31 +321,31 @@
 										<div>
 											<label
 												for="flashcard-answer"
-												class="block text-small font-medium text-secondary">Answer</label
+												class="text-small text-secondary block font-medium">Answer</label
 											>
 											<textarea
 												id="flashcard-answer"
 												bind:value={answerValue}
-												class="w-full resize-none rounded-button border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary rounded-button bg-base text-primary w-full resize-none border focus:ring-2 focus:outline-none"
 												rows="6"
 												placeholder="Answer..."
 											></textarea>
 										</div>
 									</div>
 									<div
-										class="flex items-center justify-end gap-icon border-t border-base px-inbox-container py-system-header"
+										class="border-base px-inbox-container py-system-header flex items-center justify-end gap-2 border-t"
 									>
 										<Button.Root
 											onclick={handleCancel}
 											disabled={isSaving}
-											class="rounded-button border border-base bg-base px-nav-item py-nav-item text-small font-medium transition-colors hover:bg-hover-solid disabled:opacity-50"
+											class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-base border px-2 font-medium transition-colors disabled:opacity-50"
 										>
 											Cancel
 										</Button.Root>
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="rounded-button bg-accent-primary px-nav-item py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+											class="py-nav-item text-small rounded-button bg-accent-primary text-primary px-2 font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>
@@ -352,19 +353,23 @@
 								</div>
 							{:else}
 								<!-- View Mode -->
-								<FlashcardComponent
-									flashcard={{
-										question: currentCard.question,
-										answer: currentCard.answer
-									}}
-									{isFlipped}
-									onFlip={flipCard}
-									editable={false}
-								/>
+								{#if FlashcardComponent}
+									<FlashcardComponent
+										flashcard={{
+											question: currentCard.question,
+											answer: currentCard.answer
+										}}
+										{isFlipped}
+										onFlip={flipCard}
+										editable={false}
+									/>
+								{:else}
+									<p class="text-small text-secondary">Flashcard component unavailable</p>
+								{/if}
 							{/if}
 						</div>
 					{:else}
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<p class="text-secondary">No cards in this collection</p>
 						</div>
 					{/if}
@@ -373,7 +378,7 @@
 				<!-- Right: Metadata Sidebar -->
 				{#if currentCard}
 					<div
-						class="w-sidebar-detail flex-shrink-0 overflow-y-auto border-l border-base bg-surface px-inbox-container py-inbox-container"
+						class="w-sidebar-detail border-base px-inbox-container py-inbox-container bg-surface flex-shrink-0 overflow-y-auto border-l"
 					>
 						<FlashcardMetadata
 							flashcard={currentCard}
@@ -389,12 +394,12 @@
 			<!-- Footer: Navigation -->
 			{#if currentCard && !isEditing}
 				<div
-					class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-t border-base bg-surface px-inbox-container py-system-header"
+					class="h-system-header border-base px-inbox-container py-system-header bg-surface flex flex-shrink-0 items-center justify-between gap-2 border-t"
 				>
 					<Button.Root
 						onclick={previousCard}
 						disabled={currentIndex === 0}
-						class="flex items-center gap-icon rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-secondary disabled:text-tertiary disabled:hover:bg-elevated flex items-center gap-2 border px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -407,14 +412,14 @@
 						Previous
 					</Button.Root>
 
-					<div class="flex items-center gap-icon text-small text-secondary">
+					<div class="text-small text-secondary flex items-center gap-2">
 						<span class="text-label">Press ↑/↓ or Space to flip</span>
 					</div>
 
 					<Button.Root
 						onclick={nextCard}
 						disabled={currentIndex === flashcards.length - 1}
-						class="flex items-center gap-icon rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-secondary disabled:text-tertiary disabled:hover:bg-elevated flex items-center gap-2 border px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						Next
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

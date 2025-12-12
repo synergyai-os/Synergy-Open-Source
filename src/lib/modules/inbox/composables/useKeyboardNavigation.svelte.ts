@@ -10,7 +10,9 @@ import { browser } from '$app/environment';
 export type InboxItem = {
 	_id: string;
 	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
-	userId: string;
+	personId: string;
+	workspaceId?: string | null;
+	circleId?: string | null;
 	processed: boolean;
 	processedAt?: number;
 	createdAt: number;

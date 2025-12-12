@@ -49,7 +49,7 @@ export function useSelectedItem(
 
 		// Load item details
 		convexClient
-			.query(inboxApi.getInboxItemWithDetails, {
+			.query(inboxApi.findInboxItemWithDetails, {
 				sessionId,
 				inboxItemId: state.selectedItemId
 			})

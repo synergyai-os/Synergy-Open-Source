@@ -10,13 +10,14 @@
 
 import type { FeatureFlagKey } from '$lib/infrastructure/feature-flags';
 import { api } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 /**
  * Module metadata structure
  */
 export interface ModuleManifest {
 	/**
-	 * Unique module identifier (e.g., 'core', 'inbox', 'meetings')
+	 * Unique module identifier (e.g., 'shared-ui', 'inbox', 'meetings')
 	 */
 	name: string;
 
@@ -59,9 +60,9 @@ const moduleRegistry = new Map<string, ModuleManifest>();
  * @example
  * ```typescript
  * import { registerModule } from '$lib/modules/registry';
- * import { coreModule } from '$lib/modules/core/manifest';
+ * import { sharedUiModule } from '$lib/modules/core/manifest';
  *
- * registerModule(coreModule);
+ * registerModule(sharedUiModule);
  * ```
  */
 export function registerModule(manifest: ModuleManifest): void {
@@ -82,7 +83,7 @@ export function registerModule(manifest: ModuleManifest): void {
  *
  * @example
  * ```typescript
- * const coreModule = getModule('core');
+ * const sharedUiModule = getModule('shared-ui');
  * ```
  */
 export function getModule(name: string): ModuleManifest | undefined {
@@ -134,7 +135,7 @@ export async function checkFeatureFlag(
 
 	try {
 		// Use Convex feature flag query to check if flag is enabled
-		const result = await client.query(api.featureFlags.checkFlag, {
+		const result = await client.query(api.infrastructure.featureFlags.isFlagEnabled, {
 			flag,
 			sessionId
 		});
@@ -260,8 +261,8 @@ export async function isModuleEnabled(
  *
  * @example
  * ```typescript
- * const ordered = resolveDependencies(['meetings', 'inbox', 'core']);
- * // Returns: ['core', 'inbox', 'meetings']
+ * const ordered = resolveDependencies(['meetings', 'inbox', 'shared-ui']);
+ * // Returns: ['shared-ui', 'inbox', 'meetings']
  * ```
  */
 export function resolveDependencies(moduleNames: string[]): string[] {
@@ -273,22 +274,19 @@ export function resolveDependencies(moduleNames: string[]): string[] {
 			return; // Already resolved
 		}
 
-		if (resolving.has(name)) {
-			throw new Error(`Circular dependency detected involving module "${name}"`);
-		}
+		invariant(!resolving.has(name), `Circular dependency detected involving module "${name}"`);
 
 		const module = getModule(name);
-		if (!module) {
-			throw new Error(`Module "${name}" not found`);
-		}
+		invariant(module, `Module "${name}" not found`);
 
 		resolving.add(name);
 
 		// Resolve dependencies first
 		for (const dep of module.dependencies) {
-			if (!moduleNames.includes(dep)) {
-				throw new Error(`Module "${name}" depends on "${dep}" which is not in the list`);
-			}
+			invariant(
+				moduleNames.includes(dep),
+				`Module "${name}" depends on "${dep}" which is not in the list`
+			);
 			resolve(dep);
 		}
 

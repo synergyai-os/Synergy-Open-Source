@@ -27,21 +27,27 @@ export interface ConvexClient {
 
 // Inbox API functions interface
 export interface InboxApi {
-	getInboxItemWithDetails: FunctionReference<'query', 'public', { inboxItemId: string }>;
-	syncReadwiseHighlights: FunctionReference<
+	findInboxItemWithDetails: FunctionReference<
+		'query',
+		'public',
+		{ sessionId: string; inboxItemId: string }
+	>;
+	fetchReadwiseHighlights: FunctionReference<
 		'action',
 		'public',
 		{
+			sessionId: string;
+			workspaceId?: string;
 			dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
 			customStartDate?: string;
 			customEndDate?: string;
 			quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 		}
 	>;
-	getSyncProgress: FunctionReference<'query', 'public', { sessionId: string }>;
+	findSyncProgress: FunctionReference<'query', 'public', { sessionId: string }>;
 }
 
-// Sync progress type (return type from getSyncProgress)
+// Sync progress type (return type from findSyncProgress)
 export type SyncProgress = {
 	step: string;
 	current: number;
@@ -53,13 +59,16 @@ export type SyncProgress = {
 type BaseInboxItem = {
 	_id: string;
 	type: 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
-	userId: string;
+	personId: string;
+	workspaceId?: string | null;
+	circleId?: string | null;
+	ownershipType?: 'user' | 'workspace' | 'circle' | 'purchased';
 	processed: boolean;
 	processedAt?: number;
 	createdAt: number;
 };
 
-// Readwise highlight with details (return type from getInboxItemWithDetails for readwise_highlight)
+// Readwise highlight with details (return type from findInboxItemWithDetails for readwise_highlight)
 export type ReadwiseHighlightWithDetails = BaseInboxItem & {
 	type: 'readwise_highlight';
 	highlightId: string;
@@ -113,7 +122,8 @@ export type ReadwiseHighlightWithDetails = BaseInboxItem & {
 	}>;
 	tags: Array<{
 		_id: string;
-		userId: string;
+		personId: string;
+		workspaceId?: string;
 		name: string;
 		displayName: string;
 		color?: string;
@@ -151,14 +161,14 @@ export type NoteWithDetails = BaseInboxItem & {
 	updatedAt?: number;
 };
 
-// Union type for inbox item with details (return type from getInboxItemWithDetails)
+// Union type for inbox item with details (return type from findInboxItemWithDetails)
 export type InboxItemWithDetails =
 	| ReadwiseHighlightWithDetails
 	| PhotoNoteWithDetails
 	| ManualTextWithDetails
 	| NoteWithDetails;
 
-// Sync result type (return type from syncReadwiseHighlights action)
+// Sync result type (return type from fetchReadwiseHighlights action)
 export interface SyncReadwiseResult {
 	success: boolean;
 	sourcesCount: number;

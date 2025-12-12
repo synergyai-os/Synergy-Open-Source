@@ -3,7 +3,7 @@
  *
  * Tests:
  * - updateNotes mutation
- * - markProcessed mutation
+ * - markStatus mutation
  * - Permission checks
  * - Error cases
  */
@@ -17,13 +17,14 @@ import {
 	createTestSession,
 	createTestOrganization,
 	createTestOrganizationMember,
+	createTestMeetingTemplate,
 	cleanupTestData,
 	cleanupTestOrganization
 } from '$tests/convex/integration/setup';
 import type { Id } from '$convex/_generated/dataModel';
 
 describe('meetingAgendaItems: updateNotes', () => {
-	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'organizations'> }> = [];
+	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'workspaces'> }> = [];
 
 	afterEach(async () => {
 		const t = convexTest(schema, modules);
@@ -44,12 +45,15 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -57,14 +61,14 @@ describe('meetingAgendaItems: updateNotes', () => {
 		});
 
 		// Create agenda item
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
 		// Update notes
-		const result = await t.mutation(api.meetingAgendaItems.updateNotes, {
+		const result = await t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
 			notes: '## Meeting Notes\n\nDiscussed project timeline.'
@@ -86,19 +90,22 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -106,7 +113,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 
 		// Try with invalid session
 		await expect(
-			t.mutation(api.meetingAgendaItems.updateNotes, {
+			t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 				sessionId: 'invalid-session',
 				agendaItemId: agendaResult.itemId,
 				notes: 'Test notes'
@@ -114,7 +121,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 		).rejects.toThrow();
 	});
 
-	it('should fail for user not in organization', async () => {
+	it('should fail for user not in workspace', async () => {
 		const t = convexTest(schema, modules);
 
 		// Create first user and meeting
@@ -122,16 +129,19 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -144,17 +154,17 @@ describe('meetingAgendaItems: updateNotes', () => {
 
 		// Try to update notes as non-member
 		await expect(
-			t.mutation(api.meetingAgendaItems.updateNotes, {
+			t.mutation(api.modules.meetings.agendaItems.updateNotes, {
 				sessionId: otherSessionId,
 				agendaItemId: agendaResult.itemId,
 				notes: 'Test notes'
 			})
-		).rejects.toThrow('User is not a member of this organization');
+		).rejects.toThrow(/WORKSPACE_MEMBERSHIP_REQUIRED/);
 	});
 });
 
-describe('meetingAgendaItems: markProcessed', () => {
-	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'organizations'> }> = [];
+describe('meetingAgendaItems: markStatus', () => {
+	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'workspaces'> }> = [];
 
 	afterEach(async () => {
 		const t = convexTest(schema, modules);
@@ -175,29 +185,32 @@ describe('meetingAgendaItems: markProcessed', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
 		// Mark as processed
-		const result = await t.mutation(api.meetingAgendaItems.markProcessed, {
+		const result = await t.mutation(api.modules.meetings.agendaItems.markStatus, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
-			isProcessed: true
+			status: 'processed'
 		});
 
 		expect(result.success).toBe(true);
@@ -207,55 +220,51 @@ describe('meetingAgendaItems: markProcessed', () => {
 			return await ctx.db.get(agendaResult.itemId);
 		});
 
-		expect(updatedItem?.isProcessed).toBe(true);
+		expect(updatedItem?.status).toBe('processed');
 	});
 
-	it('should successfully mark agenda item as unprocessed', async () => {
+	it('should successfully mark agenda item as rejected', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId, userId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
 		});
 
-		// First mark as processed
-		await t.mutation(api.meetingAgendaItems.markProcessed, {
+		// Mark as rejected
+		const result = await t.mutation(api.modules.meetings.agendaItems.markStatus, {
 			sessionId,
 			agendaItemId: agendaResult.itemId,
-			isProcessed: true
-		});
-
-		// Then mark as unprocessed
-		const result = await t.mutation(api.meetingAgendaItems.markProcessed, {
-			sessionId,
-			agendaItemId: agendaResult.itemId,
-			isProcessed: false
+			status: 'rejected'
 		});
 
 		expect(result.success).toBe(true);
 
-		// Verify processed state
+		// Verify rejected state
 		const updatedItem = await t.run(async (ctx) => {
 			return await ctx.db.get(agendaResult.itemId);
 		});
 
-		expect(updatedItem?.isProcessed).toBe(false);
+		expect(updatedItem?.status).toBe('rejected');
 	});
 
 	it('should fail without valid session', async () => {
@@ -264,19 +273,22 @@ describe('meetingAgendaItems: markProcessed', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -284,15 +296,15 @@ describe('meetingAgendaItems: markProcessed', () => {
 
 		// Try with invalid session
 		await expect(
-			t.mutation(api.meetingAgendaItems.markProcessed, {
+			t.mutation(api.modules.meetings.agendaItems.markStatus, {
 				sessionId: 'invalid-session',
 				agendaItemId: agendaResult.itemId,
-				isProcessed: true
+				status: 'processed'
 			})
 		).rejects.toThrow();
 	});
 
-	it('should fail for user not in organization', async () => {
+	it('should fail for user not in workspace', async () => {
 		const t = convexTest(schema, modules);
 
 		// Create first user and meeting
@@ -300,16 +312,19 @@ describe('meetingAgendaItems: markProcessed', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
+		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
 			visibility: 'public'
 		});
 
-		const agendaResult = await t.mutation(api.meetings.createAgendaItem, {
+		const agendaResult = await t.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			sessionId,
 			meetingId: meetingResult.meetingId,
 			title: 'Test Agenda Item'
@@ -322,11 +337,11 @@ describe('meetingAgendaItems: markProcessed', () => {
 
 		// Try to mark processed as non-member
 		await expect(
-			t.mutation(api.meetingAgendaItems.markProcessed, {
+			t.mutation(api.modules.meetings.agendaItems.markStatus, {
 				sessionId: otherSessionId,
 				agendaItemId: agendaResult.itemId,
-				isProcessed: true
+				status: 'processed'
 			})
-		).rejects.toThrow('User is not a member of this organization');
+		).rejects.toThrow(/WORKSPACE_MEMBERSHIP_REQUIRED/);
 	});
 });

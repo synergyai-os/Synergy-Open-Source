@@ -31,7 +31,7 @@
 		error = null;
 
 		try {
-			await client.mutation(api.waitlist.joinWaitlist, {
+			await client.mutation(api.features.waitlist.index.joinWaitlist, {
 				email: email.trim(),
 				name: name.trim() || undefined
 			});

@@ -53,16 +53,19 @@
 	}
 
 	function goHome() {
-		goto(resolveRoute('/inbox'));
+		goto(resolveRoute('/auth/redirect'));
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center px-4 py-12">
-	<div class="w-full max-w-md space-y-6 text-center">
+<div
+	class="px-page flex min-h-screen items-center justify-center"
+	style="padding-block: var(--spacing-12);"
+>
+	<div class="space-y-error-page w-full max-w-md text-center">
 		<!-- Icon -->
-		<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
+		<div class="size-avatar-sm bg-error-bg rounded-avatar mx-auto flex items-center justify-center">
 			<svg
-				class="h-8 w-8 text-red-600"
+				class="icon-lg text-error-text"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke-width="1.5"
@@ -78,17 +81,17 @@
 
 		<!-- Title -->
 		<div>
-			<h1 class="text-2xl font-semibold text-primary">Admin Access Required</h1>
-			<p class="mt-2 text-sm text-secondary">
+			<h1 class="text-h2 text-primary font-semibold">Admin Access Required</h1>
+			<p class="text-small mt-form-field-gap text-secondary">
 				You need system administrator privileges to access this page.
 			</p>
 		</div>
 
 		<!-- Error Details (if available) -->
 		{#if error}
-			<div class="rounded-lg border border-base bg-elevated p-4 text-left">
-				<p class="text-xs font-medium text-tertiary">Error Details</p>
-				<p class="mt-1 text-sm text-secondary">
+			<div class="p-card border-base rounded-card bg-elevated border text-left">
+				<p class="text-label text-tertiary font-medium">Error Details</p>
+				<p class="text-small mt-section-y text-secondary">
 					{error instanceof Error
 						? error.message
 						: typeof error === 'string'
@@ -100,22 +103,22 @@
 
 		<!-- Account Switching -->
 		{#if isLoadingAccounts}
-			<div class="rounded-lg border border-base bg-elevated p-3">
-				<p class="text-sm text-secondary">Loading accounts...</p>
+			<div class="border-base p-card-compact rounded-card bg-elevated border">
+				<p class="text-small text-secondary">Loading accounts...</p>
 			</div>
 		{:else if linkedAccounts.length > 0}
-			<div class="space-y-3">
-				<p class="text-sm font-medium text-primary">Switch to an account with admin access:</p>
-				<div class="space-y-2">
+			<div class="space-y-form-section">
+				<p class="text-small text-primary font-medium">Switch to an account with admin access:</p>
+				<div class="space-y-form-field-gap">
 					{#each linkedAccounts as account (account.userId)}
 						<button
 							type="button"
 							onclick={() => switchAccount(account.userId)}
 							disabled={isSwitching}
-							class="hover:bg-elevated-hover w-full rounded-lg border border-base bg-elevated p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							class="hover:bg-elevated-hover border-base p-card-compact rounded-card bg-elevated w-full border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<p class="text-sm font-medium text-primary">{account.name || account.email}</p>
-							<p class="mt-0.5 text-xs text-secondary">{account.email}</p>
+							<p class="text-small text-primary font-medium">{account.name || account.email}</p>
+							<p class="mt-badge-y text-label text-secondary">{account.email}</p>
 						</button>
 					{/each}
 				</div>
@@ -123,10 +126,10 @@
 		{/if}
 
 		<!-- Actions -->
-		<div class="flex flex-col gap-3 pt-4">
+		<div class="gap-form-section pt-content-section flex flex-col">
 			<Button variant="primary" onclick={goHome} class="w-full">Go Back to SynergyOS</Button>
 			{#if linkedAccounts.length === 0}
-				<p class="text-xs text-tertiary">
+				<p class="text-label text-tertiary">
 					Don't have admin access? Contact your system administrator or switch to an account that
 					has admin privileges.
 				</p>

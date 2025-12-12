@@ -1,4 +1,14 @@
 <script lang="ts">
+	/**
+	 * DESIGN SYSTEM EXCEPTION: Navigation item spacing (SYOS-585)
+	 *
+	 * Navigation items use non-standard vertical padding (6px) that doesn't fit the base scale:
+	 * - spacing.nav.item.y = 0.375rem (6px) - optimal for compact navigation design
+	 *
+	 * This value is hardcoded as py-[0.375rem] because it doesn't reference base tokens.
+	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
+	 */
+
 	import { goto } from '$app/navigation';
 	import { browser, dev } from '$app/environment';
 	import { tweened } from 'svelte/motion';
@@ -9,10 +19,12 @@
 	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
+	import { NavItem, ThemeToggle } from '$lib/components/molecules';
+	import { sidebarRecipe } from '$lib/design-system/recipes';
 	import type {
-		OrganizationsModuleAPI,
-		OrganizationSummary
-	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+		WorkspacesModuleAPI,
+		WorkspaceSummary
+	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -27,7 +39,6 @@
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 		user?: { email: string; firstName?: string; lastName?: string } | null;
-		circlesEnabled?: boolean;
 		meetingsEnabled?: boolean;
 		dashboardEnabled?: boolean;
 	};
@@ -37,31 +48,50 @@
 		isMobile,
 		sidebarCollapsed,
 		onToggleCollapse,
-		sidebarWidth = 256,
+		sidebarWidth: sidebarWidthProp,
 		onSidebarWidthChange,
 		createMenuOpen: _createMenuOpen = false,
 		onCreateMenuChange: _onCreateMenuChange,
 		onQuickCreate: _onQuickCreate,
 		user = null,
-		circlesEnabled = false,
 		meetingsEnabled = false,
 		dashboardEnabled = false
 	}: Props = $props();
+
+	// Initialize sidebarWidth from prop or token
+	// Technical constant (not design value): rem-to-px conversion factor
+	const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
+	let sidebarWidth = $state(sidebarWidthProp ?? 0); // Will be set from token if prop not provided
+	$effect(() => {
+		if (sidebarWidthProp !== undefined) {
+			sidebarWidth = sidebarWidthProp;
+			return;
+		}
+		// Fallback: read from token if prop not provided (shouldn't happen in practice)
+		if (!browser) return;
+		const tokenValue = getComputedStyle(document.documentElement)
+			.getPropertyValue('--size-sidebar-default')
+			.trim();
+		if (tokenValue) {
+			const remValue = parseFloat(tokenValue);
+			sidebarWidth = remValue * REM_TO_PX_FACTOR;
+		}
+	});
 
 	// Get user info from props (passed from layout)
 	const accountEmail = user?.email ?? 'user@example.com';
 	const accountName = user?.firstName
 		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
 		: accountEmail;
-	// PROOF OF CONCEPT: Using OrganizationsModuleAPI interface instead of UseOrganizations type
+	// PROOF OF CONCEPT: Using WorkspacesModuleAPI interface instead of UseOrganizations type
 	// This demonstrates loose coupling - component depends on interface, not internal implementation
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const authSession = useAuthSession();
 
-	// Get active organization ID for org-scoped links
-	const activeOrgId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	// Get active workspace slug for path-based routing
+	const activeWorkspaceSlug = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspace?.slug ?? null;
 	});
 
 	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
@@ -73,12 +103,12 @@
 		return accounts;
 	});
 
-	// Store organizations for each linked account (loaded from localStorage cache)
+	// Store workspaces for each linked account (loaded from localStorage cache)
 	// Organizations are cached in localStorage when accounts are active
 	const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
-	const linkedAccountOrgsMap = $state<Record<string, OrganizationSummary[]>>({});
+	const linkedAccountOrgsMap = $state<Record<string, WorkspaceSummary[]>>({});
 
-	// Load cached organizations for linked accounts from localStorage
+	// Load cached workspaces for linked accounts from localStorage
 	// CRITICAL: This effect must run reactively when linkedAccounts() changes
 	// Also checks cache periodically to catch async updates from useAuthSession
 	$effect(() => {
@@ -97,7 +127,7 @@
 
 					if (cached) {
 						try {
-							const orgs = JSON.parse(cached) as OrganizationSummary[];
+							const orgs = JSON.parse(cached) as WorkspaceSummary[];
 							if (Array.isArray(orgs)) {
 								// Only update if different to avoid unnecessary reactivity triggers
 								const currentOrgs = linkedAccountOrgsMap[account.userId];
@@ -117,7 +147,7 @@
 					}
 				}
 			} catch (error) {
-				console.error('Error loading cached organizations for linked accounts:', error);
+				console.error('Error loading cached workspaces for linked accounts:', error);
 			}
 		};
 
@@ -125,7 +155,7 @@
 		loadCacheForAccounts();
 
 		// Also check cache after a short delay to catch async updates from useAuthSession
-		// This ensures we pick up organizations cached by /auth/linked-sessions endpoint
+		// This ensures we pick up workspaces cached by /auth/linked-sessions endpoint
 		const timeoutId = setTimeout(() => {
 			loadCacheForAccounts();
 		}, 500);
@@ -145,25 +175,25 @@
 		};
 	});
 
-	// Cache current user's organizations when they change (so they're available when switching accounts)
+	// Cache current user's workspaces when they change (so they're available when switching accounts)
 	$effect(() => {
-		if (!browser || !organizations) return;
+		if (!browser || !workspaces) return;
 
 		try {
 			const currentUserId = authSession.user?.userId;
 			if (!currentUserId) return;
 
-			const orgs = organizations.organizations ?? [];
+			const orgs = workspaces.workspaces ?? [];
 			if (orgs.length > 0) {
 				const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${currentUserId}`;
 				localStorage.setItem(cacheKey, JSON.stringify(orgs));
 			}
 		} catch (error) {
-			console.error('Error caching organizations:', error);
+			console.error('Error caching workspaces:', error);
 		}
 	});
 
-	// Map linked accounts with their organizations
+	// Map linked accounts with their workspaces
 	// CRITICAL: Access linkedAccountOrgsMap reactively to ensure updates trigger re-render
 	const linkedAccountOrganizations = $derived(() => {
 		// Access the map to ensure reactivity tracking
@@ -175,20 +205,8 @@
 			name: account.name ?? null,
 			firstName: account.firstName ?? null,
 			lastName: account.lastName ?? null,
-			organizations: map[account.userId] ?? []
+			workspaces: map[account.userId] ?? []
 		}));
-
-		console.log('🔍 [Sidebar] Linked account organizations mapped:', {
-			accountsLength: accounts.length,
-			mappedLength: mapped.length,
-			mapKeys: Object.keys(map),
-			mapped: mapped.map((a) => ({
-				userId: a.userId,
-				email: a.email,
-				orgCount: a.organizations.length,
-				cachedOrgs: map[a.userId]?.length ?? 0
-			}))
-		});
 
 		return mapped;
 	});
@@ -300,14 +318,17 @@
 	}
 
 	// Smooth animated width using tweened - start at 0 for smooth opening
-	const animatedWidth = tweened(sidebarCollapsed ? 0 : sidebarWidth, {
+	// Initialize with 0, then update reactively via $effect to avoid closure warning
+	const animatedWidth = tweened(0, {
 		duration: 250, // Gentle but responsive animation
 		easing: cubicOut
 	});
 
-	// Update animated width when sidebarWidth changes (but only when not collapsing)
+	// Update animated width when sidebarWidth or sidebarCollapsed changes
 	$effect(() => {
-		if (!sidebarCollapsed && !isMobile) {
+		if (sidebarCollapsed || isMobile) {
+			animatedWidth.set(0, { duration: 250, easing: cubicOut });
+		} else {
 			animatedWidth.set(sidebarWidth, { duration: 250, easing: cubicOut });
 		}
 	});
@@ -341,6 +362,14 @@
 		return $animatedWidth;
 	});
 
+	// Computed z-index for sidebar when fixed (mobile or hovered collapsed)
+	const sidebarZIndex = $derived(() => {
+		if ((sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)) {
+			return 'var(--zIndex-modal)';
+		}
+		return '';
+	});
+
 	// Track if we're in the middle of a collapse animation
 	let isCollapsing = $state(false);
 
@@ -367,8 +396,8 @@
 <!-- Keep width stable at 8px to prevent flickering from width changes -->
 {#if !isMobile && sidebarCollapsed}
 	<div
-		class="pointer-events-auto fixed top-0 bottom-0 left-0 hover:bg-transparent"
-		style="width: 8px; z-index: 50;"
+		class="w-sidebar-hover-zone pointer-events-auto fixed top-0 bottom-0 left-0 hover:bg-transparent"
+		style="z-index: var(--zIndex-dropdown);"
 		onmouseenter={() => {
 			// Clear any pending hide timeout
 			if (hoverZoneTimeoutId) {
@@ -392,7 +421,8 @@
 <!-- Mobile Backdrop Overlay (shown when sidebar is open on mobile) -->
 {#if isMobile && !sidebarCollapsed}
 	<div
-		class="fixed inset-0 z-40 bg-black/50 transition-opacity"
+		class="fixed inset-0 bg-black/50 transition-opacity"
+		style="z-index: var(--zIndex-overlay);"
 		onclick={() => onToggleCollapse()}
 		onkeydown={(e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -410,7 +440,7 @@
 {#if useResizable && onSidebarWidthChange}
 	<ResizableSplitter
 		initialWidth={sidebarWidth}
-		minWidth={192}
+		minWidth={208}
 		maxWidth={384}
 		onWidthChange={(w) => onSidebarWidthChange?.(w)}
 		showHandle={sidebarCollapsed ? isHoveringRightEdge : true}
@@ -429,8 +459,8 @@
 		}}
 	>
 		<aside
-			class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
-			style="pointer-events: auto; z-index: 50;"
+			class="pointer-events-auto {sidebarRecipe()}"
+			style="background-color: var(--color-component-sidebar-bg); border-color: var(--color-component-sidebar-border); z-index: var(--zIndex-sticky);"
 			onmouseenter={() => {
 				// Clear any pending hide timeout
 				if (hoverZoneTimeoutId) {
@@ -474,29 +504,39 @@
 				{isMobile}
 				{isHovered}
 				onSettings={() => {
-					goto(resolveRoute('/settings'));
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						goto(resolveRoute(`/w/${slug}/settings`));
+					} else {
+						goto(resolveRoute('/settings'));
+					}
 				}}
 				onInviteMembers={() => {
-					goto(resolveRoute('/settings'));
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						goto(resolveRoute(`/w/${slug}/settings`));
+					} else {
+						goto(resolveRoute('/settings'));
+					}
 				}}
 				onSwitchWorkspace={() => {
 					// Switch workspace functionality
 				}}
 				onCreateWorkspace={() => {
-					organizations?.openModal('createOrganization');
+					workspaces?.openModal('createWorkspace');
 				}}
 				onCreateWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open create modal
-					await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+					await authSession.switchAccount(targetUserId, '/auth/redirect?create=workspace');
 				}}
 				onJoinWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open join modal
-					await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+					await authSession.switchAccount(targetUserId, '/auth/redirect?join=workspace');
 				}}
 				onAddAccount={() => {
 					const currentPath = browser
 						? `${window.location.pathname}${window.location.search}`
-						: '/inbox';
+						: '/auth/redirect';
 					const params = new URLSearchParams({
 						linkAccount: '1',
 						redirect: currentPath
@@ -504,7 +544,7 @@
 					const loginPath = resolveRoute('/login');
 					goto(`${loginPath}?${params.toString()}`);
 				}}
-				onSwitchAccount={async (targetUserId, redirectTo) => {
+				onSwitchAccount={async (targetUserId, _redirectTo) => {
 					// Find the account being switched to
 					const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 					const targetName =
@@ -515,8 +555,8 @@
 					accountSwitchOverlay.targetName = targetName;
 
 					try {
-						// Then perform the switch (which will set sessionStorage and redirect)
-						await authSession.switchAccount(targetUserId, redirectTo);
+						// Don't pass redirectTo - server will resolve workspace inbox
+						await authSession.switchAccount(targetUserId);
 					} catch (error) {
 						// Reset overlay if switch fails
 						accountSwitchOverlay.show = false;
@@ -536,250 +576,87 @@
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned || (hoverState && !isMobile)}
 				<nav
-					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
+					class="flex-1 overflow-y-auto"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
-					<!-- My Mind -->
-					<a
-						href={resolveRoute('/my-mind')}
-						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="My Mind"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-							/>
-						</svg>
-						<span class="min-w-0 flex-1 font-normal">My Mind</span>
-					</a>
-
+					<!-- Top section (no label) -->
 					<!-- Inbox -->
-					<a
-						href={resolveRoute('/inbox')}
-						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Inbox"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-							/>
-						</svg>
-						<span class="min-w-0 flex-1 font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					</a>
-
-					<!-- Flashcards -->
-					<a
-						href={resolveRoute('/flashcards')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Flashcards"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<span class="font-normal">Flashcards</span>
-					</a>
-
-					<!-- Study -->
-					<a
-						href={resolveRoute('/study')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Study Session"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-							/>
-						</svg>
-						<span class="font-normal">Study</span>
-					</a>
-
-					<!-- Tags -->
-					<a
-						href={resolveRoute('/tags')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Tags"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-							/>
-						</svg>
-						<span class="font-normal">Tags</span>
-					</a>
-
-					<!-- Circles (Beta - Feature Flag) -->
-					{#if circlesEnabled}
-						<a
-							href={resolveRoute(
-								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
-							)}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							title="Circles"
-						>
-							<!-- Icon: Organization/Circles -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-								/>
-							</svg>
-							<span class="font-normal">Circles</span>
-						</a>
-					{/if}
-
-					<!-- Members -->
-					<a
+					<NavItem
 						href={resolveRoute(
-							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/auth/redirect'
 						)}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Members"
-					>
-						<!-- Icon: Users -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+						iconType="inbox"
+						label="Inbox"
+						badge={inboxCount > 0 ? inboxCount : undefined}
+						title="Inbox"
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
+
+					<!-- Org Chart -->
+					<NavItem
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
+						)}
+						iconType="orgChart"
+						label="Org Chart"
+						title="Organization Chart"
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
+
+					<!-- Workspace Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
+									Workspace
+								</p>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Meetings (Beta - Feature Flag) -->
+							{#if meetingsEnabled}
+								<NavItem
+									href={resolveRoute(
+										activeWorkspaceSlug()
+											? `/w/${activeWorkspaceSlug()}/meetings`
+											: '/auth/redirect'
+									)}
+									iconType="calendar"
+									label="Meetings"
+									title="Meetings"
+									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+								/>
+							{/if}
+
+							<!-- Proposals -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/auth/redirect'
+								)}
+								iconType="document"
+								label="Proposals"
+								title="My Proposals"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 							/>
-						</svg>
-						<span class="font-normal">Members</span>
-					</a>
-
-					<!-- Dashboard (Beta - Feature Flag) -->
-					{#if dashboardEnabled}
-						<a
-							href={resolveRoute('/dashboard')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							title="Dashboard"
-						>
-							<!-- Icon: Clipboard List -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-								/>
-							</svg>
-							<span class="font-normal">Dashboard</span>
-						</a>
-					{/if}
-
-					<!-- Meetings (Beta - Feature Flag) -->
-					{#if meetingsEnabled}
-						<a
-							href={resolveRoute('/meetings')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							title="Meetings"
-						>
-							<!-- Icon: Calendar -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-								/>
-							</svg>
-							<span class="font-normal">Meetings</span>
-						</a>
-					{/if}
+						</div>
+					</section>
 
 					<!-- Favorites Section -->
-					<section class="mt-content-section">
+					<section style="margin-top: var(--spacing-content-sectionGap);">
 						{#if !sidebarCollapsed || isMobile}
-							<div class="flex items-center justify-between px-section py-section">
-								<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
 									Favorites
 								</p>
-								<div class="flex items-center gap-icon-wide">
+								<div class="gap-header flex items-center">
 									<!-- Placeholder for future action buttons -->
 								</div>
 							</div>
@@ -790,89 +667,172 @@
 						</div>
 
 						{#if !sidebarCollapsed || isMobile}
-							<p class="px-section py-section text-label text-sidebar-tertiary">
+							<p
+								class="text-label text-tertiary"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
 								No favorites yet.
 							</p>
 						{/if}
 					</section>
+
+					<!-- Your circles Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
+									Your circles
+								</p>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Empty state - content will be added later -->
+						</div>
+					</section>
+
+					<!-- Legacy Section -->
+					<section style="margin-top: var(--spacing-content-sectionGap);">
+						{#if !sidebarCollapsed || isMobile}
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">Legacy</p>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Circles -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
+								)}
+								iconType="circles"
+								label="Circles"
+								title="Circles"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Flashcards -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug()
+										? `/w/${activeWorkspaceSlug()}/flashcards`
+										: '/auth/redirect'
+								)}
+								iconType="flashcards"
+								label="Flashcards"
+								title="Flashcards"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Study -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/auth/redirect'
+								)}
+								iconType="study"
+								label="Study"
+								title="Study Session"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Tags -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/auth/redirect'
+								)}
+								iconType="tags"
+								label="Tags"
+								title="Tags"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Members -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/auth/redirect'
+								)}
+								iconType="members"
+								label="Members"
+								title="Members"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+
+							<!-- Dashboard (Beta - Feature Flag) -->
+							{#if dashboardEnabled}
+								<NavItem
+									href={resolveRoute(
+										activeWorkspaceSlug()
+											? `/w/${activeWorkspaceSlug()}/dashboard`
+											: '/auth/redirect'
+									)}
+									iconType="dashboard"
+									label="Dashboard"
+									title="Dashboard"
+									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+								/>
+							{/if}
+						</div>
+					</section>
+
+					<!-- Theme Toggle -->
+					<div
+						class="flex items-center"
+						style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2); margin-top: var(--spacing-content-sectionGap);"
+					>
+						<ThemeToggle />
+					</div>
 				</nav>
 			{/if}
 
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div
-					class="border-t border-sidebar px-nav-container py-nav-container"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
-					<div class="px-section py-section">
+					<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 						<p
-							class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+							class="mb-form-field-gap text-label text-tertiary font-medium tracking-wider uppercase"
 						>
 							🧪 Development
 						</p>
 						<div class="space-y-form-field-gap">
-							<a
+							<NavItem
 								href={resolveRoute('/test/claude')}
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-									/>
-								</svg>
-								<span class="font-normal">Claude Test</span>
-							</a>
-							<a
+								iconType="lightbulb"
+								label="Claude Test"
+								title="Claude Test"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
 								href={resolveRoute('/test/readwise')}
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Readwise Test</span>
-							</a>
-							<a
+								iconType="study"
+								label="Readwise Test"
+								title="Readwise Test"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
 								href={resolveRoute('/dev-docs')}
+								iconType="study"
+								label="Dev Docs"
+								title="Dev Docs"
 								target="_blank"
 								rel="noopener noreferrer"
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Dev Docs</span>
-							</a>
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
+								href={resolveRoute('/admin')}
+								iconType="settings"
+								label="Admin"
+								title="Admin"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
 							<CleanReadwiseButton />
 						</div>
 					</div>
@@ -882,10 +842,11 @@
 	</ResizableSplitter>
 {:else}
 	<aside
-		class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
+		class={sidebarRecipe()}
 		class:fixed={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
-		class:z-50={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
-		style="width: {displayWidth()}px; transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);"
+		style="width: {displayWidth()}px; transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--color-component-sidebar-bg); border-color: var(--color-component-sidebar-border); {sidebarZIndex()
+			? `z-index: ${sidebarZIndex()};`
+			: ''}"
 		class:hidden={isMobile && sidebarCollapsed}
 		onmouseenter={() => {
 			// Clear any pending hide timeout
@@ -925,32 +886,42 @@
 			{isHovered}
 			onSettings={() => {
 				if (typeof window !== 'undefined') {
-					window.location.href = resolveRoute('/settings');
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						window.location.href = resolveRoute(`/w/${slug}/settings`);
+					} else {
+						window.location.href = resolveRoute('/settings');
+					}
 				}
 			}}
 			onInviteMembers={() => {
 				if (typeof window !== 'undefined') {
-					window.location.href = resolveRoute('/settings');
+					const slug = activeWorkspaceSlug();
+					if (slug) {
+						window.location.href = resolveRoute(`/w/${slug}/settings`);
+					} else {
+						window.location.href = resolveRoute('/settings');
+					}
 				}
 			}}
 			onSwitchWorkspace={() => {
 				console.log('Switch workspace menu selected');
 			}}
 			onCreateWorkspace={() => {
-				organizations?.openModal('createOrganization');
+				workspaces?.openModal('createWorkspace');
 			}}
 			onCreateWorkspaceForAccount={async (targetUserId) => {
 				// Switch to the target account and redirect to open create modal
-				await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+				await authSession.switchAccount(targetUserId, '/inbox?create=workspace');
 			}}
 			onJoinWorkspaceForAccount={async (targetUserId) => {
 				// Switch to the target account and redirect to open join modal
-				await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+				await authSession.switchAccount(targetUserId, '/inbox?join=workspace');
 			}}
 			onAddAccount={() => {
 				const currentPath = browser
 					? `${window.location.pathname}${window.location.search}`
-					: '/inbox';
+					: '/auth/redirect';
 				const params = new URLSearchParams({
 					linkAccount: '1',
 					redirect: currentPath
@@ -958,7 +929,7 @@
 				const loginPath = resolveRoute('/login');
 				goto(`${loginPath}?${params.toString()}`);
 			}}
-			onSwitchAccount={async (targetUserId, redirectTo) => {
+			onSwitchAccount={async (targetUserId, _redirectTo) => {
 				// Find the account being switched to
 				const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 				const targetName =
@@ -969,8 +940,9 @@
 				accountSwitchOverlay.targetName = targetName;
 
 				try {
-					// Then perform the switch (which will set sessionStorage and redirect)
-					await authSession.switchAccount(targetUserId, redirectTo);
+					// Don't pass redirectTo - let server redirect to /inbox, then client will redirect to workspace
+					// This ensures we get the first workspace's inbox after account switch
+					await authSession.switchAccount(targetUserId);
 				} catch (error) {
 					// Reset overlay if switch fails
 					accountSwitchOverlay.show = false;
@@ -989,169 +961,81 @@
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-			<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
-				<!-- My Mind -->
-				<a
-					href={resolveRoute('/my-mind')}
-					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'My Mind' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">My Mind</span>
-					{/if}
-				</a>
-
+			<nav
+				class="flex-1 overflow-y-auto"
+				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+			>
+				<!-- Top section (no label) -->
 				<!-- Inbox -->
-				<a
-					href={resolveRoute('/inbox')}
-					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Inbox' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-						/>
-					</svg>
-					{#if !isMobile}
-						<span class="min-w-0 flex-1 font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{:else if isMobile && sidebarCollapsed}
-						{#if inboxCount > 0}
-							<span
-								class="absolute top-0 right-0 rounded bg-sidebar-badge px-badge py-badge text-label leading-none font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{:else}
-						<span class="font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{/if}
-				</a>
+				<NavItem
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/auth/redirect'
+					)}
+					iconType="inbox"
+					label="Inbox"
+					badge={inboxCount > 0 ? inboxCount : undefined}
+					title="Inbox"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
 
-				<!-- Flashcards -->
-				<a
-					href={resolveRoute('/flashcards')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Flashcards' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Flashcards</span>
-					{/if}
-				</a>
+				<!-- Org Chart -->
+				<NavItem
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
+					)}
+					iconType="orgChart"
+					label="Org Chart"
+					title="Organization Chart"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
 
-				<!-- Study -->
-				<a
-					href={resolveRoute('/study')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Study' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Study</span>
+				<!-- Workspace Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Workspace</p>
+						</div>
 					{/if}
-				</a>
 
-				<!-- Tags -->
-				<a
-					href={resolveRoute('/tags')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Tags' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+					<div class="space-y-form-field-gap">
+						<!-- Meetings (Beta - Feature Flag) -->
+						{#if meetingsEnabled}
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/auth/redirect'
+								)}
+								iconType="calendar"
+								label="Meetings"
+								title="Meetings"
+								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+							/>
+						{/if}
+
+						<!-- Proposals -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/proposals` : '/auth/redirect'
+							)}
+							iconType="document"
+							label="Proposals"
+							title="My Proposals"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Tags</span>
-					{/if}
-				</a>
+					</div>
+				</section>
 
 				<!-- Favorites Section -->
-				<section class="mt-content-section">
+				<section style="margin-top: var(--spacing-content-sectionGap);">
 					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-						<div class="flex items-center justify-between px-section py-section">
-							<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-								Favorites
-							</p>
-							<div class="flex items-center gap-form-field-gap">
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Favorites</p>
+							<div class="gap-header flex items-center">
 								<!-- Placeholder for future action buttons -->
 							</div>
 						</div>
@@ -1162,87 +1046,168 @@
 					</div>
 
 					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-						<p class="px-section py-section text-label text-sidebar-tertiary">No favorites yet.</p>
+						<p
+							class="text-label text-tertiary"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							No favorites yet.
+						</p>
 					{/if}
 				</section>
+
+				<!-- Your circles Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">
+								Your circles
+							</p>
+						</div>
+					{/if}
+
+					<div class="space-y-form-field-gap">
+						<!-- Empty state - content will be added later -->
+					</div>
+				</section>
+
+				<!-- Legacy Section -->
+				<section style="margin-top: var(--spacing-content-sectionGap);">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Legacy</p>
+						</div>
+					{/if}
+
+					<div class="space-y-form-field-gap">
+						<!-- Circles -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
+							)}
+							iconType="circles"
+							label="Circles"
+							title="Circles"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Flashcards -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/auth/redirect'
+							)}
+							iconType="flashcards"
+							label="Flashcards"
+							title="Flashcards"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Study -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/auth/redirect'
+							)}
+							iconType="study"
+							label="Study"
+							title="Study Session"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Tags -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/auth/redirect'
+							)}
+							iconType="tags"
+							label="Tags"
+							title="Tags"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Members -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/auth/redirect'
+							)}
+							iconType="members"
+							label="Members"
+							title="Members"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+
+						<!-- Dashboard (Beta - Feature Flag) -->
+						{#if dashboardEnabled}
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/auth/redirect'
+								)}
+								iconType="dashboard"
+								label="Dashboard"
+								title="Dashboard"
+								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+							/>
+						{/if}
+					</div>
+				</section>
+
+				<!-- Theme Toggle -->
+				<div
+					class="flex items-center"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2); margin-top: var(--spacing-content-sectionGap);"
+				>
+					<ThemeToggle />
+				</div>
 			</nav>
 		{/if}
 
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div
-				class="border-t border-sidebar px-nav-container py-nav-container"
+				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 				transition:fade={{ duration: 200 }}
 			>
-				<div class="px-section py-section">
+				<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 					<p
-						class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+						class="mb-form-field-gap text-label text-tertiary font-medium tracking-wider uppercase"
 					>
 						🧪 Development
 					</p>
 					<div class="space-y-form-field-gap">
-						<a
+						<NavItem
 							href={resolveRoute('/test/claude')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-								/>
-							</svg>
-							<span class="font-normal">Claude Test</span>
-						</a>
-						<a
+							iconType="lightbulb"
+							label="Claude Test"
+							title="Claude Test"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
 							href={resolveRoute('/test/readwise')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-								/>
-							</svg>
-							<span class="font-normal">Readwise Test</span>
-						</a>
-						<a
+							iconType="study"
+							label="Readwise Test"
+							title="Readwise Test"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
 							href={resolveRoute('/dev-docs')}
+							iconType="study"
+							label="Dev Docs"
+							title="Dev Docs"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-								/>
-							</svg>
-							<span class="font-normal">Dev Docs</span>
-						</a>
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
+							href={resolveRoute('/admin')}
+							iconType="settings"
+							label="Admin"
+							title="Admin"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
 						<CleanReadwiseButton />
 					</div>
 				</div>

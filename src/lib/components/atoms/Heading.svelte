@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { HeadingLevel } from '../ui/types';
+	import { headingRecipe, type HeadingVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
-			level?: HeadingLevel;
+		HeadingVariantProps & {
 			children: Snippet;
 			class?: string;
 		},
@@ -14,23 +13,14 @@
 
 	let {
 		level = 1,
+		color = 'primary',
 		children,
 		class: className = '',
 		ref = $bindable(null),
 		...rest
 	}: Props = $props();
 
-	// Apply design tokens based on level
-	const levelClasses: Record<HeadingLevel, string> = {
-		1: 'text-h1',
-		2: 'text-h2',
-		3: 'text-h3',
-		4: 'text-body font-semibold',
-		5: 'text-small font-semibold',
-		6: 'text-small font-medium'
-	};
-
-	const headingClasses = `${levelClasses[level]} text-primary ${className}`;
+	const headingClasses = $derived([headingRecipe({ level, color }), className]);
 </script>
 
 {#if level === 1}
@@ -53,12 +43,15 @@
 	Usage:
 	<Heading level={1}>Page Title</Heading>
 	<Heading level={2}>Section Title</Heading>
-	<Heading level={3} class="custom-class">Subsection</Heading>
+	<Heading level={3} color="secondary">Subsection</Heading>
+	<Heading level={5} color="secondary" class="mb-form-section">Section Label</Heading>
 	
 	Design Tokens:
-	- Level 1: text-h1 (36px, 700 weight)
-	- Level 2: text-h2 (28px, 600 weight)
-	- Level 3: text-h3 (20px, 600 weight)
-	- Level 4-6: text-body/small with font weights
-	- Color: text-primary (adapts to light/dark mode)
+	- Level 1: text-4xl (36px, 700 weight)
+	- Level 2: text-3xl (28px, 600 weight)
+	- Level 3: text-2xl (20px, 600 weight)
+	- Level 4: text-xl (18px, 500 weight)
+	- Level 5: text-sm (14px, 600 weight)
+	- Level 6: text-sm (14px, 500 weight)
+	- Color: primary (default), secondary, tertiary
 -->

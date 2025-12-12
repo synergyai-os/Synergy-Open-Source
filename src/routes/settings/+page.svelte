@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { Switch } from 'bits-ui';
-	import { theme, isDark } from '$lib/stores/theme';
+	import { Switch, Text, Heading, Icon, Badge } from '$lib/components/atoms';
+	import { switchRootRecipe, switchThumbRecipe } from '$lib/design-system/recipes';
+	import { setTheme, isDark as isDarkFn } from '$lib/stores/theme.svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '$convex/_generated/dataModel';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	// Types for Convex hooks (currently unused but kept for future use)
 	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
@@ -74,32 +75,32 @@
 	import { makeFunctionReference } from 'convex/server';
 
 	// Get workspace context
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 	const organizationSummaries = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizations ?? [];
+		if (!workspaces) return [];
+		return workspaces.workspaces ?? [];
 	});
 	const currentOrganization = $derived(() => {
-		const orgId = activeOrganizationId();
+		const orgId = activeWorkspaceId();
 		if (!orgId) return null;
-		return organizationSummaries().find((org) => org.organizationId === orgId);
+		return organizationSummaries().find((org) => org.workspaceId === orgId);
 	});
 	const workspaceContext = $derived(() => {
-		// Users always have an organization (enforced server-side)
-		// If no organization found, return fallback (should never happen)
+		// Users always have an workspace (enforced server-side)
+		// If no workspace found, return fallback (should never happen)
 		const org = currentOrganization();
 		if (org) {
-			return { type: 'organization', name: org.name };
+			return { type: 'workspace', name: org.name };
 		}
 		// Fallback for edge case (should never happen due to server-side enforcement)
-		return { type: 'organization', name: 'Organization' };
+		return { type: 'workspace', name: 'Organization' };
 	});
 
 	const settingsApiFunctions = browser
@@ -141,33 +142,33 @@
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				// Organization settings
 				getOrganizationSettings: makeFunctionReference(
-					'organizationSettings:getOrganizationSettings'
+					'workspaceSettings:getOrganizationSettings'
 				) as FunctionReference<
 					'query',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'> },
+					{ sessionId: string; workspaceId: Id<'workspaces'> },
 					{
-						_id: Id<'organizationSettings'> | null;
-						organizationId: Id<'organizations'>;
+						_id: Id<'workspaceSettings'> | null;
+						workspaceId: Id<'workspaces'>;
 						hasClaudeKey: boolean;
 						isAdmin: boolean;
 					} | null
 				>,
 				updateOrganizationClaudeApiKey: makeFunctionReference(
-					'organizationSettings:updateOrganizationClaudeApiKey'
+					'workspaceSettings:updateOrganizationClaudeApiKey'
 				) as FunctionReference<
 					'action',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'>; apiKey: string },
-					Id<'organizations'>
+					{ sessionId: string; workspaceId: Id<'workspaces'>; apiKey: string },
+					Id<'workspaces'>
 				>,
 				deleteOrganizationClaudeApiKey: makeFunctionReference(
-					'organizationSettings:deleteOrganizationClaudeApiKey'
+					'workspaceSettings:deleteOrganizationClaudeApiKey'
 				) as FunctionReference<
 					'mutation',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'> },
-					Id<'organizationSettings'> | null
+					{ sessionId: string; workspaceId: Id<'workspaces'> },
+					Id<'workspaceSettings'> | null
 				>
 			}
 		: null;
@@ -175,6 +176,14 @@
 	// Load settings using client.query (not useQuery, to keep it simple)
 	// TODO: Re-enable when userSettings is needed
 	let _userSettings: UserSettings | null = $state(null);
+
+	// Create reactive isDark derived value (since isDark() is a function, not a store)
+	// We need to track theme changes reactively
+	const isDark = $derived.by(() => {
+		// Call isDark() function and track it reactively
+		// This will update when the theme changes
+		return isDarkFn();
+	});
 
 	// Load settings when client is ready and user is authenticated
 	onMount(async () => {
@@ -213,12 +222,12 @@
 				// Keep inputs empty - never display actual keys on client
 			}
 
-			// Load organization settings if in org workspace
-			const orgId = activeOrganizationId();
+			// Load workspace settings if in org workspace
+			const orgId = activeWorkspaceId();
 			if (orgId) {
 				const orgSettings = await convexClient.query(settingsApiFunctions.getOrganizationSettings, {
 					sessionId,
-					organizationId: orgId as Id<'organizations'>
+					workspaceId: orgId as Id<'workspaces'>
 				});
 				if (orgSettings) {
 					_isOrgAdmin = orgSettings.isAdmin || false;
@@ -278,7 +287,7 @@
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
 
-	// User API keys (personal settings within organization)
+	// User API keys (personal settings within workspace)
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
 
@@ -337,7 +346,7 @@
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file-line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
@@ -394,7 +403,7 @@
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file-line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
@@ -476,118 +485,78 @@
 	}
 </script>
 
-<div class="h-screen overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl px-inbox-container py-inbox-container">
+<div class="bg-base h-screen overflow-y-auto">
+	<div class="px-page py-page mx-auto max-w-4xl">
 		<!-- Page Title -->
-		<h1 class="mb-content-section text-h1 font-bold text-primary">Settings</h1>
+		<Heading level={1} class="mb-section">Settings</Heading>
 
 		<!-- Workspace Context Banner -->
 		<div
-			class="p-card mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/10"
+			class="border-accent-primary/20 bg-accent-primary/10 rounded-card card-padding mb-header border"
 		>
-			<div class="flex items-start gap-icon">
-				<svg
-					class="icon-md flex-shrink-0 text-accent-primary"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-					/>
-				</svg>
+			<div class="gap-fieldGroup flex items-start">
+				<Icon type="info" size="md" color="accent-primary" class="flex-shrink-0" />
 				<div class="min-w-0 flex-1">
-					<p class="mb-form-field-gap text-small font-medium text-accent-primary">
+					<Text variant="body" size="sm" color="accent-primary" class="mb-fieldGroup font-medium">
 						Organization Settings: {workspaceContext().name}
-					</p>
-					<p class="text-small text-secondary">
-						These settings apply to {workspaceContext().name} organization. Personal settings (theme,
-						API keys) are managed within this organization context.
-					</p>
-					<p class="mt-form-section text-label text-tertiary">
-						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
-					</p>
+					</Text>
+					<Text variant="body" size="sm" color="secondary" class="mb-fieldGroup">
+						These settings apply to {workspaceContext().name} workspace. Personal settings (theme, API
+						keys) are managed within this workspace context.
+					</Text>
+					<Text variant="label" size="sm" color="tertiary">
+						<strong>Coming soon:</strong> Team-specific settings and advanced workspace management.
+					</Text>
 				</div>
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-settings-section">
+		<div class="gap-section flex flex-col">
 			<!-- General Section -->
-			<section class="rounded-card border border-base bg-elevated">
-				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-content-padding text-body font-bold text-primary">General</h2>
+			<section class="border-base rounded-card bg-elevated border">
+				<div class="card-padding">
+					<Heading level={2} class="mb-header">General</Heading>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-form flex flex-col">
 						<!-- Theme Preference -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
-									<label
-										for="theme-toggle"
-										class="mb-form-field-gap block text-small font-medium text-primary"
-									>
-										Interface theme
-										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
-										>
-											👤 Personal Only
-										</span>
+									<label for="theme-toggle" class="mb-fieldGroup block">
+										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
+											Interface theme
+											<Badge
+												variant="default"
+												size="sm"
+												style="margin-left: var(--spacing-fieldGroup-gap);"
+											>
+												👤 Personal Only
+											</Badge>
+										</Text>
 									</label>
-									<p class="text-small text-secondary">
-										Theme preferences are personal and apply across all organizations.
-									</p>
+									<Text variant="body" size="sm" color="secondary">
+										Theme preferences are personal and apply across all workspaces.
+									</Text>
 								</div>
-								<div class="flex items-center gap-icon" role="presentation">
-									<span class="text-small text-secondary">
-										{$isDark ? 'Dark mode' : 'Light mode'}
-									</span>
-									{#if $isDark}
-										<svg
-											class="icon-sm flex-shrink-0 text-secondary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-											/>
-										</svg>
-									{:else}
-										<svg
-											class="icon-sm flex-shrink-0 text-secondary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-											xmlns="http://www.w3.org/2000/svg"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-											/>
-										</svg>
-									{/if}
+								<div class="gap-fieldGroup flex items-center" role="presentation">
+									<Text variant="body" size="sm" color="secondary">
+										{isDark ? 'Dark mode' : 'Light mode'}
+									</Text>
+									<Icon
+										type={isDark ? 'moon' : 'sun'}
+										size="sm"
+										color="secondary"
+										class="flex-shrink-0"
+									/>
 									<Switch.Root
 										id="theme-toggle"
-										checked={$isDark}
+										checked={isDark}
 										onCheckedChange={(checked) => {
-											theme.setTheme(checked ? 'dark' : 'light');
+											setTheme(checked ? 'dark' : 'light');
 										}}
-										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {$isDark
-											? 'bg-accent-primary'
-											: 'bg-toggle-off'}"
+										class={switchRootRecipe({ checked: isDark })}
 									>
-										<Switch.Thumb
-											class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
-										/>
+										<Switch.Thumb class={switchThumbRecipe()} />
 									</Switch.Root>
 								</div>
 							</div>
@@ -597,32 +566,33 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="rounded-card border border-base bg-elevated">
-				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-content-padding text-body font-bold text-primary">AI</h2>
+			<section class="border-base rounded-card bg-elevated border">
+				<div class="card-padding">
+					<Heading level={2} class="mb-header">AI</Heading>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-form flex flex-col">
 						<!-- Claude API Key -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
-									<label
-										for="claude-key"
-										class="mb-form-field-gap block text-small font-medium text-primary"
-									>
-										Claude API Key
-										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
-										>
-											👤 Personal
-										</span>
+									<label for="claude-key" class="mb-fieldGroup block">
+										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
+											Claude API Key
+											<Badge
+												variant="default"
+												size="sm"
+												style="margin-left: var(--spacing-fieldGroup-gap);"
+											>
+												👤 Personal
+											</Badge>
+										</Text>
 									</label>
-									<p class="text-small text-secondary">
+									<Text variant="body" size="sm" color="secondary">
 										Used for AI-powered flashcard generation from your content (personal use within
-										organization).
-									</p>
+										workspace).
+									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -632,21 +602,25 @@
 											onblur={handleClaudeKeyBlur}
 											disabled={claudeValidationState === 'validating'}
 											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
-											class="px-input py-input w-64 border bg-base pr-10 text-small {claudeValidationState ===
+											style="width: 16rem;"
+											class="text-small bg-base px-input py-input pr-input-iconRight border {claudeValidationState ===
 											'valid'
 												? 'border-success'
 												: claudeValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {claudeValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-50'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
 										{#if claudeValidationState === 'validating'}
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -667,7 +641,10 @@
 											</div>
 										{:else if claudeShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg class="icon-md text-success" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
@@ -681,7 +658,8 @@
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
-												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
+												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>
 												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -694,7 +672,10 @@
 												</svg>
 											</button>
 										{:else if claudeValidationState === 'invalid'}
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg
 													class="icon-sm text-error"
 													fill="none"
@@ -713,19 +694,41 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if claudeShowCheckmark}
-										<p class="mt-form-field-gap max-w-64 text-label text-success">
+										<Text
+											variant="label"
+											size="sm"
+											color="success"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
+										>
 											API key is valid and saved
-										</p>
+										</Text>
 									{:else if claudeValidationState === 'invalid' && claudeError}
-										<p class="mt-form-field-gap max-w-64 text-label text-error">{claudeError}</p>
+										<Text
+											variant="label"
+											size="sm"
+											color="error"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
+										>
+											{claudeError}
+										</Text>
 									{:else if !claudeHasKey && claudeValidationState !== 'validating'}
 										<a
 											href="https://console.anthropic.com/settings/keys"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
 										>
-											Get API key
+											<Text
+												variant="label"
+												size="sm"
+												color="accent-primary"
+												class="hover:text-accent-hover underline transition-colors"
+											>
+												Get API key
+											</Text>
 										</a>
 									{/if}
 								</div>
@@ -736,34 +739,35 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="rounded-card border border-base bg-elevated">
-				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-content-padding text-body font-bold text-primary">Sources</h2>
+			<section class="border-base rounded-card bg-elevated border">
+				<div class="card-padding">
+					<Heading level={2} class="mb-header">Sources</Heading>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-form flex flex-col">
 						<!-- Readwise API Key -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
-									<label
-										for="readwise-key"
-										class="mb-form-field-gap block text-small font-medium text-primary"
-									>
-										Readwise API Key
-										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
-										>
-											👤 Personal (User-owned)
-										</span>
+									<label for="readwise-key" class="mb-fieldGroup block">
+										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
+											Readwise API Key
+											<Badge
+												variant="default"
+												size="sm"
+												style="margin-left: var(--spacing-fieldGroup-gap);"
+											>
+												👤 Personal (User-owned)
+											</Badge>
+										</Text>
 									</label>
-									<p class="text-small text-secondary">
-										Your personal Readwise account. Imports will be shared with the organization.
-									</p>
-									<p class="mt-form-field-gap text-label text-accent-primary">
-										💡 Tip: Use the same key across organizations to sync content everywhere
-									</p>
+									<Text variant="body" size="sm" color="secondary" class="mb-fieldGroup">
+										Your personal Readwise account. Imports will be shared with the workspace.
+									</Text>
+									<Text variant="label" size="sm" color="accent-primary" class="mt-fieldGroup">
+										💡 Tip: Use the same key across workspaces to sync content everywhere
+									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"
@@ -773,21 +777,25 @@
 											onblur={handleReadwiseKeyBlur}
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
-											class="px-input py-input w-64 border bg-base pr-10 text-small {readwiseValidationState ===
+											style="width: 16rem;"
+											class="text-small bg-base px-input py-input pr-input-iconRight border {readwiseValidationState ===
 											'valid'
 												? 'border-success'
 												: readwiseValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {readwiseValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-50'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
 										{#if readwiseValidationState === 'validating'}
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -808,7 +816,10 @@
 											</div>
 										{:else if readwiseShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg class="icon-md text-success" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
@@ -822,7 +833,8 @@
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
-												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
+												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>
 												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -835,7 +847,10 @@
 												</svg>
 											</button>
 										{:else if readwiseValidationState === 'invalid'}
-											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+											<div
+												class="absolute top-1/2 -translate-y-1/2"
+												style="right: var(--spacing-fieldGroup-gap);"
+											>
 												<svg
 													class="icon-sm text-error"
 													fill="none"
@@ -854,19 +869,41 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if readwiseShowCheckmark}
-										<p class="mt-form-field-gap max-w-64 text-label text-success">
+										<Text
+											variant="label"
+											size="sm"
+											color="success"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
+										>
 											API key is valid and saved
-										</p>
+										</Text>
 									{:else if readwiseValidationState === 'invalid' && readwiseError}
-										<p class="mt-form-field-gap max-w-64 text-label text-error">{readwiseError}</p>
+										<Text
+											variant="label"
+											size="sm"
+											color="error"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
+										>
+											{readwiseError}
+										</Text>
 									{:else if !readwiseHasKey && readwiseValidationState !== 'validating'}
 										<a
 											href="https://readwise.io/access_token"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
+											class="mt-fieldGroup"
+											style="max-width: 16rem;"
 										>
-											Get API key
+											<Text
+												variant="label"
+												size="sm"
+												color="accent-primary"
+												class="hover:text-accent-hover underline transition-colors"
+											>
+												Get API key
+											</Text>
 										</a>
 									{/if}
 								</div>

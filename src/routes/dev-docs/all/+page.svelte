@@ -47,6 +47,49 @@
 			description: 'Vision, metrics, roadmap, and decision-making',
 			pages: [
 				{
+					icon: '📋',
+					title: 'Documentation Overview',
+					description: 'Master index and guide to product docs',
+					href: '/dev-docs/draft_claude/00-documentation-overview',
+					badge: 'Start'
+				},
+				{
+					icon: '🎯',
+					title: 'Problem-Solution Map',
+					description: 'Core problems we solve and success metrics',
+					href: '/dev-docs/draft_claude/01-problem-solution-map'
+				},
+				{
+					icon: '👥',
+					title: 'Jobs-to-be-Done Map',
+					description: 'User archetypes and their core jobs',
+					href: '/dev-docs/draft_claude/02-jobs-to-be-done-map'
+				},
+				{
+					icon: '🗺️',
+					title: 'Outcome-Based Roadmap',
+					description: 'Phased outcomes and success criteria',
+					href: '/dev-docs/draft_claude/03-outcome-based-roadmap'
+				},
+				{
+					icon: '🌳',
+					title: 'Opportunity Solution Tree',
+					description: 'Solution ideas and experiment status',
+					href: '/dev-docs/draft_claude/04-opportunity-solution-tree'
+				},
+				{
+					icon: '📓',
+					title: 'Assumption/Learning Log',
+					description: 'Track assumptions and learnings',
+					href: '/dev-docs/draft_claude/05-assumption-learning-log'
+				},
+				{
+					icon: '📅',
+					title: 'Weekly Rhythm',
+					description: 'Weekly execution structure and templates',
+					href: '/dev-docs/draft_claude/06-weekly-rhythm'
+				},
+				{
 					icon: '💡',
 					title: 'Product Principles',
 					description: 'How we make decisions',
@@ -589,6 +632,7 @@
 		color: var(--color-accent-hover);
 	}
 
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.hub-page {
 			padding: 2rem 1.5rem;

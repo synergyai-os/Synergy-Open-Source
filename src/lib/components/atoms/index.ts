@@ -28,7 +28,11 @@ export { default as PinInput } from './PinInput.svelte';
 
 // Form Atoms
 export { default as FormInput } from './FormInput.svelte';
+export { default as FormSelect } from './FormSelect.svelte';
 export { default as FormTextarea } from './FormTextarea.svelte';
+export { default as Combobox } from './Combobox.svelte';
+export { default as TimeInput } from './TimeInput.svelte';
+export { default as DurationInput } from './DurationInput.svelte';
 
 // Tabs (atomic component)
 export * as Tabs from './Tabs.svelte';
@@ -43,15 +47,14 @@ export * as Slider from './Slider.svelte';
 export * as Label from './Label.svelte';
 
 // Layout Atoms
-export * as Separator from './Separator.svelte';
 export * as AspectRatio from './AspectRatio.svelte';
 export * as ScrollArea from './ScrollArea.svelte';
 export { default as Progress } from './Progress.svelte';
 export { default as Meter } from './Meter.svelte';
 export { default as Tooltip } from './Tooltip.svelte';
-export { default as IconButton } from './IconButton.svelte';
 export { default as LoadingOverlay } from './LoadingOverlay.svelte';
-export { default as SplitButton } from './SplitButton.svelte';
 
 // Export types
-export type * from '../ui/types';
+export type * from '../types';
+export type { IconType } from './iconRegistry';
+export { iconRegistry, getIcon, isValidIconType } from './iconRegistry';

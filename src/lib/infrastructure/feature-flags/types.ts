@@ -24,8 +24,8 @@ export interface FeatureFlagRule {
 	rolloutPercentage?: number;
 	/** Specific user IDs that should see this */
 	allowedUserIds?: string[];
-	/** Specific organization IDs that should see this (all members) */
-	allowedOrganizationIds?: string[];
+	/** Specific workspace IDs that should see this (all members) */
+	allowedWorkspaceIds?: string[];
 	/** Email domains that should see this (e.g., "@yourcompany.com") */
 	allowedDomains?: string[];
 	/** Created timestamp */

@@ -23,8 +23,8 @@ export const getSystemStats = query({
 		const users = await ctx.db.query('users').collect();
 		const activeUsers = users.filter((u) => !u.deletedAt);
 
-		// Get organization count
-		const organizations = await ctx.db.query('organizations').collect();
+		// Get workspace count
+		const workspaces = await ctx.db.query('workspaces').collect();
 
 		// Get circle count
 		const circles = await ctx.db.query('circles').collect();
@@ -45,8 +45,8 @@ export const getSystemStats = query({
 				active: activeUsers.length,
 				deleted: users.length - activeUsers.length
 			},
-			organizations: {
-				total: organizations.length
+			workspaces: {
+				total: workspaces.length
 			},
 			circles: {
 				total: circles.length

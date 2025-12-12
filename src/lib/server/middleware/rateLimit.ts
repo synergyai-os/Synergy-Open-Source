@@ -9,25 +9,32 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import { writeFileSync, appendFileSync } from 'fs';
 import { join } from 'path';
+import { logger } from '$lib/utils/logger';
 
 // Debug logging to file (E2E test mode only)
 const DEBUG_LOG_PATH = join(process.cwd(), 'rate-limit-debug.log');
 
-function debugLog(...args: unknown[]) {
+/**
+ * Debug log function that:
+ * 1. Writes to file in E2E test mode (for test debugging)
+ * 2. Uses structured logger for production (gated by DEBUG_RATE_LIMIT env var)
+ */
+function debugLog(message: string, data?: unknown): void {
 	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
+
+	// File logging for E2E tests (separate concern)
 	if (e2eTestMode === 'true') {
 		const timestamp = new Date().toISOString();
-		const message = args
-			.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)))
-			.join(' ');
+		const logMessage = data ? `${message}\n${JSON.stringify(data, null, 2)}` : message;
 		try {
-			appendFileSync(DEBUG_LOG_PATH, `[${timestamp}] ${message}\n`);
+			appendFileSync(DEBUG_LOG_PATH, `[${timestamp}] ${logMessage}\n`);
 		} catch (_e) {
 			// Ignore write errors
 		}
 	}
-	// Also log to console
-	console.log(...args);
+
+	// Structured logging (gated by DEBUG_RATE_LIMIT env var)
+	logger.debug('rateLimit', message, data);
 }
 
 interface RateLimitEntry {
@@ -55,7 +62,7 @@ const store = new Map<string, RateLimitEntry>();
 export function clearRateLimits(): void {
 	const beforeSize = store.size;
 	store.clear();
-	debugLog(`🧹 clearRateLimits: Cleared ${beforeSize} entries from rate limit store`);
+	debugLog('clearRateLimits', { clearedCount: beforeSize });
 
 	// Clear debug log file on first reset (start of test run)
 	if (beforeSize === 0) {
@@ -120,24 +127,24 @@ export function checkRateLimit(
 	const now = Date.now();
 	const windowStart = now - config.windowMs;
 
-	debugLog('=== RATE LIMIT: checkRateLimit START ===');
-	debugLog('Config:', {
-		keyPrefix: config.keyPrefix,
-		maxRequests: config.maxRequests,
-		windowMs: config.windowMs
+	debugLog('checkRateLimit START', {
+		config: {
+			keyPrefix: config.keyPrefix,
+			maxRequests: config.maxRequests,
+			windowMs: config.windowMs
+		},
+		identifier,
+		key
 	});
-	debugLog('Identifier:', identifier);
-	debugLog('Key:', key);
 
 	// Get or create entry
 	let entry = store.get(key);
 	if (!entry) {
-		debugLog('📝 Creating new entry for key:', key);
+		debugLog('Creating new entry', { key });
 		entry = { timestamps: [] };
 		store.set(key, entry);
 	} else {
-		debugLog('📖 Found existing entry for key:', key);
-		debugLog('Existing timestamps:', entry.timestamps.length);
+		debugLog('Found existing entry', { key, timestampCount: entry.timestamps.length });
 	}
 
 	// Remove timestamps outside current window (sliding window)
@@ -146,11 +153,17 @@ export function checkRateLimit(
 	const afterFilter = entry.timestamps.length;
 
 	if (beforeFilter !== afterFilter) {
-		debugLog(`🧹 Filtered old timestamps: ${beforeFilter} → ${afterFilter}`);
+		debugLog('Filtered old timestamps', {
+			before: beforeFilter,
+			after: afterFilter,
+			removed: beforeFilter - afterFilter
+		});
 	}
 
-	debugLog('Current count after filter:', entry.timestamps.length);
-	debugLog('Max requests allowed:', config.maxRequests);
+	debugLog('Current state', {
+		countAfterFilter: entry.timestamps.length,
+		maxRequests: config.maxRequests
+	});
 
 	// Check if limit exceeded
 	if (entry.timestamps.length >= config.maxRequests) {
@@ -159,11 +172,13 @@ export function checkRateLimit(
 		const resetAt = oldestTimestamp + config.windowMs;
 		const retryAfter = Math.ceil((resetAt - now) / 1000); // seconds
 
-		debugLog('🚫 RATE LIMIT EXCEEDED!');
-		debugLog('Current count:', entry.timestamps.length);
-		debugLog('Max allowed:', config.maxRequests);
-		debugLog('Retry after (seconds):', retryAfter);
-		debugLog('=== RATE LIMIT: checkRateLimit END (BLOCKED) ===');
+		logger.warn('rateLimit', 'Rate limit exceeded', {
+			key,
+			currentCount: entry.timestamps.length,
+			maxAllowed: config.maxRequests,
+			retryAfterSeconds: retryAfter,
+			resetAt: new Date(resetAt).toISOString()
+		});
 
 		return {
 			allowed: false,
@@ -175,10 +190,10 @@ export function checkRateLimit(
 
 	// Record this request
 	entry.timestamps.push(now);
-	debugLog('✅ Request allowed, recorded timestamp');
-	debugLog('New count:', entry.timestamps.length);
-	debugLog('Remaining:', config.maxRequests - entry.timestamps.length);
-	debugLog('=== RATE LIMIT: checkRateLimit END (ALLOWED) ===');
+	debugLog('Request allowed', {
+		newCount: entry.timestamps.length,
+		remaining: config.maxRequests - entry.timestamps.length
+	});
 
 	// Calculate reset time (when oldest request expires)
 	const oldestTimestamp = entry.timestamps[0];
@@ -235,17 +250,19 @@ export function getClientIdentifier(request: Request): string {
 	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
 	const testId = request.headers.get('x-test-id');
 
-	debugLog('=== RATE LIMIT: getClientIdentifier START ===');
-	debugLog('E2E_TEST_MODE (process.env):', process.env.E2E_TEST_MODE);
-	debugLog('E2E_TEST_MODE (env):', env.E2E_TEST_MODE);
-	debugLog('E2E_TEST_MODE (final):', e2eTestMode);
-	debugLog('X-Test-ID header:', testId);
-	debugLog('Will use test ID?:', e2eTestMode === 'true' && !!testId);
+	debugLog('getClientIdentifier START', {
+		e2eTestMode: {
+			processEnv: process.env.E2E_TEST_MODE,
+			envVar: env.E2E_TEST_MODE,
+			final: e2eTestMode
+		},
+		testIdHeader: testId,
+		willUseTestId: e2eTestMode === 'true' && !!testId
+	});
 
 	if (e2eTestMode === 'true' && testId) {
 		const identifier = `test:${testId}`;
-		debugLog('✅ Using test identifier:', identifier);
-		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+		debugLog('Using test identifier', { identifier });
 		return identifier;
 	}
 
@@ -253,22 +270,19 @@ export function getClientIdentifier(request: Request): string {
 	const forwardedFor = request.headers.get('x-forwarded-for');
 	if (forwardedFor) {
 		const identifier = forwardedFor.split(',')[0].trim();
-		debugLog('Using forwarded IP:', identifier);
-		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+		debugLog('Using forwarded IP', { identifier });
 		return identifier;
 	}
 
 	// Check for real IP header (some CDNs)
 	const realIp = request.headers.get('x-real-ip');
 	if (realIp) {
-		debugLog('Using real IP:', realIp);
-		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+		debugLog('Using real IP', { identifier: realIp.trim() });
 		return realIp.trim();
 	}
 
-	// Fallback to 'unknown' (should not happen in production)
-	debugLog('⚠️ Using fallback: unknown');
-	debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+	// Fallback to 'unknown' (expected in dev/localhost, unexpected in production)
+	debugLog('Using fallback identifier', { identifier: 'unknown' });
 	return 'unknown';
 }
 
@@ -286,14 +300,22 @@ export function withRateLimit<T>(
 	handler: (context: { event: RequestEvent }) => Promise<T>
 ) {
 	return async (event: RequestEvent): Promise<T | Response> => {
-		debugLog('🔒 withRateLimit CALLED for endpoint:', config.keyPrefix);
-		debugLog('Request URL:', event.url.pathname);
+		debugLog('withRateLimit called', {
+			endpoint: config.keyPrefix,
+			requestUrl: event.url.pathname
+		});
 
 		const identifier = getClientIdentifier(event.request);
-		debugLog('Got identifier from getClientIdentifier:', identifier);
-
 		const result = checkRateLimit(identifier, config);
-		debugLog('checkRateLimit result:', result);
+
+		debugLog('Rate limit check result', {
+			identifier,
+			result: {
+				allowed: result.allowed,
+				remaining: result.remaining,
+				resetAt: new Date(result.resetAt).toISOString()
+			}
+		});
 
 		// Set rate limit headers (standard)
 		const headers = {

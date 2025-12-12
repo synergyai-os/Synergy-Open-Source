@@ -251,7 +251,7 @@
 	/* Blockquotes */
 	.docs-article :global(blockquote) {
 		margin: 1.5rem 0;
-		padding: var(--spacing-readable-quote-y) 1.5rem;
+		padding: var(--spacing-8) 1.5rem;
 		background: var(--color-bg-surface);
 		border-left: 4px solid var(--color-accent-primary);
 		border-radius: 0.375rem;
@@ -334,6 +334,7 @@
 	}
 
 	/* Responsive design */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.docs-content {
 			padding: 1.5rem 1rem;

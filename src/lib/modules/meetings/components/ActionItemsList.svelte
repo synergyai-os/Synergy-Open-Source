@@ -2,6 +2,7 @@
 	/**
 	 * Action Items List Component
 	 *
+	 * SYOS-467: Refactored to use composables for separation of concerns
 	 * SYOS-223: UI for capturing action items linked to agenda items
 	 *
 	 * Features:
@@ -16,17 +17,16 @@
 	 * Design: Linear-style compact UI with design tokens
 	 */
 
-	import { browser } from '$app/environment';
-	import { useConvexClient, useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
-	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui';
+	import type { Id } from '$lib/convex';
+	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
+	import { getContext } from 'svelte';
+	import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
 		meetingId: Id<'meetings'>;
 		sessionId: string;
-		organizationId: Id<'organizations'>;
+		workspaceId: Id<'workspaces'>;
 		circleId?: Id<'circles'>;
 		readonly?: boolean;
 	}
@@ -35,244 +35,73 @@
 		agendaItemId,
 		meetingId,
 		sessionId,
-		organizationId,
+		workspaceId,
 		circleId,
 		readonly = false
 	}: Props = $props();
 
-	const convexClient = browser ? useConvexClient() : null;
+	const projects = getContext('projects-api') as
+		| {
+				useTasks: (options: unknown) => unknown;
+				useTaskForm: (options: unknown) => unknown;
+		  }
+		| undefined;
+	invariant(projects, 'ProjectsModuleAPI context not found');
 
-	// State
-	const state = $state({
-		isAdding: false,
-		editingId: null as Id<'meetingActionItems'> | null,
-		// Form state
-		description: '',
-		type: 'next-step' as 'next-step' | 'project',
-		assigneeType: 'user' as 'user' | 'role',
-		assigneeUserId: null as Id<'users'> | null,
-		assigneeRoleId: null as Id<'circleRoles'> | null,
-		dueDate: null as number | null
+	// Data fetching composable
+	const data = projects.useTasks({
+		agendaItemId: () => agendaItemId,
+		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
+		circleId: () => circleId
 	});
 
-	// Query action items for this agenda item
-	const actionItemsQuery =
-		browser && sessionId
-			? useQuery(api.meetingActionItems.listByAgendaItem, () => {
-					if (!sessionId) throw new Error('sessionId required');
-					return { sessionId, agendaItemId };
-				})
-			: null;
-
-	// Query organization members (for user dropdown)
-	const membersQuery =
-		browser && sessionId
-			? useQuery(api.organizations.getMembers, () => {
-					if (!sessionId) throw new Error('sessionId required');
-					return { sessionId, organizationId };
-				})
-			: null;
-
-	// Query circle roles (for role dropdown) - only if circle exists
-	const rolesQuery =
-		browser && sessionId && circleId
-			? useQuery(api.circleRoles.listByCircle, () => {
-					if (!sessionId) throw new Error('sessionId required');
-					if (!circleId) throw new Error('circleId required');
-					return { sessionId, circleId };
-				})
-			: null;
-
-	// Derived data
-	const actionItems = $derived(actionItemsQuery?.data ?? []);
-	const members = $derived(membersQuery?.data ?? []);
-	const roles = $derived(rolesQuery?.data ?? []);
-
-	// Reset form
-	function resetForm() {
-		state.description = '';
-		state.type = 'next-step';
-		state.assigneeType = 'user';
-		state.assigneeUserId = null;
-		state.assigneeRoleId = null;
-		state.dueDate = null;
-		state.isAdding = false;
-		state.editingId = null;
-	}
-
-	// Handle create action item
-	async function handleCreate() {
-		if (!state.description.trim()) {
-			toast.error('Description is required');
-			return;
-		}
-
-		// Validate assignee
-		if (state.assigneeType === 'user' && !state.assigneeUserId) {
-			toast.error('Please select a user');
-			return;
-		}
-
-		if (state.assigneeType === 'role' && !state.assigneeRoleId) {
-			toast.error('Please select a role');
-			return;
-		}
-
-		try {
-			await convexClient?.mutation(api.meetingActionItems.create, {
-				sessionId,
-				meetingId,
-				agendaItemId,
-				circleId,
-				type: state.type,
-				assigneeType: state.assigneeType,
-				assigneeUserId: state.assigneeUserId ?? undefined,
-				assigneeRoleId: state.assigneeRoleId ?? undefined,
-				description: state.description.trim(),
-				dueDate: state.dueDate ?? undefined
-			});
-
-			toast.success('Action item created');
-			resetForm();
-		} catch (error) {
-			console.error('Failed to create action item:', error);
-			toast.error('Failed to create action item');
-		}
-	}
-
-	// Handle toggle status
-	async function handleToggleStatus(
-		actionItemId: Id<'meetingActionItems'>,
-		currentStatus: 'todo' | 'in-progress' | 'done'
-	) {
-		try {
-			const newStatus = currentStatus === 'done' ? 'todo' : 'done';
-			await convexClient?.mutation(api.meetingActionItems.updateStatus, {
-				sessionId,
-				actionItemId,
-				status: newStatus
-			});
-		} catch (error) {
-			console.error('Failed to update status:', error);
-			toast.error('Failed to update status');
-		}
-	}
-
-	// Handle delete
-	async function handleDelete(actionItemId: Id<'meetingActionItems'>) {
-		if (!confirm('Delete this action item?')) return;
-
-		try {
-			await convexClient?.mutation(api.meetingActionItems.remove, {
-				sessionId,
-				actionItemId
-			});
-			toast.success('Action item deleted');
-		} catch (error) {
-			console.error('Failed to delete action item:', error);
-			toast.error('Failed to delete action item');
-		}
-	}
-
-	// Format date
-	function formatDate(timestamp: number): string {
-		return new Date(timestamp).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		});
-	}
-
-	// Get assignee name
-	function getAssigneeName(item: (typeof actionItems)[number]): string {
-		if (item.assigneeType === 'user' && item.assigneeUserId) {
-			const member = members.find((m) => m.userId === item.assigneeUserId);
-			return member?.name || member?.email || 'Unknown User';
-		}
-
-		if (item.assigneeType === 'role' && item.assigneeRoleId) {
-			const role = roles.find((r) => r.roleId === item.assigneeRoleId);
-			return role?.name || 'Unknown Role';
-		}
-
-		return 'Unassigned';
-	}
-
-	// Get initials for avatar
-	function getInitials(name: string): string {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
-
-	// Handle due date change (convert to timestamp)
-	function handleDueDateChange(e: Event) {
-		const input = e.target as HTMLInputElement;
-		if (input.value) {
-			state.dueDate = new Date(input.value).getTime();
-		} else {
-			state.dueDate = null;
-		}
-	}
-
-	// Convert timestamp to date input value (YYYY-MM-DD)
-	function timestampToDateInput(timestamp: number | null): string {
-		if (!timestamp) return '';
-		return new Date(timestamp).toISOString().split('T')[0];
-	}
+	// Form logic composable
+	const form = projects.useTaskForm({
+		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
+		meetingId: () => meetingId,
+		agendaItemId: () => agendaItemId,
+		circleId: () => circleId,
+		members: () => data.members,
+		roles: () => data.roles,
+		readonly: () => readonly
+	});
 </script>
 
 <div class="space-y-form-section">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
-		<h3 class="text-body-sm font-semibold text-text-primary">Action Items</h3>
-		{#if !readonly && !state.isAdding}
-			<Button variant="outline" size="sm" onclick={() => (state.isAdding = true)}>
-				+ Add Action
-			</Button>
+		<Text variant="body" size="sm" color="default" as="h3" class="font-semibold">Action Items</Text>
+		{#if !readonly && !form.isAdding}
+			<Button variant="outline" size="sm" onclick={() => form.startAdding()}>+ Add Action</Button>
 		{/if}
 	</div>
 
 	<!-- Add Action Form (Inline) -->
-	{#if state.isAdding}
-		<div class="space-y-header rounded-button border border-border-base bg-surface p-form-section">
+	{#if form.isAdding}
+		<div class="space-y-header border-border-base p-form-section rounded-button bg-surface border">
 			<!-- Description -->
 			<textarea
-				bind:value={state.description}
+				bind:value={form.description}
 				placeholder="What needs to be done?"
 				rows="2"
-				class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 			></textarea>
 
-			<!-- Type Toggle + Assignee Type Toggle -->
-			<div class="flex items-center gap-form-section">
-				<!-- Type -->
-				<div class="flex items-center gap-meeting-card">
-					<span class="text-body-sm text-tertiary">Type:</span>
-					<Button
-						variant="outline"
-						size="sm"
-						ariaLabel="Toggle action item type"
-						onclick={() => (state.type = state.type === 'next-step' ? 'project' : 'next-step')}
-					>
-						{state.type === 'next-step' ? '⚡ Next Step' : '📦 Project'}
-					</Button>
-				</div>
-
+			<!-- Assignee Type Toggle -->
+			<div class="gap-form-section flex items-center">
 				<!-- Assignee Type Toggle (only if circle has roles) -->
-				{#if circleId && roles.length > 0}
-					<div class="flex items-center gap-meeting-card">
-						<span class="text-body-sm text-tertiary">Assign to:</span>
+				{#if circleId && data.roles.length > 0}
+					<div class="gap-fieldGroup flex items-center">
+						<Text variant="body" size="sm" color="tertiary" as="span">Assign to:</Text>
 						<Button
 							variant="outline"
 							size="sm"
 							ariaLabel="Toggle assignee type"
-							onclick={() => (state.assigneeType = state.assigneeType === 'user' ? 'role' : 'user')}
+							onclick={() => (form.assigneeType = form.assigneeType === 'user' ? 'role' : 'user')}
 						>
-							{state.assigneeType === 'user' ? '👤 User' : '🎭 Role'}
+							{form.assigneeType === 'user' ? '👤 User' : '🎭 Role'}
 						</Button>
 					</div>
 				{/if}
@@ -280,23 +109,23 @@
 
 			<!-- Assignee Selector -->
 			<div>
-				{#if state.assigneeType === 'user'}
+				{#if form.assigneeType === 'user'}
 					<select
-						bind:value={state.assigneeUserId}
-						class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+						bind:value={form.assigneePersonId}
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 					>
-						<option value={null}>Select user...</option>
-						{#each members as member (member.userId)}
-							<option value={member.userId}>{member.name || member.email}</option>
+						<option value={null}>Select person...</option>
+						{#each data.members.filter((member) => member.personId) as member (member.personId)}
+							<option value={member.personId}>{member.name || member.email}</option>
 						{/each}
 					</select>
-				{:else if state.assigneeType === 'role'}
+				{:else if form.assigneeType === 'role'}
 					<select
-						bind:value={state.assigneeRoleId}
-						class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+						bind:value={form.assigneeRoleId}
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 					>
 						<option value={null}>Select role...</option>
-						{#each roles as role (role.roleId)}
+						{#each data.roles as role (role.roleId)}
 							<option value={role.roleId}>{role.name}</option>
 						{/each}
 					</select>
@@ -304,80 +133,62 @@
 			</div>
 
 			<!-- Due Date (Optional) -->
-			<div class="flex items-center gap-meeting-card">
-				<label for="due-date" class="text-body-sm text-tertiary">Due date (optional):</label>
+			<div class="gap-fieldGroup flex items-center">
+				<label for="due-date">
+					<Text variant="body" size="sm" color="tertiary" as="span">Due date (optional):</Text>
+				</label>
 				<input
 					id="due-date"
 					type="date"
-					value={timestampToDateInput(state.dueDate)}
-					onchange={handleDueDateChange}
-					class="text-body-sm rounded-button border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+					value={form.timestampToDateInput(form.dueDate)}
+					onchange={form.handleDueDateChange}
+					class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-button bg-elevated text-primary focus:border-accent-primary border focus:ring-1 focus:outline-none"
 				/>
 			</div>
 
 			<!-- Actions -->
-			<div class="flex items-center gap-meeting-card pt-meeting-card">
-				<Button variant="primary" onclick={handleCreate}>Add Action</Button>
-				<Button variant="outline" onclick={resetForm}>Cancel</Button>
+			<div class="gap-fieldGroup flex items-center" style="padding-top: var(--spacing-3);">
+				<Button variant="primary" onclick={form.handleCreate}>Add Action</Button>
+				<Button variant="outline" onclick={form.resetForm}>Cancel</Button>
 			</div>
 		</div>
 	{/if}
 
 	<!-- Action Items List -->
-	{#if actionItems.length === 0}
+	{#if data.tasks.length === 0}
 		<!-- Empty State -->
-		<div class="py-meeting-section text-center">
-			<svg
-				class="mx-auto size-icon-xl text-text-tertiary"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
+		<div class="text-center" style="padding-block: var(--spacing-8);">
+			<div class="mx-auto">
+				<Icon type="dashboard" size="xl" color="tertiary" />
+			</div>
+			<Text variant="body" size="sm" color="tertiary" as="p" class="mt-form-section"
+				>No action items yet</Text
 			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-				/>
-			</svg>
-			<p class="text-body-sm mt-form-section text-text-tertiary">No action items yet</p>
-			{#if !readonly && !state.isAdding}
-				<Button variant="outline" size="sm" onclick={() => (state.isAdding = true)}>
+			{#if !readonly && !form.isAdding}
+				<Button variant="outline" size="sm" onclick={() => form.startAdding()}>
 					Add your first action
 				</Button>
 			{/if}
 		</div>
 	{:else}
 		<!-- List of action items -->
-		<div class="space-y-meeting-card">
-			{#each actionItems as item (item._id)}
+		<div style="display: flex; flex-direction: column; gap: var(--spacing-2);">
+			{#each data.tasks as item (item._id)}
 				<div
-					class="group gap-header p-header flex items-start rounded-button border border-border-base bg-surface transition-colors hover:bg-elevated"
+					class="group p-header border-border-base gap-header rounded-button bg-surface hover:bg-elevated flex items-start border transition-colors"
 				>
 					<!-- Status Checkbox -->
 					<button
-						onclick={() => !readonly && handleToggleStatus(item._id, item.status)}
+						onclick={() => !readonly && form.handleToggleStatus(item._id, item.status)}
 						disabled={readonly}
 						class="mt-spacing-icon-gap-sm flex-shrink-0"
 						aria-label="Toggle status"
 					>
 						{#if item.status === 'done'}
-							<svg
-								class="icon-md text-success"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
+							<Icon type="flashcards" size="md" color="success" />
 						{:else}
 							<svg
-								class="icon-md text-text-tertiary transition-colors hover:text-accent-primary"
+								class="icon-md text-text-tertiary hover:text-accent-primary transition-colors"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -389,46 +200,45 @@
 
 					<!-- Content -->
 					<div class="min-w-0 flex-1">
-						<p
-							class="text-body-sm text-primary {item.status === 'done'
-								? 'line-through opacity-60'
-								: ''}"
+						<Text
+							variant="body"
+							size="sm"
+							color="default"
+							as="p"
+							class={item.status === 'done' ? 'line-through' : ''}
+							style={item.status === 'done' ? 'opacity: var(--opacity-60)' : ''}
 						>
 							{item.description}
-						</p>
+						</Text>
 
 						<!-- Metadata -->
-						<div class="gap-header mt-meeting-card flex items-center text-label text-tertiary">
+						<div
+							class="gap-header text-label text-tertiary flex items-center"
+							style="margin-top: var(--spacing-2);"
+						>
 							<!-- Type Badge -->
 							<span
-								class="gap-icon-sm inline-flex items-center rounded border border-border-base bg-elevated px-badge py-badge"
+								class="border-border-base px-badge py-badge gap-fieldGroup bg-elevated inline-flex items-center rounded border"
 							>
 								{item.type === 'next-step' ? '⚡' : '📦'}
 								{item.type === 'next-step' ? 'Next Step' : 'Project'}
 							</span>
 
 							<!-- Assignee -->
-							<span class="inline-flex items-center gap-meeting-avatar">
-								<div
-									class="flex size-icon-sm items-center justify-center rounded-avatar bg-accent-primary text-label font-medium text-primary"
-								>
-									{getInitials(getAssigneeName(item))}
-								</div>
-								{getAssigneeName(item)}
+							<span class="inline-flex items-center" style="gap: var(--spacing-1);">
+								<Avatar
+									initials={form.getInitials(form.getAssigneeName(item))}
+									size="xs"
+									variant="brand"
+								/>
+								{form.getAssigneeName(item)}
 							</span>
 
 							<!-- Due Date -->
 							{#if item.dueDate}
-								<span class="inline-flex items-center gap-meeting-avatar">
-									<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-										/>
-									</svg>
-									{formatDate(item.dueDate)}
+								<span class="inline-flex items-center" style="gap: var(--spacing-1);">
+									<Icon type="calendar" size="sm" />
+									{form.formatDate(item.dueDate)}
 								</span>
 							{/if}
 						</div>
@@ -436,23 +246,19 @@
 
 					<!-- Actions (visible on hover) -->
 					{#if !readonly}
-						<div class="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
+						<div
+							class="action-delete-btn flex-shrink-0 transition-opacity"
+							style="opacity: var(--opacity-0);"
+						>
 							<Button
 								variant="outline"
 								size="sm"
 								iconOnly
 								ariaLabel="Delete action"
-								onclick={() => handleDelete(item._id)}
-								class="text-error hover:bg-error hover:bg-error-hover"
+								onclick={() => form.handleDelete(item._id)}
+								class="hover:bg-error-hover text-error"
 							>
-								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-									/>
-								</svg>
+								<Icon type="delete" size="sm" />
 							</Button>
 						</div>
 					{/if}
@@ -461,3 +267,10 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Hover-reveal for delete button - uses CSS variables for opacity */
+	.group:hover .action-delete-btn {
+		opacity: var(--opacity-100, 1);
+	}
+</style>

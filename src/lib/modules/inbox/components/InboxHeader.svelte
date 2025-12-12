@@ -2,6 +2,8 @@
 	import { DropdownMenu } from 'bits-ui';
 	import InboxFilterMenu from './InboxFilterMenu.svelte';
 	import { SidebarToggle } from '$lib/components/organisms';
+	import { PageHeader } from '$lib/components/molecules';
+	import { Text } from '$lib/components/atoms';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -40,31 +42,35 @@
 	// let sortMenuOpen = $state(false);
 </script>
 
-<div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
->
-	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
-	<div class="flex items-center gap-icon">
+<PageHeader>
+	{#snippet left()}
 		{#if onSidebarToggle && sidebarCollapsed}
 			<SidebarToggle {sidebarCollapsed} onToggle={onSidebarToggle} {isMobile} />
 		{/if}
 
-		<h2 class="flex items-center gap-icon text-small font-normal text-secondary">
+		<Text
+			variant="label"
+			size="sm"
+			color="secondary"
+			weight="normal"
+			as="h2"
+			class="gap-header flex items-center"
+		>
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="flex min-w-badge items-center justify-center rounded-chip bg-accent-primary px-badge py-badge text-center text-label leading-none font-medium text-primary"
+					class="min-w-badge rounded-chip px-badge py-badge bg-accent-primary text-label text-primary flex items-center justify-center text-center leading-none font-medium"
 				>
 					{inboxCount}
 				</span>
 			{/if}
-		</h2>
+		</Text>
 
 		<!-- Kebab Menu (Delete Actions) -->
 		<DropdownMenu.Root bind:open={menuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+				class="icon-xl hover:bg-hover-solid rounded-button text-secondary hover:text-primary flex items-center justify-center transition-colors"
 			>
 				<svg
 					class="icon-sm"
@@ -84,14 +90,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
+					class="border-base min-w-dropdown py-badge rounded-button bg-elevated shadow-card z-50 border"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					{#if onSync}
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-50"
+							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							textValue="Sync Readwise Highlights"
 							disabled={isSyncing}
 							onSelect={() => {
@@ -121,11 +127,11 @@
 							{/if}
 						</DropdownMenu.Item>
 
-						<DropdownMenu.Separator class="my-badge h-px bg-base" />
+						<DropdownMenu.Separator class="my-badge bg-base h-px" />
 					{/if}
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
@@ -136,7 +142,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
@@ -147,7 +153,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
@@ -159,17 +165,16 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Portal>
 		</DropdownMenu.Root>
-	</div>
+	{/snippet}
 
-	<!-- Right: Filter + Sort Icons -->
-	<div class="flex items-center gap-icon">
+	{#snippet right()}
 		<!-- Filter Menu -->
 		<InboxFilterMenu {currentFilter} {onFilterChange} />
 
 		<!-- Sort Icon -->
 		<button
 			type="button"
-			class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+			class="icon-xl hover:bg-hover-solid rounded-button text-secondary hover:text-primary flex items-center justify-center transition-colors"
 			onclick={() => onSortClick?.()}
 			aria-label="Sort inbox items"
 		>
@@ -182,5 +187,5 @@
 				/>
 			</svg>
 		</button>
-	</div>
-</div>
+	{/snippet}
+</PageHeader>

@@ -1,70 +1,178 @@
 <script lang="ts">
-	import { Avatar } from '$lib/components/atoms';
-	import { IconButton } from '$lib/components/atoms';
+	import { Badge, Button, Icon } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
+	import { roleCardRecipe } from '$lib/design-system/recipes';
+	import RoleMemberItem from './RoleMemberItem.svelte';
+	import InlineEditText from './InlineEditText.svelte';
+	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
+	import type { Id } from '$lib/convex/_generated/dataModel';
+
+	type Member = {
+		userId: string;
+		name?: string;
+		email: string;
+		avatarImage?: string;
+		scope?: string; // User-level scope (displayed on user card)
+		roleName?: string;
+	};
 
 	type Props = {
 		name: string;
-		purpose?: string;
-		fillerCount?: number;
+		purpose?: string; // Purpose of the role/circle (what is the purpose of this role)
+		isCircle?: boolean;
+		status?: 'draft' | 'hiring'; // Status badge displayed next to role name
 		onClick: () => void;
 		onEdit?: () => void;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		members?: Member[];
+		onAddMember?: () => void;
+		memberMenuItems?: (
+			userId: string
+		) => Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		currentUserId?: string;
+		// Inline editing props (optional - only for roles, not circles)
+		roleId?: Id<'circleRoles'>;
+		circleId?: Id<'circles'>;
+		canEdit?: boolean;
+		editReason?: string;
+		onNameChange?: (name: string) => Promise<void>;
+		onPurposeChange?: (purpose: string) => Promise<void>;
+		class?: string;
 	};
 
-	let { name, purpose, fillerCount = 0, onClick, onEdit, menuItems = [] }: Props = $props();
+	let {
+		name,
+		purpose,
+		isCircle = false,
+		status,
+		onClick,
+		onEdit,
+		menuItems = [],
+		members = [],
+		onAddMember,
+		memberMenuItems,
+		currentUserId,
+		roleId,
+		circleId: _circleId,
+		canEdit = false,
+		editReason,
+		onNameChange,
+		onPurposeChange,
+		class: className = ''
+	}: Props = $props();
 
-	function getInitials(text: string): string {
-		return text
-			.split(' ')
-			.map((word) => word[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
+	function handleHeaderClick() {
+		onClick();
 	}
+
+	const buttonClasses = $derived(roleCardRecipe({ variant: 'default' }));
+
+	// Always show members if they exist (no collapse)
+	const showMembers = $derived(members.length > 0);
+
+	// Badge variant mapping: hiring = warning, draft = default
+	const badgeVariant = $derived(status === 'hiring' ? 'warning' : 'default');
+	const badgeLabel = $derived(status === 'hiring' ? 'Hiring' : 'Draft');
 </script>
 
-<button
-	type="button"
-	class="p-card flex w-full items-center gap-icon rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
-	onclick={onClick}
->
-	<Avatar initials={getInitials(name)} size="md" />
-	<div class="min-w-0 flex-1">
-		<p class="truncate text-button font-medium text-primary">{name}</p>
-		{#if purpose}
-			<p class="truncate text-label text-secondary">{purpose}</p>
-		{:else}
-			<p class="text-label text-tertiary">
-				{fillerCount} filler{fillerCount !== 1 ? 's' : ''}
-			</p>
+<div class={[className, 'rounded-card border-default overflow-hidden border']}>
+	<button type="button" class={[buttonClasses, 'w-full']} onclick={handleHeaderClick}>
+		{#if isCircle}
+			<Icon type="circle" size="md" color="secondary" />
 		{/if}
-	</div>
-	{#if onEdit || menuItems.length > 0}
-		<div class="gap-control-item flex items-center" role="group">
+		<div class="min-w-0 flex-1 text-left">
+			<div class="gap-fieldGroup flex items-center">
+				{#if canEdit && onNameChange && !isCircle && roleId}
+					<InlineEditText
+						value={name}
+						onSave={onNameChange}
+						placeholder="Role name"
+						size="md"
+						className="truncate font-medium"
+					/>
+				{:else if editReason && !isCircle}
+					<EditPermissionTooltip reason={editReason}>
+						<p class="text-button text-primary truncate font-medium">{name}</p>
+					</EditPermissionTooltip>
+				{:else}
+					<p class="text-button text-primary truncate font-medium">{name}</p>
+				{/if}
+				{#if status}
+					<Badge variant={badgeVariant} size="md">
+						{badgeLabel}
+					</Badge>
+				{/if}
+			</div>
+			{#if !isCircle}
+				{#if canEdit && onPurposeChange && roleId}
+					<InlineEditText
+						value={purpose || ''}
+						onSave={onPurposeChange}
+						multiline={true}
+						placeholder="What's the purpose of this role?"
+						maxRows={2}
+						size="sm"
+						className="text-label"
+					/>
+				{:else if editReason}
+					<EditPermissionTooltip reason={editReason}>
+						<p class="text-label text-secondary">{purpose || 'No purpose set'}</p>
+					</EditPermissionTooltip>
+				{:else if purpose}
+					<p class="text-label text-secondary">{purpose}</p>
+				{/if}
+			{/if}
+		</div>
+		<div class="gap-fieldGroup flex items-center" role="group">
+			{#if onAddMember}
+				<Button
+					variant="ghost"
+					size="sm"
+					iconOnly
+					onclick={(e) => {
+						e?.stopPropagation();
+						onAddMember();
+					}}
+					ariaLabel="Add member to {name}"
+				>
+					<Icon type="add" size="sm" />
+				</Button>
+			{/if}
 			{#if onEdit}
-				{#snippet editIcon()}
-					<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-						/>
-					</svg>
-				{/snippet}
-				<IconButton
-					icon={editIcon}
+				<Button
+					variant="ghost"
+					size="sm"
+					iconOnly
 					onclick={(e) => {
 						e?.stopPropagation();
 						onEdit();
 					}}
 					ariaLabel="Edit {name}"
-				/>
+				>
+					<Icon type="edit" size="sm" />
+				</Button>
 			{/if}
 			{#if menuItems.length > 0}
-				<ActionMenu items={menuItems} />
+				<div class="flex-shrink-0" role="group">
+					<ActionMenu items={menuItems} />
+				</div>
 			{/if}
 		</div>
+	</button>
+	{#if showMembers}
+		<div class="border-subtle w-full shrink-0 border-t"></div>
+		<div class="gap-fieldGroup flex flex-col">
+			{#each members as member (member.userId)}
+				<RoleMemberItem
+					userId={member.userId}
+					name={member.name}
+					email={member.email}
+					avatarImage={member.avatarImage}
+					scope={isCircle ? member.roleName : member.scope}
+					selected={currentUserId ? member.userId === currentUserId : false}
+					menuItems={memberMenuItems ? memberMenuItems(member.userId) : []}
+				/>
+			{/each}
+		</div>
 	{/if}
-</button>
+</div>

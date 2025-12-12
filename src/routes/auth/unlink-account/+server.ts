@@ -4,6 +4,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { env as publicEnv } from '$env/dynamic/public';
 import { api } from '$convex/_generated/api';
 import type { Id } from '$convex/_generated/dataModel';
+import { invariant } from '$lib/utils/invariant';
 
 /**
  * Unlink a linked account
@@ -34,15 +35,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json({ error: 'Target user ID is required' }, { status: 400 });
 	}
 
-	if (!publicEnv.PUBLIC_CONVEX_URL) {
-		throw new Error('PUBLIC_CONVEX_URL must be configured.');
-	}
+	invariant(publicEnv.PUBLIC_CONVEX_URL, 'PUBLIC_CONVEX_URL must be configured.');
 
 	const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
 	try {
 		// Call Convex mutation to remove the link
-		await convex.mutation(api.users.unlinkAccounts, {
+		await convex.mutation(api.core.users.index.unlinkAccounts, {
 			sessionId: auth.sessionId,
 			targetUserId: targetUserId as Id<'users'>
 		});

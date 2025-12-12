@@ -2,13 +2,14 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
-	import NoteEditorWithDetection from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
+	import { getContext } from 'svelte';
 	import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
 	import { api } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
-	import type NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import type { Id } from '$lib/convex';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
@@ -20,6 +21,13 @@
 	const convexClient = browser ? useConvexClient() : null;
 	const getSessionId = () => $page.data.sessionId;
 	const note = useNote(convexClient, getSessionId);
+
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const NoteEditorWithDetection = coreAPI?.NoteEditorWithDetection;
+
+	type NoteEditorWithDetectionComponent = InstanceType<
+		NonNullable<CoreModuleAPI['NoteEditorWithDetection']>
+	>;
 
 	let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 	let editMode = $state(false);
@@ -108,7 +116,7 @@
 	}
 
 	function handleAIFlagged() {
-		note.markAsAIGenerated();
+		note.updateNoteAIFlag();
 	}
 
 	async function handleExportToDocs() {
@@ -116,11 +124,9 @@
 
 		try {
 			const sessionId = getSessionId();
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
+			invariant(sessionId, 'Session ID is required');
 
-			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
+			const result = await convexClient.mutation(api.features.notes.index.updateNoteDevDocsExport, {
 				sessionId,
 				noteId: inboxItem._id as Id<'inboxItems'>
 			});
@@ -142,7 +148,7 @@
 				.replace(/[^a-z0-9]+/g, '-')
 				.replace(/(^-|-$)/g, '') || 'untitled';
 
-		const success = await note.markForBlogExport(slug);
+		const success = await note.updateNoteExport(slug);
 		if (success) {
 			alert('Note marked for blog export!');
 		}
@@ -163,10 +169,11 @@
 <div class="flex h-full flex-col">
 	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
+		class="h-system-header border-base py-system-header bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
+		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Title + Save Status -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
 				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -178,7 +185,7 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small font-normal text-secondary">
+			<h2 class="text-small text-secondary font-normal">
 				{inboxItem.title || 'Untitled Note'}
 			</h2>
 			<span class="text-label text-tertiary">
@@ -187,7 +194,7 @@
 		</div>
 
 		<!-- Right: Actions -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<!-- Export to Docs Button -->
 			<Button variant="outline" onclick={handleExportToDocs}>Export to Docs</Button>
 
@@ -198,23 +205,27 @@
 
 	<!-- Note Editor -->
 	<div class="flex-1 overflow-y-auto">
-		<NoteEditorWithDetection
-			bind:this={editorRef}
-			content={inboxItem.content}
-			title={inboxItem.title}
-			onContentChange={handleContentChange}
-			onTitleChange={handleTitleChange}
-			onAIFlagged={handleAIFlagged}
-			isAIGenerated={inboxItem.isAIGenerated}
-			enableAIDetection={true}
-			autoFocus={false}
-		/>
+		{#if NoteEditorWithDetection}
+			<NoteEditorWithDetection
+				bind:this={editorRef}
+				content={inboxItem.content}
+				title={inboxItem.title}
+				onContentChange={handleContentChange}
+				onTitleChange={handleTitleChange}
+				onAIFlagged={handleAIFlagged}
+				isAIGenerated={inboxItem.isAIGenerated}
+				enableAIDetection={true}
+				autoFocus={false}
+			/>
+		{:else}
+			<p class="text-small text-secondary">Note editor unavailable</p>
+		{/if}
 	</div>
 
 	<!-- Footer with metadata -->
-	<div class="border-t border-base px-inbox-container py-system-header">
-		<div class="flex items-center justify-between text-label text-tertiary">
-			<div class="flex items-center gap-icon">
+	<div class="border-base px-inbox-container py-system-header border-t">
+		<div class="text-label text-tertiary flex items-center justify-between">
+			<div class="flex items-center gap-2">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
 				</span>
@@ -227,7 +238,7 @@
 
 			{#if inboxItem.blogCategory === 'BLOG'}
 				<span
-					class="rounded-chip bg-accent-primary px-badge py-badge text-label font-medium text-primary"
+					class="rounded-chip px-badge py-badge bg-accent-primary text-label text-primary font-medium"
 				>
 					BLOG
 				</span>

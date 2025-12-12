@@ -35,7 +35,7 @@ See [`api.ts`](./api.ts) for the complete `FlashcardsModuleAPI` interface.
 
 ## Dependencies
 
-- **Core** - Uses organization context and shared components
+- **Core** - Uses workspace context and shared components
 
 ## Usage
 
@@ -101,7 +101,7 @@ flashcards/
 - ✅ Spaced repetition algorithms
 - ✅ Study session management
 
-**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-organization-strategy.md) for complete testing patterns.
+**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-workspace-strategy.md) for complete testing patterns.
 
 ## Related Documentation
 

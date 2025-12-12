@@ -17,14 +17,14 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<div
-		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+		class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 	>
-		<h3 class="text-small font-normal text-primary">Importing...</h3>
+		<h3 class="text-small text-primary font-normal">Importing...</h3>
 		{#if onCancel}
 			<button
 				type="button"
 				onclick={onCancel}
-				class="text-label text-tertiary transition-colors hover:text-secondary"
+				class="text-label text-tertiary hover:text-secondary transition-colors"
 			>
 				Cancel
 			</button>
@@ -33,14 +33,14 @@
 
 	<!-- Content -->
 	<div
-		class="flex flex-1 items-center justify-center overflow-y-auto px-inbox-container py-inbox-container"
+		class="px-inbox-container py-inbox-container flex flex-1 items-center justify-center overflow-y-auto"
 	>
-		<div class="flex w-full max-w-md flex-col gap-settings-section">
+		<div class="gap-settings-section flex w-full max-w-md flex-col">
 			<!-- Progress Bar -->
-			<div class="flex flex-col gap-form-section">
-				<div class="flex flex-col gap-icon">
-					<div class="flex items-center justify-between text-label">
-						<span class="font-medium text-secondary">{step}</span>
+			<div class="gap-form-section flex flex-col">
+				<div class="flex flex-col gap-2">
+					<div class="text-label flex items-center justify-between">
+						<span class="text-secondary font-medium">{step}</span>
 						{#if total}
 							<span class="text-tertiary">{current} of {total}</span>
 						{:else if current > 0}
@@ -48,14 +48,14 @@
 						{/if}
 					</div>
 
-					<div class="h-2.5 w-full overflow-hidden rounded-chip bg-base">
+					<div class="rounded-chip bg-base h-2.5 w-full overflow-hidden">
 						<div
-							class="bg-primary h-full transition-all duration-300 ease-out"
+							class="bg-interactive-primary h-full transition-all duration-300 ease-out"
 							style="width: {progressPercentage}%"
 						></div>
 					</div>
 					{#if total}
-						<p class="text-center text-label text-tertiary">
+						<p class="text-label text-tertiary text-center">
 							Processing {current} of {total} highlights...
 						</p>
 					{/if}
@@ -64,13 +64,13 @@
 
 			<!-- Message -->
 			{#if message}
-				<p class="text-center text-small text-secondary">{message}</p>
+				<p class="text-small text-secondary text-center">{message}</p>
 			{/if}
 
 			<!-- Loading Indicator -->
 			<div class="flex justify-center">
 				<svg
-					class="icon-md animate-spin text-primary"
+					class="icon-md text-primary animate-spin"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

@@ -24,7 +24,7 @@ tests/convex/integration/
 ├── setup.ts (test helpers and fixtures)
 ├── tags.integration.test.ts
 ├── flashcards.integration.test.ts
-├── organizations.integration.test.ts
+├── workspaces.integration.test.ts
 ├── users.integration.test.ts
 └── rbac.integration.test.ts
 ```

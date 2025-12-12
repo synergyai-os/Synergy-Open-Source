@@ -1,12 +1,8 @@
 <script lang="ts">
-	/**
-	 * Reusable Form Textarea Component
-	 *
-	 * Consistent textarea with label, using design tokens throughout.
-	 * Ensures all textareas have the same styling across the app.
-	 */
+	import { formTextareaRecipe, type FormTextareaVariantProps } from '$lib/design-system/recipes';
+	import Text from './Text.svelte';
 
-	type Props = {
+	type Props = FormTextareaVariantProps & {
 		id?: string;
 		label?: string;
 		placeholder?: string;
@@ -15,9 +11,11 @@
 		required?: boolean;
 		disabled?: boolean;
 		class?: string; // Allow custom classes for specific cases
+		oninput?: ((e: Event & { currentTarget: HTMLTextAreaElement }) => void) | undefined;
 	};
 
 	let {
+		size = 'md',
 		id,
 		label,
 		placeholder = '',
@@ -25,20 +23,26 @@
 		rows = 4,
 		required = false,
 		disabled = false,
-		class: customClass = ''
+		class: customClass = '',
+		oninput
 	}: Props = $props();
 
 	// Generate ID if not provided
 	const inputId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+
+	// Apply recipe with size variant and custom classes
+	const textareaClasses = $derived([formTextareaRecipe({ size }), customClass]);
 </script>
 
-<div class="flex flex-col gap-form-field">
+<div class="flex flex-col gap-2">
 	{#if label}
-		<label for={inputId} class="text-small font-medium text-label-primary">
-			{label}
-			{#if required}
-				<span class="text-accent-primary">*</span>
-			{/if}
+		<label for={inputId}>
+			<Text variant="body" size="sm" color="default" as="span" class="font-medium">
+				{label}
+				{#if required}
+					<span class="text-brand">*</span>
+				{/if}
+			</Text>
 		</label>
 	{/if}
 	<textarea
@@ -48,7 +52,7 @@
 		{required}
 		{disabled}
 		bind:value
-		class="resize-y rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
-		>{value}</textarea
+		{oninput}
+		class={textareaClasses}>{value}</textarea
 	>
 </div>

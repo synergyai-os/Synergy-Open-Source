@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button, FormInput } from '$lib/components/ui';
+	import { Button, FormInput } from '$lib/components/atoms';
 	import { RateLimitError } from '$lib/components/organisms';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -65,16 +65,16 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base">
+<div class="bg-base min-h-screen">
 	<div
-		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="py-system-content mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
+			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-sm"
 		>
-			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-2xl font-semibold tracking-tight text-primary">Reset your password</h1>
-				<p class="text-sm text-secondary">
+			<header class="gap-form-section flex flex-col text-center">
+				<h1 class="text-h2 text-primary font-semibold tracking-tight">Reset your password</h1>
+				<p class="text-small text-secondary">
 					Enter your email address and we'll send you a link to reset your password.
 				</p>
 			</header>
@@ -85,25 +85,26 @@
 				</div>
 			{:else if successMessage}
 				<div
-					class="mt-content-section rounded-input border border-accent-primary bg-surface px-input-x py-input-y"
+					class="mt-content-section rounded-input border-accent-primary bg-surface px-input-x py-input-y border"
+					data-testid="forgot-password-success"
 				>
-					<p class="text-sm font-medium text-primary">{successMessage}</p>
+					<p class="text-small text-primary font-medium">{successMessage}</p>
 				</div>
 				<div class="mt-content-section text-center">
-					<p class="text-sm text-secondary">
+					<p class="text-small text-secondary">
 						Check your email for the reset link. It may take a few minutes to arrive.
 					</p>
 				</div>
 			{:else if errorMessage}
 				<div
-					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
+					class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border"
 				>
-					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+					<p class="text-small text-error-secondary font-medium">{errorMessage}</p>
 				</div>
 			{/if}
 
 			{#if !successMessage}
-				<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
+				<form class="mt-content-section gap-form-section flex flex-col" onsubmit={handleSubmit}>
 					<FormInput
 						type="email"
 						label="Email"
@@ -124,9 +125,9 @@
 			{/if}
 
 			<div class="mt-content-section text-center">
-				<p class="text-sm text-secondary">
+				<p class="text-small text-secondary">
 					Remember your password?
-					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
+					<a href={resolveRoute('/login')} class="hover:text-accent-hover text-accent-primary"
 						>Sign in</a
 					>
 				</p>

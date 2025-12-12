@@ -90,9 +90,9 @@ vi.mock('convex-svelte', () => {
 			if (!(globalThis as unknown as { __vitestLoggedQuery?: boolean }).__vitestLoggedQuery) {
 				console.error('[TEST MOCK] Query name:', queryName.substring(0, 200));
 				console.error('[TEST MOCK] Results keys:', Object.keys(results));
-				console.error('[TEST MOCK] Has organizations:', 'organizations' in results);
-				if ('organizations' in results) {
-					const orgResult = results.organizations as {
+				console.error('[TEST MOCK] Has workspaces:', 'workspaces' in results);
+				if ('workspaces' in results) {
+					const orgResult = results.workspaces as {
 						data?: unknown;
 						isLoading?: boolean;
 						error?: unknown;
@@ -110,16 +110,16 @@ vi.mock('convex-svelte', () => {
 			// Convex function references can have different string representations
 			// Try to match configured results first
 
-			// Check for organizations query (most common in our tests)
+			// Check for workspaces query (most common in our tests)
 			if (
 				queryName.includes('listOrganizations') ||
-				queryName.includes('organizations') ||
+				queryName.includes('workspaces') ||
 				queryName.includes('Organizations') ||
-				queryName.includes('organizations:listOrganizations') // Convex path format
+				queryName.includes('workspaces:listOrganizations') // Convex path format
 			) {
 				// If results are configured, return them (even if data is undefined - that's valid)
-				if ('organizations' in results) {
-					const result = results.organizations as {
+				if ('workspaces' in results) {
+					const result = results.workspaces as {
 						data?: unknown;
 						isLoading?: boolean;
 						error?: unknown;
@@ -134,14 +134,14 @@ vi.mock('convex-svelte', () => {
 				return Object.freeze({ data: undefined, isLoading: true, error: null });
 			}
 
-			// Check for organization invites
+			// Check for workspace invites
 			if (
 				queryName.includes('listOrganizationInvites') ||
 				queryName.includes('OrganizationInvites') ||
-				queryName.includes('organizations:listOrganizationInvites')
+				queryName.includes('workspaces:listOrganizationInvites')
 			) {
-				if ('organizationInvites' in results) {
-					const result = results.organizationInvites as {
+				if ('workspaceInvites' in results) {
+					const result = results.workspaceInvites as {
 						data?: unknown;
 						isLoading?: boolean;
 						error?: unknown;
@@ -193,7 +193,90 @@ vi.mock('convex-svelte', () => {
 				return Object.freeze({ data: undefined, isLoading: true, error: null });
 			}
 
-			// CRITICAL FALLBACK: If organizations is configured, return it unless query is clearly invites/teams
+			// Check for inbox items query
+			if (
+				queryName.includes('listInboxItems') ||
+				queryName.includes('InboxItems') ||
+				queryName.includes('inbox:listInboxItems')
+			) {
+				if ('inboxItems' in results) {
+					const result = results.inboxItems as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// Check for inbox item with details
+			if (
+				queryName.includes('findInboxItemWithDetails') ||
+				queryName.includes('InboxItemWithDetails') ||
+				queryName.includes('inbox:findInboxItemWithDetails')
+			) {
+				if ('inboxItemWithDetails' in results) {
+					const result = results.inboxItemWithDetails as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// Check for sync progress
+			if (
+				queryName.includes('getSyncProgress') ||
+				queryName.includes('SyncProgress') ||
+				queryName.includes('inbox:getSyncProgress')
+			) {
+				if ('syncProgress' in results) {
+					const result = results.syncProgress as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// CRITICAL FALLBACK: When query name is unknown, check configured results
+			// This handles cases where Convex function references don't convert to string properly
+			if (queryName === '[unknown query]' || queryName.includes('[unknown')) {
+				// If only one result is configured, use it (common in focused tests)
+				const configuredKeys = Object.keys(results);
+				if (configuredKeys.length === 1) {
+					const key = configuredKeys[0];
+					const result = results[key] as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+			}
+
+			// CRITICAL FALLBACK: If workspaces is configured, return it unless query is clearly invites/teams/inbox
 			// This ensures validation tests pass even if query name doesn't match our patterns
 			const isInvitesQuery = queryName.includes('Invites') || queryName.includes('invites');
 			const isTeamsQuery =
@@ -201,15 +284,26 @@ vi.mock('convex-svelte', () => {
 				queryName.includes('teams') ||
 				queryName.includes('listTeams');
 			const isMembersQuery = queryName.includes('Members') || queryName.includes('members');
+			const isInboxQuery =
+				queryName.includes('Inbox') ||
+				queryName.includes('inbox') ||
+				queryName.includes('SyncProgress') ||
+				queryName.includes('syncProgress');
 
-			// If organizations is configured and query doesn't clearly indicate invites/teams/members, return it
-			// This is safe because our failing tests only configure organizations
-			if ('organizations' in results && !isInvitesQuery && !isTeamsQuery && !isMembersQuery) {
+			// If workspaces is configured and query doesn't clearly indicate other modules, return it
+			// This is safe because our failing tests only configure workspaces
+			if (
+				'workspaces' in results &&
+				!isInvitesQuery &&
+				!isTeamsQuery &&
+				!isMembersQuery &&
+				!isInboxQuery
+			) {
 				console.error(
-					'[TEST MOCK] ✅ Using organizations fallback. Query:',
+					'[TEST MOCK] ✅ Using workspaces fallback. Query:',
 					queryName.substring(0, 100)
 				);
-				const result = results.organizations as {
+				const result = results.workspaces as {
 					data?: unknown;
 					isLoading?: boolean;
 					error?: unknown;

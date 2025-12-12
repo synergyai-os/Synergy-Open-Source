@@ -69,7 +69,7 @@ export const GET: RequestHandler = async ({ url, getClientAddress }) => {
 	try {
 		// Query Convex for the actual verification code
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-		const codeData = await convex.query(api.verification.getCodeForTesting, {
+		const codeData = await convex.query(api.infrastructure.auth.verification.getCodeForTesting, {
 			email,
 			type
 		});

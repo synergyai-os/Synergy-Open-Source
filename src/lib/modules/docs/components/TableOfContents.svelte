@@ -16,16 +16,42 @@
 
 	// Spring physics for smooth, organic animations
 	let panelScale = spring(1, { stiffness: 0.3, damping: 0.8 });
-	let panelOpacity = spring(1, { stiffness: 0.2, damping: 0.9 });
+
+	function readOpacityToken(tokenName: string, fallback: number) {
+		if (typeof window === 'undefined') return fallback;
+		const root = document.documentElement;
+		const value = getComputedStyle(root).getPropertyValue(tokenName).trim();
+		const parsed = value ? parseFloat(value) : Number.NaN;
+		return Number.isFinite(parsed) ? parsed : fallback;
+	}
+
+	// Use semantic opacity tokens (100 for full, 80 for collapsed/hover)
+	const opacityFull = $derived(() => readOpacityToken('--opacity-100', Number.NaN));
+	const opacityCollapsed = $derived(() => readOpacityToken('--opacity-80', opacityFull()));
+	const initialPanelOpacity = $derived(() => {
+		const collapsed = opacityCollapsed();
+		const full = opacityFull();
+		return Number.isFinite(collapsed) ? collapsed : full;
+	});
+
+	let panelOpacity = spring(initialPanelOpacity(), { stiffness: 0.2, damping: 0.9 });
+
+	$effect(() => {
+		const collapsedOpacity = opacityCollapsed();
+		const fallbackOpacity = opacityFull();
+		panelOpacity.set(Number.isFinite(collapsedOpacity) ? collapsedOpacity : fallbackOpacity);
+	});
 
 	// React to hover state with spring physics
 	$effect(() => {
+		const collapsedOpacity = opacityCollapsed();
+		const fullOpacity = opacityFull();
 		if (isHovering && !isOpen) {
 			panelScale.set(1.02);
-			panelOpacity.set(1);
+			panelOpacity.set(fullOpacity);
 		} else {
 			panelScale.set(1);
-			panelOpacity.set(isOpen ? 1 : 0.95);
+			panelOpacity.set(isOpen ? fullOpacity : collapsedOpacity);
 		}
 	});
 
@@ -217,7 +243,7 @@
 	.toc-panel.collapsed {
 		width: 48px;
 		height: auto;
-		padding: var(--spacing-control-panel-padding) calc(var(--spacing-control-panel-padding) * 0.5);
+		padding: var(--spacing-3) calc(var(--spacing-3) * 0.5);
 		background: transparent;
 		border: none;
 		box-shadow: none;
@@ -463,7 +489,8 @@
 	}
 
 	/* Hide on small screens */
-	@media (max-width: 1280px) {
+	/* Token: --breakpoint-xl (1280px) from design-system.json */
+	@media (max-width: var(--breakpoint-xl)) {
 		.toc-panel {
 			display: none;
 		}

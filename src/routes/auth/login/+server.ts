@@ -11,6 +11,9 @@ import {
 	encryptSecret
 } from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { invariant } from '$lib/utils/invariant';
+import { logger } from '$lib/utils/logger';
 
 /**
  * Headless password authentication endpoint
@@ -52,7 +55,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		console.log('🔍 Syncing user to Convex...');
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -72,8 +76,16 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 			// Get primary user from current session
 			const primaryUserId = event.locals.auth?.user?.userId as Id<'users'> | undefined;
+			const primarySessionId = event.locals.auth?.sessionId as string | undefined;
 			if (!primaryUserId) {
 				console.error('❌ No primary user in session for linking');
+				return json(
+					{ error: 'Session expired. Please log in again to link accounts.' },
+					{ status: 401 }
+				);
+			}
+			if (!primarySessionId) {
+				console.error('❌ No sessionId in session for linking');
 				return json(
 					{ error: 'Session expired. Please log in again to link accounts.' },
 					{ status: 401 }
@@ -84,9 +96,9 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				console.log('🔗 Linking accounts:', { primaryUserId, linkedUserId: convexUserId });
 
 				// Link the accounts in Convex
-				await convex.mutation(api.users.linkAccounts, {
-					primaryUserId: primaryUserId as Id<'users'>,
-					linkedUserId: convexUserId
+				await convex.mutation(api.core.users.index.linkAccounts, {
+					sessionId: primarySessionId,
+					targetUserId: convexUserId
 				});
 
 				console.log('✅ Accounts linked successfully');
@@ -98,7 +110,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				const refreshTokenCiphertext = encryptSecret(authResponse.refresh_token);
 				const csrfTokenHash = hashValue(linkedCsrfToken);
 
-				await convex.mutation(api.authSessions.createSession, {
+				await convex.mutation(api.infrastructure.authSessions.createSession, {
 					sessionId: linkedSessionId,
 					convexUserId,
 					workosUserId: authResponse.user.id,
@@ -152,7 +164,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				// Redirect with linked=1 flag to show success toast
 				return json({
 					success: true,
-					redirectTo: `${redirect ?? '/inbox'}?linked=1`
+					redirectTo: `${redirect ?? '/auth/redirect'}?linked=1`
 				});
 			} catch (linkError: unknown) {
 				console.error('❌ Account linking failed:', linkError);
@@ -212,8 +224,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		console.log('✅ Session established successfully');
 
 		// Check if user logged in from invite link - accept invite automatically
-		let redirectTo = redirect ?? '/inbox';
-		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+		let redirectTo: string | undefined = redirect ?? undefined;
+		const inviteMatch = redirectTo?.match(/^\/invite\?code=([^&]+)/);
 
 		if (inviteMatch) {
 			const inviteCode = inviteMatch[1];
@@ -227,7 +239,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
-					redirectTo = '/inbox';
+					redirectTo = undefined;
 				} else if (inviteDetails.type === 'organization') {
 					// Accept organization invite
 					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
@@ -243,19 +255,42 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);
-					redirectTo = '/inbox';
+					redirectTo = undefined;
 				}
 			} catch (inviteError) {
 				console.error('❌ Failed to accept invite:', inviteError);
-				// If invite acceptance fails, redirect to inbox instead
-				// User can manually accept invite later if needed
-				redirectTo = '/inbox';
+				// If invite acceptance fails, fall back to default workspace redirect
+				redirectTo = undefined;
 			}
 		}
 
+		// Default to workspace-scoped inbox if no explicit redirect
+		if (!redirectTo) {
+			try {
+				redirectTo = await resolveWorkspaceRedirect({
+					client: convex,
+					sessionId: event.locals.auth.sessionId!,
+					activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+				});
+			} catch (resolveError) {
+				logger.warn(
+					'auth.login',
+					'Failed to resolve workspace redirect after login, sending to onboarding',
+					{
+						error: String(resolveError),
+						userId: event.locals.auth.user?.userId
+					}
+				);
+				redirectTo = '/onboarding?auth_fallback=login_resolve_failed';
+			}
+		}
+
+		const finalRedirect =
+			redirectTo ?? (() => invariant(false, 'Failed to resolve post-login redirect'))();
+
 		return json({
 			success: true,
-			redirectTo
+			redirectTo: finalRedirect
 		});
 	} catch (err) {
 		console.error('❌ Login error:', err);

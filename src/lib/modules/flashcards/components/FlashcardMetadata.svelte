@@ -6,8 +6,9 @@
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -33,28 +34,28 @@
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get workspace context for organization filtering
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	// Get workspace context for workspace filtering
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const activeWorkspaceId = $derived(() => workspaces?.activeWorkspaceId ?? null);
 
 	// Get core module API from context for TagSelector and tagging (enables loose coupling - see SYOS-308, SYOS-317)
 	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
 	const TagSelector = coreAPI?.TagSelector;
 	// Setup tagging system for flashcards using core API
 	const tagging = coreAPI?.useTagging('flashcard', getUserId, getSessionId, () =>
-		activeOrganizationId()
+		activeWorkspaceId()
 	);
 
-	// Load all available tags (filtered by active organization)
+	// Load all available tags (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					const orgId = activeOrganizationId();
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
+					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+						...(orgId ? { workspaceId: orgId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;
@@ -63,9 +64,9 @@
 	// Query tags for this flashcard (using the correct endpoint we created)
 	const flashcardTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.getTagsForFlashcard, () => {
+			? useQuery(api.features.tags.index.listTagsForFlashcard, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						flashcardId: flashcard._id
@@ -108,9 +109,7 @@
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!tagging) {
-			throw new Error('Tagging API not available');
-		}
+		invariant(tagging, 'Tagging API not available');
 		try {
 			return await tagging.createTag(displayName, color, parentId);
 		} catch (error) {
@@ -180,10 +179,10 @@
 	const reviewCount = $derived(flashcard.reps || 0);
 </script>
 
-<div class="flex h-full flex-col gap-settings-section">
+<div class="gap-settings-section flex h-full flex-col">
 	<!-- Tags Section - Now Interactive! -->
 	{#if TagSelector}
-		<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
+		<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
 			<TagSelector
 				bind:comboboxOpen={tagComboboxOpen}
 				bind:selectedTagIds
@@ -195,30 +194,30 @@
 	{/if}
 
 	<!-- FSRS Stats Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
-		<h3 class="text-label tracking-wider text-secondary uppercase">FSRS Stats</h3>
-		<div class="flex flex-col gap-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
+		<h3 class="text-label text-secondary tracking-wider uppercase">FSRS Stats</h3>
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Stability</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{flashcard.fsrsStability?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Difficulty</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{flashcard.fsrsDifficulty?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">State</span>
-				<span class="text-small font-medium text-primary capitalize">
+				<span class="text-small text-primary font-medium capitalize">
 					{flashcard.fsrsState ?? 'new'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Next Review</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{formatNextReview(flashcard.fsrsDue)}
 				</span>
 			</div>
@@ -226,21 +225,21 @@
 	</div>
 
 	<!-- Review History Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
-		<h3 class="text-label tracking-wider text-secondary uppercase">Review History</h3>
-		<div class="flex flex-col gap-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
+		<h3 class="text-label text-secondary tracking-wider uppercase">Review History</h3>
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Total Reviews</span>
-				<span class="text-small font-medium text-primary">{reviewCount}</span>
+				<span class="text-small text-primary font-medium">{reviewCount}</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Lapses</span>
-				<span class="text-small font-medium text-primary">{flashcard.lapses || 0}</span>
+				<span class="text-small text-primary font-medium">{flashcard.lapses || 0}</span>
 			</div>
 			{#if flashcard.lastReviewAt}
 				<div class="flex items-center justify-between">
 					<span class="text-small text-secondary">Last Reviewed</span>
-					<span class="text-small font-medium text-primary">
+					<span class="text-small text-primary font-medium">
 						{formatDate(flashcard.lastReviewAt)}
 					</span>
 				</div>
@@ -249,27 +248,27 @@
 	</div>
 
 	<!-- Card Info Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
-		<h3 class="text-label tracking-wider text-secondary uppercase">Card Info</h3>
-		<div class="flex flex-col gap-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
+		<h3 class="text-label text-secondary tracking-wider uppercase">Card Info</h3>
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Created</span>
-				<span class="text-small font-medium text-primary">{formatDate(flashcard.createdAt)}</span>
+				<span class="text-small text-primary font-medium">{formatDate(flashcard.createdAt)}</span>
 			</div>
 		</div>
 	</div>
 
 	<!-- Actions -->
-	<div class="mt-auto flex flex-col gap-settings-section pt-settings-section">
+	<div class="gap-settings-section pt-settings-section mt-auto flex flex-col">
 		<Button.Root
 			onclick={onEdit}
-			class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-primary transition-colors hover:bg-hover-solid"
+			class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-primary w-full border px-2 font-medium transition-colors"
 		>
 			Edit Card
 		</Button.Root>
 		<Button.Root
 			onclick={onDelete}
-			class="w-full rounded-button bg-destructive px-nav-item py-nav-item text-small font-medium text-primary transition-colors hover:bg-destructive-hover"
+			class="bg-destructive py-nav-item text-small hover:bg-destructive-hover rounded-button text-primary w-full px-2 font-medium transition-colors"
 		>
 			Delete Card
 		</Button.Root>

@@ -24,14 +24,14 @@ describe('Tags Integration Tests', () => {
 
 	it('should list user tags without type errors', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId: testUserId } = await createTestSession(t);
+		const { sessionId, userId: testUserId, workspaceId } = await createTestSession(t);
 		userId = testUserId;
 
 		// Create a test tag
-		await createTestTag(t, userId, 'Test Tag 1');
+		await createTestTag(t, userId, 'Test Tag 1', workspaceId);
 
 		// This would fail if userId is an object (destructuring bug)
-		const tags = await t.query(api.tags.listUserTags, { sessionId });
+		const tags = await t.query(api.features.tags.index.listUserTags, { sessionId });
 
 		expect(tags).toBeDefined();
 		expect(Array.isArray(tags)).toBe(true);
@@ -40,14 +40,14 @@ describe('Tags Integration Tests', () => {
 
 	it('should list user tags with ownership info', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId: testUserId } = await createTestSession(t);
+		const { sessionId, userId: testUserId, workspaceId } = await createTestSession(t);
 		userId = testUserId;
 
 		// Create test tags
-		await createTestTag(t, userId, 'Personal Tag');
+		await createTestTag(t, userId, 'Personal Tag', workspaceId);
 
 		// Query with sessionId (tests destructuring)
-		const tags = await t.query(api.tags.listUserTags, { sessionId });
+		const tags = await t.query(api.features.tags.index.listUserTags, { sessionId });
 
 		expect(tags).toBeDefined();
 		expect(Array.isArray(tags)).toBe(true);
@@ -58,14 +58,14 @@ describe('Tags Integration Tests', () => {
 
 	it('should get tags by ownership', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId: testUserId } = await createTestSession(t);
+		const { sessionId, userId: testUserId, workspaceId } = await createTestSession(t);
 		userId = testUserId;
 
 		// Create test tags
-		await createTestTag(t, userId, 'User Tag');
+		await createTestTag(t, userId, 'User Tag', workspaceId);
 
 		// Query user tags (tests destructuring)
-		const tags = await t.query(api.tags.listUserTags, {
+		const tags = await t.query(api.features.tags.index.listUserTags, {
 			sessionId
 		});
 
@@ -76,14 +76,14 @@ describe('Tags Integration Tests', () => {
 
 	it('should get tag details', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId: testUserId } = await createTestSession(t);
+		const { sessionId, userId: testUserId, workspaceId } = await createTestSession(t);
 		userId = testUserId;
 
 		// Create test tag
-		await createTestTag(t, userId, 'Detail Tag');
+		await createTestTag(t, userId, 'Detail Tag', workspaceId);
 
 		// List tags to verify creation (tests destructuring)
-		const tags = await t.query(api.tags.listUserTags, {
+		const tags = await t.query(api.features.tags.index.listUserTags, {
 			sessionId
 		});
 
@@ -97,7 +97,7 @@ describe('Tags Integration Tests', () => {
 
 		// Try to query with invalid sessionId
 		await expect(
-			t.query(api.tags.listUserTags, {
+			t.query(api.features.tags.index.listUserTags, {
 				sessionId: 'invalid_session_id'
 			})
 		).rejects.toThrow('Session not found');
@@ -107,14 +107,14 @@ describe('Tags Integration Tests', () => {
 		const t = convexTest(schema, modules);
 
 		// Create two users
-		const { sessionId: _session1, userId: user1 } = await createTestSession(t);
-		const { sessionId: session2, userId: user2 } = await createTestSession(t);
+		const { sessionId: _session1, userId: user1, workspaceId: ws1 } = await createTestSession(t);
+		const { sessionId: session2, userId: user2, workspaceId: ws2 } = await createTestSession(t);
 
 		// Create tags for user1
-		await createTestTag(t, user1, 'User 1 Tag');
+		await createTestTag(t, user1, 'User 1 Tag', ws1);
 
 		// User2 should not see user1's tags
-		const user2Tags = await t.query(api.tags.listUserTags, {
+		const user2Tags = await t.query(api.features.tags.index.listUserTags, {
 			sessionId: session2
 		});
 

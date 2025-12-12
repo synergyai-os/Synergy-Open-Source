@@ -4,12 +4,15 @@ import type { Id } from '$lib/convex';
 import { decryptSecret, encryptSecret, generateSessionId, hashValue } from './crypto';
 import type { ConvexClient } from '$lib/types/convex';
 import type { AuthFlowMode, LoginStateMetadata, SessionSnapshot, SessionRecord } from '../types';
+import { logger } from '$lib/utils/logger';
+import { invariant } from '$lib/utils/invariant';
 
 const LOGIN_STATE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
-if (!publicEnv.PUBLIC_CONVEX_URL) {
-	throw new Error('PUBLIC_CONVEX_URL must be configured to use headless WorkOS auth.');
-}
+invariant(
+	publicEnv.PUBLIC_CONVEX_URL,
+	'PUBLIC_CONVEX_URL must be configured to use headless WorkOS auth.'
+);
 
 // Track if we've logged the Convex URL (one-time startup log)
 let hasLoggedConvexUrl = false;
@@ -17,18 +20,23 @@ let hasLoggedConvexUrl = false;
 function createConvexClient() {
 	// Debug logging for E2E tests to verify Convex URL
 	if (process.env.E2E_TEST_MODE === 'true') {
-		console.log('🔍 [E2E Debug] PUBLIC_CONVEX_URL:', publicEnv.PUBLIC_CONVEX_URL);
+		logger.debug('general', 'E2E Debug: PUBLIC_CONVEX_URL', {
+			url: publicEnv.PUBLIC_CONVEX_URL
+		});
 	}
 
 	// Log Convex URL once at startup (dev mode only)
 	if (!hasLoggedConvexUrl && process.env.NODE_ENV !== 'production') {
-		console.log('🔍 [Convex] Using deployment:', publicEnv.PUBLIC_CONVEX_URL);
+		logger.debug('general', 'Convex deployment initialized', {
+			deploymentUrl: publicEnv.PUBLIC_CONVEX_URL
+		});
 		hasLoggedConvexUrl = true;
 	}
 
-	if (!publicEnv.PUBLIC_CONVEX_URL) {
-		throw new Error('PUBLIC_CONVEX_URL is not set. Check your .env.local file.');
-	}
+	invariant(
+		publicEnv.PUBLIC_CONVEX_URL,
+		'PUBLIC_CONVEX_URL is not set. Check your .env.local file.'
+	);
 
 	return new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 }
@@ -52,13 +60,13 @@ export async function createLoginState(options: {
 	// ConvexHttpClient has mutation/query methods but they're not in type definitions
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
 
-	await convexMutation('authSessions:createLoginState', {
+	await convexMutation('infrastructure/authSessions:createLoginState', {
 		stateHash: hashValue(options.state),
 		codeVerifierCiphertext: encryptSecret(options.codeVerifier),
 		redirectTo: options.redirectTo,
 		flowMode: options.flowMode,
 		linkAccount: options.linkAccount ?? false,
-		primaryUserId: options.primaryUserId,
+		ownerUserId: options.primaryUserId,
 		ipAddress: options.ipAddress,
 		userAgent: options.userAgent ?? undefined,
 		createdAt: now,
@@ -69,7 +77,7 @@ export async function createLoginState(options: {
 export async function consumeLoginState(state: string) {
 	const client = createConvexClient();
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
-	const result = (await convexMutation('authSessions:consumeLoginState', {
+	const result = (await convexMutation('infrastructure/authSessions:consumeLoginState', {
 		stateHash: hashValue(state),
 		now: Date.now()
 	})) as {
@@ -114,10 +122,10 @@ export async function createSessionRecord(options: {
 	const now = options.now ?? Date.now();
 
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
-	await convexMutation('authSessions:createSession', {
+	await convexMutation('infrastructure/authSessions:createSession', {
 		sessionId,
-		convexUserId: options.convexUserId,
-		workosUserId: options.workosUserId,
+		ownerUserId: options.convexUserId,
+		workosUserIdentifier: options.workosUserId,
 		workosSessionId: options.workosSessionId,
 		accessTokenCiphertext: encryptSecret(options.accessToken),
 		refreshTokenCiphertext: encryptSecret(options.refreshToken),
@@ -137,7 +145,9 @@ export async function getSessionRecord(sessionId: string): Promise<SessionRecord
 	const convexQuery = (client as unknown as ConvexClient).query.bind(client);
 
 	try {
-		const result = (await convexQuery('authSessions:getSessionById', { sessionId })) as {
+		const result = (await convexQuery('infrastructure/authSessions:getSessionById', {
+			sessionId
+		})) as {
 			sessionId: string;
 			convexUserId: Id<'users'>;
 			workosUserId: string;
@@ -186,13 +196,15 @@ export async function getSessionRecord(sessionId: string): Promise<SessionRecord
 	}
 }
 
-export async function getActiveSessionRecordForUser(
-	userId: Id<'users'>
-): Promise<SessionRecord | null> {
+export async function getActiveSessionRecordForUser(options: {
+	sessionId: string;
+	targetUserId: Id<'users'>;
+}): Promise<SessionRecord | null> {
 	const client = createConvexClient();
 	const convexQuery = (client as unknown as ConvexClient).query.bind(client);
-	const result = (await convexQuery('authSessions:getActiveSessionForUser', {
-		userId
+	const result = (await convexQuery('infrastructure/authSessions:getActiveSessionForUser', {
+		sessionId: options.sessionId,
+		targetUserId: options.targetUserId
 	})) as {
 		sessionId: string;
 		expiresAt: number;
@@ -217,7 +229,7 @@ export async function updateSessionSecrets(options: {
 	const client = createConvexClient();
 
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
-	await convexMutation('authSessions:updateSessionSecrets', {
+	await convexMutation('infrastructure/authSessions:updateSessionSecrets', {
 		sessionId: options.sessionId,
 		newSessionId: options.newSessionId,
 		accessTokenCiphertext: options.accessToken ? encryptSecret(options.accessToken) : undefined,
@@ -236,7 +248,7 @@ export async function touchSession(options: {
 }) {
 	const client = createConvexClient();
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
-	await convexMutation('authSessions:touchSession', {
+	await convexMutation('infrastructure/authSessions:touchSession', {
 		sessionId: options.sessionId,
 		lastSeenAt: options.now ?? Date.now(),
 		ipAddress: options.ipAddress,
@@ -247,7 +259,7 @@ export async function touchSession(options: {
 export async function invalidateSession(sessionId: string) {
 	const client = createConvexClient();
 	const convexMutation = (client as unknown as ConvexClient).mutation.bind(client);
-	await convexMutation('authSessions:invalidateSession', {
+	await convexMutation('infrastructure/authSessions:invalidateSession', {
 		sessionId,
 		revokedAt: Date.now()
 	});

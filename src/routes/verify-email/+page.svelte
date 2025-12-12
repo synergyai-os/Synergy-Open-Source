@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { PinInput, Button } from '$lib/components/ui';
+	import { PinInput, Button } from '$lib/components/atoms';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -39,7 +39,9 @@
 
 		// Get redirect target
 		const redirectParam = $page.url.searchParams.get('redirect');
-		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+		const redirectTarget = redirectParam
+			? resolveRoute(redirectParam)
+			: resolveRoute('/auth/redirect');
 
 		// Start countdown timer
 		redirectCountdown = 10;
@@ -70,7 +72,9 @@
 			redirectTimer = null;
 		}
 		const redirectParam = $page.url.searchParams.get('redirect');
-		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+		const redirectTarget = redirectParam
+			? resolveRoute(redirectParam)
+			: resolveRoute('/auth/redirect');
 		goto(redirectTarget);
 	}
 
@@ -80,7 +84,7 @@
 			clearInterval(redirectTimer);
 			redirectTimer = null;
 		}
-		const redirectParam = $page.url.searchParams.get('redirect') ?? '/inbox';
+		const redirectParam = $page.url.searchParams.get('redirect') ?? '/auth/redirect';
 		goto(
 			resolveRoute(
 				`/login?email=${encodeURIComponent(email)}&redirectTo=${encodeURIComponent(redirectParam)}`
@@ -189,7 +193,7 @@
 			}
 
 			// Success - redirect (user is now authenticated)
-			await goto(data.redirectTo ?? resolveRoute('/inbox'));
+			await goto(data.redirectTo ?? resolveRoute('/auth/redirect'));
 		} catch (_err) {
 			console.error('Verification error:', _err);
 			errorMessage = 'Network error. Please check your connection and try again.';
@@ -237,28 +241,28 @@
 	}
 </script>
 
-<div class="relative min-h-screen overflow-hidden bg-base">
+<div class="bg-base relative min-h-screen overflow-hidden">
 	<!-- Animated background gradient -->
 	{#if mounted}
 		<div
-			class="animate-gradient absolute inset-0 bg-gradient-to-br from-accent-primary/5 via-transparent to-accent-primary/10"
+			class="animate-gradient from-accent-primary/5 to-accent-primary/10 absolute inset-0 bg-gradient-to-br via-transparent"
 			style="animation: gradient 15s ease infinite; background-size: 200% 200%;"
 		></div>
 	{/if}
 
 	<div
-		class="relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="py-system-content relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-lg transition-all duration-300 hover:shadow-xl"
+			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-lg transition-all duration-300 hover:shadow-xl"
 			style="animation: fadeInUp 0.5s ease-out"
 		>
 			<!-- Email icon with animation -->
 			<div
-				class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent-primary/10"
+				class="bg-accent-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
 			>
 				<svg
-					class="h-8 w-8 text-accent-primary"
+					class="text-accent-primary h-8 w-8"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -273,18 +277,18 @@
 				</svg>
 			</div>
 
-			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-3xl font-bold tracking-tight text-primary">Check your inbox</h1>
-				<p class="text-base leading-relaxed text-secondary">
+			<header class="gap-form-section flex flex-col text-center">
+				<h1 class="text-primary text-3xl font-bold tracking-tight">Check your inbox</h1>
+				<p class="text-secondary text-base leading-relaxed">
 					We sent a 6-digit code to<br />
-					<span class="font-semibold text-primary">{email}</span>
+					<span class="text-primary font-semibold">{email}</span>
 				</p>
 			</header>
 
 			<!-- Already authenticated message with countdown -->
 			{#if isAuthenticated()}
 				<div
-					class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
+					class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
 					style="animation: slideDown 0.3s ease-out"
 				>
 					<div class="flex flex-col gap-3">
@@ -320,7 +324,7 @@
 				<!-- Success message with animation -->
 				{#if resendSuccess}
 					<div
-						class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
+						class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex items-center gap-2">
@@ -345,13 +349,13 @@
 				<!-- Redirect to login message with countdown (for "already registered" error) -->
 				{#if shouldRedirectToLogin}
 					<div
-						class="mt-content-section rounded-input border border-accent-primary bg-accent-primary/10 px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-accent-primary/10 rounded-input border-accent-primary px-input-x py-input-y border shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex flex-col gap-3">
 							<div class="flex items-start gap-2">
 								<svg
-									class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+									class="text-accent-primary mt-0.5 h-5 w-5 flex-shrink-0"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -364,7 +368,7 @@
 									/>
 								</svg>
 								<div class="flex-1">
-									<p class="text-sm font-medium text-primary">
+									<p class="text-primary text-sm font-medium">
 										This email is already registered. Redirecting you to sign in in {redirectCountdown}
 										seconds...
 									</p>
@@ -376,12 +380,12 @@
 				{:else if errorMessage}
 					<!-- Error message with animation -->
 					<div
-						class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border shadow-sm"
 						style="animation: shake 0.5s ease-out"
 					>
 						<div class="flex items-start gap-2">
 							<svg
-								class="mt-0.5 h-5 w-5 flex-shrink-0 text-error-secondary"
+								class="text-error-secondary mt-0.5 h-5 w-5 flex-shrink-0"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -393,7 +397,7 @@
 									d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+							<p class="text-error-secondary text-sm font-medium">{errorMessage}</p>
 						</div>
 					</div>
 				{/if}
@@ -409,7 +413,7 @@
 
 					<!-- Paste hint -->
 					{#if !code && mounted}
-						<p class="mt-2 text-center text-sm text-tertiary">
+						<p class="text-tertiary mt-2 text-center text-sm">
 							💡 Tip: Copy the code from your email and it will auto-paste
 						</p>
 					{/if}
@@ -418,9 +422,9 @@
 				<!-- Timer display with visual feedback -->
 				<div class="mt-6 text-center">
 					{#if timeLeft > 0}
-						<div class="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+						<div class="bg-surface inline-flex items-center gap-2 rounded-full px-4 py-2">
 							<svg
-								class="h-4 w-4 text-tertiary"
+								class="text-tertiary h-4 w-4"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -437,7 +441,7 @@
 							</span>
 						</div>
 					{:else}
-						<p class="text-sm font-medium text-error">Code expired. Please request a new one.</p>
+						<p class="text-error text-sm font-medium">Code expired. Please request a new one.</p>
 					{/if}
 				</div>
 
@@ -473,12 +477,12 @@
 				</div>
 
 				<!-- Helper text -->
-				<div class="mt-6 border-t border-base pt-6 text-center">
-					<p class="text-sm text-secondary">
+				<div class="border-base mt-6 border-t pt-6 text-center">
+					<p class="text-secondary text-sm">
 						Wrong email?
 						<a
 							href={resolveRoute('/register')}
-							class="font-medium text-accent-primary transition-colors hover:text-accent-hover"
+							class="hover:text-accent-hover text-accent-primary font-medium transition-colors"
 						>
 							Start over
 						</a>

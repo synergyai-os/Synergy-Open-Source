@@ -6,6 +6,8 @@ import { api } from '$convex/_generated/api';
 import { consumeLoginState } from '$lib/infrastructure/auth/server/sessionStore';
 import { exchangeAuthorizationCode } from '$lib/infrastructure/auth/server/workos';
 import { establishSession } from '$lib/infrastructure/auth/server/session';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { logger } from '$lib/utils/logger';
 
 export const GET: RequestHandler = async (event) => {
 	const code = event.url.searchParams.get('code');
@@ -54,7 +56,8 @@ export const GET: RequestHandler = async (event) => {
 		console.log('🔍 Syncing user to Convex...');
 		const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -71,10 +74,16 @@ export const GET: RequestHandler = async (event) => {
 
 		// Handle account linking flow
 		if (linkAccount && primaryUserId && primaryUserId !== convexUserId) {
+			const existingSessionId = event.locals.auth?.sessionId;
+			const existingUserId = event.locals.auth?.user?.userId;
+			if (!existingSessionId || !existingUserId || existingUserId !== primaryUserId) {
+				console.error('❌ Missing or mismatched session for account linking');
+				throw redirect(302, `/login?error=link_invalid_session`);
+			}
 			try {
-				await convex.mutation(api.users.linkAccounts, {
-					primaryUserId,
-					linkedUserId: convexUserId
+				await convex.mutation(api.core.users.index.linkAccounts, {
+					sessionId: existingSessionId,
+					targetUserId: convexUserId
 				});
 
 				// Create session record for linked account (so they can switch to it later)
@@ -107,7 +116,7 @@ export const GET: RequestHandler = async (event) => {
 				});
 
 				// Stay on primary account - redirect with success message
-				const successUrl = new URL(redirectTo ?? '/inbox', event.url.origin);
+				const successUrl = new URL(redirectTo ?? '/auth/redirect', event.url.origin);
 				successUrl.searchParams.set('linked', '1');
 				throw redirect(302, successUrl.pathname + successUrl.search);
 			} catch (linkError) {
@@ -117,7 +126,7 @@ export const GET: RequestHandler = async (event) => {
 		}
 
 		// Normal login/signup flow - establish session for the account that just logged in
-		await establishSession({
+		const sessionId = await establishSession({
 			event,
 			convexUserId,
 			workosUserId: authResponse.user.id,
@@ -138,7 +147,27 @@ export const GET: RequestHandler = async (event) => {
 			}
 		});
 
-		throw redirect(302, redirectTo ?? '/inbox');
+		try {
+			const computedRedirect =
+				redirectTo ??
+				(await resolveWorkspaceRedirect({
+					client: convex,
+					sessionId,
+					activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+				}));
+
+			throw redirect(302, computedRedirect);
+		} catch (resolveError) {
+			logger.warn(
+				'auth.callback',
+				'Failed to resolve workspace redirect after callback, sending to onboarding',
+				{
+					error: String(resolveError),
+					userId: event.locals.auth.user?.userId
+				}
+			);
+			throw redirect(302, '/onboarding?auth_fallback=callback_resolve_failed');
+		}
 	} catch (err) {
 		if (err instanceof Response) {
 			throw err;

@@ -9,6 +9,7 @@ import { query, mutation } from '../_generated/server';
 import { v } from 'convex/values';
 import { requireSystemAdmin } from '../rbac/permissions';
 import type { Id } from '../_generated/dataModel';
+import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
 // ============================================================================
 // RBAC Management Queries
@@ -74,7 +75,7 @@ export const getRole = query({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Get all permissions for this role
@@ -192,14 +193,14 @@ export const getRolePermissions = query({
 export const getUserRoles = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users')
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
 		const userRoles = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
 		const roles = await Promise.all(
@@ -212,7 +213,7 @@ export const getUserRoles = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
@@ -251,7 +252,7 @@ export const listUserRoles = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
@@ -312,7 +313,7 @@ export const getRBACAnalytics = query({
 			existing.count++;
 			if (assignment.circleId) {
 				existing.scopes.circle++;
-			} else if (assignment.organizationId) {
+			} else if (assignment.workspaceId) {
 				existing.scopes.org++;
 			} else {
 				existing.scopes.global++;
@@ -329,8 +330,8 @@ export const getRBACAnalytics = query({
 
 		// Assignment scope breakdown
 		const scopeBreakdown = {
-			global: activeAssignments.filter((ur) => !ur.organizationId && !ur.circleId).length,
-			organization: activeAssignments.filter((ur) => ur.organizationId && !ur.circleId).length,
+			global: activeAssignments.filter((ur) => !ur.workspaceId && !ur.circleId).length,
+			workspace: activeAssignments.filter((ur) => ur.workspaceId && !ur.circleId).length,
 			circle: activeAssignments.filter((ur) => ur.circleId).length
 		};
 
@@ -352,7 +353,7 @@ export const getRBACAnalytics = query({
 
 		// System-level assignments only (for system admin visibility)
 		const systemLevelAssignments = activeAssignments.filter(
-			(ur) => !ur.organizationId && !ur.circleId
+			(ur) => !ur.workspaceId && !ur.circleId
 		);
 		const systemLevelUsers = new Set(systemLevelAssignments.map((ur) => ur.userId.toString()));
 
@@ -399,6 +400,51 @@ export const getRBACAnalytics = query({
 	}
 });
 
+/**
+ * List all workspaces (for admin dropdown)
+ */
+export const listWorkspaces = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const workspaces = await ctx.db.query('workspaces').collect();
+
+		return workspaces.map((workspace) => ({
+			_id: workspace._id,
+			name: workspace.name,
+			slug: workspace.slug
+		}));
+	}
+});
+
+/**
+ * List circles by workspace (for admin dropdown)
+ */
+export const listCirclesByWorkspace = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const circles = await ctx.db
+			.query('circles')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect();
+
+		return circles.map((circle) => ({
+			_id: circle._id,
+			name: circle.name,
+			slug: circle.slug,
+			workspaceId: circle.workspaceId
+		}));
+	}
+});
+
 // ============================================================================
 // RBAC Management Mutations
 // ============================================================================
@@ -425,7 +471,7 @@ export const createPermission = mutation({
 			.first();
 
 		if (existing) {
-			throw new Error('Permission with this slug already exists');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Permission with this slug already exists');
 		}
 
 		const now = Date.now();
@@ -464,7 +510,7 @@ export const createRole = mutation({
 			.first();
 
 		if (existing) {
-			throw new Error('Role with this slug already exists');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Role with this slug already exists');
 		}
 
 		const now = Date.now();
@@ -496,12 +542,12 @@ export const updateRole = mutation({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Prevent changes to system roles
 		if (role.isSystem) {
-			throw new Error('Cannot modify system roles');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'Cannot modify system roles');
 		}
 
 		const updates: { name?: string; description?: string; updatedAt: number } = {
@@ -535,12 +581,12 @@ export const deleteRole = mutation({
 
 		const role = await ctx.db.get(args.roleId);
 		if (!role) {
-			throw new Error('Role not found');
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
 		// Prevent deletion of system roles
 		if (role.isSystem) {
-			throw new Error('Cannot delete system roles');
+			throw createError(ErrorCodes.AUTHZ_INSUFFICIENT_RBAC, 'Cannot delete system roles');
 		}
 
 		// Check if role is assigned to any users
@@ -550,7 +596,7 @@ export const deleteRole = mutation({
 			.first();
 
 		if (userRoles) {
-			throw new Error('Cannot delete role that is assigned to users');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Cannot delete role that is assigned to users');
 		}
 
 		// Delete role permissions first
@@ -631,7 +677,7 @@ export const removePermissionFromRole = mutation({
 			.first();
 
 		if (!rolePermission) {
-			throw new Error('Permission not assigned to role');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'Permission not assigned to role');
 		}
 
 		await ctx.db.delete(rolePermission._id);
@@ -646,9 +692,9 @@ export const removePermissionFromRole = mutation({
 export const assignRoleToUser = mutation({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users'),
+		assigneeUserId: v.id('users'),
 		roleId: v.id('roles'),
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
@@ -659,19 +705,21 @@ export const assignRoleToUser = mutation({
 		// Query all user-role assignments for this user+role combination
 		const allAssignments = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', args.userId).eq('roleId', args.roleId))
+			.withIndex('by_user_role', (q) =>
+				q.eq('userId', args.assigneeUserId).eq('roleId', args.roleId)
+			)
 			.collect();
 
 		// Find matching assignment based on scoping
 		const existing = allAssignments.find((ur) => {
-			if (args.organizationId) {
-				return ur.organizationId === args.organizationId && !ur.circleId;
+			if (args.workspaceId) {
+				return ur.workspaceId === args.workspaceId && !ur.circleId;
 			}
 			if (args.circleId) {
 				return ur.circleId === args.circleId;
 			}
 			// Global role - no org/circle
-			return !ur.organizationId && !ur.circleId;
+			return !ur.workspaceId && !ur.circleId;
 		});
 
 		if (existing) {
@@ -685,9 +733,9 @@ export const assignRoleToUser = mutation({
 
 		// Create new assignment
 		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.userId,
+			userId: args.assigneeUserId,
 			roleId: args.roleId,
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			circleId: args.circleId,
 			assignedBy: adminUserId,
 			assignedAt: Date.now(),
@@ -711,7 +759,7 @@ export const revokeUserRole = mutation({
 
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role assignment not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 		}
 
 		await ctx.db.patch(args.userRoleId, {
@@ -729,7 +777,7 @@ export const updateUserRole = mutation({
 	args: {
 		sessionId: v.string(),
 		userRoleId: v.id('userRoles'),
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
@@ -738,17 +786,17 @@ export const updateUserRole = mutation({
 
 		const userRole = await ctx.db.get(args.userRoleId);
 		if (!userRole) {
-			throw new Error('User role assignment not found');
+			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 		}
 
 		const updates: {
-			organizationId?: Id<'organizations'> | undefined;
+			workspaceId?: Id<'workspaces'> | undefined;
 			circleId?: Id<'circles'> | undefined;
 			expiresAt?: number;
 		} = {};
 
-		if (args.organizationId !== undefined) {
-			updates.organizationId = args.organizationId;
+		if (args.workspaceId !== undefined) {
+			updates.workspaceId = args.workspaceId;
 		}
 
 		if (args.circleId !== undefined) {
@@ -796,7 +844,7 @@ export const setupDocsPermission = mutation({
 			});
 			docsViewPerm = await ctx.db.get(permissionId);
 			if (!docsViewPerm) {
-				throw new Error('Failed to create docs.view permission');
+				throw createError(ErrorCodes.GENERIC_ERROR, 'Failed to create docs.view permission');
 			}
 		}
 
@@ -807,7 +855,10 @@ export const setupDocsPermission = mutation({
 			.first();
 
 		if (!adminRole) {
-			throw new Error('Admin role not found. Please run seedRBAC first.');
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'Admin role not found. Please run seedRBAC first.'
+			);
 		}
 
 		// Step 3: Assign docs.view permission to admin role (scope: "all")
@@ -833,7 +884,7 @@ export const setupDocsPermission = mutation({
 			.withIndex('by_user_role', (q) => q.eq('userId', adminUserId).eq('roleId', adminRole._id))
 			.filter((q) => {
 				return q.and(
-					q.eq(q.field('organizationId'), undefined),
+					q.eq(q.field('workspaceId'), undefined),
 					q.eq(q.field('circleId'), undefined),
 					q.eq(q.field('revokedAt'), undefined)
 				);
@@ -857,5 +908,119 @@ export const setupDocsPermission = mutation({
 			message:
 				'docs.view permission created and assigned to admin role. Admin role assigned to you.'
 		};
+	}
+});
+
+// ============================================================================
+// Role Template RBAC Permissions Management
+// ============================================================================
+
+/**
+ * List all role templates with their RBAC permissions
+ * Returns both system-level and workspace-level templates
+ */
+export const listRoleTemplates = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		// Get all role templates (system and workspace-level)
+		const allTemplates = await ctx.db.query('roleTemplates').collect();
+
+		// Filter out archived templates
+		const activeTemplates = allTemplates.filter((t) => !t.archivedAt);
+
+		// Enrich with permission details
+		const templatesWithPermissions = await Promise.all(
+			activeTemplates.map(async (template) => {
+				const rbacPermissions = template.rbacPermissions || [];
+
+				// Enrich permission slugs with permission details
+				const enrichedPermissions = await Promise.all(
+					rbacPermissions.map(async (perm) => {
+						const permission = await ctx.db
+							.query('permissions')
+							.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+							.first();
+
+						return {
+							permissionSlug: perm.permissionSlug,
+							scope: perm.scope,
+							permissionId: permission?._id,
+							permissionName: permission?.description || perm.permissionSlug,
+							category: permission?.category
+						};
+					})
+				);
+
+				return {
+					_id: template._id,
+					name: template.name,
+					description: template.description,
+					workspaceId: template.workspaceId,
+					isCore: template.isCore,
+					isRequired: template.isRequired,
+					rbacPermissions: enrichedPermissions,
+					createdAt: template.createdAt,
+					updatedAt: template.updatedAt
+				};
+			})
+		);
+
+		// Sort: system templates first, then by name
+		return templatesWithPermissions.sort((a, b) => {
+			if (a.workspaceId === undefined && b.workspaceId !== undefined) return -1;
+			if (a.workspaceId !== undefined && b.workspaceId === undefined) return 1;
+			return a.name.localeCompare(b.name);
+		});
+	}
+});
+
+/**
+ * Update RBAC permissions for a role template
+ */
+export const updateTemplateRbacPermissions = mutation({
+	args: {
+		sessionId: v.string(),
+		templateId: v.id('roleTemplates'),
+		rbacPermissions: v.array(
+			v.object({
+				permissionSlug: v.string(),
+				scope: v.union(v.literal('all'), v.literal('own'))
+			})
+		)
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const template = await ctx.db.get(args.templateId);
+		if (!template) {
+			throw createError(ErrorCodes.TEMPLATE_NOT_FOUND, 'Role template not found');
+		}
+
+		// Validate all permission slugs exist
+		for (const perm of args.rbacPermissions) {
+			const permission = await ctx.db
+				.query('permissions')
+				.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
+				.first();
+
+			if (!permission) {
+				throw createError(
+					ErrorCodes.GENERIC_ERROR,
+					`Permission "${perm.permissionSlug}" not found`
+				);
+			}
+		}
+
+		// Update template
+		await ctx.db.patch(args.templateId, {
+			rbacPermissions: args.rbacPermissions,
+			updatedAt: Date.now()
+		});
+
+		return { success: true };
 	}
 });

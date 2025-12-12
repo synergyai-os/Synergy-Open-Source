@@ -1,6 +1,11 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { resolveRequestSession } from '$lib/infrastructure/auth/server/session';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '$lib/convex';
+import { env } from '$env/dynamic/public';
+import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { invariant } from '$lib/utils/invariant';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -23,6 +28,18 @@ function isPublicPath(pathname: string): boolean {
 		pathname.startsWith('/docs') ||
 		pathname.startsWith('/marketing-docs')
 	);
+}
+
+async function resolveDefaultAppRedirect(event: Parameters<Handle>[0]['event']): Promise<string> {
+	const sessionId = event.locals.auth.sessionId;
+	invariant(sessionId, 'Expected authenticated session for redirect');
+
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	return resolveWorkspaceRedirect({
+		client,
+		sessionId,
+		activeWorkspaceId: event.locals.auth.user?.activeWorkspace?.id ?? null
+	});
 }
 
 // Redirect .md URLs to dynamic routes (prevents raw markdown files from being served)
@@ -61,10 +78,14 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		if (!isBuildContext && isAuthPage && event.locals.auth.sessionId) {
 			// Authenticated user trying to access auth page - redirect to app
 			const redirectTo =
-				event.url.searchParams.get('redirect') ||
-				event.url.searchParams.get('redirectTo') ||
-				'/inbox';
-			throw redirect(302, redirectTo);
+				event.url.searchParams.get('redirect') || event.url.searchParams.get('redirectTo');
+
+			if (redirectTo) {
+				throw redirect(302, redirectTo);
+			}
+
+			const defaultRedirect = await resolveDefaultAppRedirect(event);
+			throw redirect(302, defaultRedirect);
 		}
 
 		return resolve(event);
@@ -85,7 +106,61 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	// User is authenticated, proceed
-	return resolve(event);
+	// Phase 2C: Load active workspace for SSR class injection
+	let activeOrgId: string | null = null;
+	try {
+		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+		const sessionId = event.locals.auth.sessionId;
+
+		// Load workspaces to determine active org
+		const workspaces = (await client.query(api.core.workspaces.index.listWorkspaces, {
+			sessionId
+		})) as Array<{ workspaceId: string }>;
+
+		if (workspaces.length > 0) {
+			// Determine active org: URL param (if valid) > first org
+			const orgParam = event.url.searchParams.get('org');
+			const validOrgParam =
+				orgParam && workspaces.some((org) => org.workspaceId === orgParam) ? orgParam : null;
+			activeOrgId = validOrgParam || workspaces[0]?.workspaceId || null;
+		}
+	} catch (error) {
+		// Don't block page load if org query fails
+		console.warn('Failed to load active workspace in hooks.server.ts:', error);
+	}
+
+	// Inject org class on SSR (no FOUC)
+	const response = await resolve(event, {
+		transformPageChunk: ({ html, done }) => {
+			if (done && activeOrgId) {
+				// Inject org class into <html> tag (handle existing class attribute)
+				return html.replace(/<html([^>]*)>/, (match, attrs) => {
+					// Check if class attribute already exists
+					if (attrs.includes('class=')) {
+						// Remove all existing org-* classes, then add the current org class
+						return match.replace(/class="([^"]*)"/, (classMatch, classValue) => {
+							// Remove all org-* classes (org- followed by alphanumeric characters)
+							const cleanedClasses = classValue
+								.split(/\s+/)
+								.filter((cls: string) => !cls.startsWith('org-'))
+								.join(' ');
+							// Add the current org class
+							const newClassValue = cleanedClasses
+								? `${cleanedClasses} org-${activeOrgId}`
+								: `org-${activeOrgId}`;
+							return `class="${newClassValue}"`;
+						});
+					} else {
+						// Add new class attribute
+						return `<html${attrs} class="org-${activeOrgId}">`;
+					}
+				});
+			}
+			return html;
+		}
+	});
+
+	return response;
 };
 
 // Apply hooks in sequence

@@ -7,6 +7,8 @@ import type { Id } from '$lib/convex';
 import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
 import { establishSession } from '$lib/infrastructure/auth/server/session';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { logger } from '$lib/utils/logger';
+import { invariant } from '$lib/utils/invariant';
 
 function sanitizeRedirect(target: unknown, origin: string): string | undefined {
 	if (typeof target !== 'string' || target.length === 0) {
@@ -58,18 +60,27 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 	const currentUserId = event.locals.auth.user.userId as Id<'users'>;
 
 	if (targetUserId === currentUserId) {
-		return json({ success: true, redirect: redirectHint ?? '/inbox' });
+		try {
+			return json({ success: true, redirect: redirectHint ?? '/auth/redirect' });
+		} catch (err) {
+			logger.warn('auth.switch', 'Failed to resolve switch redirect, sending to onboarding', {
+				error: String(err),
+				userId: currentUserId
+			});
+			return json({ success: true, redirect: '/onboarding?auth_fallback=switch_resolve_failed' });
+		}
 	}
 
-	if (!publicEnv.PUBLIC_CONVEX_URL) {
-		throw new Error('PUBLIC_CONVEX_URL must be configured to switch accounts.');
-	}
+	invariant(
+		publicEnv.PUBLIC_CONVEX_URL,
+		'PUBLIC_CONVEX_URL must be configured to switch accounts.'
+	);
 
 	const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
-	const linkStatus = await convex.query(api.users.validateAccountLink, {
-		primaryUserId: currentUserId,
-		linkedUserId: targetUserId
+	const linkStatus = await convex.query(api.core.users.index.validateAccountLink, {
+		sessionId: event.locals.auth.sessionId,
+		targetUserId
 	});
 
 	if (!linkStatus?.linked) {
@@ -83,7 +94,10 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 		);
 	}
 
-	const targetSession = await getActiveSessionRecordForUser(targetUserId);
+	const targetSession = await getActiveSessionRecordForUser({
+		sessionId: event.locals.auth.sessionId,
+		targetUserId
+	});
 
 	if (!targetSession) {
 		return json({ error: 'Linked account requires a fresh sign-in' }, { status: 409 });
@@ -111,5 +125,13 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 	console.log('✅ Account switch successful');
 
 	// Note: Multi-session support - session is preserved in Convex and client localStorage
-	return json({ success: true, redirect: redirectHint ?? '/inbox' });
+	try {
+		return json({ success: true, redirect: redirectHint ?? '/auth/redirect' });
+	} catch (err) {
+		logger.warn('auth.switch', 'Failed to resolve switch redirect, sending to onboarding', {
+			error: String(err),
+			userId: currentUserId
+		});
+		return json({ success: true, redirect: '/onboarding?auth_fallback=switch_resolve_failed' });
+	}
 });

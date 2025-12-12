@@ -14,33 +14,34 @@ import { useQuery, useConvexClient } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { browser } from '$app/environment';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 interface UseMeetingSessionOptions {
 	meetingId: () => Id<'meetings'> | undefined;
 	sessionId: () => string | undefined;
-	userId: () => Id<'users'> | undefined;
+	personId?: () => Id<'people'> | undefined;
 }
 
 export function useMeetingSession(options: UseMeetingSessionOptions) {
-	const { meetingId, sessionId, userId } = options;
+	const { meetingId, sessionId, personId } = options;
 
 	// Real-time queries
 	const meetingQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.meetings.get, () => {
+			? useQuery(api.modules.meetings.meetings.get, () => {
 					const id = meetingId();
 					const session = sessionId();
-					if (!id || !session) throw new Error('meetingId and sessionId required');
+					invariant(id && session, 'meetingId and sessionId required');
 					return { meetingId: id, sessionId: session };
 				})
 			: null;
 
 	const agendaItemsQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.meetings.getAgendaItems, () => {
+			? useQuery(api.modules.meetings.meetings.getAgendaItems, () => {
 					const id = meetingId();
 					const session = sessionId();
-					if (!id || !session) throw new Error('meetingId and sessionId required');
+					invariant(id && session, 'meetingId and sessionId required');
 					return { meetingId: id, sessionId: session };
 				})
 			: null;
@@ -71,9 +72,9 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 	async function startMeeting() {
 		const id = meetingId();
 		const session = sessionId();
-		if (!id || !session) throw new Error('meetingId and sessionId required');
+		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.meetings.startMeeting, {
+		await convexClient?.mutation(api.modules.meetings.meetings.startMeeting, {
 			meetingId: id,
 			sessionId: session
 		});
@@ -82,9 +83,9 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 	async function advanceStep(newStep: string) {
 		const id = meetingId();
 		const session = sessionId();
-		if (!id || !session) throw new Error('meetingId and sessionId required');
+		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.meetings.advanceStep, {
+		await convexClient?.mutation(api.modules.meetings.meetings.advanceStep, {
 			meetingId: id,
 			sessionId: session,
 			newStep
@@ -94,9 +95,9 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 	async function closeMeeting() {
 		const id = meetingId();
 		const session = sessionId();
-		if (!id || !session) throw new Error('meetingId and sessionId required');
+		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.meetings.closeMeeting, {
+		await convexClient?.mutation(api.modules.meetings.meetings.closeMeeting, {
 			meetingId: id,
 			sessionId: session
 		});
@@ -105,12 +106,36 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 	async function addAgendaItem(title: string) {
 		const id = meetingId();
 		const session = sessionId();
-		if (!id || !session) throw new Error('meetingId and sessionId required');
+		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.meetings.createAgendaItem, {
+		await convexClient?.mutation(api.modules.meetings.meetings.createAgendaItem, {
 			meetingId: id,
 			sessionId: session,
 			title
+		});
+	}
+
+	async function setRecorder(recorderPersonId: Id<'people'>) {
+		const id = meetingId();
+		const session = sessionId();
+		invariant(id && session, 'meetingId and sessionId required');
+
+		await convexClient?.mutation(api.modules.meetings.meetings.setRecorder, {
+			meetingId: id,
+			sessionId: session,
+			recorderPersonId
+		});
+	}
+
+	async function setActiveAgendaItem(agendaItemId: Id<'meetingAgendaItems'> | null) {
+		const id = meetingId();
+		const session = sessionId();
+		invariant(id && session, 'meetingId and sessionId required');
+
+		await convexClient?.mutation(api.modules.meetings.meetings.setActiveAgendaItem, {
+			meetingId: id,
+			sessionId: session,
+			agendaItemId: agendaItemId ?? undefined
 		});
 	}
 
@@ -143,6 +168,17 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		get currentStep() {
 			return meetingQuery?.data?.currentStep ?? 'check-in';
 		},
+		get recorderPersonId() {
+			return meetingQuery?.data?.recorderPersonId;
+		},
+		get isRecorder() {
+			const currentPersonId = personId ? personId() : meetingQuery?.data?.viewerPersonId;
+			const recorderPersonId = meetingQuery?.data?.recorderPersonId;
+			return currentPersonId && recorderPersonId ? recorderPersonId === currentPersonId : false;
+		},
+		get activeAgendaItemId() {
+			return meetingQuery?.data?.activeAgendaItemId;
+		},
 
 		// Timer
 		get elapsedTime() {
@@ -158,19 +194,12 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 			return `${minutes.toString().padStart(2, '0')}m${seconds.toString().padStart(2, '0')}s`;
 		},
 
-		// Permissions
-		get isSecretary() {
-			const meeting = meetingQuery?.data;
-			const currentUserId = userId();
-			if (!meeting || !currentUserId) return false;
-			const secretaryId = meeting.secretaryId ?? meeting.createdBy;
-			return secretaryId === currentUserId;
-		},
-
 		// Actions
 		startMeeting,
 		advanceStep,
 		closeMeeting,
-		addAgendaItem
+		addAgendaItem,
+		setRecorder,
+		setActiveAgendaItem
 	};
 }

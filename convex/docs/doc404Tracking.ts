@@ -7,38 +7,35 @@
 
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import type { Id } from '../_generated/dataModel';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 
 /**
  * Log a 404 error for a documentation URL
  *
  * Allows anonymous logging (sessionId optional) for better tracking
+ * AUTH EXEMPT: public docs analytics logging (session optional; used when available for audit)
  */
 export const log404 = mutation({
 	args: {
+		sessionId: v.optional(v.string()),
 		url: v.string(),
 		referrer: v.optional(v.string()),
 		userAgent: v.optional(v.string()),
-		ipAddress: v.optional(v.string()),
-		sessionId: v.optional(v.string())
+		ipAddress: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const now = Date.now();
 
-		// Try to get userId if sessionId provided
 		let userId: Id<'users'> | undefined = undefined;
 		if (args.sessionId) {
 			try {
-				const { validateSessionAndGetUserId } = await import('../sessionValidation');
-				const result = await validateSessionAndGetUserId(ctx, args.sessionId);
-				userId = result.userId;
+				const derived = await validateSessionAndGetUserId(ctx, args.sessionId);
+				userId = derived.userId;
 			} catch {
-				// Session invalid or not provided - continue without userId
 				userId = undefined;
 			}
 		}
 
-		// Check if this URL already exists (unresolved)
 		const existing = await ctx.db
 			.query('doc404Errors')
 			.withIndex('by_url', (q) => q.eq('url', args.url))
@@ -46,7 +43,6 @@ export const log404 = mutation({
 			.first();
 
 		if (existing) {
-			// Update existing record - increment count and update lastSeenAt
 			await ctx.db.patch(existing._id, {
 				count: existing.count + 1,
 				lastSeenAt: now,
@@ -57,22 +53,21 @@ export const log404 = mutation({
 				userId: userId || existing.userId
 			});
 			return existing._id;
-		} else {
-			// Create new record
-			const id = await ctx.db.insert('doc404Errors', {
-				url: args.url,
-				referrer: args.referrer,
-				userAgent: args.userAgent,
-				ipAddress: args.ipAddress,
-				userId,
-				sessionId: args.sessionId,
-				count: 1,
-				firstSeenAt: now,
-				lastSeenAt: now,
-				resolved: false
-			});
-			return id;
 		}
+
+		const id = await ctx.db.insert('doc404Errors', {
+			url: args.url,
+			referrer: args.referrer,
+			userAgent: args.userAgent,
+			ipAddress: args.ipAddress,
+			userId,
+			sessionId: args.sessionId,
+			count: 1,
+			firstSeenAt: now,
+			lastSeenAt: now,
+			resolved: false
+		});
+		return id;
 	}
 });
 
@@ -80,8 +75,9 @@ export const log404 = mutation({
  * Get all unresolved 404 errors, sorted by most recent
  */
 export const listUnresolved = query({
-	args: {},
-	handler: async (ctx) => {
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		const errors = await ctx.db
 			.query('doc404Errors')
 			.withIndex('by_resolved', (q) => q.eq('resolved', false))
@@ -97,9 +93,11 @@ export const listUnresolved = query({
  */
 export const listAll = query({
 	args: {
+		sessionId: v.string(),
 		limit: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		const limit = args.limit || 100;
 		const errors = await ctx.db
 			.query('doc404Errors')
@@ -123,7 +121,6 @@ export const resolve404 = mutation({
 		note: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const { validateSessionAndGetUserId } = await import('../sessionValidation');
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		await ctx.db.patch(args.id, {
@@ -139,8 +136,9 @@ export const resolve404 = mutation({
  * Get statistics about 404 errors
  */
 export const getStats = query({
-	args: {},
-	handler: async (ctx) => {
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		const all = await ctx.db.query('doc404Errors').collect();
 		const unresolved = all.filter((e) => !e.resolved);
 		const resolved = all.filter((e) => e.resolved);
