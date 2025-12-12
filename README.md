@@ -6,6 +6,21 @@
 
 Open Source Knowledge Retention System - Transform content into actionable knowledge
 
+## Development Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Build design tokens (required before first run)
+npm run tokens:build
+
+# Start development server
+npm run dev
+```
+
+**Note**: Design tokens must be built before running the app. The `tokens:build` command generates CSS files from JSON token definitions. See `dev-docs/master-docs/design-system.md` for details.
+
 # Description
 
 # Example

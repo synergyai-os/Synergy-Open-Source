@@ -665,6 +665,30 @@ Semantic tokens define light AND dark values:
 
 **Why split?** Tailwind CSS v4's parser cannot handle CSS selectors (`:root`, `@media`, `.light`, `.dark`) outside `@theme` blocks in imported CSS files. The conditional CSS file is loaded via a `<link>` tag in `app.html` to bypass Tailwind's parser.
 
+**Build process:**
+1. `npm run tokens:build` generates both files from `design-tokens-semantic.json`
+2. `colors-conditional.css` is automatically copied to `static/css/` for production
+3. `app.html` loads it via `<link rel="stylesheet" href="/css/colors-conditional.css">`
+
+**Adding new conditional tokens:**
+1. Add to `design-tokens-semantic.json` with `light`/`dark` structure:
+   ```json
+   {
+     "color": {
+       "bg": {
+         "newToken": {
+           "$value": {
+             "light": "{color.neutral.0}",
+             "dark": "{color.neutral.900}"
+           }
+         }
+       }
+     }
+   }
+   ```
+2. Run `npm run tokens:build` - both files are regenerated automatically
+3. The new token will appear in both `colors.css` (base reference) and `colors-conditional.css` (conditional overrides)
+
 Generated CSS structure:
 
 ```css
@@ -729,6 +753,14 @@ npm run tokens:validate
 # Full lint (ESLint + Prettier)
 npm run lint
 ```
+
+**What validation checks:**
+- **`tokens:validate`**: Ensures all semantic tokens reference valid base tokens (no "orphaned tokens")
+  - Configuration: `scripts/design-system/validation-config.ts`
+  - Fails if semantic token references a non-existent base token
+- **`recipes:validate`**: Ensures all CVA recipe classes exist in utility CSS files
+  - Prevents typos and missing utilities
+  - Suggests similar classes if exact match not found
 
 ### 8.3 Cascade Test
 
