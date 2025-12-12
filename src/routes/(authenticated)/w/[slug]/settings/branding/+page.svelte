@@ -60,7 +60,7 @@
 			}
 
 			// Save to database
-			await convexClient.mutation(api.workspaces.updateBranding, {
+			await convexClient.mutation(api.core.workspaces.index.updateBranding, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
 				primaryColor: primaryOKLCH,
@@ -122,11 +122,11 @@
 	<style id="org-branding-preview-styles"></style>
 </svelte:head>
 
-<div class="max-w-readable mx-auto px-card-padding py-card-padding">
+<div class="max-w-readable px-card-padding py-card-padding mx-auto">
 	<h1 class="mb-spacing-section text-heading-xl font-heading">Organization Branding</h1>
 
 	<div
-		class="mb-spacing-section border-base overflow-hidden rounded-card border bg-surface p-card-padding"
+		class="mb-spacing-section border-base rounded-card bg-surface p-card-padding overflow-hidden border"
 	>
 		<h2 class="mb-spacing-component text-heading-md font-heading">Brand Colors</h2>
 
@@ -165,7 +165,7 @@
 		<!-- Warning Message (non-blocking) -->
 		{#if warning}
 			<div
-				class="mb-spacing-component rounded-notification bg-accent-primary/10 p-notification border border-accent-primary whitespace-pre-line text-accent-primary"
+				class="mb-spacing-component rounded-notification bg-accent-primary/10 p-notification border-accent-primary text-accent-primary border whitespace-pre-line"
 			>
 				<strong>Note:</strong>
 				{warning}
@@ -189,7 +189,7 @@
 
 	<!-- Live Preview -->
 	<div
-		class="{previewOrgClass} border-base overflow-hidden rounded-card border bg-surface p-card-padding"
+		class="{previewOrgClass} border-base rounded-card bg-surface p-card-padding overflow-hidden border"
 	>
 		<h2 class="mb-spacing-component text-heading-md font-heading">Live Preview</h2>
 		<div class="gap-spacing-component flex">

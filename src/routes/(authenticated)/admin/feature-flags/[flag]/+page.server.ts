@@ -14,10 +14,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const flagName = params.flag;
 
 	// Load flag details
-	let flag: Awaited<ReturnType<typeof client.query<typeof api.featureFlags.findFlag>>> | null =
-		null;
+	let flag: Awaited<
+		ReturnType<typeof client.query<typeof api.infrastructure.featureFlags.findFlag>>
+	> | null = null;
 	try {
-		flag = await client.query(api.featureFlags.findFlag, { flag: flagName });
+		flag = await client.query(api.infrastructure.featureFlags.findFlag, {
+			flag: flagName,
+			sessionId
+		});
 	} catch (error) {
 		console.warn('Failed to load flag:', error);
 	}
@@ -25,7 +29,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	// Load all workspaces for selection
 	let workspaces: unknown[] = [];
 	try {
-		workspaces = (await client.query(api.featureFlags.listAllOrganizations, {
+		workspaces = (await client.query(api.infrastructure.featureFlags.listAllOrganizations, {
 			sessionId
 		})) as unknown[];
 	} catch (error) {
@@ -35,7 +39,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	// Load impact stats for this flag
 	let impactStats: { flag: string; estimatedAffected: number; breakdown: unknown } | null = null;
 	try {
-		const allStats = await client.query(api.featureFlags.getImpactStats, { sessionId });
+		const allStats = await client.query(api.infrastructure.featureFlags.getImpactStats, {
+			sessionId
+		});
 		if (allStats) {
 			const flagImpacts = (
 				allStats as {

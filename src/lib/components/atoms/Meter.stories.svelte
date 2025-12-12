@@ -25,9 +25,9 @@
 
 <Story name="Default" args={{ value: 50, min: 0, max: 100 }}>
 	{#snippet template(args)}
-		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
+		<Meter.Root {...args} class="bg-base h-4 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -36,9 +36,9 @@
 
 <Story name="Low" args={{ value: 25, min: 0, max: 100 }}>
 	{#snippet template(args)}
-		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
+		<Meter.Root {...args} class="bg-base h-4 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -47,9 +47,9 @@
 
 <Story name="High" args={{ value: 75, min: 0, max: 100 }}>
 	{#snippet template(args)}
-		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
+		<Meter.Root {...args} class="bg-base h-4 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -58,9 +58,9 @@
 
 <Story name="Full" args={{ value: 100, min: 0, max: 100 }}>
 	{#snippet template(args)}
-		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
+		<Meter.Root {...args} class="bg-base h-4 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>

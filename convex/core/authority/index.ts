@@ -1,10 +1,29 @@
-/**
- * Authority Module
- *
- * SYOS-707: Core domain scaffold with schema/queries/mutations/rules.
- */
+// Types
+export type {
+	Assignment,
+	AuthorityContext,
+	Authority,
+	CirclePolicy,
+	AuthorityLevel
+} from './types';
 
-export * from './schema';
-export * from './queries';
-export * from './mutations';
-export * from './rules';
+// Re-export CircleType from canonical source
+export type { CircleType } from '../circles';
+
+// Policies
+export { circlePolicies, getPolicy } from './policies';
+
+// Rules (pure primitives)
+export { isCircleLead, isCircleMember, hasRole, isFacilitator } from './rules';
+
+// Calculator helpers
+export {
+	calculateAuthorityLevel,
+	calculateAuthority,
+	hasDirectApprovalAuthority,
+	requiresConsentProcess,
+	hasConveningAuthority
+} from './calculator';
+
+// Context loaders
+export { getAuthorityContext, getAuthorityContextFromAssignments } from './context';

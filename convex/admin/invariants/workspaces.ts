@@ -12,6 +12,7 @@ export const checkWS01 = internalQuery({
 			ctx.db.query('people').collect()
 		]);
 
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 		const activeCountByWorkspace = new Map<string, number>();
 		for (const person of people) {
 			if (person.status !== ACTIVE_STATUS) continue;
@@ -21,7 +22,10 @@ export const checkWS01 = internalQuery({
 		}
 
 		const violations = workspaces
-			.filter((workspace) => (activeCountByWorkspace.get(workspace._id.toString()) ?? 0) < 1)
+			.filter((workspace) => {
+				if (!operationalWorkspaces.has(workspace._id.toString())) return false;
+				return (activeCountByWorkspace.get(workspace._id.toString()) ?? 0) < 1;
+			})
 			.map((workspace) => workspace._id.toString());
 
 		return makeResult({
@@ -45,8 +49,8 @@ export const checkWS02 = internalQuery({
 			ctx.db.query('people').collect()
 		]);
 
-		// Abandoned workspaces excluded per SYOS-806
-		const operationalWorkspaces = findOperationalWorkspaces(people);
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 
 		const ownerCountByWorkspace = new Map<string, number>();
 		for (const person of people) {
@@ -59,7 +63,7 @@ export const checkWS02 = internalQuery({
 
 		const violations = workspaces
 			.filter((workspace) => {
-				// Skip abandoned workspaces (no active people)
+				// Skip archived workspaces
 				if (!operationalWorkspaces.has(workspace._id.toString())) return false;
 				return (ownerCountByWorkspace.get(workspace._id.toString()) ?? 0) < 1;
 			})

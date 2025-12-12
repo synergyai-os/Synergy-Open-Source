@@ -24,7 +24,7 @@ export const listInboxItems = query({
 		sessionId: v.string(),
 		filterType: v.optional(v.string()),
 		processed: v.optional(v.boolean()),
-		workspaceId: v.optional(v.id('workspaces')),
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: (ctx, args) => listInboxItemsForSession(ctx, args)
@@ -36,7 +36,7 @@ export const listInboxItems = query({
 /**
  * Get a single inbox item by ID
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const findInboxItem = query({
 	args: { sessionId: v.string(), inboxItemId: v.id('inboxItems') },
@@ -51,12 +51,12 @@ export const findInboxItem = query({
  * This is useful for displaying detailed information in the inbox UI
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Get inbox item with full details (highlight, source, tags)
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const findInboxItemWithDetails = query({
 	args: { sessionId: v.string(), inboxItemId: v.id('inboxItems') },
@@ -77,12 +77,12 @@ export const findInboxItemWithDetails = query({
  * Mark an inbox item as processed
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Mark inbox item as processed
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const updateProcessed = mutation({
 	args: { sessionId: v.string(), inboxItemId: v.id('inboxItems') },
@@ -109,12 +109,12 @@ export const restoreInboxItem = mutation({
  * Query: Get sync progress for current user
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Get Readwise sync progress for current user
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const findSyncProgress = query({
 	args: { sessionId: v.string() },
@@ -134,12 +134,12 @@ export const findSyncProgress = query({
  * Quick Create: Create a manual text note and add to inbox
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Create a note in inbox
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const createNoteInInbox = mutation({
 	args: {
@@ -160,12 +160,12 @@ export const createNoteInInbox = mutation({
  * Quick Create: Create a flashcard and add to inbox
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Create a flashcard in inbox
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const createFlashcardInInbox = mutation({
 	args: {
@@ -194,12 +194,12 @@ export const createFlashcardInInbox = mutation({
  * Quick Create: Create a manual highlight and add to inbox
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * and remove explicit person context parameter
  */
 /**
  * Create a highlight in inbox
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive person context server-side (prevents impersonation)
  */
 export const createHighlightInInbox = mutation({
 	args: {

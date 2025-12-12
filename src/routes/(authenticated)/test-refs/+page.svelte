@@ -53,7 +53,7 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base p-8">
+<div class="bg-base min-h-screen p-8">
 	<div class="mx-auto max-w-2xl space-y-12">
 		<Heading level={1}>Ref Forwarding Test</Heading>
 
@@ -61,14 +61,14 @@
 		<section class="space-y-4">
 			<Heading level={2}>1. Button Component</Heading>
 			<div class="space-y-3">
-				<p class="text-sm text-secondary">Component with ref binding:</p>
+				<p class="text-secondary text-sm">Component with ref binding:</p>
 				<Button bind:ref={buttonRef} variant="primary" onclick={testButton}
 					>Target Button (has ref - click me!)</Button
 				>
 				<div class="flex items-center gap-3">
 					<Button onclick={testButton} variant="secondary">Test Ref → Focus Button</Button>
 					{#if buttonTest}
-						<span class="text-sm text-secondary">{buttonTest}</span>
+						<span class="text-secondary text-sm">{buttonTest}</span>
 					{/if}
 				</div>
 			</div>
@@ -78,14 +78,14 @@
 		<section class="space-y-4">
 			<Heading level={2}>2. Card Component</Heading>
 			<div class="space-y-3">
-				<p class="text-sm text-secondary">Component with ref binding:</p>
+				<p class="text-secondary text-sm">Component with ref binding:</p>
 				<Card bind:ref={cardRef} variant="elevated">
 					<p>Target Card (has ref)</p>
 				</Card>
 				<div class="flex items-center gap-3">
 					<Button onclick={testCard} variant="secondary">Test Ref → Scroll Card</Button>
 					{#if cardTest}
-						<span class="text-sm text-secondary">{cardTest}</span>
+						<span class="text-secondary text-sm">{cardTest}</span>
 					{/if}
 				</div>
 			</div>
@@ -95,12 +95,12 @@
 		<section class="space-y-4">
 			<Heading level={2}>3. Heading Component</Heading>
 			<div class="space-y-3">
-				<p class="text-sm text-secondary">Component with ref binding:</p>
+				<p class="text-secondary text-sm">Component with ref binding:</p>
 				<Heading bind:ref={headingRef} level={3}>Target Heading (has ref)</Heading>
 				<div class="flex items-center gap-3">
 					<Button onclick={testHeading} variant="secondary">Test Ref → Read Heading</Button>
 					{#if headingTest}
-						<span class="text-sm text-secondary">{headingTest}</span>
+						<span class="text-secondary text-sm">{headingTest}</span>
 					{/if}
 				</div>
 			</div>
@@ -110,7 +110,7 @@
 		<section class="space-y-4">
 			<Heading level={2}>4. Icon Component</Heading>
 			<div class="space-y-3">
-				<p class="text-sm text-secondary">Component with ref binding:</p>
+				<p class="text-secondary text-sm">Component with ref binding:</p>
 				<Icon bind:ref={iconRef} size="lg">
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +128,7 @@
 				<div class="flex items-center gap-3">
 					<Button onclick={testIcon} variant="secondary">Test Ref → Read Icon</Button>
 					{#if iconTest}
-						<span class="text-sm text-secondary">{iconTest}</span>
+						<span class="text-secondary text-sm">{iconTest}</span>
 					{/if}
 				</div>
 			</div>
@@ -138,7 +138,7 @@
 		<section class="space-y-4">
 			<Heading level={2}>5. Icon-Only Button</Heading>
 			<div class="space-y-3">
-				<p class="text-sm text-secondary">
+				<p class="text-secondary text-sm">
 					Icon-only buttons should have the same height as text buttons for perfect alignment:
 				</p>
 				<div class="flex items-center gap-4">
@@ -167,7 +167,7 @@
 					<Button variant="primary">Text Button</Button>
 					<Button variant="secondary">Another Text Button</Button>
 				</div>
-				<p class="text-sm text-secondary">
+				<p class="text-secondary text-sm">
 					✅ All buttons should align perfectly (same height). Icon buttons use p-button-icon (12px)
 					which matches py-button-y (12px) for text buttons.
 				</p>

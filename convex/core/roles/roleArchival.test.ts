@@ -2,14 +2,11 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { archiveRole } from './roleArchival';
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u1' })
-}));
-
 vi.mock('./roleAccess', () => ({
 	ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
 	ensureWorkspaceMembership: vi.fn(),
-	countLeadRolesInCircle: vi.fn()
+	countLeadRolesInCircle: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p1')
 }));
 
 describe('roleArchival.archiveRole', () => {

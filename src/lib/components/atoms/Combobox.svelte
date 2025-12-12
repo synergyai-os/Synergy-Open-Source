@@ -150,7 +150,7 @@
 	const viewportClasses = $derived(comboboxViewportRecipe());
 </script>
 
-<div class="flex flex-col gap-fieldGroup">
+<div class="gap-fieldGroup flex flex-col">
 	{#if showLabel && label}
 		<label for={comboboxId}>
 			<Text variant="label" size="sm" color="default" as="span">

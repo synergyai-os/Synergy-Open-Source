@@ -47,26 +47,26 @@
 </script>
 
 {#if sortedEvolutions.length === 0}
-	<div class="py-stack-item text-center text-body text-secondary">
+	<div class="py-stack-item text-body text-secondary text-center">
 		No proposed changes yet. Add changes to describe what you want to modify.
 	</div>
 {:else}
-	<div class="flex flex-col gap-content {className}">
+	<div class="gap-content flex flex-col {className}">
 		{#each sortedEvolutions as evolution (evolution._id)}
 			{@const config = getChangeTypeConfig(evolution.changeType)}
 			<div
 				class="
-				bg-surface-alt rounded-card border border-default
-				inset-sm
+				bg-surface-alt rounded-card border-default inset-sm
+				border
 			"
 			>
 				<!-- Header: Field label + change type -->
-				<div class="flex items-center justify-between mb-header">
-					<div class="flex items-center gap-fieldGroup">
+				<div class="mb-header flex items-center justify-between">
+					<div class="gap-fieldGroup flex items-center">
 						<span class={config.color}>
 							<Icon name={config.icon} size="sm" />
 						</span>
-						<span class="text-body font-medium text-primary">
+						<span class="text-body text-primary font-medium">
 							{evolution.fieldLabel}
 						</span>
 						<span class="text-small text-tertiary">({config.label})</span>
@@ -88,28 +88,28 @@
 				<div class="text-body">
 					{#if evolution.changeType === 'add'}
 						<!-- Add: Only show new value -->
-						<div class="bg-success/10 border-success/20 rounded-input border px-input py-input">
-							<span class="text-small font-mono text-success"
+						<div class="bg-success/10 border-success/20 rounded-input px-input py-input border">
+							<span class="text-small text-success font-mono"
 								>+ {parseValue(evolution.afterValue)}</span
 							>
 						</div>
 					{:else if evolution.changeType === 'remove'}
 						<!-- Remove: Only show old value -->
-						<div class="bg-error/10 border-error/20 rounded-input border px-input py-input">
-							<span class="text-small font-mono text-error line-through"
+						<div class="bg-error/10 border-error/20 rounded-input px-input py-input border">
+							<span class="text-small text-error font-mono line-through"
 								>- {parseValue(evolution.beforeValue)}</span
 							>
 						</div>
 					{:else}
 						<!-- Update: Show before → after -->
-						<div class="flex flex-col gap-fieldGroup">
-							<div class="bg-error/10 border-error/20 rounded-input border px-input py-input">
-								<span class="text-small font-mono text-error"
+						<div class="gap-fieldGroup flex flex-col">
+							<div class="bg-error/10 border-error/20 rounded-input px-input py-input border">
+								<span class="text-small text-error font-mono"
 									>- {parseValue(evolution.beforeValue)}</span
 								>
 							</div>
-							<div class="bg-success/10 border-success/20 rounded-input border px-input py-input">
-								<span class="text-small font-mono text-success"
+							<div class="bg-success/10 border-success/20 rounded-input px-input py-input border">
+								<span class="text-small text-success font-mono"
 									>+ {parseValue(evolution.afterValue)}</span
 								>
 							</div>

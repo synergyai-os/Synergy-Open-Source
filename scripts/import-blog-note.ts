@@ -176,7 +176,7 @@ async function importBlogNote() {
 	console.log('📝 Creating note in inbox...');
 
 	try {
-		const noteId = await client.mutation(api.notes.createNote, {
+		const noteId = await client.mutation(api.features.notes.index.createNote, {
 			title: 'Building Products with AI: How Randy Ships Features in Hours, Not Weeks',
 			content: JSON.stringify(prosemirrorContent),
 			contentMarkdown: markdown,

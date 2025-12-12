@@ -19,8 +19,69 @@ import {
 	createTestOrganizationMember,
 	createTestCircle,
 	cleanupTestData,
-	cleanupTestOrganization
+	cleanupTestOrganization,
+	getPersonIdForUser
 } from './setup';
+
+async function assignCircleLead(
+	t: ReturnType<typeof convexTest>,
+	circleId: Id<'circles'>,
+	workspaceId: Id<'workspaces'>,
+	userId: Id<'users'>
+) {
+	await t.run(async (ctx) => {
+		const circle = await ctx.db.get(circleId);
+		const person =
+			(await ctx.db
+				.query('people')
+				.withIndex('by_workspace_user', (q) =>
+					q.eq('workspaceId', workspaceId).eq('userId', userId)
+				)
+				.first()) ?? null;
+		const personId = (person?._id ?? userId) as Id<'people'>;
+		const leadName =
+			circle?.circleType === 'empowered_team'
+				? 'Coordinator'
+				: circle?.circleType === 'guild'
+					? 'Steward'
+					: 'Circle Lead';
+
+		const existingMembership = await ctx.db
+			.query('circleMembers')
+			.withIndex('by_circle_person', (q) => q.eq('circleId', circleId).eq('personId', personId))
+			.first();
+		if (!existingMembership) {
+			await ctx.db.insert('circleMembers', {
+				circleId,
+				personId,
+				joinedAt: Date.now(),
+				archivedAt: undefined
+			});
+		}
+
+		const roleId = await ctx.db.insert('circleRoles', {
+			circleId,
+			workspaceId,
+			name: leadName,
+			status: 'active',
+			isHiring: false,
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+			archivedAt: undefined,
+			templateId: undefined
+		});
+
+		await ctx.db.insert('userCircleRoles', {
+			personId,
+			circleRoleId: roleId,
+			assignedAt: Date.now(),
+			assignedByPersonId: personId,
+			updatedAt: Date.now(),
+			updatedByPersonId: personId,
+			archivedAt: undefined
+		});
+	});
+}
 
 describe('Consent Process', () => {
 	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'workspaces'> }> = [];
@@ -53,7 +114,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId, orgId });
 
 			// Create proposal
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -63,7 +124,7 @@ describe('Consent Process', () => {
 			});
 
 			// Add evolution
-			await t.mutation(api.proposals.addEvolution, {
+			await t.mutation(api.core.proposals.index.addEvolution, {
 				sessionId,
 				proposalId,
 				fieldPath: 'name',
@@ -93,14 +154,14 @@ describe('Consent Process', () => {
 			});
 
 			// Submit proposal
-			await t.mutation(api.proposals.submit, {
+			await t.mutation(api.core.proposals.index.submit, {
 				sessionId,
 				proposalId,
 				meetingId: meetingResult.meetingId
 			});
 
 			// Verify status is 'submitted'
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId,
 				proposalId
 			});
@@ -119,7 +180,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId, orgId });
 
 			// Create proposal (no evolutions)
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -149,7 +210,7 @@ describe('Consent Process', () => {
 
 			// Attempt submit (should fail)
 			await expect(
-				t.mutation(api.proposals.submit, {
+				t.mutation(api.core.proposals.index.submit, {
 					sessionId,
 					proposalId,
 					meetingId: meetingResult.meetingId
@@ -167,7 +228,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId, orgId });
 
 			// Create proposal using createFromDiff (creates in 'submitted' status without meeting link)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -199,14 +260,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
 
 			// Verify status is 'in_meeting'
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId,
 				proposalId
 			});
@@ -228,7 +289,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -260,11 +321,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
+
+			// Ensure recorder has circle authority
+			await assignCircleLead(t, circleId, orgId, recorderId);
 
 			// Add recorder as attendee (required before starting meeting)
 			await t.run(async (ctx) => {
@@ -284,13 +348,13 @@ describe('Consent Process', () => {
 			});
 
 			// Approve as recorder
-			const approveResult = await t.mutation(api.proposals.approve, {
+			const approveResult = await t.mutation(api.core.proposals.index.approve, {
 				sessionId: recorderSessionId,
 				proposalId
 			});
 
 			// Verify proposal status is 'approved'
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId: creatorSessionId,
 				proposalId
 			});
@@ -317,10 +381,15 @@ describe('Consent Process', () => {
 			await createTestOrganizationMember(t, orgId, recorderId, 'member');
 			const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
+			// Use consent-based model to allow objections
+			await t.run(async (ctx) => {
+				await ctx.db.patch(circleId, { circleType: 'empowered_team' });
+			});
+
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -352,11 +421,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
+
+			// Ensure recorder has circle authority
+			await assignCircleLead(t, circleId, orgId, recorderId);
 
 			// Add recorder as attendee (required before starting meeting)
 			await t.run(async (ctx) => {
@@ -376,13 +448,13 @@ describe('Consent Process', () => {
 			});
 
 			// Reject as recorder
-			await t.mutation(api.proposals.reject, {
+			await t.mutation(api.core.proposals.index.reject, {
 				sessionId: recorderSessionId,
 				proposalId
 			});
 
 			// Verify proposal status is 'rejected'
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId: creatorSessionId,
 				proposalId
 			});
@@ -409,7 +481,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId, orgId });
 
 			// Create proposal
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -418,7 +490,7 @@ describe('Consent Process', () => {
 				description: 'Change circle name'
 			});
 
-			await t.mutation(api.proposals.addEvolution, {
+			await t.mutation(api.core.proposals.index.addEvolution, {
 				sessionId,
 				proposalId,
 				fieldPath: 'name',
@@ -448,20 +520,20 @@ describe('Consent Process', () => {
 			});
 
 			// Submit proposal
-			await t.mutation(api.proposals.submit, {
+			await t.mutation(api.core.proposals.index.submit, {
 				sessionId,
 				proposalId,
 				meetingId: meetingResult.meetingId
 			});
 
 			// Withdraw from 'submitted' state
-			await t.mutation(api.proposals.withdraw, {
+			await t.mutation(api.core.proposals.index.withdraw, {
 				sessionId,
 				proposalId
 			});
 
 			// Verify status is 'withdrawn'
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId,
 				proposalId
 			});
@@ -479,10 +551,15 @@ describe('Consent Process', () => {
 			await createTestOrganizationMember(t, orgId, recorderId, 'member');
 			const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
+			// Use lead_decides model to allow approval
+			await t.run(async (ctx) => {
+				await ctx.db.patch(circleId, { circleType: 'hierarchy' });
+			});
+
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -513,11 +590,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
+
+			// Ensure recorder has circle authority
+			await assignCircleLead(t, circleId, orgId, recorderId);
 
 			// Add recorder as attendee (required before starting meeting)
 			await t.run(async (ctx) => {
@@ -536,14 +616,14 @@ describe('Consent Process', () => {
 				meetingId: meetingResult.meetingId
 			});
 
-			await t.mutation(api.proposals.approve, {
+			await t.mutation(api.core.proposals.index.approve, {
 				sessionId: recorderSessionId,
 				proposalId
 			});
 
 			// Attempt withdraw from 'approved' state (should fail)
 			await expect(
-				t.mutation(api.proposals.withdraw, {
+				t.mutation(api.core.proposals.index.withdraw, {
 					sessionId: creatorSessionId,
 					proposalId
 				})
@@ -561,12 +641,13 @@ describe('Consent Process', () => {
 			const { sessionId, userId } = await createTestSession(t);
 			const orgId = await createTestOrganization(t, 'Test Org');
 			await createTestOrganizationMember(t, orgId, userId, 'member'); // Regular member, not admin
+			const personId = await getPersonIdForUser(t, orgId, userId);
 			const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
 			cleanupQueue.push({ userId, orgId });
 
 			// Create proposal as regular member
-			const result = await t.mutation(api.proposals.create, {
+			const result = await t.mutation(api.core.proposals.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -578,13 +659,13 @@ describe('Consent Process', () => {
 			expect(result.proposalId).toBeDefined();
 
 			// Verify proposal was created
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId,
 				proposalId: result.proposalId
 			});
 
 			expect(proposal).toBeDefined();
-			expect(proposal?.createdBy).toBe(userId);
+			expect(proposal?.createdByPersonId).toBe(personId);
 		});
 
 		it('should only allow proposal creator to add evolutions (in draft)', async () => {
@@ -599,7 +680,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId: creatorId }, { userId: otherId }, { orgId });
 
 			// Creator creates proposal
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -610,7 +691,7 @@ describe('Consent Process', () => {
 
 			// Other user attempts to add evolution (should fail)
 			await expect(
-				t.mutation(api.proposals.addEvolution, {
+				t.mutation(api.core.proposals.index.addEvolution, {
 					sessionId: otherSessionId,
 					proposalId,
 					fieldPath: 'name',
@@ -634,7 +715,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId: creatorId }, { userId: otherId }, { orgId });
 
 			// Creator creates proposal with evolution
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -643,7 +724,7 @@ describe('Consent Process', () => {
 				description: 'Test description'
 			});
 
-			await t.mutation(api.proposals.addEvolution, {
+			await t.mutation(api.core.proposals.index.addEvolution, {
 				sessionId: creatorSessionId,
 				proposalId,
 				fieldPath: 'name',
@@ -673,7 +754,7 @@ describe('Consent Process', () => {
 
 			// Other user attempts to submit (should fail)
 			await expect(
-				t.mutation(api.proposals.submit, {
+				t.mutation(api.core.proposals.index.submit, {
 					sessionId: otherSessionId,
 					proposalId,
 					meetingId: meetingResult.meetingId
@@ -700,7 +781,7 @@ describe('Consent Process', () => {
 			);
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -731,7 +812,7 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
@@ -757,7 +838,7 @@ describe('Consent Process', () => {
 
 			// Other user (not recorder) attempts to approve (should fail)
 			await expect(
-				t.mutation(api.proposals.approve, {
+				t.mutation(api.core.proposals.index.approve, {
 					sessionId: otherSessionId,
 					proposalId
 				})
@@ -776,7 +857,7 @@ describe('Consent Process', () => {
 			cleanupQueue.push({ userId: creatorId }, { userId: otherId }, { orgId });
 
 			// Creator creates proposal
-			const { proposalId } = await t.mutation(api.proposals.create, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -785,7 +866,7 @@ describe('Consent Process', () => {
 				description: 'Test description'
 			});
 
-			await t.mutation(api.proposals.addEvolution, {
+			await t.mutation(api.core.proposals.index.addEvolution, {
 				sessionId: creatorSessionId,
 				proposalId,
 				fieldPath: 'name',
@@ -813,7 +894,7 @@ describe('Consent Process', () => {
 				visibility: 'public'
 			});
 
-			await t.mutation(api.proposals.submit, {
+			await t.mutation(api.core.proposals.index.submit, {
 				sessionId: creatorSessionId,
 				proposalId,
 				meetingId: meetingResult.meetingId
@@ -821,7 +902,7 @@ describe('Consent Process', () => {
 
 			// Other user attempts to withdraw (should fail)
 			await expect(
-				t.mutation(api.proposals.withdraw, {
+				t.mutation(api.core.proposals.index.withdraw, {
 					sessionId: otherSessionId,
 					proposalId
 				})
@@ -841,12 +922,13 @@ describe('Consent Process', () => {
 			const orgId = await createTestOrganization(t, 'Test Org');
 			await createTestOrganizationMember(t, orgId, creatorId, 'member');
 			await createTestOrganizationMember(t, orgId, recorderId, 'member');
+			const recorderPersonId = await getPersonIdForUser(t, orgId, recorderId);
 			const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -877,11 +959,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
+
+			// Ensure recorder has circle authority
+			await assignCircleLead(t, circleId, orgId, recorderId);
 
 			// Add recorder as attendee (required before starting meeting)
 			await t.run(async (ctx) => {
@@ -901,7 +986,7 @@ describe('Consent Process', () => {
 			});
 
 			// Approve proposal
-			const approveResult = await t.mutation(api.proposals.approve, {
+			const approveResult = await t.mutation(api.core.proposals.index.approve, {
 				sessionId: recorderSessionId,
 				proposalId
 			});
@@ -917,11 +1002,11 @@ describe('Consent Process', () => {
 			expect(versionHistory?.entityType).toBe('circle');
 			expect(versionHistory?.entityId).toBe(circleId);
 			expect(versionHistory?.changeType).toBe('update');
-			expect(versionHistory?.changedBy).toBe(recorderId);
+			expect(versionHistory?.changedByPersonId).toBe(recorderPersonId);
 			expect(versionHistory?.changeDescription).toContain('Approved via proposal');
 
 			// Verify proposal references version history
-			const proposal = await t.query(api.proposals.get, {
+			const proposal = await t.query(api.core.proposals.index.get, {
 				sessionId: creatorSessionId,
 				proposalId
 			});
@@ -947,7 +1032,7 @@ describe('Consent Process', () => {
 			const originalSlug = originalCircle?.slug;
 
 			// Create proposal using createFromDiff (creates in 'submitted' status)
-			const { proposalId } = await t.mutation(api.proposals.createFromDiff, {
+			const { proposalId } = await t.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				entityType: 'circle',
@@ -978,11 +1063,14 @@ describe('Consent Process', () => {
 			});
 
 			// Import to meeting (transitions submitted → in_meeting)
-			await t.mutation(api.proposals.importToMeeting, {
+			await t.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId: creatorSessionId,
 				meetingId: meetingResult.meetingId,
 				proposalIds: [proposalId]
 			});
+
+			// Ensure recorder has circle authority
+			await assignCircleLead(t, circleId, orgId, recorderId);
 
 			// Add recorder as attendee (required before starting meeting)
 			await t.run(async (ctx) => {
@@ -1002,7 +1090,7 @@ describe('Consent Process', () => {
 			});
 
 			// Approve proposal
-			await t.mutation(api.proposals.approve, {
+			await t.mutation(api.core.proposals.index.approve, {
 				sessionId: recorderSessionId,
 				proposalId
 			});

@@ -114,7 +114,7 @@
 				onblur={handleBlur}
 				disabled={isSaving}
 				class={inputClasses}
-			/>
+			></textarea>
 		{:else}
 			<input
 				bind:this={inputRef}
@@ -128,7 +128,7 @@
 			/>
 		{/if}
 		{#if isSaving}
-			<div class="absolute top-2 right-2 text-xs text-secondary">Saving...</div>
+			<div class="text-secondary absolute top-2 right-2 text-xs">Saving...</div>
 		{/if}
 	</div>
 {:else}

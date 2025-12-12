@@ -47,9 +47,9 @@ describe('useSelectedItem - Race Condition Prevention', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 
@@ -185,9 +185,9 @@ describe('useSelectedItem - Cleanup on Unmount', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 
@@ -249,9 +249,9 @@ describe('useSelectedItem - Stale Query Handling', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 

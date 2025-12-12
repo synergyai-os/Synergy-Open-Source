@@ -18,8 +18,8 @@
 	let { invite, onAccept, onDecline, onClose, class: className = '' }: Props = $props();
 </script>
 
-<div class="mx-1 rounded-button px-input py-stack-item {className}">
-	<div class="flex items-start gap-fieldGroup">
+<div class="rounded-button px-input py-stack-item mx-1 {className}">
+	<div class="gap-fieldGroup flex items-start">
 		<Avatar
 			initials={invite.organizationName.slice(0, 2).toUpperCase()}
 			size="sm"
@@ -27,7 +27,7 @@
 			class="flex-shrink-0"
 		/>
 		<div class="min-w-0 flex-1">
-			<div class="flex items-center justify-between gap-header">
+			<div class="gap-header flex items-center justify-between">
 				<Text variant="body" size="sm" color="default" as="span" class="truncate font-medium">
 					{invite.organizationName}
 				</Text>
@@ -38,7 +38,7 @@
 			<Text variant="label" size="sm" color="secondary" as="p" class="truncate">
 				Invited by {invite.invitedBy}
 			</Text>
-			<div class="flex gap-header mt-fieldGroup">
+			<div class="gap-header mt-fieldGroup flex">
 				<Button
 					variant="solid"
 					size="sm"

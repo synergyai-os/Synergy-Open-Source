@@ -1,6 +1,8 @@
-/**
- * People domain schema scaffold.
- * SYOS-707: placeholder until people domain is modeled.
- */
+import type { Doc, Id } from '../../_generated/dataModel';
+import { peopleTable } from './tables';
 
-export type PeopleSchema = Record<string, never>;
+export type PersonDoc = Doc<'people'>;
+export type PersonId = Id<'people'>;
+
+// Export table for schema composition
+export { peopleTable };

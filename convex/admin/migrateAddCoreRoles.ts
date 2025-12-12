@@ -9,7 +9,7 @@
 
 import { internalMutation, mutation } from '../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../sessionValidation';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 import type { Id } from '../_generated/dataModel';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 

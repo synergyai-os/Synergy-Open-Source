@@ -45,7 +45,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		);
 
 		// Legacy: Check circles flag directly (not yet migrated to module registry)
-		circlesEnabled = (await client.query(api.featureFlags.isFlagEnabled, {
+		circlesEnabled = (await client.query(api.infrastructure.featureFlags.isFlagEnabled, {
 			flag: 'circles_ui_beta',
 			sessionId
 		})) as boolean;
@@ -73,8 +73,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	try {
 		logger.debug('layout', 'Loading workspaces', { sessionId });
 		const [orgsResult, invitesResult] = await Promise.all([
-			client.query(api.workspaces.listWorkspaces, { sessionId }),
-			client.query(api.workspaces.listWorkspaceInvites, { sessionId })
+			client.query(api.core.workspaces.index.listWorkspaces, { sessionId }),
+			client.query(api.core.workspaces.index.listWorkspaceInvites, { sessionId })
 		]);
 		workspaces = orgsResult as unknown[];
 		workspaceInvites = invitesResult as unknown[];
@@ -114,7 +114,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
 			// Preload tags for QuickCreateModal instant rendering (filtered by active workspace)
 			try {
-				tags = await client.query(api.tags.listAllTags, {
+				tags = await client.query(api.features.tags.index.listAllTags, {
 					sessionId,
 					...(activeOrgId ? { workspaceId: activeOrgId as Id<'workspaces'> } : {})
 				});
@@ -163,7 +163,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					try {
 						// TODO: Add circles-specific data loading here when needed
 						// Example:
-						// return await client.query(api.circles.list, {
+						// return await client.query(api.core.circles.index.list, {
 						//   sessionId,
 						//   workspaceId: activeOrgId as Id<'workspaces'>
 						// });
@@ -185,7 +185,8 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	if (activeOrgId) {
 		workspaceId = activeOrgId;
 		try {
-			const brandingResult = await client.query(api.workspaces.findBranding, {
+			const brandingResult = await client.query(api.core.workspaces.index.findBranding, {
+				sessionId: locals.auth.sessionId,
 				workspaceId: activeOrgId as Id<'workspaces'>
 			});
 			orgBranding = brandingResult as {

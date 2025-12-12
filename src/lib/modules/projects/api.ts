@@ -75,6 +75,7 @@ export interface UseTasksReturn {
 	 * Workspace members (for user assignment)
 	 */
 	get members(): Array<{
+		personId?: Id<'people'>;
 		userId: Id<'users'>;
 		email: string;
 		name: string;
@@ -124,8 +125,8 @@ export interface UseTaskFormReturn {
 	set description(value: string);
 	get assigneeType(): 'user' | 'role';
 	set assigneeType(value: 'user' | 'role');
-	get assigneeUserId(): Id<'users'> | null;
-	set assigneeUserId(value: Id<'users'> | null);
+	get assigneePersonId(): Id<'people'> | null;
+	set assigneePersonId(value: Id<'people'> | null);
 	get assigneeRoleId(): Id<'circleRoles'> | null;
 	set assigneeRoleId(value: Id<'circleRoles'> | null);
 	get dueDate(): number | null;

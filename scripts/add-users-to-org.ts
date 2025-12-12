@@ -46,7 +46,7 @@ async function addUsersToOrg() {
 			console.log(`Adding user ${userId}...`);
 
 			// Use internal mutation to directly create org membership
-			await client.mutation(internal.workspaces.addMemberDirect, {
+			await client.mutation(internal.core.workspaces.index.addMemberDirect, {
 				workspaceId: ORG_ID,
 				userId: userId,
 				role: 'member'

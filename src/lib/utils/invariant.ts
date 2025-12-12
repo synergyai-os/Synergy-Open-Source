@@ -7,3 +7,11 @@ export function invariant(condition: unknown, message: string): asserts conditio
 		throw new Error(message);
 	}
 }
+
+/**
+ * Exhaustiveness check for switch statements.
+ * TypeScript will error if a case is unhandled.
+ */
+export function assertNever(value: never, message?: string): never {
+	throw new Error(message ?? `Unexpected value: ${value}`);
+}

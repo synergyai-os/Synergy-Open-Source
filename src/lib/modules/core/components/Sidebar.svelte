@@ -611,7 +611,7 @@
 								class="flex items-center justify-between"
 								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 							>
-								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
 									Workspace
 								</p>
 							</div>
@@ -653,10 +653,10 @@
 								class="flex items-center justify-between"
 								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 							>
-								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
 									Favorites
 								</p>
-								<div class="flex items-center gap-header">
+								<div class="gap-header flex items-center">
 									<!-- Placeholder for future action buttons -->
 								</div>
 							</div>
@@ -683,7 +683,7 @@
 								class="flex items-center justify-between"
 								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 							>
-								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">
 									Your circles
 								</p>
 							</div>
@@ -701,7 +701,7 @@
 								class="flex items-center justify-between"
 								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 							>
-								<p class="text-label font-medium tracking-wider text-tertiary uppercase">Legacy</p>
+								<p class="text-label text-tertiary font-medium tracking-wider uppercase">Legacy</p>
 							</div>
 						{/if}
 
@@ -798,7 +798,7 @@
 				>
 					<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 						<p
-							class="mb-form-field-gap text-label font-medium tracking-wider text-tertiary uppercase"
+							class="mb-form-field-gap text-label text-tertiary font-medium tracking-wider uppercase"
 						>
 							🧪 Development
 						</p>
@@ -996,7 +996,7 @@
 							class="flex items-center justify-between"
 							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 						>
-							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Workspace</p>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Workspace</p>
 						</div>
 					{/if}
 
@@ -1034,8 +1034,8 @@
 							class="flex items-center justify-between"
 							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 						>
-							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Favorites</p>
-							<div class="flex items-center gap-header">
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Favorites</p>
+							<div class="gap-header flex items-center">
 								<!-- Placeholder for future action buttons -->
 							</div>
 						</div>
@@ -1062,7 +1062,7 @@
 							class="flex items-center justify-between"
 							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 						>
-							<p class="text-label font-medium tracking-wider text-tertiary uppercase">
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">
 								Your circles
 							</p>
 						</div>
@@ -1080,7 +1080,7 @@
 							class="flex items-center justify-between"
 							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
 						>
-							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Legacy</p>
+							<p class="text-label text-tertiary font-medium tracking-wider uppercase">Legacy</p>
 						</div>
 					{/if}
 
@@ -1173,7 +1173,7 @@
 			>
 				<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 					<p
-						class="mb-form-field-gap text-label font-medium tracking-wider text-tertiary uppercase"
+						class="mb-form-field-gap text-label text-tertiary font-medium tracking-wider uppercase"
 					>
 						🧪 Development
 					</p>

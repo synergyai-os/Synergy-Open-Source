@@ -68,7 +68,7 @@
 	// Initialize tagging composable (handles data fetching and tag operations)
 	const tagging = useTagging({
 		sessionId: getSessionId,
-		activeWorkspaceId: activeWorkspaceId
+		activeWorkspaceId: () => activeWorkspaceId
 	});
 
 	let headerMenuOpen = $state(false);
@@ -292,7 +292,7 @@
 <div class="flex h-full flex-col">
 	<!-- Sticky Header - Linear Style -->
 	<div
-		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface"
+		class="h-system-header border-base py-system-header bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Back Button + Title -->
@@ -308,7 +308,7 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small font-normal text-secondary">Readwise Highlight</h2>
+			<h2 class="text-small text-secondary font-normal">Readwise Highlight</h2>
 		</div>
 
 		<!-- Right: Pagination + Actions Menu -->
@@ -319,9 +319,9 @@
 					<div class="flex items-center gap-2">
 						<!-- Page Counter: Current in primary, slash/total in secondary -->
 						<div class="flex items-center" style="gap: var(--spacing-1);">
-							<span class="text-small font-normal text-primary">{currentPosition}</span>
-							<span class="text-small font-normal text-secondary">/</span>
-							<span class="text-small font-normal text-secondary">{totalItems}</span>
+							<span class="text-small text-primary font-normal">{currentPosition}</span>
+							<span class="text-small text-secondary font-normal">/</span>
+							<span class="text-small text-secondary font-normal">{totalItems}</span>
 						</div>
 
 						<!-- Chevron Down (Next) - Primary color when enabled -->
@@ -349,13 +349,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="border-base px-inbox-card py-nav-item z-50 flex items-center gap-2 rounded-button border bg-elevated shadow-card"
+									class="border-base px-inbox-card py-nav-item rounded-button bg-elevated shadow-card z-50 flex items-center gap-2 border"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate down</span>
 									<span
-										class="min-w-badge border-base text-small px-badge py-badge rounded border bg-base text-center font-medium text-primary"
+										class="min-w-badge border-base text-small px-badge py-badge bg-base text-primary rounded border text-center font-medium"
 									>
 										J
 									</span>
@@ -388,13 +388,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="border-base px-inbox-card py-nav-item z-50 flex items-center gap-2 rounded-button border bg-elevated shadow-card"
+									class="border-base px-inbox-card py-nav-item rounded-button bg-elevated shadow-card z-50 flex items-center gap-2 border"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate up</span>
 									<span
-										class="min-w-badge border-base text-small px-badge py-badge rounded border bg-base text-center font-medium text-primary"
+										class="min-w-badge border-base text-small px-badge py-badge bg-base text-primary rounded border text-center font-medium"
 									>
 										K
 									</span>
@@ -408,7 +408,7 @@
 			<DropdownMenu.Root bind:open={headerMenuOpen}>
 				<DropdownMenu.Trigger
 					type="button"
-					class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
+					class="icon-xl hover:bg-hover-solid rounded-button text-secondary hover:text-primary flex items-center justify-center transition-colors"
 					aria-label="More options"
 				>
 					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,13 +423,13 @@
 
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						class="border-base min-w-dropdown py-badge z-50 rounded-button border bg-elevated shadow-card"
+						class="border-base min-w-dropdown py-badge rounded-button bg-elevated shadow-card z-50 border"
 						side="bottom"
 						align="end"
 						sideOffset={4}
 					>
 						<DropdownMenu.Item
-							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
+							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 							textValue="Skip"
 							onSelect={() => {
 								handleSkip();
@@ -455,11 +455,11 @@
 					<div class="mb-marketing-content mt-content-section">
 						<!-- Quote-style container with subtle background and left accent -->
 						<div
-							class="pr-inbox-container pl-inbox-container relative rounded-card border-l-4 border-accent-primary bg-surface"
+							class="pr-inbox-container pl-inbox-container rounded-card border-accent-primary bg-surface relative border-l-4"
 							style="padding-block: var(--spacing-8);"
 						>
 							<!-- Quote mark (decorative, subtle) -->
-							<div class="absolute top-6 left-6 text-accent-primary opacity-10">
+							<div class="text-accent-primary absolute top-6 left-6 opacity-10">
 								<svg style="width: 5rem; height: 5rem;" fill="currentColor" viewBox="0 0 24 24">
 									<path
 										d="M14.017 21v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017zm-10 0v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017z"
@@ -468,7 +468,7 @@
 							</div>
 							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
 							<p
-								class="text-h1 leading-readable tracking-readable sm:text-h1 relative z-10 max-w-none font-normal text-primary"
+								class="text-h1 leading-readable tracking-readable sm:text-h1 text-primary relative z-10 max-w-none font-normal"
 							>
 								{item.highlight.text}
 							</p>
@@ -479,18 +479,18 @@
 		</div>
 
 		<!-- Right Sidebar - Metadata & Actions -->
-		<div class="w-sidebar-detail border-base flex-shrink-0 overflow-y-auto border-l bg-surface">
+		<div class="w-sidebar-detail border-base bg-surface flex-shrink-0 overflow-y-auto border-l">
 			<div class="px-inbox-container py-inbox-container gap-settings-section flex flex-col">
 				<!-- Source Info -->
 				{#if item?.source}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Source
 						</p>
 						<div class="flex flex-col" style="gap: var(--spacing-1);">
-							<h3 class="text-small font-semibold text-primary">{item.source.title}</h3>
+							<h3 class="text-small text-primary font-semibold">{item.source.title}</h3>
 							{#if item.author}
 								<p class="text-label text-secondary">by {item.author.displayName}</p>
 							{:else if item.authors && item.authors.length > 0}
@@ -507,7 +507,7 @@
 
 				<!-- Tags -->
 				{#if highlightId}
-					{#if api.tags?.listAllTags && TagSelector}
+					{#if api.features.tags.index?.listAllTags && TagSelector}
 						<TagSelector
 							bind:selectedTagIds
 							availableTags={availableTags()}
@@ -519,7 +519,7 @@
 					{:else}
 						<div>
 							<p
-								class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+								class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 							>
 								Tags
 							</p>
@@ -531,7 +531,7 @@
 				{:else}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Tags
 						</p>
@@ -542,7 +542,7 @@
 				<!-- Actions (Sidebar) -->
 				<div>
 					<p
-						class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 					>
 						Actions
 					</p>
@@ -555,11 +555,11 @@
 				{#if item?.highlight?.note}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Note
 						</p>
-						<p class="text-label leading-relaxed text-secondary">{item.highlight.note}</p>
+						<p class="text-label text-secondary leading-relaxed">{item.highlight.note}</p>
 					</div>
 				{/if}
 
@@ -567,7 +567,7 @@
 				{#if item?.highlight?.externalUrl}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Links
 						</p>
@@ -575,7 +575,7 @@
 							href={item.highlight.externalUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="flex items-center gap-2 text-label text-primary transition-colors hover:text-secondary"
+							class="text-label text-primary hover:text-secondary flex items-center gap-2 transition-colors"
 						>
 							<span>View in Readwise</span>
 							<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

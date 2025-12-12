@@ -28,7 +28,7 @@ describe('Flashcards Integration Tests', () => {
 		userId = testUserId;
 
 		// Create flashcard (tests destructuring)
-		const flashcardId = await t.mutation(api.flashcards.createFlashcard, {
+		const flashcardId = await t.mutation(api.features.flashcards.index.createFlashcard, {
 			sessionId,
 			question: 'Test Question',
 			answer: 'Test Answer',
@@ -44,7 +44,7 @@ describe('Flashcards Integration Tests', () => {
 		userId = testUserId;
 
 		// Create flashcard
-		await t.mutation(api.flashcards.createFlashcard, {
+		await t.mutation(api.features.flashcards.index.createFlashcard, {
 			sessionId,
 			question: 'Q1',
 			answer: 'A1',
@@ -52,7 +52,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// List flashcards (tests destructuring)
-		const flashcards = await t.query(api.flashcards.getUserFlashcards, {
+		const flashcards = await t.query(api.features.flashcards.index.getUserFlashcards, {
 			sessionId
 		});
 
@@ -67,7 +67,7 @@ describe('Flashcards Integration Tests', () => {
 		userId = testUserId;
 
 		// Create flashcard
-		const flashcardId = await t.mutation(api.flashcards.createFlashcard, {
+		const flashcardId = await t.mutation(api.features.flashcards.index.createFlashcard, {
 			sessionId,
 			question: 'Review Test',
 			answer: 'Answer',
@@ -75,7 +75,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// Review flashcard (tests destructuring)
-		const result = await t.mutation(api.flashcards.updateFlashcardReview, {
+		const result = await t.mutation(api.features.flashcards.index.updateFlashcardReview, {
 			sessionId,
 			flashcardId,
 			rating: 'good' // Valid rating: 'again', 'hard', 'good', 'easy'
@@ -91,7 +91,7 @@ describe('Flashcards Integration Tests', () => {
 
 		// Try to create flashcard with invalid sessionId
 		await expect(
-			t.mutation(api.flashcards.createFlashcard, {
+			t.mutation(api.features.flashcards.index.createFlashcard, {
 				sessionId: 'invalid_session',
 				question: 'Q',
 				answer: 'A',
@@ -108,7 +108,7 @@ describe('Flashcards Integration Tests', () => {
 		const { sessionId: session2, userId: user2 } = await createTestSession(t);
 
 		// User1 creates flashcard
-		await t.mutation(api.flashcards.createFlashcard, {
+		await t.mutation(api.features.flashcards.index.createFlashcard, {
 			sessionId: session1,
 			question: 'User 1 Q',
 			answer: 'User 1 A',
@@ -116,7 +116,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// User2 should not see user1's flashcards
-		const user2Flashcards = await t.query(api.flashcards.getUserFlashcards, {
+		const user2Flashcards = await t.query(api.features.flashcards.index.getUserFlashcards, {
 			sessionId: session2
 		});
 

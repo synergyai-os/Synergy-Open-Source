@@ -52,7 +52,7 @@ export function useQuickCreateTags(
 	// Query all available tags - use server-side initial data immediately, then use query data when available
 	const allTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const workspaceId = getWorkspaceId();
@@ -90,7 +90,7 @@ export function useQuickCreateTags(
 
 			// If workspaceId is available, create as workspace tag
 			// Otherwise, create as user tag (visible across all orgs)
-			const tagId = await convexClient.mutation(api.tags.createTag, {
+			const tagId = await convexClient.mutation(api.features.tags.index.createTag, {
 				sessionId,
 				displayName,
 				color,

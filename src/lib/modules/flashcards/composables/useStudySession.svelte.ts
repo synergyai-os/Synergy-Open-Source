@@ -63,7 +63,7 @@ export function useStudySession(getSessionId: () => string | undefined): UseStud
 	// Query for due flashcards (reactive to tag selection)
 	const dueCardsQuery =
 		browser && getSessionId()
-			? useQuery(api.flashcards.getDueFlashcards, () => {
+			? useQuery(api.features.flashcards.index.getDueFlashcards, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
@@ -130,7 +130,7 @@ export function useStudySession(getSessionId: () => string | undefined): UseStud
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.updateFlashcardReview, {
+			await convexClient.mutation(api.features.flashcards.index.updateFlashcardReview, {
 				sessionId,
 				flashcardId: currentCard._id,
 				rating,

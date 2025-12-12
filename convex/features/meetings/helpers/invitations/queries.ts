@@ -2,11 +2,14 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
 import { ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type ListByMeetingArgs = { sessionId: string; meetingId: Id<'meetings'> };
-type IsUserInvitedArgs = { sessionId: string; meetingId: Id<'meetings'>; userId: Id<'users'> };
+type IsPersonInvitedArgs = { sessionId: string; meetingId: Id<'meetings'>; personId: Id<'people'> };
 
 export const listInvitationsByMeetingArgs = {
 	sessionId: v.string(),
@@ -14,9 +17,13 @@ export const listInvitationsByMeetingArgs = {
 };
 
 export async function listInvitationsByMeeting(ctx: QueryCtx, args: ListByMeetingArgs) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 	const invitations = await ctx.db
 		.query('meetingInvitations')
@@ -27,11 +34,11 @@ export async function listInvitationsByMeeting(ctx: QueryCtx, args: ListByMeetin
 
 	return Promise.all(
 		filteredInvitations.map(async (invitation) => {
-			if (invitation.invitationType === 'user' && invitation.userId) {
-				const person = await ctx.db.get(invitation.userId);
+			if (invitation.invitationType === 'user' && invitation.personId) {
+				const person = await ctx.db.get(invitation.personId);
 				return {
 					...invitation,
-					userName: person?.name ?? person?.email ?? 'Unknown person'
+					personName: person?.displayName ?? person?.email ?? 'Unknown person'
 				};
 			}
 
@@ -48,16 +55,23 @@ export async function listInvitationsByMeeting(ctx: QueryCtx, args: ListByMeetin
 	);
 }
 
-export const isUserInvitedArgs = {
+export const isPersonInvitedArgs = {
 	sessionId: v.string(),
 	meetingId: v.id('meetings'),
-	userId: v.id('users')
+	personId: v.id('people')
 };
 
-export async function checkUserInvited(ctx: QueryCtx, args: IsUserInvitedArgs): Promise<boolean> {
-	const { userId: currentUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+export async function checkPersonInvited(
+	ctx: QueryCtx,
+	args: IsPersonInvitedArgs
+): Promise<boolean> {
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, currentUserId);
+	const { personId: currentPersonId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, currentPersonId);
 
 	if (meeting.visibility === 'public') return true;
 
@@ -69,7 +83,7 @@ export async function checkUserInvited(ctx: QueryCtx, args: IsUserInvitedArgs): 
 	const directInvitation = invitations.find(
 		(invitation) =>
 			invitation.invitationType === 'user' &&
-			invitation.userId === args.userId &&
+			invitation.personId === args.personId &&
 			invitation.status !== 'declined'
 	);
 	if (directInvitation) return true;
@@ -82,8 +96,8 @@ export async function checkUserInvited(ctx: QueryCtx, args: IsUserInvitedArgs): 
 		if (!circleInvitation.circleId) continue;
 		const membership = await ctx.db
 			.query('circleMembers')
-			.withIndex('by_circle_user', (q) =>
-				q.eq('circleId', circleInvitation.circleId).eq('userId', args.userId)
+			.withIndex('by_circle_person', (q) =>
+				q.eq('circleId', circleInvitation.circleId).eq('personId', args.personId)
 			)
 			.first();
 		if (membership) return true;
@@ -92,8 +106,8 @@ export async function checkUserInvited(ctx: QueryCtx, args: IsUserInvitedArgs): 
 	if (meeting.circleId) {
 		const circleMembership = await ctx.db
 			.query('circleMembers')
-			.withIndex('by_circle_user', (q) =>
-				q.eq('circleId', meeting.circleId).eq('userId', args.userId)
+			.withIndex('by_circle_person', (q) =>
+				q.eq('circleId', meeting.circleId).eq('personId', args.personId)
 			)
 			.first();
 		if (circleMembership) return true;

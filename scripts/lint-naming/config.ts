@@ -54,7 +54,6 @@ export const EXCLUDED_PATH_PATTERNS: RegExp[] = [
 	new RegExp('migrate.*\\.ts$'),
 	new RegExp('\\.test\\.ts$'),
 	new RegExp('Triggers\\.ts$'),
-	new RegExp('orgVersionHistory\\.ts$'),
 	new RegExp('promptUtils\\.ts$'),
 	new RegExp('cryptoActions\\.ts$'),
 	new RegExp('verification\\.ts$'),

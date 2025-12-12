@@ -1,9 +1,10 @@
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
-import { ensureWorkspaceMembership } from './circleAccess';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 import { requireCircle } from './rules';
+import { getPersonById } from '../people/queries';
+import { getPersonEmail } from '../people/rules';
 
 export async function getCircleMembers(
 	ctx: QueryCtx,
@@ -13,10 +14,15 @@ export async function getCircleMembers(
 		includeArchived?: boolean;
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const circle = await requireCircle(ctx, args.circleId);
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const actingPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingPersonId);
 
 	const memberships = args.includeArchived
 		? await ctx.db
@@ -32,13 +38,13 @@ export async function getCircleMembers(
 
 	const members = await Promise.all(
 		memberships.map(async (membership) => {
-			const user = await ctx.db.get(membership.userId);
-			if (!user) return null;
+			const person = await getPersonById(ctx, membership.personId);
+			if (!person) return null;
 
 			return {
-				userId: membership.userId,
-				email: (user as unknown as { email?: string } | undefined)?.email ?? '',
-				name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+				personId: membership.personId,
+				email: await getPersonEmail(ctx, person),
+				displayName: person.displayName,
 				joinedAt: membership.joinedAt
 			};
 		})
@@ -49,34 +55,39 @@ export async function getCircleMembers(
 
 export async function addCircleMember(
 	ctx: MutationCtx,
-	args: { sessionId: string; circleId: Id<'circles'>; targetUserId: Id<'users'> }
+	args: { sessionId: string; circleId: Id<'circles'>; memberPersonId: Id<'people'> }
 ) {
-	const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const circle = await requireCircle(ctx, args.circleId);
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, args.targetUserId);
+	const actingPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingPersonId);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, args.memberPersonId);
 	await ensureCircleMembership(
 		ctx,
 		args.circleId,
-		actingUserId,
+		actingPersonId,
 		ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER
 	);
 
 	const existingMembership = await ctx.db
 		.query('circleMembers')
-		.withIndex('by_circle_user', (q) =>
-			q.eq('circleId', args.circleId).eq('userId', args.targetUserId)
+		.withIndex('by_circle_person', (q) =>
+			q.eq('circleId', args.circleId).eq('personId', args.memberPersonId)
 		)
 		.first();
 
 	if (existingMembership) {
-		throw createError(ErrorCodes.CIRCLE_MEMBER_EXISTS, 'User is already a member of this circle');
+		throw createError(ErrorCodes.CIRCLE_MEMBER_EXISTS, 'Person is already a member of this circle');
 	}
 
 	await ctx.db.insert('circleMembers', {
 		circleId: args.circleId,
-		userId: args.targetUserId,
+		personId: args.memberPersonId,
 		joinedAt: Date.now()
 	});
 
@@ -85,28 +96,33 @@ export async function addCircleMember(
 
 export async function removeCircleMember(
 	ctx: MutationCtx,
-	args: { sessionId: string; circleId: Id<'circles'>; targetUserId: Id<'users'> }
+	args: { sessionId: string; circleId: Id<'circles'>; memberPersonId: Id<'people'> }
 ) {
-	const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const circle = await requireCircle(ctx, args.circleId);
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
+	const actingPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingPersonId);
 	await ensureCircleMembership(
 		ctx,
 		args.circleId,
-		actingUserId,
+		actingPersonId,
 		ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER
 	);
 
 	const membership = await ctx.db
 		.query('circleMembers')
-		.withIndex('by_circle_user', (q) =>
-			q.eq('circleId', args.circleId).eq('userId', args.targetUserId)
+		.withIndex('by_circle_person', (q) =>
+			q.eq('circleId', args.circleId).eq('personId', args.memberPersonId)
 		)
 		.first();
 
 	if (!membership) {
-		throw createError(ErrorCodes.CIRCLE_MEMBER_NOT_FOUND, 'User is not a member of this circle');
+		throw createError(ErrorCodes.CIRCLE_MEMBER_NOT_FOUND, 'Person is not a member of this circle');
 	}
 
 	await ctx.db.delete(membership._id);
@@ -117,12 +133,12 @@ export async function removeCircleMember(
 async function ensureCircleMembership(
 	ctx: QueryCtx | MutationCtx,
 	circleId: Id<'circles'>,
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	errorCode: (typeof ErrorCodes)[keyof typeof ErrorCodes]
 ) {
 	const membership = await ctx.db
 		.query('circleMembers')
-		.withIndex('by_circle_user', (q) => q.eq('circleId', circleId).eq('userId', userId))
+		.withIndex('by_circle_person', (q) => q.eq('circleId', circleId).eq('personId', personId))
 		.first();
 	if (!membership) {
 		throw createError(errorCode, 'You do not have access to this circle');

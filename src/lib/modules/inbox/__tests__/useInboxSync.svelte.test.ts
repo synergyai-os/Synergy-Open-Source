@@ -48,9 +48,9 @@ describe('useInboxSync - Polling Logic', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 
@@ -205,9 +205,9 @@ describe('useInboxSync - Error Handling', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 
@@ -293,9 +293,9 @@ describe('useInboxSync - Progress Updates', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 
@@ -446,9 +446,9 @@ describe('useInboxSync - Activity Tracking', () => {
 
 		mockClient = createMockConvexClient();
 		inboxApi = {
-			findInboxItemWithDetails: api.inbox.findInboxItemWithDetails,
-			fetchReadwiseHighlights: api.syncReadwise.fetchReadwiseHighlights,
-			findSyncProgress: api.inbox.findSyncProgress
+			findInboxItemWithDetails: api.features.inbox.index.findInboxItemWithDetails,
+			fetchReadwiseHighlights: api.features.readwise.sync.fetchReadwiseHighlights,
+			findSyncProgress: api.features.inbox.index.findSyncProgress
 		};
 	});
 

@@ -33,7 +33,7 @@ Two complementary systems for editing organizational structure:
 - ✅ `Org Designer` RBAC role (in database)
 - ✅ `org-chart.edit.quick` permission (in database)
 - ✅ RBAC permission checking system (`convex/rbac/permissions.ts`)
-- ✅ Version history capture (`convex/orgVersionHistory.ts`)
+- ✅ Version history capture (`convex/core/history`)
 - ✅ Meetings system with `recorderId` field
 - ✅ Circle items system (`circleItems`, `circleItemCategories`)
 
@@ -566,7 +566,9 @@ export const addEvolution = mutation({
 		// 2. Get proposal and verify ownership + draft status
 		const proposal = await ctx.db.get(args.proposalId);
 		if (!proposal) throw new Error('Proposal not found');
-		if (proposal.createdBy !== userId) throw new Error('Only proposal creator can edit');
+		const person = await getPersonByUserAndWorkspace(ctx, userId, proposal.workspaceId);
+		if (proposal.createdByPersonId !== person._id)
+			throw new Error('Only proposal creator can edit');
 		if (proposal.status !== 'draft') throw new Error('Can only edit draft proposals');
 
 		// 3. Get current max order
@@ -612,7 +614,9 @@ export const submit = mutation({
 		// 2. Get proposal and verify
 		const proposal = await ctx.db.get(args.proposalId);
 		if (!proposal) throw new Error('Proposal not found');
-		if (proposal.createdBy !== userId) throw new Error('Only proposal creator can submit');
+		const person = await getPersonByUserAndWorkspace(ctx, userId, proposal.workspaceId);
+		if (proposal.createdByPersonId !== person._id)
+			throw new Error('Only proposal creator can submit');
 		if (proposal.status !== 'draft') throw new Error('Can only submit draft proposals');
 
 		// 3. Verify meeting exists and is governance type
@@ -1044,15 +1048,17 @@ export const get = query({
 			.withIndex('by_proposal', (q) => q.eq('proposalId', args.proposalId))
 			.collect();
 
-		// Get creator info
-		const creator = await ctx.db.get(proposal.createdBy);
+		// Get creator info (person)
+		const creator = await ctx.db.get(proposal.createdByPersonId);
 
 		return {
 			...proposal,
 			evolutions,
 			objections,
 			attachments,
-			creator: creator ? { id: creator._id, name: creator.name, email: creator.email } : null
+			creator: creator
+				? { id: creator._id, name: creator.displayName ?? '', email: creator.email }
+				: null
 		};
 	}
 });
@@ -1570,6 +1576,6 @@ test('proposal - with objections', async () => {
 - BDD Spec: `ai-docs/tasks/edit-circle-feature.md`
 - Operating Modes Spec: `ai-docs/tasks/organizational-operating-modes.md`
 - Existing RBAC: `convex/rbac/permissions.ts`
-- Version History: `convex/orgVersionHistory.ts`
+- Version History: `convex/core/history`
 - Meetings: `convex/meetings.ts`
 - Current Schema: `convex/schema.ts`

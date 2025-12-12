@@ -2,8 +2,7 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
 import { ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership } from '../access';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from '../access';
 import { loadMeetingOrThrow } from './shared';
 
 type GetArgs = { sessionId: string; meetingId: Id<'meetings'> };
@@ -14,16 +13,20 @@ export const getMeetingArgs = {
 };
 
 export async function getMeeting(ctx: QueryCtx, args: GetArgs) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await loadMeetingOrThrow(ctx, args.meetingId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
 
 	const attendees = await resolveAttendees(ctx, meeting._id);
-	return { ...meeting, attendees };
+	return { ...meeting, attendees, viewerPersonId: personId };
 }
 
 async function resolveAttendees(ctx: QueryCtx, meetingId: Id<'meetings'>) {
@@ -34,10 +37,10 @@ async function resolveAttendees(ctx: QueryCtx, meetingId: Id<'meetings'>) {
 
 	return Promise.all(
 		attendees.map(async (attendee) => {
-			const person = await ctx.db.get(attendee.userId);
+			const person = await ctx.db.get(attendee.personId);
 			return {
 				...attendee,
-				userName: person?.name ?? person?.email ?? 'Unknown person'
+				personName: person?.displayName ?? person?.email ?? 'Unknown person'
 			};
 		})
 	);

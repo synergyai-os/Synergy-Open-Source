@@ -14,6 +14,7 @@
  */
 
 import { browser } from '$app/environment';
+import { invariant } from '$lib/utils/invariant';
 
 // Constants
 const PBKDF2_ITERATIONS = 100_000; // OWASP recommendation for 2024
@@ -82,9 +83,7 @@ async function deriveKey(): Promise<CryptoKey> {
  * Format: [IV(12)][CIPHERTEXT(N)][AUTH_TAG(16)]
  */
 export async function encryptSession(plaintext: string): Promise<string> {
-	if (!browser) {
-		throw new Error('encryptSession can only be called in the browser');
-	}
+	invariant(browser, 'encryptSession can only be called in the browser');
 
 	const encoder = new TextEncoder();
 	const data = encoder.encode(plaintext);
@@ -115,9 +114,7 @@ export async function encryptSession(plaintext: string): Promise<string> {
  * @throws Error if decryption fails (wrong key, tampered data, etc.)
  */
 export async function decryptSession(encrypted: string): Promise<string> {
-	if (!browser) {
-		throw new Error('decryptSession can only be called in the browser');
-	}
+	invariant(browser, 'decryptSession can only be called in the browser');
 
 	try {
 		// Decode base64
@@ -139,7 +136,7 @@ export async function decryptSession(encrypted: string): Promise<string> {
 	} catch (error) {
 		// Decryption failed (wrong key, tampered data, or corrupted)
 		console.error('Session decryption failed:', error);
-		throw new Error('Failed to decrypt session data');
+		invariant(false, 'Failed to decrypt session data');
 	}
 }
 

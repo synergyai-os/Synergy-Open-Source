@@ -98,19 +98,19 @@
 	}
 </script>
 
-<div class="h-full overflow-y-auto px-page py-page">
+<div class="px-page py-page h-full overflow-y-auto">
 	<div class="mx-auto max-w-4xl">
-		<h1 class="mb-2 text-2xl font-bold text-primary">Readwise API Test</h1>
-		<p class="mb-6 text-secondary">
+		<h1 class="text-primary mb-2 text-2xl font-bold">Readwise API Test</h1>
+		<p class="text-secondary mb-6">
 			Quick test page to validate Readwise API integration. This is a learning/development page.
 		</p>
 
 		<!-- API Key Status -->
-		<div class="border-border-elevated mb-6 rounded-lg border bg-base p-4">
+		<div class="border-border-elevated bg-base mb-6 rounded-lg border p-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="mb-1 font-medium text-primary">API Key Status</p>
-					<p class="text-sm text-secondary">
+					<p class="text-primary mb-1 font-medium">API Key Status</p>
+					<p class="text-secondary text-sm">
 						{#if settings.isLoading}
 							Loading...
 						{:else if settings.data?.hasReadwiseKey}
@@ -124,14 +124,14 @@
 		</div>
 
 		<!-- Test Actions -->
-		<div class="border-border-elevated mb-6 rounded-lg border bg-base p-6">
-			<p class="mb-4 font-medium text-primary">Test Actions</p>
+		<div class="border-border-elevated bg-base mb-6 rounded-lg border p-6">
+			<p class="text-primary mb-4 font-medium">Test Actions</p>
 			<div class="flex flex-wrap gap-3">
 				<button
 					type="button"
 					onclick={testReadwise}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Testing...' : 'Test Connection'}
 				</button>
@@ -139,7 +139,7 @@
 					type="button"
 					onclick={testReadwiseHighlights}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Highlights'}
 				</button>
@@ -147,7 +147,7 @@
 					type="button"
 					onclick={testReadwiseBooks}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Books'}
 				</button>
@@ -164,17 +164,17 @@
 
 		<!-- Response Display -->
 		{#if testResponse}
-			<div class="border-border-elevated rounded-lg border bg-base p-6">
-				<p class="mb-3 font-medium text-primary">Response</p>
+			<div class="border-border-elevated bg-base rounded-lg border p-6">
+				<p class="text-primary mb-3 font-medium">Response</p>
 				<pre
-					class="border-border overflow-x-auto rounded border bg-base p-4 font-code text-sm whitespace-pre-wrap text-secondary">{testResponse}</pre>
+					class="border-border bg-base font-code text-secondary overflow-x-auto rounded border p-4 text-sm whitespace-pre-wrap">{testResponse}</pre>
 			</div>
 		{/if}
 
 		<!-- Instructions -->
-		<div class="border-border-elevated mt-6 rounded-lg border bg-base p-6">
-			<p class="mb-2 font-medium text-primary">📚 How to Use</p>
-			<ul class="list-inside list-disc space-y-1 text-sm text-secondary">
+		<div class="border-border-elevated bg-base mt-6 rounded-lg border p-6">
+			<p class="text-primary mb-2 font-medium">📚 How to Use</p>
+			<ul class="text-secondary list-inside list-disc space-y-1 text-sm">
 				<li>Click "Test Connection" to verify API key is valid</li>
 				<li>Click "Fetch Highlights" to test fetching your highlights</li>
 				<li>Click "Fetch Books" to test fetching your books</li>

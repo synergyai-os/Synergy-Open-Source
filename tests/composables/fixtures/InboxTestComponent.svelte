@@ -69,7 +69,8 @@
 		inboxApi,
 		sessionId,
 		onItemsReload,
-		onClearSelection
+		onClearSelection,
+		activeWorkspaceId
 	);
 
 	const keyboardNav = useKeyboardNavigation(filteredItems, selectedItemId, onSelectItem);

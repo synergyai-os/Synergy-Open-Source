@@ -193,14 +193,14 @@ export const getRolePermissions = query({
 export const getUserRoles = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users')
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
 		const userRoles = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
 		const roles = await Promise.all(
@@ -692,7 +692,7 @@ export const removePermissionFromRole = mutation({
 export const assignRoleToUser = mutation({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users'),
+		assigneeUserId: v.id('users'),
 		roleId: v.id('roles'),
 		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
@@ -705,7 +705,9 @@ export const assignRoleToUser = mutation({
 		// Query all user-role assignments for this user+role combination
 		const allAssignments = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', args.userId).eq('roleId', args.roleId))
+			.withIndex('by_user_role', (q) =>
+				q.eq('userId', args.assigneeUserId).eq('roleId', args.roleId)
+			)
 			.collect();
 
 		// Find matching assignment based on scoping
@@ -731,7 +733,7 @@ export const assignRoleToUser = mutation({
 
 		// Create new assignment
 		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.userId,
+			userId: args.assigneeUserId,
 			roleId: args.roleId,
 			workspaceId: args.workspaceId,
 			circleId: args.circleId,

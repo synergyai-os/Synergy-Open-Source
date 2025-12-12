@@ -24,24 +24,24 @@
 			</svg>
 			<span class="text-small">Back</span>
 		</Button>
-		<h2 class="text-h3 flex-1 font-bold text-primary">Manual Note</h2>
+		<h2 class="text-h3 text-primary flex-1 font-bold">Manual Note</h2>
 	</div>
 
 	<!-- Source Info -->
 	{#if item.bookTitle}
 		<div
-			class="mb-marketing-title-to-lead border-base px-inbox-container py-inbox-container rounded-card border bg-surface"
+			class="mb-marketing-title-to-lead border-base px-inbox-container py-inbox-container rounded-card bg-surface border"
 		>
-			<p class="text-small font-semibold text-primary">Source</p>
+			<p class="text-small text-primary font-semibold">Source</p>
 			<p class="text-small text-secondary">{item.bookTitle}</p>
 		</div>
 	{/if}
 
 	<!-- Note Text -->
 	<div class="mb-marketing-title-to-lead">
-		<p class="mb-marketing-text text-small font-medium text-secondary">Note</p>
-		<div class="border-base px-inbox-container py-inbox-container rounded-card border bg-surface">
-			<p class="leading-relaxed whitespace-pre-wrap text-secondary">
+		<p class="mb-marketing-text text-small text-secondary font-medium">Note</p>
+		<div class="border-base px-inbox-container py-inbox-container rounded-card bg-surface border">
+			<p class="text-secondary leading-relaxed whitespace-pre-wrap">
 				{item.text || 'No content'}
 			</p>
 		</div>
@@ -54,7 +54,7 @@
 
 	<!-- Metadata -->
 	<div class="mt-content-padding border-base pt-content-padding border-t">
-		<div class="flex items-center justify-between text-label text-tertiary">
+		<div class="text-label text-tertiary flex items-center justify-between">
 			<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
 			<span>ID: {item._id}</span>
 		</div>

@@ -88,6 +88,32 @@ For AI agents working with this design system:
 | Never hardcode colors, spacing, or sizes | Even if the value "matches" a token |
 | Check recipe exists before creating manual variant logic | Recipes are the source of truth |
 
+### 1.5 AI Development Guardrails
+
+These rules are **NON-NEGOTIABLE** for AI agents:
+
+| File/Directory | Rule | If Violation Needed |
+|----------------|------|---------------------|
+| `src/styles/tokens/*.css` | **READ-ONLY** - Auto-generated | Modify source JSON + rebuild |
+| `src/styles/utilities/*.css` | **READ-ONLY** - Auto-generated | Modify source JSON + rebuild |
+| `scripts/style-dictionary/` | **ASK FIRST** - Build infrastructure | Requires human approval |
+| `scripts/*validate*.ts` | **NEVER MODIFY TO PASS** | Fix the source, not the test |
+| `design-tokens-base.json` | **Designer file** | Document reasoning in ticket |
+| `design-tokens-semantic.json` | **System file** | Requires human approval |
+
+**The Cascade is Sacred**: If you're tempted to edit generated CSS directly, you're solving the wrong problem. Trace back to the source token.
+
+**Validation Failures Mean Architecture Violations**: When validation fails, the fix is NEVER "make validation more permissive." The fix is either:
+1. Correct the violating code to match documented architecture
+2. Propose an architecture change (requires human decision)
+
+**Before Modifying Design System Files**:
+1. Read this entire document
+2. Identify which layer owns the value (base → semantic → utility → component)
+3. Make changes at the source layer, not downstream
+4. Run `npm run tokens:build` to regenerate
+5. Run `npm run tokens:validate` to verify
+
 ---
 
 ## 2. Token Architecture
@@ -174,6 +200,67 @@ src/styles/utilities/
   ├── component-utils.css  # rounded-*, shadow-* utilities
   └── opacity-utils.css    # opacity-disabled, etc.
 ```
+
+### 2.4 Token Consumption Patterns
+
+Tokens are consumed in two ways. Both maintain the cascade principle.
+
+| Token Category | Consumption Method | Example Usage |
+|----------------|-------------------|---------------|
+| **Colors (semantic)** | Utility classes | `bg-surface`, `text-primary` |
+| **Colors (base)** | Referenced by semantic only | Never used directly |
+| **Spacing** | Utility classes | `px-button`, `gap-section` |
+| **Typography** | Utility classes | `text-h1`, `text-body` |
+| **Breakpoints** | Direct `var()` in JS/CSS | `var(--breakpoint-md)` |
+| **Opacity** | Direct `var()` in CSS | `var(--opacity-50)` |
+| **Syntax highlighting** | Direct `var()` in components | `var(--color-syntax-keyword)` |
+| **Border radius** | Utility classes | `rounded-button`, `rounded-card` |
+| **Shadows** | Utility classes | `shadow-card`, `shadow-modal` |
+
+**Why Two Patterns?**
+
+Utility classes work well for:
+- Common styling (backgrounds, text, spacing)
+- Repeated patterns across components
+- Values that benefit from class composition
+
+Direct `var()` works better for:
+- Values used in JavaScript (breakpoints for responsive logic)
+- Values composed dynamically (opacity with colors)
+- Specialized contexts (syntax highlighting in code blocks)
+
+**The Cascade Still Works**: Regardless of consumption method, changing the source token updates all usages. The cascade is about the data flow, not the consumption pattern.
+
+**Validation Implications**: The validation script recognizes both patterns. Utility-consumed tokens must have corresponding `@utility` definitions. Direct-consumed tokens are listed in the validation config as exceptions.
+
+#### Syntax Highlighting Token Standard
+
+**Standard naming**: `syntax` (not `code`)
+
+Syntax highlighting colors use the `syntax` token namespace with direct `var()` consumption:
+
+| Token | Purpose | Example Element |
+|-------|---------|----------------|
+| `--color-syntax-keyword` | Language keywords | `const`, `function`, `if`, `return` |
+| `--color-syntax-string` | String literals | `"hello"`, `'world'` |
+| `--color-syntax-comment` | Comments | `// comment`, `/* block */` |
+| `--color-syntax-function` | Function names | `myFunction()` |
+| `--color-syntax-variable` | Variable names | `myVar`, `props` |
+| `--color-syntax-operator` | Operators | `=`, `+`, `=>`, `&&` |
+| `--color-syntax-number` | Numeric literals | `42`, `3.14`, `0xff` |
+
+**Architecture**:
+- Base tokens (`design-tokens-base.json`): Define light/dark variants for each syntax type
+- Semantic tokens (`design-tokens-semantic.json`): Map light/dark based on theme
+- Generated CSS: Creates `--color-syntax-*` variables with automatic theme switching
+- Component usage: Direct `var(--color-syntax-*)` references
+
+**Why `syntax` not `code`?**
+- `syntax` describes the purpose (syntax highlighting)
+- `code` is ambiguous (could mean code blocks, code text, code backgrounds)
+- `syntax` aligns with industry standards (VS Code, GitHub, etc.)
+
+**Note**: Code block backgrounds and text use `component.code.bg` and `component.code.text` tokens, which are separate from syntax highlighting colors.
 
 ---
 
@@ -904,6 +991,34 @@ import { Card } from '$lib/components/atoms';
 ```
 
 For component location rules, see [ARCHITECTURE.md](./ARCHITECTURE.md#frontend-architecture).
+
+---
+
+### 10.7 Tailwind v4 Auto-Detection Warnings
+
+**Problem**: Tailwind v4 auto-detects sources. Strings like `[file:line]` in AI tooling configs (`.cursor/`), docs, or dependencies are treated as arbitrary properties, generating invalid CSS.
+
+**Symptoms**:
+- Build warning: `"file" is not a known CSS property`
+- Generated CSS contains `.[file\:line]{file:line}`
+
+**Solution (layered, current)**:
+1) **Exclude non-style folders with `@source not`** in `src/styles/app.css` (note the paths are relative to `src/styles/app.css`):
+```css
+@source not '../../node_modules';
+@source not '../../.svelte-kit';
+@source not '../../scripts';
+@source not '../../dev-docs';
+@source not '../../tests';
+@source not '../../e2e';
+@source not '../../.cursor';
+@source '../**/*.{svelte,ts,js,html}';
+```
+2) **Defense-in-depth scrub** in `vite.config.ts`:
+   - PostCSS plugin (`createStripFileLinePlugin`) removes `[file:line]` selectors when PostCSS runs.
+   - Vite `generateBundle` hook (`stripFileLineSelectorsPlugin`) scrubs emitted CSS assets right before write. This is the final guard and ensured the warning disappeared.
+
+**Why this happens**: AI tooling (Cursor, Copilot) and docs can contain `[file:line]` markers that look like Tailwind arbitrary properties; Tailwind v4’s auto-scanner picks them up unless explicitly excluded.
 
 ---
 

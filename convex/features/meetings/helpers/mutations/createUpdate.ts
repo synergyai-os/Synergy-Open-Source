@@ -2,14 +2,18 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting, requireTemplate } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireTemplate,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type CreateArgs = {
 	sessionId: string;
 	workspaceId: Id<'workspaces'>;
 	circleId?: Id<'circles'>;
-	templateId: Id<'meetingTemplates'>;
+	templateId?: Id<'meetingTemplates'>;
 	title: string;
 	startTime: number;
 	duration: number;
@@ -22,7 +26,7 @@ type CreateArgs = {
 	};
 	invitations?: Array<{
 		invitationType: 'user' | 'circle';
-		userId?: Id<'users'>;
+		personId?: Id<'people'>;
 		circleId?: Id<'circles'>;
 	}>;
 };
@@ -47,7 +51,7 @@ export const createMeetingArgs = {
 	sessionId: v.string(),
 	workspaceId: v.id('workspaces'),
 	circleId: v.optional(v.id('circles')),
-	templateId: v.id('meetingTemplates'),
+	templateId: v.optional(v.id('meetingTemplates')),
 	title: v.string(),
 	startTime: v.number(),
 	duration: v.number(),
@@ -64,7 +68,7 @@ export const createMeetingArgs = {
 		v.array(
 			v.object({
 				invitationType: v.union(v.literal('user'), v.literal('circle')),
-				userId: v.optional(v.id('users')),
+				personId: v.optional(v.id('people')),
 				circleId: v.optional(v.id('circles'))
 			})
 		)
@@ -75,8 +79,16 @@ export async function createMeeting(
 	ctx: MutationCtx,
 	args: CreateArgs
 ): Promise<{ meetingId: Id<'meetings'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId, {
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -89,7 +101,17 @@ export async function createMeeting(
 		}
 	}
 
-	const template = await ctx.db.get(args.templateId);
+	const templateId =
+		args.templateId ??
+		(await ctx.db.insert('meetingTemplates', {
+			workspaceId: args.workspaceId,
+			name: 'Default Meeting Template',
+			description: 'Auto-created for meeting',
+			createdAt: Date.now(),
+			createdByPersonId: personId
+		}));
+
+	const template = await ctx.db.get(templateId);
 	if (!template) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Template not found');
 	}
@@ -100,23 +122,23 @@ export async function createMeeting(
 	const meetingId = await ctx.db.insert('meetings', {
 		workspaceId: args.workspaceId,
 		circleId: args.circleId,
-		templateId: args.templateId,
+		templateId,
 		title: args.title,
 		startTime: args.startTime,
 		duration: args.duration,
 		visibility: args.visibility,
 		recurrence: args.recurrence,
 		createdAt: Date.now(),
-		createdBy: userId,
+		createdByPersonId: personId,
 		updatedAt: Date.now()
 	});
 
 	if (args.invitations?.length) {
 		for (const invitation of args.invitations) {
-			if (invitation.invitationType === 'user' && !invitation.userId) {
+			if (invitation.invitationType === 'user' && !invitation.personId) {
 				throw createError(
 					ErrorCodes.GENERIC_ERROR,
-					'userId is required when invitationType is "user"'
+					'personId is required when invitationType is "user"'
 				);
 			}
 			if (invitation.invitationType === 'circle' && !invitation.circleId) {
@@ -126,8 +148,8 @@ export async function createMeeting(
 				);
 			}
 
-			if (invitation.invitationType === 'user' && invitation.userId) {
-				await ensureWorkspaceMembership(ctx, args.workspaceId, invitation.userId, {
+			if (invitation.invitationType === 'user' && invitation.personId) {
+				await ensureWorkspaceMembership(ctx, args.workspaceId, invitation.personId, {
 					errorCode: ErrorCodes.GENERIC_ERROR,
 					message: 'Workspace membership required'
 				});
@@ -142,13 +164,13 @@ export async function createMeeting(
 			await ctx.db.insert('meetingInvitations', {
 				meetingId,
 				invitationType: invitation.invitationType,
-				userId: invitation.userId,
+				personId: invitation.personId,
 				circleId: invitation.circleId,
 				status: 'pending',
 				respondedAt: undefined,
 				lastSentAt: Date.now(),
 				createdAt: Date.now(),
-				createdBy: userId
+				createdByPersonId: personId
 			});
 		}
 	}
@@ -178,10 +200,18 @@ export async function updateMeeting(
 	ctx: MutationCtx,
 	args: UpdateArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});

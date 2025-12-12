@@ -26,7 +26,7 @@
 	<AlertDialog.Portal>
 		<AlertDialog.Overlay class="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm" />
 		<AlertDialog.Content
-			class="border-base p-modal fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-card border bg-elevated shadow-card"
+			class="border-base p-modal rounded-card bg-elevated shadow-card fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 border"
 		>
 			<AlertDialog.Title>
 				<Heading level={2}>Discard unsaved changes?</Heading>
@@ -36,7 +36,7 @@
 					You have unsaved changes. Are you sure you want to discard them?
 				</Text>
 			</AlertDialog.Description>
-			<div class="flex justify-end gap-button">
+			<div class="gap-button flex justify-end">
 				<AlertDialog.Cancel>
 					<Button variant="outline" onclick={handleCancel}>Keep Editing</Button>
 				</AlertDialog.Cancel>

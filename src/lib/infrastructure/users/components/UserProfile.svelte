@@ -21,10 +21,10 @@
 	);
 </script>
 
-<div class="flex items-center gap-button {className}">
+<div class="gap-button flex items-center {className}">
 	<UserAvatar {user} size={avatarSize} />
 	<div class="flex flex-col">
-		<span class="text-body font-medium text-primary">{displayName}</span>
+		<span class="text-body text-primary font-medium">{displayName}</span>
 		{#if showEmail && user?.email}
 			<span class="text-label text-secondary">{user.email}</span>
 		{/if}

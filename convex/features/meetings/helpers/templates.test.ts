@@ -1,9 +1,12 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+vi.mock('./access', () => ({
+	ensureWorkspaceMembership: vi.fn(),
+	requireTemplate: vi.fn(async (_ctx, id) => ({ _id: id, workspaceId: 'w1' })),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' })
 }));
 
+import { ensureWorkspaceMembership } from './access';
 import { ErrorCodes } from '../../../infrastructure/errors/codes';
 import { addTemplateStep, archiveTemplateMutation, createTemplate } from './templates';
 
@@ -19,18 +22,6 @@ const makeMutationCtx = (opts: CtxOpts = {}) =>
 				return Promise.resolve(null);
 			}),
 			query: vi.fn((table: string) => {
-				if (table === 'workspaceMembers') {
-					return {
-						withIndex: () => ({
-							first: vi
-								.fn()
-								.mockResolvedValue(
-									opts.workspaceMember === false ? null : { _id: 'wm1', workspaceId: 'w1' }
-								),
-							collect: vi.fn().mockResolvedValue([])
-						})
-					};
-				}
 				if (table === 'meetingTemplateSteps') {
 					return {
 						withIndex: () => ({
@@ -53,12 +44,16 @@ describe('helpers/templates', () => {
 
 		expect((ctx.db as any).insert).toHaveBeenCalledWith(
 			'meetingTemplates',
-			expect.objectContaining({ workspaceId: 'w1', name: 'Gov', createdBy: 'user1' })
+			expect.objectContaining({ workspaceId: 'w1', name: 'Gov', createdByPersonId: 'person1' })
 		);
 	});
 
 	test('createTemplate propagates membership failure', async () => {
 		const ctx = makeMutationCtx({ workspaceMember: false });
+
+		vi.mocked(ensureWorkspaceMembership).mockRejectedValueOnce(
+			new Error(`${ErrorCodes.WORKSPACE_ACCESS_DENIED}: Workspace membership required`)
+		);
 
 		await expect(
 			createTemplate(ctx, { sessionId: 's', workspaceId: 'w1', name: 'Gov' })

@@ -6,6 +6,7 @@ import { api } from '$convex/_generated/api';
 import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
 import { generateRandomToken } from '$lib/infrastructure/auth/server/crypto';
 import { logger } from '$lib/utils/logger';
+import { invariant } from '$lib/utils/invariant';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { auth } = locals;
@@ -23,16 +24,14 @@ export const GET: RequestHandler = async ({ locals }) => {
 		return json({ error: 'Not authenticated' }, { status: 401 });
 	}
 
-	if (!publicEnv.PUBLIC_CONVEX_URL) {
-		throw new Error('PUBLIC_CONVEX_URL must be configured.');
-	}
+	invariant(publicEnv.PUBLIC_CONVEX_URL, 'PUBLIC_CONVEX_URL must be configured.');
 
 	const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
 	try {
 		// Get all linked accounts for the current user
 		logger.debug('linkedSessions', 'Fetching linked accounts');
-		const linkedAccounts = await convex.query(api.users.listLinkedAccounts, {
+		const linkedAccounts = await convex.query(api.core.users.index.listLinkedAccounts, {
 			sessionId: auth.sessionId
 		});
 		logger.debug('linkedSessions', 'Linked accounts fetched', {
@@ -67,7 +66,10 @@ export const GET: RequestHandler = async ({ locals }) => {
 					userId: account.userId,
 					email: account.email
 				});
-				const sessionRecord = await getActiveSessionRecordForUser(account.userId);
+				const sessionRecord = await getActiveSessionRecordForUser({
+					sessionId: auth.sessionId,
+					targetUserId: account.userId
+				});
 				logger.debug('linkedSessions', 'Session record result', {
 					userId: account.userId,
 					hasSession: !!sessionRecord,
@@ -88,9 +90,12 @@ export const GET: RequestHandler = async ({ locals }) => {
 						email: account.email,
 						sessionId: sessionRecord.sessionId
 					});
-					const accountOrganizations = await convex.query(api.workspaces.listWorkspaces, {
-						sessionId: sessionRecord.sessionId
-					});
+					const accountOrganizations = await convex.query(
+						api.core.workspaces.index.listWorkspaces,
+						{
+							sessionId: sessionRecord.sessionId
+						}
+					);
 					logger.debug('linkedSessions', 'Organizations fetched', {
 						userId: account.userId,
 						email: account.email,

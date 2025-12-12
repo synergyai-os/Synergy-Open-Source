@@ -20,7 +20,7 @@
 	import type { Id } from '$lib/convex';
 	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
 	import { getContext } from 'svelte';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
@@ -46,7 +46,7 @@ import { invariant } from '$lib/utils/invariant';
 				useTaskForm: (options: unknown) => unknown;
 		  }
 		| undefined;
-invariant(projects, 'ProjectsModuleAPI context not found');
+	invariant(projects, 'ProjectsModuleAPI context not found');
 
 	// Data fetching composable
 	const data = projects.useTasks({
@@ -80,20 +80,20 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 
 	<!-- Add Action Form (Inline) -->
 	{#if form.isAdding}
-		<div class="space-y-header border-border-base p-form-section rounded-button border bg-surface">
+		<div class="space-y-header border-border-base p-form-section rounded-button bg-surface border">
 			<!-- Description -->
 			<textarea
 				bind:value={form.description}
 				placeholder="What needs to be done?"
 				rows="2"
-				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
+				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 			></textarea>
 
 			<!-- Assignee Type Toggle -->
 			<div class="gap-form-section flex items-center">
 				<!-- Assignee Type Toggle (only if circle has roles) -->
 				{#if circleId && data.roles.length > 0}
-					<div class="flex items-center gap-fieldGroup">
+					<div class="gap-fieldGroup flex items-center">
 						<Text variant="body" size="sm" color="tertiary" as="span">Assign to:</Text>
 						<Button
 							variant="outline"
@@ -111,18 +111,18 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 			<div>
 				{#if form.assigneeType === 'user'}
 					<select
-						bind:value={form.assigneeUserId}
-						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
+						bind:value={form.assigneePersonId}
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 					>
-						<option value={null}>Select user...</option>
-						{#each data.members as member (member.userId)}
-							<option value={member.userId}>{member.name || member.email}</option>
+						<option value={null}>Select person...</option>
+						{#each data.members.filter((member) => member.personId) as member (member.personId)}
+							<option value={member.personId}>{member.name || member.email}</option>
 						{/each}
 					</select>
 				{:else if form.assigneeType === 'role'}
 					<select
 						bind:value={form.assigneeRoleId}
-						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-input bg-elevated text-primary focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 					>
 						<option value={null}>Select role...</option>
 						{#each data.roles as role (role.roleId)}
@@ -133,7 +133,7 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 			</div>
 
 			<!-- Due Date (Optional) -->
-			<div class="flex items-center gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-center">
 				<label for="due-date">
 					<Text variant="body" size="sm" color="tertiary" as="span">Due date (optional):</Text>
 				</label>
@@ -142,12 +142,12 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 					type="date"
 					value={form.timestampToDateInput(form.dueDate)}
 					onchange={form.handleDueDateChange}
-					class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-button border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
+					class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-button bg-elevated text-primary focus:border-accent-primary border focus:ring-1 focus:outline-none"
 				/>
 			</div>
 
 			<!-- Actions -->
-			<div class="flex items-center gap-fieldGroup" style="padding-top: var(--spacing-3);">
+			<div class="gap-fieldGroup flex items-center" style="padding-top: var(--spacing-3);">
 				<Button variant="primary" onclick={form.handleCreate}>Add Action</Button>
 				<Button variant="outline" onclick={form.resetForm}>Cancel</Button>
 			</div>
@@ -175,7 +175,7 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 		<div style="display: flex; flex-direction: column; gap: var(--spacing-2);">
 			{#each data.tasks as item (item._id)}
 				<div
-					class="group p-header border-border-base flex items-start gap-header rounded-button border bg-surface transition-colors hover:bg-elevated"
+					class="group p-header border-border-base gap-header rounded-button bg-surface hover:bg-elevated flex items-start border transition-colors"
 				>
 					<!-- Status Checkbox -->
 					<button
@@ -188,7 +188,7 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 							<Icon type="flashcards" size="md" color="success" />
 						{:else}
 							<svg
-								class="icon-md text-text-tertiary transition-colors hover:text-accent-primary"
+								class="icon-md text-text-tertiary hover:text-accent-primary transition-colors"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -213,12 +213,12 @@ invariant(projects, 'ProjectsModuleAPI context not found');
 
 						<!-- Metadata -->
 						<div
-							class="flex items-center gap-header text-label text-tertiary"
+							class="gap-header text-label text-tertiary flex items-center"
 							style="margin-top: var(--spacing-2);"
 						>
 							<!-- Type Badge -->
 							<span
-								class="border-border-base px-badge py-badge inline-flex items-center gap-fieldGroup rounded border bg-elevated"
+								class="border-border-base px-badge py-badge gap-fieldGroup bg-elevated inline-flex items-center rounded border"
 							>
 								{item.type === 'next-step' ? '⚡' : '📦'}
 								{item.type === 'next-step' ? 'Next Step' : 'Project'}

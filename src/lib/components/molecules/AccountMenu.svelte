@@ -29,7 +29,7 @@
 <DropdownMenu.Root open={menuOpen} onOpenChange={(open) => (menuOpen = open)}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="flex size-icon-md items-center justify-center rounded-button text-tertiary transition-all duration-200 hover:bg-subtle hover:text-primary {className}"
+		class="size-icon-md rounded-button text-tertiary hover:bg-subtle hover:text-primary flex items-center justify-center transition-all duration-200 {className}"
 		onclick={(e) => {
 			e.stopPropagation(); // Prevent parent menu from closing
 		}}
@@ -52,7 +52,7 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="border-base relative min-w-[180px] overflow-hidden rounded-modal border bg-surface py-inset-xs shadow-md"
+			class="border-base rounded-modal bg-surface py-inset-xs relative min-w-[180px] overflow-hidden border shadow-md"
 			style="z-index: var(--zIndex-popover);"
 			side="right"
 			align="start"
@@ -68,7 +68,7 @@
 			></div>
 			<div class="relative">
 				<DropdownMenu.Item
-					class="mx-1 cursor-pointer rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
+					class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none"
 					textValue="Create workspace"
 					onSelect={() => {
 						menuOpen = false;
@@ -76,13 +76,13 @@
 						onClose?.();
 					}}
 				>
-					<div class="flex items-center gap-header">
+					<div class="gap-header flex items-center">
 						<Icon type="add" size="sm" color="primary" />
 						<Text variant="body" size="sm" color="default" as="span">Create workspace</Text>
 					</div>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
-					class="mx-1 cursor-pointer rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
+					class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none"
 					textValue="Join workspace"
 					onSelect={() => {
 						menuOpen = false;
@@ -90,14 +90,14 @@
 						onClose?.();
 					}}
 				>
-					<div class="flex items-center gap-header">
+					<div class="gap-header flex items-center">
 						<Icon type="add" size="sm" color="secondary" />
 						<Text variant="body" size="sm" color="default" as="span">Join workspace</Text>
 					</div>
 				</DropdownMenu.Item>
 				<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 				<DropdownMenu.Item
-					class="mx-1 cursor-pointer rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
+					class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none"
 					textValue="Log out"
 					onSelect={() => {
 						menuOpen = false;
@@ -105,7 +105,7 @@
 						onClose?.();
 					}}
 				>
-					<div class="flex items-center gap-header">
+					<div class="gap-header flex items-center">
 						<!-- WORKAROUND: logout icon missing from registry - see missing-styles.md -->
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path

@@ -20,7 +20,7 @@
 		<Text variant="body" size="sm" color="secondary" as="span" class="mb-fieldGroup block">
 			Upcoming {dates.length} Meetings
 		</Text>
-		<div class="flex gap-fieldGroup">
+		<div class="gap-fieldGroup flex">
 			{#each dates as date (date.getTime())}
 				<div class="bg-surface-tertiary rounded-card px-input-x py-input-y text-center">
 					<Text variant="label" color="info" as="div" class="font-medium">

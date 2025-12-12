@@ -14,6 +14,10 @@ convex/_generated/
 www/
 ios/App/App/public/
 
+# Auto-generated CSS files (should not be formatted)
+src/styles/tokens/**/*.css
+src/styles/utilities/**/*.css
+
 # Documentation folders (not critical for application)
 /dev-docs/**
 /marketing-docs/**

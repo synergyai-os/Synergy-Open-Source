@@ -210,7 +210,7 @@
 	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
 		if (!convexClient || !circle || !sessionId) return;
 
-		await convexClient.mutation(api.circles.updateInline, {
+		await convexClient.mutation(api.core.circles.index.updateInline, {
 			sessionId,
 			circleId: circle.circleId,
 			updates
@@ -223,7 +223,7 @@
 	) {
 		if (!convexClient || !sessionId) return;
 
-		await convexClient.mutation(api.circleRoles.updateInline, {
+		await convexClient.mutation(api.core.roles.index.updateInline, {
 			sessionId,
 			circleRoleId: roleId,
 			updates
@@ -457,7 +457,7 @@
 				<div class="flex h-full items-center justify-center">
 					<div class="text-center">
 						<svg
-							class="mx-auto size-icon-xl animate-spin text-tertiary"
+							class="size-icon-xl text-tertiary mx-auto animate-spin"
 							fill="none"
 							viewBox="0 0 24 24"
 						>
@@ -482,7 +482,7 @@
 				<!-- Error State -->
 				<div class="flex h-full items-center justify-center">
 					<div class="text-center">
-						<p class="text-button font-medium text-error">Failed to load circle</p>
+						<p class="text-button text-error font-medium">Failed to load circle</p>
 						<p class="text-button text-secondary mb-header">{String(error)}</p>
 					</div>
 				</div>
@@ -517,7 +517,7 @@
 				<!-- Edit Mode Indicator Bar -->
 				{#if isEditMode}
 					<div
-						class="border-base bg-surface-subtle py-header flex items-center gap-button border-b px-page"
+						class="border-base bg-surface-subtle py-header gap-button px-page flex items-center border-b"
 					>
 						<Icon type="edit" size="sm" />
 						<Text variant="body" size="sm" color="primary" class="font-medium">Edit mode</Text>
@@ -526,7 +526,7 @@
 
 				<!-- Operating Mode Section -->
 				{#if circle}
-					<div class="border-base mx-page rounded-card border bg-surface card-padding mb-section">
+					<div class="border-base mx-page rounded-card bg-surface card-padding mb-section border">
 						<div class="mb-fieldGroup flex items-center justify-between">
 							<Heading level={3}>Operating Mode</Heading>
 							{#if !isEditMode}
@@ -564,8 +564,8 @@
 				<div class="flex-1 overflow-y-auto">
 					<Tabs.Root bind:value={activeTab}>
 						<!-- Navigation Tabs - Sticky at top -->
-						<div class="sticky top-0 z-10 bg-surface px-page">
-							<Tabs.List class={[tabsListRecipe(), 'flex flex-shrink-0 gap-form overflow-x-auto']}>
+						<div class="bg-surface px-page sticky top-0 z-10">
+							<Tabs.List class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}>
 								<Tabs.Trigger
 									value="overview"
 									class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}
@@ -576,7 +576,7 @@
 									value="members"
 									class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Members</span>
 										{#if tabCounts.members > 0}
 											<span class="text-label text-tertiary">({tabCounts.members})</span>
@@ -590,7 +590,7 @@
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Documents</span>
 										{#if tabCounts.documents > 0}
 											<span class="text-label text-tertiary">({tabCounts.documents})</span>
@@ -604,7 +604,7 @@
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Activities</span>
 										{#if tabCounts.activities > 0}
 											<span class="text-label text-tertiary">({tabCounts.activities})</span>
@@ -615,7 +615,7 @@
 									value="metrics"
 									class={[tabsTriggerRecipe({ active: activeTab === 'metrics' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Metrics</span>
 										{#if tabCounts.metrics > 0}
 											<span class="text-label text-tertiary">({tabCounts.metrics})</span>
@@ -629,7 +629,7 @@
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Checklists</span>
 										{#if tabCounts.checklists > 0}
 											<span class="text-label text-tertiary">({tabCounts.checklists})</span>
@@ -640,7 +640,7 @@
 									value="projects"
 									class={[tabsTriggerRecipe({ active: activeTab === 'projects' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Projects</span>
 										{#if tabCounts.projects > 0}
 											<span class="text-label text-tertiary">({tabCounts.projects})</span>
@@ -651,7 +651,7 @@
 						</div>
 
 						<!-- Tab Content -->
-						<div class="flex-1 overflow-y-auto px-page py-page">
+						<div class="px-page py-page flex-1 overflow-y-auto">
 							<Tabs.Content value="overview" class={tabsContentRecipe()}>
 								<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
 								<div
@@ -659,11 +659,11 @@
 									style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
 								>
 									<!-- Left Column: Overview Details -->
-									<div class="flex min-w-0 flex-col gap-section overflow-hidden">
+									<div class="gap-section flex min-w-0 flex-col overflow-hidden">
 										<!-- Purpose -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Purpose
 											</h4>
@@ -686,7 +686,7 @@
 												/>
 											{:else if editReason}
 												<EditPermissionTooltip reason={editReason}>
-													<div class="text-button leading-relaxed break-words text-secondary">
+													<div class="text-button text-secondary leading-relaxed break-words">
 														{#if circle.purpose}
 															{circle.purpose}
 														{:else}
@@ -695,7 +695,7 @@
 													</div>
 												</EditPermissionTooltip>
 											{:else}
-												<p class="text-button leading-relaxed break-words text-secondary">
+												<p class="text-button text-secondary leading-relaxed break-words">
 													{circle.purpose || 'No purpose set'}
 												</p>
 											{/if}
@@ -704,7 +704,7 @@
 										<!-- Domains -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Domains
 											</h4>
@@ -723,7 +723,7 @@
 										<!-- Accountabilities -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Accountabilities
 											</h4>
@@ -742,7 +742,7 @@
 										<!-- Policies -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Policies
 											</h4>
@@ -761,7 +761,7 @@
 										<!-- Decision Rights -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Decision Rights
 											</h4>
@@ -780,7 +780,7 @@
 										<!-- Notes -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Notes
 											</h4>
@@ -799,7 +799,7 @@
 
 									<!-- Right Column: Roles & Circles -->
 									<div
-										class="flex flex-col gap-section"
+										class="gap-section flex flex-col"
 										style="padding-right: var(--spacing-page-x);"
 									>
 										<!-- Core Roles Section -->
@@ -816,7 +816,7 @@
 														/* TODO: Implement add role */
 													}}
 												/>
-												<div class="flex flex-col gap-content mb-section">
+												<div class="gap-content mb-section flex flex-col">
 													{#each coreRoles as role (role.roleId)}
 														{@const roleStatus =
 															role.status === 'draft'
@@ -866,7 +866,7 @@
 														/* TODO: Implement add role */
 													}}
 												/>
-												<div class="flex flex-col gap-content mb-section">
+												<div class="gap-content mb-section flex flex-col">
 													{#each regularRoles as role (role.roleId)}
 														{@const roleStatus =
 															role.status === 'draft'
@@ -913,7 +913,7 @@
 														/* TODO: Implement add circle */
 													}}
 												/>
-												<div class="flex flex-col gap-content mb-section">
+												<div class="gap-content mb-section flex flex-col">
 													{#each childCircles as childCircle (childCircle.circleId)}
 														<RoleCard
 															name={childCircle.name}
@@ -951,7 +951,7 @@
 												}}
 											/>
 											{#if membersWithoutRoles.length > 0}
-												<div class="flex flex-col gap-content mb-section">
+												<div class="gap-content mb-section flex flex-col">
 													<RoleCard
 														name="Members without role"
 														isCircle={false}
@@ -982,7 +982,7 @@
 								<!-- Empty State: Members -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -994,7 +994,7 @@
 											d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No members yet</p>
+									<p class="text-button text-primary mb-header font-medium">No members yet</p>
 									<p class="text-button text-secondary mb-header">
 										Members assigned to this circle will appear here. This feature will be available
 										in a future update.
@@ -1006,7 +1006,7 @@
 								<!-- Empty State: Documents -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -1018,7 +1018,7 @@
 											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No documents yet</p>
+									<p class="text-button text-primary mb-header font-medium">No documents yet</p>
 									<p class="text-button text-secondary mb-header">
 										Documents related to this circle will appear here. This feature will be
 										available in a future update.
@@ -1030,7 +1030,7 @@
 								<!-- Empty State: Activities -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -1042,7 +1042,7 @@
 											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No activities yet</p>
+									<p class="text-button text-primary mb-header font-medium">No activities yet</p>
 									<p class="text-button text-secondary mb-header">
 										Recent activities and updates for this circle will appear here. This feature
 										will be available in a future update.
@@ -1054,7 +1054,7 @@
 								<!-- Empty State: Metrics -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -1066,7 +1066,7 @@
 											d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No metrics yet</p>
+									<p class="text-button text-primary mb-header font-medium">No metrics yet</p>
 									<p class="text-button text-secondary mb-header">
 										Performance metrics and analytics for this circle will appear here. This feature
 										will be available in a future update.
@@ -1078,7 +1078,7 @@
 								<!-- Empty State: Checklists -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -1090,7 +1090,7 @@
 											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No checklists yet</p>
+									<p class="text-button text-primary mb-header font-medium">No checklists yet</p>
 									<p class="text-button text-secondary mb-header">
 										Checklists and task lists for this circle will appear here. This feature will be
 										available in a future update.
@@ -1102,7 +1102,7 @@
 								<!-- Empty State: Projects -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -1114,7 +1114,7 @@
 											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No projects yet</p>
+									<p class="text-button text-primary mb-header font-medium">No projects yet</p>
 									<p class="text-button text-secondary mb-header">
 										Projects associated with this circle will appear here. This feature will be
 										available in a future update.
@@ -1128,7 +1128,7 @@
 				<!-- Footer with Save Actions (Edit Mode Only) -->
 				{#if isEditMode}
 					<div
-						class="border-base py-header sticky bottom-0 z-20 flex items-center justify-end gap-button border-t bg-surface px-page"
+						class="border-base py-header gap-button bg-surface px-page sticky bottom-0 z-20 flex items-center justify-end border-t"
 					>
 						{#if editCircle.error}
 							<div class="mr-auto">

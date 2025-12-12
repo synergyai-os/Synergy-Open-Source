@@ -5,6 +5,7 @@ import type {
 	WorkOSRefreshResponse,
 	WorkOSPasswordAuthResponse
 } from '../types';
+import { invariant } from '$lib/utils/invariant';
 
 const WORKOS_BASE_URL = 'https://api.workos.com';
 
@@ -38,15 +39,9 @@ export function isWorkOSError(error: unknown): error is WorkOSError {
 
 /** Validate required WorkOS environment variables are present */
 function validateWorkOSConfig() {
-	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
-		throw new Error('PUBLIC_WORKOS_CLIENT_ID is not configured.');
-	}
-	if (!env.WORKOS_API_KEY) {
-		throw new Error('WORKOS_API_KEY is not configured.');
-	}
-	if (!env.WORKOS_REDIRECT_URI) {
-		throw new Error('WORKOS_REDIRECT_URI is not configured.');
-	}
+	invariant(publicEnv.PUBLIC_WORKOS_CLIENT_ID, 'PUBLIC_WORKOS_CLIENT_ID is not configured.');
+	invariant(env.WORKOS_API_KEY, 'WORKOS_API_KEY is not configured.');
+	invariant(env.WORKOS_REDIRECT_URI, 'WORKOS_REDIRECT_URI is not configured.');
 }
 
 interface WorkOSUser {
@@ -98,20 +93,19 @@ export async function exchangeAuthorizationCode(options: { code: string; codeVer
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS error response:', errorText);
-		throw new Error(`WorkOS authenticate failed (${response.status}): ${errorText}`);
+		invariant(false, `WorkOS authenticate failed (${response.status}): ${errorText}`);
 	}
 
 	const data = (await response.json()) as unknown;
 	// Validate response structure
-	if (
-		typeof data !== 'object' ||
-		data === null ||
-		!('access_token' in data) ||
-		!('refresh_token' in data) ||
-		!('user' in data)
-	) {
-		throw new Error('WorkOS authenticate response missing required fields.');
-	}
+	invariant(
+		typeof data === 'object' &&
+			data !== null &&
+			'access_token' in data &&
+			'refresh_token' in data &&
+			'user' in data,
+		'WorkOS authenticate response missing required fields.'
+	);
 	const typedData = data as {
 		access_token: string;
 		refresh_token: string;
@@ -125,10 +119,10 @@ export async function exchangeAuthorizationCode(options: { code: string; codeVer
 		userEmail: typedData.user?.email
 	});
 
-	if (!typedData.access_token || !typedData.refresh_token || !typedData.user) {
-		console.error('❌ Missing required fields. Response:', JSON.stringify(data, null, 2));
-		throw new Error('WorkOS authenticate response missing required fields.');
-	}
+	invariant(
+		typedData.access_token && typedData.refresh_token && typedData.user,
+		'WorkOS authenticate response missing required fields.'
+	);
 
 	// WorkOS doesn't return a session object from authenticate endpoint
 	// Extract session ID from the access token JWT (it's in the "sid" claim)
@@ -190,19 +184,19 @@ export async function refreshWorkOSSession(options: {
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS refresh failed:', errorText);
-		throw new Error(`WorkOS refresh failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS refresh failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 
 	const data = (await response.json()) as unknown;
 	// Validate response structure
-	if (
-		typeof data !== 'object' ||
-		data === null ||
-		!('access_token' in data) ||
-		!('refresh_token' in data)
-	) {
-		throw new Error('WorkOS refresh response missing required fields.');
-	}
+	invariant(
+		typeof data === 'object' && data !== null && 'access_token' in data && 'refresh_token' in data,
+		'WorkOS refresh response missing required fields.'
+	);
 	const typedData = data as {
 		access_token: string;
 		refresh_token: string;
@@ -258,7 +252,11 @@ export async function revokeWorkOSSession(workosSessionId: string) {
 
 	if (!response.ok) {
 		const errorText = await response.text();
-		throw new Error(`WorkOS logout failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS logout failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 }
 
@@ -294,20 +292,23 @@ export async function authenticateWithPassword(options: {
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS password auth failed:', errorText);
-		throw new Error(`WorkOS password authentication failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS password authentication failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 
 	const data = (await response.json()) as unknown;
 	// Validate response structure
-	if (
-		typeof data !== 'object' ||
-		data === null ||
-		!('access_token' in data) ||
-		!('refresh_token' in data) ||
-		!('user' in data)
-	) {
-		throw new Error('WorkOS password auth response missing required fields.');
-	}
+	invariant(
+		typeof data === 'object' &&
+			data !== null &&
+			'access_token' in data &&
+			'refresh_token' in data &&
+			'user' in data,
+		'WorkOS password auth response missing required fields.'
+	);
 	const typedData = data as {
 		access_token: string;
 		refresh_token: string;
@@ -378,7 +379,11 @@ export async function getUserByEmail(email: string): Promise<WorkOSUser | null> 
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS get user failed:', errorText);
-		throw new Error(`WorkOS get user failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS get user failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 
 	const data = (await response.json()) as unknown;
@@ -419,14 +424,22 @@ export async function createUserWithPassword(options: {
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS create user failed:', errorText);
-		throw new Error(`WorkOS user creation failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS user creation failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 
 	const data = (await response.json()) as unknown;
 	// Validate response structure
-	if (typeof data !== 'object' || data === null || !('id' in data) || typeof data.id !== 'string') {
-		throw new Error('WorkOS user creation response missing user ID.');
-	}
+	invariant(
+		typeof data === 'object' &&
+			data !== null &&
+			'id' in data &&
+			typeof (data as { id: unknown }).id === 'string',
+		'WorkOS user creation response missing user ID.'
+	);
 	const typedData = data as { id: string };
 	console.log('✅ User created successfully:', typedData.id);
 
@@ -458,14 +471,22 @@ export async function createPasswordReset(options: {
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS password reset creation failed:', errorText);
-		throw new Error(`WorkOS password reset failed (${response.status}): ${errorText}`);
+		throw createWorkOSError(
+			`WorkOS password reset failed (${response.status}): ${errorText}`,
+			response.status,
+			errorText
+		);
 	}
 
 	const data = (await response.json()) as unknown;
 	// Validate response structure
-	if (typeof data !== 'object' || data === null || !('id' in data) || typeof data.id !== 'string') {
-		throw new Error('WorkOS password reset response missing reset ID.');
-	}
+	invariant(
+		typeof data === 'object' &&
+			data !== null &&
+			'id' in data &&
+			typeof (data as { id: unknown }).id === 'string',
+		'WorkOS password reset response missing reset ID.'
+	);
 	const typedData = data as { id: string };
 	console.log('✅ Password reset created:', typedData.id);
 
@@ -533,7 +554,7 @@ export async function resetPassword(options: {
 		!('id' in data.user) ||
 		typeof data.user.id !== 'string'
 	) {
-		throw new Error('WorkOS reset password response missing user ID.');
+		invariant(false, 'WorkOS reset password response missing user ID.');
 	}
 	const typedData = data as { user: { id: string } };
 	console.log('✅ Password reset successful for user:', typedData.user.id);

@@ -4,7 +4,8 @@
  * Configures ProseMirror with basic schema, plugins, and commands
  */
 
-import { Schema, Node } from 'prosemirror-model';
+import { Schema } from 'prosemirror-model';
+import type { Node as ProseMirrorNode } from 'prosemirror-model';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { EditorState, Plugin } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
@@ -406,7 +407,7 @@ export function pasteHandlerPlugin(onPaste?: (text: string, view: EditorView) =>
 						if (pos === null) return false;
 
 						const $pos = view.state.doc.resolve(pos);
-						let taskItemNode: Node | null = null;
+						let taskItemNode: ProseMirrorNode | null = null;
 						let taskItemPos = -1;
 
 						// Search for the task_item node

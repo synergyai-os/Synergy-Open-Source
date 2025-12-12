@@ -2,26 +2,26 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { create } from './roleLifecycle';
 
-const circleId = 'c1';
-
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u1' })
+const { circleId, personId } = vi.hoisted(() => ({
+	circleId: 'c1',
+	personId: 'p1'
 }));
 
 vi.mock('./roleAccess', () => ({
 	ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
 	ensureWorkspaceMembership: vi.fn(),
 	isLeadRole: vi.fn(),
-	isWorkspaceAdmin: vi.fn()
+	isWorkspaceAdmin: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(personId)
 }));
 
 vi.mock('./validation', () => ({
 	hasDuplicateRoleName: vi.fn().mockReturnValue(true)
 }));
 
-vi.mock('../../orgVersionHistory', () => ({
-	captureCreate: vi.fn(),
-	captureUpdate: vi.fn()
+vi.mock('../history', () => ({
+	recordCreateHistory: vi.fn(),
+	recordUpdateHistory: vi.fn()
 }));
 
 describe('roleLifecycle.create', () => {

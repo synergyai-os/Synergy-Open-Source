@@ -14,7 +14,7 @@
 	let prefersReducedMotion = $state(false);
 
 	// Get waitlist count
-	const waitlistCountQuery = useQuery(api.waitlist.getWaitlistCount, () => ({}));
+	const waitlistCountQuery = useQuery(api.features.waitlist.index.getWaitlistCount, () => ({}));
 	const waitlistCount = $derived(waitlistCountQuery?.data ?? 0);
 
 	onMount(() => {
@@ -191,7 +191,7 @@
 			style="padding-block: var(--spacing-8);"
 		>
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -202,7 +202,7 @@
 				Product Teams Are Stuck in Delivery Mode
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -355,7 +355,7 @@
 			style="padding-block: var(--spacing-8);"
 		>
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -366,7 +366,7 @@
 				How We Solve This
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -464,7 +464,7 @@
 			style="padding-block: var(--spacing-8);"
 		>
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -684,7 +684,7 @@
 			style="padding-block: var(--spacing-8);"
 		>
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -695,7 +695,7 @@
 				Where We Are Today
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,

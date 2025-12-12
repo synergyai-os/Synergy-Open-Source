@@ -2,21 +2,21 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
 import { ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership } from '../access';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from '../access';
 import {
 	getInvitationsByMeetingMap,
 	getInvitedUsersForMeeting,
-	isUserInvitedToMeeting
+	isPersonInvitedToMeeting
 } from './invitedUsersUtils';
 
 type ListForUserArgs = { sessionId: string; workspaceId: Id<'workspaces'> };
 type MeetingWithInvitedUsers = {
-	invitedUsers: Array<{ userId: string; name: string }>;
+	invitedUsers: Array<{ personId: string; name: string }>;
 	_id: Id<'meetings'>;
 	visibility: 'public' | 'private';
 	circleId?: Id<'circles'>;
 	workspaceId: Id<'workspaces'>;
+	viewerPersonId: Id<'people'>;
 };
 
 export const listMeetingsForUserArgs = {
@@ -28,8 +28,16 @@ export async function listMeetingsForUser(
 	ctx: QueryCtx,
 	args: ListForUserArgs
 ): Promise<MeetingWithInvitedUsers[]> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId, {
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -45,7 +53,7 @@ export async function listMeetingsForUser(
 	return filterAccessibleMeetings(
 		ctx,
 		meetings,
-		userId,
+		personId,
 		invitationsByMeeting,
 		circleMembersByCircle
 	);
@@ -62,10 +70,15 @@ async function fetchWorkspaceMeetings(ctx: QueryCtx, workspaceId: Id<'workspaces
 
 async function fetchInvitationsForMeetings(ctx: QueryCtx, meetingIds: Id<'meetings'>[]) {
 	if (!meetingIds.length) return [];
-	return ctx.db
-		.query('meetingInvitations')
-		.withIndex('by_meeting', (q) => q.in('meetingId', meetingIds))
-		.collect();
+	const invitations = [];
+	for (const meetingId of meetingIds) {
+		const meetingInvitations = await ctx.db
+			.query('meetingInvitations')
+			.withIndex('by_meeting', (q) => q.eq('meetingId', meetingId))
+			.collect();
+		invitations.push(...meetingInvitations);
+	}
+	return invitations;
 }
 
 async function fetchCircleMembersForMeetings(
@@ -83,17 +96,21 @@ async function fetchCircleMembersForMeetings(
 		}
 	}
 
-	if (!circleIds.size) return new Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>();
+	if (!circleIds.size) return new Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>();
 
-	const circleMembers = await ctx.db
-		.query('circleMembers')
-		.withIndex('by_circle_user', (q) => q.in('circleId', Array.from(circleIds)))
-		.collect();
+	const circleMembers: Array<{ circleId: Id<'circles'>; personId: Id<'people'> }> = [];
+	for (const circleId of circleIds) {
+		const members = await ctx.db
+			.query('circleMembers')
+			.withIndex('by_circle_person', (q) => q.eq('circleId', circleId))
+			.collect();
+		circleMembers.push(...members);
+	}
 
-	const map = new Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>();
+	const map = new Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>();
 	for (const member of circleMembers) {
 		const existing = map.get(member.circleId) ?? [];
-		existing.push({ userId: member.userId });
+		existing.push({ personId: member.personId });
 		map.set(member.circleId, existing);
 	}
 	return map;
@@ -102,21 +119,21 @@ async function fetchCircleMembersForMeetings(
 async function filterAccessibleMeetings(
 	ctx: QueryCtx,
 	meetings: MeetingWithInvitedUsers[],
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	invitationsByMeeting: Map<
 		Id<'meetings'>,
-		Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		Array<{ invitationType: 'user' | 'circle'; personId?: Id<'people'>; circleId?: Id<'circles'> }>
 	>,
-	circleMembersByCircle: Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>
+	circleMembersByCircle: Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>
 ) {
 	const accessible: MeetingWithInvitedUsers[] = [];
 	for (const meeting of meetings) {
 		const hasAccess =
 			meeting.visibility === 'public' ||
-			(await isUserInvitedToMeeting(
+			(await isPersonInvitedToMeeting(
 				ctx,
 				meeting,
-				userId,
+				personId,
 				invitationsByMeeting,
 				circleMembersByCircle
 			));
@@ -131,7 +148,7 @@ async function filterAccessibleMeetings(
 			circleMembersByCircle
 		);
 
-		accessible.push({ ...meeting, invitedUsers });
+		accessible.push({ ...meeting, invitedUsers, viewerPersonId: personId });
 	}
 	return accessible;
 }

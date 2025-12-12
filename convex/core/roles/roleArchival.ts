@@ -1,19 +1,23 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { captureArchive, captureRestore } from '../../orgVersionHistory';
+import { recordArchiveHistory, recordRestoreHistory } from '../history';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { ensureCircleExists, ensureWorkspaceMembership } from './roleAccess';
+import {
+	countLeadRolesInCircle,
+	ensureCircleExists,
+	ensureWorkspaceMembership,
+	requireWorkspacePersonById,
+	requireWorkspacePersonFromSession
+} from './roleAccess';
 import { isLeadRequiredForCircleType } from './lead';
 import { handleUserCircleRoleRemoved, handleUserCircleRoleRestored } from './roleRbac';
-import { countLeadRolesInCircle } from './roleAccess';
 
 async function archiveRoleHelper(
 	ctx: MutationCtx,
 	roleId: Id<'circleRoles'>,
-	userId: Id<'users'>,
+	actorPersonId: Id<'people'>,
 	reason: 'direct' | 'cascade' = 'direct'
 ): Promise<void> {
 	const role = await ctx.db.get(roleId);
@@ -60,14 +64,14 @@ async function archiveRoleHelper(
 
 	await ctx.db.patch(roleId, {
 		archivedAt: now,
-		archivedBy: userId,
+		archivedByPersonId: actorPersonId,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	const archivedRole = await ctx.db.get(roleId);
 	if (archivedRole) {
-		await captureArchive(ctx, 'circleRole', role, archivedRole);
+		await recordArchiveHistory(ctx, 'circleRole', role, archivedRole);
 	}
 
 	const assignments = await ctx.db
@@ -78,9 +82,9 @@ async function archiveRoleHelper(
 	for (const assignment of assignments) {
 		await ctx.db.patch(assignment._id, {
 			archivedAt: now,
-			archivedBy: userId,
+			archivedByPersonId: actorPersonId,
 			updatedAt: now,
-			updatedBy: userId
+			updatedByPersonId: actorPersonId
 		});
 
 		await handleUserCircleRoleRemoved(ctx, assignment._id);
@@ -91,17 +95,16 @@ async function archiveRoleMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; circleRoleId: Id<'circleRoles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.circleRoleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, actorPersonId);
 
-	await archiveRoleHelper(ctx, args.circleRoleId, userId, 'direct');
+	await archiveRoleHelper(ctx, args.circleRoleId, actorPersonId, 'direct');
 
 	return { success: true };
 }
@@ -110,8 +113,6 @@ async function restoreRoleMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; roleId: Id<'circleRoles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.roleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
@@ -122,7 +123,8 @@ async function restoreRoleMutation(
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, actorPersonId);
 
 	const circle = await ctx.db.get(role.circleId);
 	if (!circle) {
@@ -148,15 +150,15 @@ async function restoreRoleMutation(
 
 	await ctx.db.patch(args.roleId, {
 		archivedAt: undefined,
-		archivedBy: undefined,
+		archivedByPersonId: undefined,
 		templateId,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	const restoredRole = await ctx.db.get(args.roleId);
 	if (restoredRole) {
-		await captureRestore(ctx, 'circleRole', oldRole, restoredRole);
+		await recordRestoreHistory(ctx, 'circleRole', oldRole, restoredRole);
 	}
 
 	return { success: true };
@@ -166,8 +168,6 @@ async function restoreAssignmentMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; assignmentId: Id<'userCircleRoles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const assignment = await ctx.db.get(args.assignmentId);
 	if (!assignment) {
 		throw createError(ErrorCodes.ASSIGNMENT_NOT_FOUND, 'Assignment not found');
@@ -193,26 +193,19 @@ async function restoreAssignmentMutation(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actorPersonId);
 
-	const membership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) =>
-			q.eq('workspaceId', circle.workspaceId).eq('userId', assignment.userId)
-		)
-		.first();
-
-	if (!membership) {
-		throw createError(
-			ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
-			'User is no longer a workspace member'
-		);
-	}
+	await requireWorkspacePersonById(ctx, circle.workspaceId, assignment.personId);
 
 	const existingActive = await ctx.db
 		.query('userCircleRoles')
-		.withIndex('by_user_role', (q) =>
-			q.eq('userId', assignment.userId).eq('circleRoleId', assignment.circleRoleId)
+		.withIndex('by_person_role', (q) =>
+			q.eq('personId', assignment.personId).eq('circleRoleId', assignment.circleRoleId)
 		)
 		.filter((q) => q.eq(q.field('archivedAt'), undefined))
 		.first();
@@ -226,9 +219,9 @@ async function restoreAssignmentMutation(
 
 	await ctx.db.patch(args.assignmentId, {
 		archivedAt: undefined,
-		archivedBy: undefined,
+		archivedByPersonId: undefined,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	await handleUserCircleRoleRestored(ctx, args.assignmentId);

@@ -13,11 +13,11 @@
 	let embeddedActive = $state(false);
 </script>
 
-<div class="min-h-screen bg-base p-8">
+<div class="bg-base min-h-screen p-8">
 	<div class="mx-auto max-w-4xl space-y-8">
 		<!-- Header -->
 		<div>
-			<h1 class="mb-2 text-3xl font-bold text-primary">Control Panel Component System</h1>
+			<h1 class="text-primary mb-2 text-3xl font-bold">Control Panel Component System</h1>
 			<p class="text-secondary">
 				Demo page showcasing all control panel variants, button states, and design tokens.
 			</p>
@@ -26,11 +26,11 @@
 		<!-- Toolbar Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="mb-1 text-xl font-semibold text-primary">Toolbar Variant</h2>
-				<p class="text-sm text-secondary">Fixed header with border-bottom (like notes editor)</p>
+				<h2 class="text-primary mb-1 text-xl font-semibold">Toolbar Variant</h2>
+				<p class="text-secondary text-sm">Fixed header with border-bottom (like notes editor)</p>
 			</div>
 
-			<div class="border-base overflow-hidden rounded-md border bg-elevated">
+			<div class="border-base bg-elevated overflow-hidden rounded-md border">
 				<ControlPanel.Root variant="toolbar">
 					<ControlPanel.Group>
 						<ControlPanel.Button
@@ -109,12 +109,12 @@
 					</ControlPanel.Group>
 				</ControlPanel.Root>
 
-				<div class="p-8 text-secondary">
+				<div class="text-secondary p-8">
 					<p>Toolbar content area below the control panel...</p>
 				</div>
 			</div>
 
-			<div class="space-y-1 text-sm text-secondary">
+			<div class="text-secondary space-y-1 text-sm">
 				<p><strong>State:</strong></p>
 				<p>Bold: {toolbarBold ? '✅ Active' : '⬜ Inactive'}</p>
 				<p>Italic: {toolbarItalic ? '✅ Active' : '⬜ Inactive'}</p>
@@ -125,15 +125,15 @@
 		<!-- Popover Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="mb-1 text-xl font-semibold text-primary">Popover Variant</h2>
-				<p class="text-sm text-secondary">Contextual floating panel (Notion-like)</p>
+				<h2 class="text-primary mb-1 text-xl font-semibold">Popover Variant</h2>
+				<p class="text-secondary text-sm">Contextual floating panel (Notion-like)</p>
 			</div>
 
-			<div class="border-base rounded-md border bg-elevated p-8">
+			<div class="border-base bg-elevated rounded-md border p-8">
 				<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
 					{#snippet trigger()}
 						<button
-							class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
+							class="bg-accent-primary hover:bg-accent-hover rounded-md px-4 py-2 text-white transition-colors"
 						>
 							{popoverOpen ? 'Close Settings' : 'Open Settings'}
 						</button>
@@ -188,7 +188,7 @@
 				</ControlPanel.Root>
 			</div>
 
-			<div class="space-y-1 text-sm text-secondary">
+			<div class="text-secondary space-y-1 text-sm">
 				<p><strong>State:</strong></p>
 				<p>Popover Open: {popoverOpen ? '✅ Yes' : '⬜ No'}</p>
 				<p>Option 1: {popoverOption1 ? '✅ Active' : '⬜ Inactive'}</p>
@@ -200,13 +200,13 @@
 		<!-- Embedded Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="mb-1 text-xl font-semibold text-primary">Embedded Variant</h2>
-				<p class="text-sm text-secondary">Inline controls (sidebar actions, settings panels)</p>
+				<h2 class="text-primary mb-1 text-xl font-semibold">Embedded Variant</h2>
+				<p class="text-secondary text-sm">Inline controls (sidebar actions, settings panels)</p>
 			</div>
 
-			<div class="border-base rounded-md border bg-elevated p-8">
+			<div class="border-base bg-elevated rounded-md border p-8">
 				<div class="space-y-4">
-					<h3 class="text-label tracking-wider text-tertiary uppercase">Actions</h3>
+					<h3 class="text-label text-tertiary tracking-wider uppercase">Actions</h3>
 
 					<ControlPanel.Root variant="embedded">
 						<ControlPanel.Button
@@ -233,7 +233,7 @@
 				</div>
 			</div>
 
-			<div class="space-y-1 text-sm text-secondary">
+			<div class="text-secondary space-y-1 text-sm">
 				<p><strong>State:</strong></p>
 				<p>View Active: {embeddedActive ? '✅ Active' : '⬜ Inactive'}</p>
 			</div>
@@ -242,11 +242,11 @@
 		<!-- Button States Demo -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="mb-1 text-xl font-semibold text-primary">Button States</h2>
-				<p class="text-sm text-secondary">Hover, active, and disabled states using design tokens</p>
+				<h2 class="text-primary mb-1 text-xl font-semibold">Button States</h2>
+				<p class="text-secondary text-sm">Hover, active, and disabled states using design tokens</p>
 			</div>
 
-			<div class="border-base rounded-md border bg-elevated p-8">
+			<div class="border-base bg-elevated rounded-md border p-8">
 				<ControlPanel.Root variant="embedded">
 					<ControlPanel.Group>
 						<ControlPanel.Button title="Normal Button">
@@ -285,7 +285,7 @@
 				</ControlPanel.Root>
 			</div>
 
-			<div class="text-sm text-secondary">
+			<div class="text-secondary text-sm">
 				<p class="text-tertiary italic">
 					Hover over buttons to see hover states. Active button uses selected state. Disabled button
 					is grayed out.
@@ -296,14 +296,14 @@
 		<!-- Design Tokens Reference -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="mb-1 text-xl font-semibold text-primary">Design Tokens</h2>
-				<p class="text-sm text-secondary">All control panels use semantic design tokens</p>
+				<h2 class="text-primary mb-1 text-xl font-semibold">Design Tokens</h2>
+				<p class="text-secondary text-sm">All control panels use semantic design tokens</p>
 			</div>
 
-			<div class="border-base space-y-4 rounded-md border bg-elevated p-6">
+			<div class="border-base bg-elevated space-y-4 rounded-md border p-6">
 				<div>
-					<h3 class="mb-2 font-semibold text-primary">Spacing Tokens</h3>
-					<ul class="space-y-1 text-sm text-secondary">
+					<h3 class="text-primary mb-2 font-semibold">Spacing Tokens</h3>
+					<ul class="text-secondary space-y-1 text-sm">
 						<li><code>p-control-panel-padding</code> - Panel container padding (12px)</li>
 						<li><code>gap-control-group</code> - Gap between groups (8px)</li>
 						<li><code>gap-control-item-gap</code> - Gap between buttons (4px)</li>
@@ -312,8 +312,8 @@
 				</div>
 
 				<div>
-					<h3 class="mb-2 font-semibold text-primary">Color Tokens</h3>
-					<ul class="space-y-1 text-sm text-secondary">
+					<h3 class="text-primary mb-2 font-semibold">Color Tokens</h3>
+					<ul class="text-secondary space-y-1 text-sm">
 						<li><code>bg-control</code> - Panel background (adapts to theme)</li>
 						<li><code>border-control-border</code> - Panel border</li>
 						<li><code>bg-control-button-hover</code> - Button hover state</li>
@@ -325,9 +325,9 @@
 
 		<!-- Documentation Link -->
 		<section class="border-accent-primary/20 bg-accent-primary/10 rounded-md border p-6">
-			<h3 class="mb-2 font-semibold text-primary">Documentation</h3>
-			<p class="mb-4 text-sm text-secondary">For full documentation, see:</p>
-			<ul class="space-y-1 text-sm text-secondary">
+			<h3 class="text-primary mb-2 font-semibold">Documentation</h3>
+			<p class="text-secondary mb-4 text-sm">For full documentation, see:</p>
+			<ul class="text-secondary space-y-1 text-sm">
 				<li>
 					• <strong>Pattern:</strong>
 					<code>dev-docs/patterns/ui-patterns.md#L620</code>

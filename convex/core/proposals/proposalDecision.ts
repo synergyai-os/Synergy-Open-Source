@@ -1,20 +1,26 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
+import { calculateAuthority, getAuthorityContext } from '../authority';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { slugifyName } from '../circles/slug';
-import { ensureUniqueCircleSlug } from './proposalAccess';
+import { ensureUniqueCircleSlug, ensureWorkspaceMembership } from './proposalAccess';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import { getPersonForSessionAndWorkspace } from '../people/queries';
 
 async function rejectProposalMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; proposalId: Id<'circleProposals'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db.get(args.proposalId);
 	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, proposal.workspaceId, person._id);
+
 	if (proposal.status !== 'in_meeting' && proposal.status !== 'integrated') {
 		throw createError(
 			ErrorCodes.PROPOSAL_INVALID_STATE,
@@ -32,17 +38,24 @@ async function rejectProposalMutation(
 	if (!meeting) {
 		throw createError(ErrorCodes.MEETING_NOT_FOUND, 'Linked meeting not found');
 	}
-	if (meeting.recorderId !== userId) {
+	if (meeting.recorderPersonId !== person._id) {
 		throw createError(
 			ErrorCodes.PROPOSAL_ACCESS_DENIED,
 			'Only the meeting recorder can reject proposals'
 		);
 	}
 
+	const { circleId } = await getProposalEntity(ctx, proposal);
+	const authority = await requireProposalAuthority(ctx, person._id, circleId);
+
+	if (!authority.canRaiseObjections) {
+		throw createError(ErrorCodes.PROPOSAL_ACCESS_DENIED, 'Insufficient authority to reject');
+	}
+
 	await ctx.db.patch(args.proposalId, {
 		status: 'rejected',
 		processedAt: Date.now(),
-		processedBy: userId,
+		processedByPersonId: person._id,
 		updatedAt: Date.now()
 	});
 
@@ -53,10 +66,15 @@ async function approveProposal(
 	ctx: MutationCtx,
 	args: { sessionId: string; proposalId: Id<'circleProposals'> }
 ): Promise<{ success: true; versionHistoryId: Id<'orgVersionHistory'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db.get(args.proposalId);
 	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, proposal.workspaceId, person._id);
+
 	if (proposal.status !== 'in_meeting' && proposal.status !== 'integrated') {
 		throw createError(
 			ErrorCodes.PROPOSAL_INVALID_STATE,
@@ -74,21 +92,21 @@ async function approveProposal(
 	if (!meeting) {
 		throw createError(ErrorCodes.MEETING_NOT_FOUND, 'Linked meeting not found');
 	}
-	if (meeting.recorderId !== userId) {
+	if (meeting.recorderPersonId !== person._id) {
 		throw createError(
 			ErrorCodes.PROPOSAL_ACCESS_DENIED,
 			'Only the meeting recorder can approve proposals'
 		);
 	}
 
-	const entity =
-		proposal.entityType === 'circle'
-			? await ctx.db.get(proposal.entityId as Id<'circles'>)
-			: await ctx.db.get(proposal.entityId as Id<'circleRoles'>);
+	const proposalEntity = await getProposalEntity(ctx, proposal);
+	const authority = await requireProposalAuthority(ctx, person._id, proposalEntity.circleId);
 
-	if (!entity) {
-		throw createError(ErrorCodes.GENERIC_ERROR, 'Target entity no longer exists - was it deleted?');
+	if (!authority.canApproveProposals) {
+		throw createError(ErrorCodes.PROPOSAL_ACCESS_DENIED, 'Insufficient authority to approve');
 	}
+
+	const entity = proposalEntity.entity;
 
 	const beforeDoc = { ...entity };
 
@@ -103,7 +121,7 @@ async function approveProposal(
 
 	const updates: Partial<Doc<'circles'>> | Partial<Doc<'circleRoles'>> = {
 		updatedAt: Date.now(),
-		updatedBy: userId
+		updatedByPersonId: person._id
 	};
 
 	for (const evolution of evolutions) {
@@ -145,7 +163,7 @@ async function approveProposal(
 			workspaceId: proposal.workspaceId,
 			entityId: proposal.entityId as Id<'circles'>,
 			changeType: 'update',
-			changedBy: userId,
+			changedByPersonId: person._id,
 			changedAt: Date.now(),
 			changeDescription,
 			before: {
@@ -177,7 +195,7 @@ async function approveProposal(
 			workspaceId: proposal.workspaceId,
 			entityId: proposal.entityId as Id<'circleRoles'>,
 			changeType: 'update',
-			changedBy: userId,
+			changedByPersonId: person._id,
 			changedAt: Date.now(),
 			changeDescription,
 			before: {
@@ -204,7 +222,7 @@ async function approveProposal(
 	await ctx.db.patch(args.proposalId, {
 		status: 'approved',
 		processedAt: Date.now(),
-		processedBy: userId,
+		processedByPersonId: person._id,
 		versionHistoryEntryId: versionHistoryId,
 		updatedAt: Date.now()
 	});
@@ -227,3 +245,36 @@ export const reject = mutation({
 	},
 	handler: async (ctx, args) => rejectProposalMutation(ctx, args)
 });
+
+async function getProposalEntity(
+	ctx: MutationCtx,
+	proposal: Doc<'circleProposals'>
+): Promise<{
+	circleId: Id<'circles'>;
+	workspaceId: Id<'workspaces'>;
+	entity: Doc<'circles'> | Doc<'circleRoles'>;
+}> {
+	if (proposal.entityType === 'circle') {
+		const circle = await ctx.db.get(proposal.entityId as Id<'circles'>);
+		if (!circle) {
+			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Target circle not found');
+		}
+		return { circleId: circle._id, workspaceId: circle.workspaceId, entity: circle };
+	}
+
+	const role = await ctx.db.get(proposal.entityId as Id<'circleRoles'>);
+	if (!role) {
+		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Target role not found');
+	}
+
+	return { circleId: role.circleId, workspaceId: role.workspaceId, entity: role };
+}
+
+async function requireProposalAuthority(
+	ctx: MutationCtx,
+	personId: Id<'people'>,
+	circleId: Id<'circles'>
+) {
+	const authorityContext = await getAuthorityContext(ctx, { personId, circleId });
+	return calculateAuthority(authorityContext);
+}

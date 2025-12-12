@@ -37,12 +37,12 @@ export interface Proposal {
 	status: ProposalStatus;
 	meetingId?: Id<'meetings'>;
 	agendaItemId?: Id<'meetingAgendaItems'>;
-	createdBy: Id<'users'>;
+	createdByPersonId: Id<'people'>;
 	createdAt: number;
 	updatedAt: number;
 	submittedAt?: number;
 	processedAt?: number;
-	processedBy?: Id<'users'>;
+	processedByPersonId?: Id<'people'>;
 }
 
 export interface ProposalEvolution {
@@ -61,7 +61,7 @@ export interface ProposalWithDetails extends Proposal {
 	evolutions: ProposalEvolution[];
 	objections: unknown[];
 	attachments: unknown[];
-	creator: { id: Id<'users'>; name: string; email: string } | null;
+	creator: { id: Id<'people'>; name: string; email: string } | null;
 	targetEntity: { type: string; name: string } | null;
 }
 
@@ -105,12 +105,12 @@ export function useProposals(params: UseProposalsParams) {
 	const proposalsQuery = $derived(
 		browser && getSessionId() && getWorkspaceId()
 			? getCircleId?.()
-				? useQuery(api.proposals.listByCircle, () => ({
+				? useQuery(api.core.proposals.index.listByCircle, () => ({
 						sessionId: getSessionId()!,
 						circleId: getCircleId!() as Id<'circles'>,
 						includeTerminal: false
 					}))
-				: useQuery(api.proposals.list, () => ({
+				: useQuery(api.core.proposals.index.list, () => ({
 						sessionId: getSessionId()!,
 						workspaceId: getWorkspaceId()! as Id<'workspaces'>,
 						limit: 50
@@ -156,7 +156,7 @@ export function useProposal(params: UseProposalParams) {
 
 	const proposalQuery = $derived(
 		browser && getSessionId() && getProposalId()
-			? useQuery(api.proposals.get, () => ({
+			? useQuery(api.core.proposals.index.get, () => ({
 					sessionId: getSessionId()!,
 					proposalId: getProposalId()! as Id<'circleProposals'>
 				}))
@@ -203,7 +203,7 @@ export function useMyDrafts(params: {
 }) {
 	const draftsQuery = $derived(
 		browser && params.sessionId() && params.workspaceId()
-			? useQuery(api.proposals.myListDrafts, () => ({
+			? useQuery(api.core.proposals.index.myListDrafts, () => ({
 					sessionId: params.sessionId()!,
 					workspaceId: params.workspaceId()! as Id<'workspaces'>
 				}))
@@ -283,7 +283,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 		state.isCreating = true;
 		state.error = null;
 		try {
-			const result = await client.mutation(api.proposals.create, {
+			const result = await client.mutation(api.core.proposals.index.create, {
 				sessionId,
 				workspaceId: workspaceId as Id<'workspaces'>,
 				...args
@@ -311,7 +311,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 		state.isAddingEvolution = true;
 		state.error = null;
 		try {
-			const result = await client.mutation(api.proposals.addEvolution, {
+			const result = await client.mutation(api.core.proposals.index.addEvolution, {
 				sessionId,
 				...args
 			});
@@ -330,7 +330,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 
 		state.error = null;
 		try {
-			await client.mutation(api.proposals.removeEvolution, {
+			await client.mutation(api.core.proposals.index.removeEvolution, {
 				sessionId,
 				evolutionId
 			});
@@ -350,7 +350,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 		state.isSubmitting = true;
 		state.error = null;
 		try {
-			const result = await client.mutation(api.proposals.submit, {
+			const result = await client.mutation(api.core.proposals.index.submit, {
 				sessionId,
 				...args
 			});
@@ -370,7 +370,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 		state.isWithdrawing = true;
 		state.error = null;
 		try {
-			await client.mutation(api.proposals.withdraw, {
+			await client.mutation(api.core.proposals.index.withdraw, {
 				sessionId,
 				proposalId
 			});
@@ -392,7 +392,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 		state.isImporting = true;
 		state.error = null;
 		try {
-			const result = await client.mutation(api.proposals.importToMeeting, {
+			const result = await client.mutation(api.core.proposals.index.importToMeeting, {
 				sessionId,
 				...args
 			});
@@ -411,7 +411,7 @@ export function useProposalMutations(params: UseProposalMutationsParams) {
 
 		state.error = null;
 		try {
-			await client.mutation(api.proposals.startProcessing, {
+			await client.mutation(api.core.proposals.index.startProcessing, {
 				sessionId,
 				proposalId
 			});

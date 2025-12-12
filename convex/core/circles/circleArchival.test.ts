@@ -2,12 +2,9 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { archiveCircle } from './circleArchival';
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u1' })
-}));
-
 vi.mock('./circleAccess', () => ({
-	ensureWorkspaceMembership: vi.fn()
+	ensureWorkspaceMembership: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p1')
 }));
 
 describe('circleArchival.archiveCircle', () => {

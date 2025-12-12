@@ -11,14 +11,17 @@
 
 import { v } from 'convex/values';
 import { mutation, query } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import type { MutationCtx, QueryCtx } from '../../_generated/server';
+import type { Doc } from '../../_generated/dataModel';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
+import { requireWorkspacePersonFromSession } from './helpers/access';
+import { getPersonEmail } from '../../core/people/rules';
 
 const ACTIVE_THRESHOLD_MS = 60_000; // 60 seconds (Convex standard)
 
 type PresenceDeps = {
-	validateSessionAndGetUserId: typeof validateSessionAndGetUserId;
+	requireWorkspacePersonFromSession: typeof requireWorkspacePersonFromSession;
 	getMeeting: (
 		ctx: MutationCtx | QueryCtx,
 		meetingId: Id<'meetings'>
@@ -26,7 +29,7 @@ type PresenceDeps = {
 };
 
 const defaultPresenceDeps: PresenceDeps = {
-	validateSessionAndGetUserId,
+	requireWorkspacePersonFromSession,
 	getMeeting: (ctx, meetingId) => ctx.db.get(meetingId)
 };
 
@@ -48,18 +51,24 @@ export async function handleRecordHeartbeat(
 	args: { sessionId: string; meetingId: Id<'meetings'> },
 	deps: PresenceDeps = defaultPresenceDeps
 ): Promise<{ success: true }> {
-	const { userId } = await deps.validateSessionAndGetUserId(ctx, args.sessionId);
-
 	// Verify meeting exists
 	const meeting = await deps.getMeeting(ctx, args.meetingId);
 	if (!meeting) {
 		throw createError(ErrorCodes.MEETING_NOT_FOUND, 'Meeting not found');
 	}
 
+	const { personId } = await deps.requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+
 	// Check if presence record exists
 	const existing = await ctx.db
 		.query('meetingPresence')
-		.withIndex('by_meeting_user', (q) => q.eq('meetingId', args.meetingId).eq('userId', userId))
+		.withIndex('by_meeting_person', (q) =>
+			q.eq('meetingId', args.meetingId).eq('personId', personId)
+		)
 		.first();
 
 	const now = Date.now();
@@ -73,7 +82,7 @@ export async function handleRecordHeartbeat(
 		// Create new presence record
 		await ctx.db.insert('meetingPresence', {
 			meetingId: args.meetingId,
-			userId,
+			personId,
 			joinedAt: now,
 			lastSeenAt: now
 		});
@@ -106,14 +115,11 @@ export const getActivePresence = query({
 		meetingId: v.id('meetings')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (userId not used but needed for auth)
-		const { userId: _userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		// Verify meeting exists and user has access
+		// Validate session and workspace access
 		const meeting = await ctx.db.get(args.meetingId);
-		if (!meeting) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
-		}
+		if (!meeting) throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
+
+		await requireWorkspacePersonFromSession(ctx, args.sessionId, meeting.workspaceId);
 
 		const now = Date.now();
 		const activeThreshold = now - ACTIVE_THRESHOLD_MS;
@@ -126,19 +132,20 @@ export const getActivePresence = query({
 			)
 			.collect();
 
-		// Resolve user details
-		const activeUsers = await Promise.all(
+		// Resolve person details
+		const activePeople = await Promise.all(
 			activePresence.map(async (presence) => {
-				const user = await ctx.db.get(presence.userId);
+				const person = await ctx.db.get(presence.personId);
+				const email = person ? await getPersonEmail(ctx, person) : null;
 				return {
-					userId: presence.userId,
-					name: user?.name ?? user?.email ?? 'Unknown',
+					personId: presence.personId,
+					name: person?.displayName ?? email ?? 'Unknown',
 					joinedAt: presence.joinedAt
 				};
 			})
 		);
 
-		return activeUsers;
+		return activePeople;
 	}
 });
 
@@ -153,34 +160,30 @@ export const getExpectedAttendees = query({
 		meetingId: v.id('meetings')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (userId not used but needed for auth)
-		const { userId: _userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		// Verify meeting exists
+		// Validate session and access
 		const meeting = await ctx.db.get(args.meetingId);
-		if (!meeting) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
-		}
+		if (!meeting) throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
+		await requireWorkspacePersonFromSession(ctx, args.sessionId, meeting.workspaceId);
 
-		// Get all attendees for this meeting (all are users now)
+		// Get all attendees for this meeting
 		const attendees = await ctx.db
 			.query('meetingAttendees')
 			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
 			.collect();
 
-		// Resolve user details
-		const resolvedUsers = await Promise.all(
+		// Resolve person details
+		const resolvedPeople = await Promise.all(
 			attendees.map(async (attendee) => {
-				const user = await ctx.db.get(attendee.userId);
+				const person = await ctx.db.get(attendee.personId);
 				return {
-					userId: attendee.userId,
-					name: user?.name ?? user?.email ?? 'Unknown User',
+					personId: attendee.personId,
+					name: person?.displayName ?? person?.email ?? 'Unknown Person',
 					joinedAt: attendee.joinedAt
 				};
 			})
 		);
 
-		return resolvedUsers;
+		return resolvedPeople;
 	}
 });
 
@@ -198,8 +201,10 @@ export const getCombinedAttendance = query({
 		meetingId: v.id('meetings')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (userId not used but needed for auth)
-		const { userId: _userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		// Validate session and access
+		const meeting = await ctx.db.get(args.meetingId);
+		if (!meeting) throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
+		await requireWorkspacePersonFromSession(ctx, args.sessionId, meeting.workspaceId);
 
 		// Get expected attendees and active presence in parallel
 		const [expectedAttendees, activePresence] = await Promise.all([
@@ -215,55 +220,57 @@ export const getCombinedAttendance = query({
 				.collect()
 		]);
 
-		// Resolve expected attendees (all are users now)
-		const expectedUserIds = new Set<Id<'users'>>();
-		const expectedUsersMap = new Map<
-			Id<'users'>,
+		// Resolve expected attendees (people)
+		const expectedPersonIds = new Set<Id<'people'>>();
+		const expectedPeopleMap = new Map<
+			Id<'people'>,
 			{
-				userId: Id<'users'>;
+				personId: Id<'people'>;
 				name: string;
 				isExpected: true;
 			}
 		>();
 
 		for (const attendee of expectedAttendees) {
-			expectedUserIds.add(attendee.userId);
-			const user = await ctx.db.get(attendee.userId);
-			if (user && !expectedUsersMap.has(attendee.userId)) {
-				expectedUsersMap.set(attendee.userId, {
-					userId: attendee.userId,
-					name: user.name ?? user.email ?? 'Unknown User',
+			expectedPersonIds.add(attendee.personId);
+			const person = await ctx.db.get(attendee.personId);
+			if (person && !expectedPeopleMap.has(attendee.personId)) {
+				const email = await getPersonEmail(ctx, person);
+				expectedPeopleMap.set(attendee.personId, {
+					personId: attendee.personId,
+					name: person.displayName ?? email ?? 'Unknown Person',
 					isExpected: true
 				});
 			}
 		}
 
-		// Get active user IDs
-		const activeUserIds = new Set(activePresence.map((p) => p.userId));
+		// Get active person IDs
+		const activePersonIds = new Set(activePresence.map((p) => p.personId));
 
 		// Build combined list
 		const combinedAttendance: Array<{
-			userId: Id<'users'>;
+			personId: Id<'people'>;
 			name: string;
 			isExpected: boolean;
 			isActive: boolean;
 		}> = [];
 
 		// Add all expected attendees (with active status)
-		for (const expected of expectedUsersMap.values()) {
+		for (const expected of expectedPeopleMap.values()) {
 			combinedAttendance.push({
 				...expected,
-				isActive: activeUserIds.has(expected.userId)
+				isActive: activePersonIds.has(expected.personId)
 			});
 		}
 
 		// Add unexpected joiners (guests)
 		for (const presence of activePresence) {
-			if (!expectedUserIds.has(presence.userId)) {
-				const user = await ctx.db.get(presence.userId);
+			if (!expectedPersonIds.has(presence.personId)) {
+				const person = await ctx.db.get(presence.personId);
+				const email = person ? await getPersonEmail(ctx, person) : null;
 				combinedAttendance.push({
-					userId: presence.userId,
-					name: user?.name ?? user?.email ?? 'Unknown',
+					personId: presence.personId,
+					name: person?.displayName ?? email ?? 'Unknown',
 					isExpected: false,
 					isActive: true
 				});

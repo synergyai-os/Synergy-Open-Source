@@ -9,7 +9,7 @@
 	import { Button } from '$lib/components/atoms';
 	import { toast } from 'svelte-sonner';
 	import { Avatar, Text } from '$lib/components/atoms';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Props = {
 		open?: boolean;
@@ -40,7 +40,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query workspace members
 	const membersQuery =
 		browser && getSessionId()
-			? useQuery(api.workspaces.listMembers, () => {
+			? useQuery(api.core.workspaces.index.listMembers, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId, workspaceId };
@@ -50,21 +50,24 @@ import { invariant } from '$lib/utils/invariant';
 	// Query already-assigned users based on type
 	const assignedUsersQuery =
 		browser && getSessionId()
-			? useQuery(type === 'role' ? api.circleRoles.getRoleFillers : api.circles.getMembers, () => {
-					const sessionId = getSessionId();
-					invariant(sessionId, 'sessionId required');
-					if (type === 'role') {
-						return {
-							sessionId,
-							circleRoleId: entityId as Id<'circleRoles'>
-						};
-					} else {
-						return {
-							sessionId,
-							circleId: entityId as Id<'circles'>
-						};
+			? useQuery(
+					type === 'role' ? api.core.roles.index.getRoleFillers : api.core.circles.index.getMembers,
+					() => {
+						const sessionId = getSessionId();
+						invariant(sessionId, 'sessionId required');
+						if (type === 'role') {
+							return {
+								sessionId,
+								circleRoleId: entityId as Id<'circleRoles'>
+							};
+						} else {
+							return {
+								sessionId,
+								circleId: entityId as Id<'circles'>
+							};
+						}
 					}
-				})
+				)
 			: null;
 
 	// Get assigned user IDs for filtering
@@ -107,17 +110,17 @@ import { invariant } from '$lib/utils/invariant';
 		isSubmitting = true;
 		try {
 			if (type === 'role') {
-				await convexClient.mutation(api.circleRoles.assignUser, {
+				await convexClient.mutation(api.core.roles.index.assignUser, {
 					sessionId,
 					circleRoleId: entityId as Id<'circleRoles'>,
 					userId: selectedUserId as Id<'users'>
 				});
 				toast.success(`User assigned to role "${entityName}"`);
 			} else {
-				await convexClient.mutation(api.circles.addMember, {
+				await convexClient.mutation(api.core.circles.index.addMember, {
 					sessionId,
 					circleId: entityId as Id<'circles'>,
-					userId: selectedUserId as Id<'users'>
+					memberUserId: selectedUserId as Id<'users'>
 				});
 				toast.success(`User added to circle "${entityName}"`);
 			}
@@ -154,7 +157,7 @@ import { invariant } from '$lib/utils/invariant';
 					: `Select a user to add to the circle "${entityName}".`}
 			</Dialog.Description>
 
-			<form onsubmit={handleSubmit} class="mt-section flex flex-col gap-form">
+			<form onsubmit={handleSubmit} class="mt-section gap-form flex flex-col">
 				<Combobox
 					label="User"
 					placeholder="Search users..."
@@ -165,7 +168,7 @@ import { invariant } from '$lib/utils/invariant';
 					maxHeight="14rem"
 				>
 					{#snippet children({ option, selected })}
-						<div class="flex items-center gap-fieldGroup">
+						<div class="gap-fieldGroup flex items-center">
 							<Avatar
 								name={option.name || option.email || 'Unknown'}
 								size="sm"
@@ -210,7 +213,7 @@ import { invariant } from '$lib/utils/invariant';
 					</Text>
 				{/if}
 
-				<div class="mt-section flex items-center justify-end gap-button">
+				<div class="mt-section gap-button flex items-center justify-end">
 					<Dialog.Close asChild>
 						<Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
 					</Dialog.Close>

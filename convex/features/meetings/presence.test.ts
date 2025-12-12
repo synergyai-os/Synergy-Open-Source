@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+vi.mock('./helpers/access', () => ({
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' })
 }));
 
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
@@ -21,7 +21,7 @@ describe('meetings/presence', () => {
 	test('recordHeartbeat throws when meeting is missing with coded error', async () => {
 		const ctx = makeCtx();
 		const deps = {
-			validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' })
 		};
 
 		await expect(
@@ -29,7 +29,7 @@ describe('meetings/presence', () => {
 				ctx as MutationCtx,
 				{ sessionId: 's', meetingId: 'm1' as any },
 				{
-					validateSessionAndGetUserId: deps.validateSessionAndGetUserId,
+					requireWorkspacePersonFromSession: deps.requireWorkspacePersonFromSession,
 					getMeeting: async () => null
 				}
 			)

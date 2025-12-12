@@ -4,12 +4,19 @@
  * Pure functions for calculating authority levels from circle types.
  * These functions have no side effects and are easily testable in isolation.
  *
- * SYOS-692: Extracted from orgChartPermissions.ts to enable isolated testing
- * and clear separation of concerns.
+ * SYOS-692: Extracted from the org chart permission helpers (now in rbac/orgChart.ts)
+ * to enable isolated testing and clear separation of concerns.
  */
 
-export type CircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
-export type AuthorityLevel = 'authority' | 'facilitative' | 'convening';
+import { getPolicy } from './policies';
+import { isCircleLead, isCircleMember, isFacilitator } from './rules';
+import type {
+	Authority,
+	AuthorityContext,
+	AuthorityLevel,
+	CirclePolicy,
+	CircleType
+} from './types';
 
 /**
  * Calculate authority level from circle type
@@ -65,4 +72,54 @@ export function requiresConsentProcess(circleType: CircleType | null | undefined
  */
 export function hasConveningAuthority(circleType: CircleType | null | undefined): boolean {
 	return calculateAuthorityLevel(circleType) === 'convening';
+}
+
+/**
+ * Calculate complete authority for a person in a circle context.
+ *
+ * This is the main entry point — features call this to determine
+ * what a person can do.
+ *
+ * Pure function — no database access, no side effects.
+ *
+ * @param ctx - The authority context (user, circle, assignments)
+ * @returns Authority object with all permission flags
+ */
+export function calculateAuthority(ctx: AuthorityContext): Authority {
+	if (ctx.assignments.length === 0) {
+		return {
+			canApproveProposals: false,
+			canAssignRoles: false,
+			canModifyCircleStructure: false,
+			canRaiseObjections: false,
+			canFacilitate: false
+		};
+	}
+
+	const policy = getPolicy(ctx.circleType);
+	const isLead = isCircleLead(ctx);
+	const isMember = isCircleMember(ctx);
+
+	return {
+		canApproveProposals: hasApprovalAuthority(isLead, policy),
+		canRaiseObjections: isMember && policy.decisionModel !== 'lead_decides',
+		canAssignRoles: isLead && policy.canLeadAssignRoles,
+		canModifyCircleStructure: isLead,
+		canFacilitate: isFacilitator(ctx)
+	};
+}
+
+/**
+ * Check if user has proposal approval authority based on circle type policy.
+ *
+ * Internal helper — not exported.
+ * Returns true only for leads in hierarchy circles where unilateral approval is allowed.
+ * Consent/consensus circles: approval comes from process, not individual authority.
+ */
+function hasApprovalAuthority(isLead: boolean, policy: CirclePolicy): boolean {
+	if (policy.canLeadApproveUnilaterally) {
+		return isLead;
+	}
+
+	return false;
 }

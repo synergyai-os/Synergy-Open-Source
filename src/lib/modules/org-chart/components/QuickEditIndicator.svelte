@@ -31,7 +31,7 @@
 </script>
 
 {#if status !== 'idle'}
-	<div class="flex items-center gap-1 px-button py-1">
+	<div class="px-button flex items-center gap-1 py-1">
 		<Text variant="caption" size="sm" color={statusColor}>
 			{statusText}
 		</Text>

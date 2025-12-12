@@ -5,14 +5,14 @@ export function getInvitationsByMeetingMap(
 	invitations: Array<{
 		meetingId: Id<'meetings'>;
 		invitationType: 'user' | 'circle';
-		userId?: Id<'users'>;
+		personId?: Id<'people'>;
 		circleId?: Id<'circles'>;
 		status?: 'pending' | 'accepted' | 'declined';
 	}>
 ) {
 	const map = new Map<
 		Id<'meetings'>,
-		Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		Array<{ invitationType: 'user' | 'circle'; personId?: Id<'people'>; circleId?: Id<'circles'> }>
 	>();
 	for (const invitation of invitations) {
 		if (invitation.invitationType === 'user' && invitation.status === 'declined') {
@@ -40,35 +40,39 @@ export async function fetchCircleMembersByMeeting(
 		if (inv.circleId) circleIds.push(inv.circleId);
 	}
 
-	const circleMembers = await ctx.db
-		.query('circleMembers')
-		.withIndex('by_circle_user', (q) => q.in('circleId', circleIds))
-		.collect();
+	const circleMembers: Array<{ circleId: Id<'circles'>; personId: Id<'people'> }> = [];
+	for (const circleId of circleIds) {
+		const members = await ctx.db
+			.query('circleMembers')
+			.withIndex('by_circle_person', (q) => q.eq('circleId', circleId))
+			.collect();
+		circleMembers.push(...members);
+	}
 
-	const map = new Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>();
+	const map = new Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>();
 	for (const member of circleMembers) {
 		const existing = map.get(member.circleId) ?? [];
-		existing.push({ userId: member.userId });
+		existing.push({ personId: member.personId });
 		map.set(member.circleId, existing);
 	}
 	return map;
 }
 
-export async function isUserInvitedToMeeting(
+export async function isPersonInvitedToMeeting(
 	ctx: QueryCtx,
 	meeting: { _id: Id<'meetings'>; circleId?: Id<'circles'>; visibility: 'public' | 'private' },
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	invitationsByMeeting: Map<
 		Id<'meetings'>,
-		Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		Array<{ invitationType: 'user' | 'circle'; personId?: Id<'people'>; circleId?: Id<'circles'> }>
 	>,
-	circleMembersByCircle: Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>
+	circleMembersByCircle: Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>
 ) {
 	if (meeting.visibility === 'public') return true;
 
 	const invitations = invitationsByMeeting.get(meeting._id) ?? [];
 	const directInvitation = invitations.find(
-		(invitation) => invitation.invitationType === 'user' && invitation.userId === userId
+		(invitation) => invitation.invitationType === 'user' && invitation.personId === personId
 	);
 	if (directInvitation) return true;
 
@@ -79,12 +83,12 @@ export async function isUserInvitedToMeeting(
 		const members = invitation.circleId
 			? (circleMembersByCircle.get(invitation.circleId) ?? [])
 			: [];
-		if (members.some((member) => member.userId === userId)) return true;
+		if (members.some((member) => member.personId === personId)) return true;
 	}
 
 	if (meeting.circleId) {
 		const members = circleMembersByCircle.get(meeting.circleId) ?? [];
-		if (members.some((member) => member.userId === userId)) return true;
+		if (members.some((member) => member.personId === personId)) return true;
 	}
 
 	return false;
@@ -96,16 +100,16 @@ export async function getInvitedUsersForMeeting(
 	circleId: Id<'circles'> | undefined,
 	invitationsByMeeting: Map<
 		Id<'meetings'>,
-		Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		Array<{ invitationType: 'user' | 'circle'; personId?: Id<'people'>; circleId?: Id<'circles'> }>
 	>,
-	circleMembersByCircle: Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>
+	circleMembersByCircle: Map<Id<'circles'>, Array<{ personId: Id<'people'> }>>
 ) {
-	const invitedUserIds = new Set<string>();
+	const invitedPersonIds = new Set<string>();
 	const invitations = invitationsByMeeting.get(meetingId) ?? [];
 
 	for (const invitation of invitations) {
-		if (invitation.invitationType === 'user' && invitation.userId) {
-			invitedUserIds.add(invitation.userId);
+		if (invitation.invitationType === 'user' && invitation.personId) {
+			invitedPersonIds.add(invitation.personId);
 		}
 	}
 
@@ -113,7 +117,7 @@ export async function getInvitedUsersForMeeting(
 		if (invitation.invitationType === 'circle' && invitation.circleId) {
 			const members = circleMembersByCircle.get(invitation.circleId) ?? [];
 			for (const member of members) {
-				invitedUserIds.add(member.userId);
+				invitedPersonIds.add(member.personId);
 			}
 		}
 	}
@@ -121,20 +125,20 @@ export async function getInvitedUsersForMeeting(
 	if (circleId) {
 		const members = circleMembersByCircle.get(circleId) ?? [];
 		for (const member of members) {
-			invitedUserIds.add(member.userId);
+			invitedPersonIds.add(member.personId);
 		}
 	}
 
-	const userIdsArray = Array.from(invitedUserIds).slice(0, 10);
-	const users = await Promise.all(
-		userIdsArray.map(async (userId) => {
-			const person = await ctx.db.get(userId as Id<'users'>);
+	const personIdsArray = Array.from(invitedPersonIds).slice(0, 10);
+	const people = await Promise.all(
+		personIdsArray.map(async (personId) => {
+			const person = await ctx.db.get(personId as Id<'people'>);
 			return {
-				userId,
-				name: person?.name ?? person?.email ?? 'Unknown person'
+				personId,
+				name: person?.displayName ?? person?.email ?? 'Unknown person'
 			};
 		})
 	);
 
-	return users;
+	return people;
 }

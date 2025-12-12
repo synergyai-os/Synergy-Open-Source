@@ -45,12 +45,12 @@ export const listAllUsers = query({
 export const getUserById = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users')
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const user = await ctx.db.get(args.userId);
+		const user = await ctx.db.get(args.targetUserId);
 		if (!user) {
 			throw createError(ErrorCodes.GENERIC_ERROR, 'User not found');
 		}
@@ -58,7 +58,7 @@ export const getUserById = query({
 		// Get user's roles
 		const userRoles = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
 		const roles = await Promise.all(

@@ -17,6 +17,7 @@ import {
 	createTestSession,
 	createTestOrganization,
 	createTestOrganizationMember,
+	createTestMeetingTemplate,
 	cleanupTestData,
 	cleanupTestOrganization
 } from '$tests/convex/integration/setup';
@@ -44,12 +45,15 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -86,12 +90,15 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -122,9 +129,12 @@ describe('meetingAgendaItems: updateNotes', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -149,7 +159,7 @@ describe('meetingAgendaItems: updateNotes', () => {
 				agendaItemId: agendaResult.itemId,
 				notes: 'Test notes'
 			})
-		).rejects.toThrow('Workspace membership required');
+		).rejects.toThrow(/WORKSPACE_MEMBERSHIP_REQUIRED/);
 	});
 });
 
@@ -175,12 +185,15 @@ describe('meetingAgendaItems: markStatus', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -216,12 +229,15 @@ describe('meetingAgendaItems: markStatus', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -257,12 +273,15 @@ describe('meetingAgendaItems: markStatus', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -293,9 +312,12 @@ describe('meetingAgendaItems: markStatus', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -320,6 +342,6 @@ describe('meetingAgendaItems: markStatus', () => {
 				agendaItemId: agendaResult.itemId,
 				status: 'processed'
 			})
-		).rejects.toThrow('Workspace membership required');
+		).rejects.toThrow(/WORKSPACE_MEMBERSHIP_REQUIRED/);
 	});
 });

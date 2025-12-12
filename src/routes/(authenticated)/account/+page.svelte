@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	import { UserProfile } from '$lib/infrastructure/users/components/UserProfile.svelte';
+	import UserProfile from '$lib/infrastructure/users/components/UserProfile.svelte';
 	import type { LinkedAccount } from '$lib/infrastructure/users/api';
 	import type { UserProfile as UserProfileType } from '$lib/infrastructure/users/api';
 
@@ -25,7 +25,7 @@
 		try {
 			// Load current user profile
 			if (currentUser?.userId) {
-				const profile = await convexClient.query(api.users.getUserById, {
+				const profile = await convexClient.query(api.core.users.index.getUserById, {
 					sessionId: data.sessionId,
 					userId: currentUser.userId
 				});
@@ -41,16 +41,16 @@
 	<title>Account - SynergyOS</title>
 </svelte:head>
 
-<div class="h-screen overflow-y-auto bg-base">
+<div class="bg-base h-screen overflow-y-auto">
 	<div class="px-inbox-container py-inbox-container mx-auto max-w-4xl">
 		<!-- Page Title -->
-		<h1 class="mb-content-section text-h1 font-bold text-primary">Account</h1>
+		<h1 class="mb-content-section text-h1 text-primary font-bold">Account</h1>
 
 		<div class="gap-settings-section flex flex-col">
 			<!-- Profile Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-content-padding text-body font-bold text-primary">Profile</h2>
+					<h2 class="mb-content-padding text-body text-primary font-bold">Profile</h2>
 
 					<div class="gap-settings-row flex flex-col">
 						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
@@ -67,9 +67,7 @@
 						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
 							<div class="gap-settings-row flex items-start justify-between">
 								<div class="min-w-0 flex-1">
-									<label class="mb-form-field-gap text-small block font-medium text-primary">
-										Email
-									</label>
+									<p class="mb-form-field-gap text-small text-primary block font-medium">Email</p>
 									<p class="text-small text-secondary">
 										{userProfile?.email ?? currentUser?.email ?? 'Not available'}
 									</p>
@@ -82,9 +80,9 @@
 							<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
 								<div class="gap-settings-row flex items-start justify-between">
 									<div class="min-w-0 flex-1">
-										<label class="mb-form-field-gap text-small block font-medium text-primary">
+										<p class="mb-form-field-gap text-small text-primary block font-medium">
 											Email Verification
-										</label>
+										</p>
 										<p class="text-small text-warning">
 											Your email address has not been verified. Please check your inbox for a
 											verification email.
@@ -99,22 +97,22 @@
 
 			<!-- Linked Accounts Section -->
 			{#if linkedAccounts.length > 0}
-				<section class="border-base rounded-card border bg-elevated">
+				<section class="border-base rounded-card bg-elevated border">
 					<div class="px-inbox-card py-inbox-card">
-						<h2 class="mb-content-padding text-body font-bold text-primary">Linked Accounts</h2>
+						<h2 class="mb-content-padding text-body text-primary font-bold">Linked Accounts</h2>
 
 						<div class="gap-settings-row flex flex-col">
 							{#each linkedAccounts as account (account.userId)}
 								<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
 									<div class="gap-settings-row flex items-start justify-between">
 										<div class="min-w-0 flex-1">
-											<label class="mb-form-field-gap text-small block font-medium text-primary">
+											<p class="mb-form-field-gap text-small text-primary block font-medium">
 												{account.name ?? account.email ?? 'Linked Account'}
-											</label>
+											</p>
 											<p class="text-small text-secondary">
 												{account.email ?? 'No email available'}
 												{#if account.linkType}
-													<span class="ml-2 text-tertiary">({account.linkType})</span>
+													<span class="text-tertiary ml-2">({account.linkType})</span>
 												{/if}
 											</p>
 										</div>
@@ -127,18 +125,18 @@
 			{/if}
 
 			<!-- Security Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-content-padding text-body font-bold text-primary">Security</h2>
+					<h2 class="mb-content-padding text-body text-primary font-bold">Security</h2>
 
 					<div class="gap-settings-row flex flex-col">
 						<!-- Password Management -->
 						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
 							<div class="gap-settings-row flex items-start justify-between">
 								<div class="min-w-0 flex-1">
-									<label class="mb-form-field-gap text-small block font-medium text-primary">
+									<p class="mb-form-field-gap text-small text-primary block font-medium">
 										Password
-									</label>
+									</p>
 									<p class="text-small text-secondary">
 										Manage your password and authentication settings through WorkOS.
 									</p>

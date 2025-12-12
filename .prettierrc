@@ -10,7 +10,12 @@
 			"options": {
 				"parser": "svelte"
 			}
+		},
+		{
+			"files": "*.css",
+			"options": {
+				"plugins": []
+			}
 		}
-	],
-	"tailwindStylesheet": "./src/styles/app.css"
+	]
 }

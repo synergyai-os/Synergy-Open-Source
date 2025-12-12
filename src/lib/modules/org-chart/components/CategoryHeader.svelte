@@ -29,7 +29,7 @@
 </script>
 
 <div class={containerClasses}>
-	<div class="flex items-center gap-fieldGroup">
+	<div class="gap-fieldGroup flex items-center">
 		<Text variant="label" size="md" color="primary" weight="semibold" as="h4">
 			{title}
 		</Text>
@@ -39,7 +39,7 @@
 			</Text>
 		{/if}
 	</div>
-	<div class="flex items-center gap-fieldGroup">
+	<div class="gap-fieldGroup flex items-center">
 		{#if onEdit}
 			<Button variant="ghost" size="sm" iconOnly onclick={onEdit} ariaLabel="Edit {title}">
 				<Icon type="edit" size="sm" />

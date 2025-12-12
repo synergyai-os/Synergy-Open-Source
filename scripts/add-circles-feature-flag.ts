@@ -48,7 +48,7 @@ async function main() {
 
 	try {
 		// Create feature flag (without allowedUserIds - add manually in dashboard)
-		await client.mutation(api.featureFlags.createFlag, {
+		await client.mutation(api.infrastructure.featureFlags.createFlag, {
 			sessionId,
 			flag: 'circles_ui_beta',
 			enabled: true

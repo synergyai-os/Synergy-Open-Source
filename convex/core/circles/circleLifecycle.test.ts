@@ -2,12 +2,9 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { createCircleInternal } from './circleLifecycle';
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u1' })
-}));
-
 vi.mock('./circleAccess', () => ({
-	ensureWorkspaceMembership: vi.fn()
+	ensureWorkspaceMembership: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p1')
 }));
 
 vi.mock('./validation', () => ({
@@ -23,9 +20,9 @@ vi.mock('./circleCoreRoles', () => ({
 	createCoreRolesForCircle: vi.fn()
 }));
 
-vi.mock('../../orgVersionHistory', () => ({
-	captureCreate: vi.fn(),
-	captureUpdate: vi.fn()
+vi.mock('../history', () => ({
+	recordCreateHistory: vi.fn(),
+	recordUpdateHistory: vi.fn()
 }));
 
 describe('circleLifecycle.createCircleInternal', () => {

@@ -15,7 +15,7 @@ export async function ensureWorkspaceMembership(
 		.first();
 
 	if (!membership) {
-		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'User is not a member of this workspace');
+		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Workspace membership required');
 	}
 }
 

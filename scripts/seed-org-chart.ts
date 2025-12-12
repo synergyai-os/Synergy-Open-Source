@@ -64,7 +64,7 @@ async function main() {
 	console.log('');
 
 	try {
-		const result = await client.mutation(internal.seedOrgChart.seedTestDataInternal, {
+		const result = await client.mutation(internal.admin.seedOrgChart.seedTestDataInternal, {
 			workspaceId: ORG_ID
 		});
 

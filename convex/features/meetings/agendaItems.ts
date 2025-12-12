@@ -10,32 +10,14 @@
 
 import { v } from 'convex/values';
 import { mutation } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import type { Doc } from '../../_generated/dataModel';
-
-/**
- * Helper: Verify user has access to workspace
- */
-async function ensureWorkspaceMembership(
-	ctx: MutationCtx,
-	workspaceId: Id<'workspaces'>,
-	userId: Id<'users'>
-): Promise<void> {
-	const membership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
-		.first();
-
-	if (!membership) {
-		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Workspace membership required');
-	}
-}
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './helpers/access';
 
 type AgendaDeps = {
-	validateSessionAndGetUserId: typeof validateSessionAndGetUserId;
+	requireWorkspacePersonFromSession: typeof requireWorkspacePersonFromSession;
 	getAgendaItem: (
 		ctx: MutationCtx,
 		agendaItemId: Id<'meetingAgendaItems'>
@@ -44,7 +26,7 @@ type AgendaDeps = {
 };
 
 const defaultAgendaDeps: AgendaDeps = {
-	validateSessionAndGetUserId,
+	requireWorkspacePersonFromSession,
 	getAgendaItem: (ctx, agendaItemId) => ctx.db.get(agendaItemId),
 	getMeeting: (ctx, meetingId) => ctx.db.get(meetingId)
 };
@@ -61,8 +43,6 @@ export async function handleUpdateNotes(
 	args: { sessionId: string; agendaItemId: Id<'meetingAgendaItems'>; notes: string },
 	deps: AgendaDeps = defaultAgendaDeps
 ): Promise<{ success: true }> {
-	const { userId } = await deps.validateSessionAndGetUserId(ctx, args.sessionId);
-
 	// Get agenda item
 	const agendaItem = await deps.getAgendaItem(ctx, args.agendaItemId);
 
@@ -77,8 +57,14 @@ export async function handleUpdateNotes(
 		throw createError(ErrorCodes.MEETING_NOT_FOUND, 'Meeting not found');
 	}
 
+	const { personId } = await deps.requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+
 	// Verify user has access to workspace
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 	// Update notes
 	await ctx.db.patch(args.agendaItemId, {
@@ -108,8 +94,6 @@ export const markStatus = mutation({
 		status: v.union(v.literal('todo'), v.literal('processed'), v.literal('rejected'))
 	},
 	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 		// Get agenda item
 		const agendaItem = await ctx.db.get(args.agendaItemId);
 
@@ -125,7 +109,12 @@ export const markStatus = mutation({
 		}
 
 		// Verify user has access to workspace
-		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+		const { personId } = await requireWorkspacePersonFromSession(
+			ctx,
+			args.sessionId,
+			meeting.workspaceId
+		);
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 		// Status is locked after meeting closes
 		if (meeting.closedAt) {

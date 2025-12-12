@@ -72,11 +72,11 @@
 	}
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-base py-header border-b bg-surface px-page">
+	<header class="border-base py-header bg-surface px-page border-b">
 		{#if isLoading}
-			<div class="h-8 w-48 animate-pulse rounded-button bg-elevated"></div>
+			<div class="rounded-button bg-elevated h-8 w-48 animate-pulse"></div>
 		{:else if circle}
 			<div class="space-y-2">
 				<!-- Circle Name (Editable) -->
@@ -93,10 +93,10 @@
 									nameValue = circle.name;
 								}
 							}}
-							class="border-base text-h3 rounded-button border bg-elevated px-input-x py-input-y font-semibold text-primary focus:border-accent-primary focus:outline-none"
+							class="border-base text-h3 rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary border font-semibold focus:outline-none"
 						/>
 					{:else}
-						<h1 class="text-h3 font-semibold text-primary">{circle.name}</h1>
+						<h1 class="text-h3 text-primary font-semibold">{circle.name}</h1>
 						<button
 							onclick={() => (editingName = true)}
 							class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary"
@@ -127,11 +127,11 @@
 									purposeValue = circle.purpose ?? '';
 								}
 							}}
-							class="border-base text-button flex-1 rounded-button border bg-elevated px-input-x py-input-y text-secondary focus:border-accent-primary focus:outline-none"
+							class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-secondary focus:border-accent-primary flex-1 border focus:outline-none"
 							rows={2}
 						></textarea>
 					{:else}
-						<p class="text-button flex-1 text-secondary">
+						<p class="text-button text-secondary flex-1">
 							{circle.purpose || 'No purpose defined'}
 						</p>
 						<button
@@ -153,7 +153,7 @@
 				</div>
 
 				<!-- Meta Info -->
-				<div class="text-button flex items-center gap-4 text-secondary">
+				<div class="text-button text-secondary flex items-center gap-4">
 					<span>{members.length} members</span>
 					<span>{roles.length} roles</span>
 					{#if circle.parentName}
@@ -165,7 +165,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="gap-form-section flex flex-1 overflow-hidden px-page py-page">
+	<main class="gap-form-section px-page py-page flex flex-1 overflow-hidden">
 		{#if isLoading}
 			<div class="flex flex-1 items-center justify-center">
 				<div class="text-secondary">Loading circle...</div>
@@ -193,7 +193,7 @@
 								goto(resolveRoute('/auth/redirect'));
 							}
 						}}
-						class="text-on-solid py-nav-item text-button mt-4 rounded-button bg-accent-primary px-2 font-medium hover:bg-accent-hover"
+						class="text-on-solid py-nav-item text-button rounded-button bg-accent-primary hover:bg-accent-hover mt-4 px-2 font-medium"
 					>
 						Back to Circles
 					</button>

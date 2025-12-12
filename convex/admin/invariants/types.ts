@@ -3,22 +3,18 @@ import type { Id } from '../../_generated/dataModel';
 export type InvariantSeverity = 'critical' | 'warning';
 
 /**
- * Identifies workspaces with no active people.
- * These are considered "abandoned" and excluded from certain invariant checks.
- * Abandoned workspaces excluded per SYOS-806.
- *
- * @returns Set of workspace IDs that have at least one active person
+ * Returns workspace IDs that are considered operational (i.e. not archived).
+ * Used to skip invariants for intentionally archived workspaces rather than
+ * relying on active-people heuristics (see SYOS-811).
  */
 export function findOperationalWorkspaces(
-	people: Array<{ workspaceId: Id<'workspaces'>; status: string }>
+	workspaces: Array<{ _id: Id<'workspaces'>; archivedAt?: number | null }>
 ): Set<string> {
-	const operational = new Set<string>();
-	for (const person of people) {
-		if (person.status === 'active' && person.workspaceId) {
-			operational.add(person.workspaceId.toString());
-		}
-	}
-	return operational;
+	return new Set(
+		workspaces
+			.filter((workspace) => workspace.archivedAt === undefined)
+			.map((ws) => ws._id.toString())
+	);
 }
 
 export type InvariantResult = {

@@ -2,8 +2,11 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
 import { ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type CreateAgendaItemArgs = { sessionId: string; meetingId: Id<'meetings'>; title: string };
 
@@ -17,10 +20,18 @@ export async function createAgendaItemMutation(
 	ctx: MutationCtx,
 	args: CreateAgendaItemArgs
 ): Promise<{ itemId: Id<'meetingAgendaItems'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -37,7 +48,7 @@ export async function createAgendaItemMutation(
 		title: args.title,
 		order: maxOrder + 1,
 		status: 'todo',
-		createdBy: userId,
+		createdByPersonId: personId,
 		createdAt: Date.now()
 	});
 

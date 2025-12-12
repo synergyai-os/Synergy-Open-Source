@@ -29,7 +29,7 @@
 		onClose?.();
 	}}
 >
-	<div class="flex min-w-0 flex-1 items-center gap-header">
+	<div class="gap-header flex min-w-0 flex-1 items-center">
 		<Avatar
 			initials={workspace.initials ?? workspace.name.slice(0, 2).toUpperCase()}
 			size="sm"
@@ -48,7 +48,7 @@
 	{#if isActive}
 		<!-- WORKAROUND: checkmark icon missing from registry - see missing-styles.md -->
 		<svg
-			class="icon-sm flex-shrink-0 text-brand"
+			class="icon-sm text-brand flex-shrink-0"
 			style="width: 16px; height: 16px;"
 			fill="none"
 			stroke="currentColor"

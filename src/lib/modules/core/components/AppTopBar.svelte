@@ -55,7 +55,7 @@
 
 {#if isMobile}
 	<header
-		class="flex items-center justify-between gap-2 border-b border-subtle bg-surface"
+		class="border-subtle bg-surface flex items-center justify-between gap-2 border-b"
 		style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
 	>
 		<button
@@ -101,7 +101,7 @@
 {:else}
 	<!-- Desktop: Show workspace indicator - compact header with subtle styling -->
 	<header
-		class="flex items-center justify-between gap-2 border-b border-subtle bg-surface"
+		class="border-subtle bg-surface flex items-center justify-between gap-2 border-b"
 		style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
 	>
 		<div class="flex items-center gap-2">

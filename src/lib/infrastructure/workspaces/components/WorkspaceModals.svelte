@@ -35,12 +35,12 @@
 	onOpenChange={(value) => !value && workspaces.closeModal('createWorkspace')}
 >
 	<Dialog.Content
-		class="border-base w-[min(500px,90vw)] max-w-lg rounded-lg border bg-surface text-primary shadow-xl"
+		class="border-base bg-surface text-primary w-[min(500px,90vw)] max-w-lg rounded-lg border shadow-xl"
 	>
 		<div class="px-inbox-container py-inbox-container space-y-6">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary">Create workspace</Dialog.Title>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Title class="text-primary text-lg font-semibold">Create workspace</Dialog.Title>
+				<Dialog.Description class="text-secondary mt-1 text-sm">
 					Spin up a new workspace for another company or product team.
 				</Dialog.Description>
 			</div>
@@ -53,9 +53,9 @@
 				}}
 			>
 				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Organization name</span>
+					<span class="text-primary text-sm font-medium">Organization name</span>
 					<input
-						class="border-base py-nav-item w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full rounded-md border px-2 text-sm focus:outline-none"
 						placeholder="e.g. SynergyOS Labs"
 						bind:value={organizationName}
 						required
@@ -66,7 +66,7 @@
 				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
-						class="border-base rounded-md border px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary disabled:opacity-50"
+						class="border-base text-secondary hover:text-primary rounded-md border px-3 py-1.5 text-sm font-medium disabled:opacity-50"
 						onclick={() => workspaces.closeModal('createWorkspace')}
 						disabled={workspaces.loading.createWorkspace}
 					>
@@ -74,7 +74,7 @@
 					</button>
 					<button
 						type="submit"
-						class="text-on-solid flex items-center gap-2 rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+						class="text-on-solid bg-accent-primary flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
 						disabled={workspaces.loading.createWorkspace}
 					>
 						{#if workspaces.loading.createWorkspace}
@@ -114,12 +114,12 @@
 	onOpenChange={(value) => !value && workspaces.closeModal('joinOrganization')}
 >
 	<Dialog.Content
-		class="border-base w-[min(500px,90vw)] max-w-lg rounded-lg border bg-surface text-primary shadow-xl"
+		class="border-base bg-surface text-primary w-[min(500px,90vw)] max-w-lg rounded-lg border shadow-xl"
 	>
 		<div class="px-inbox-container py-inbox-container space-y-6">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary">Join workspace</Dialog.Title>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Title class="text-primary text-lg font-semibold">Join workspace</Dialog.Title>
+				<Dialog.Description class="text-secondary mt-1 text-sm">
 					Paste the invite code or link that a teammate shared with you.
 				</Dialog.Description>
 			</div>
@@ -132,9 +132,9 @@
 				}}
 			>
 				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Invite code</span>
+					<span class="text-primary text-sm font-medium">Invite code</span>
 					<input
-						class="border-base py-nav-item w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full rounded-md border px-2 text-sm focus:outline-none"
 						placeholder="POA-ADMIN-4820"
 						bind:value={organizationCode}
 						required
@@ -144,14 +144,14 @@
 				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
-						class="border-base rounded-md border px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+						class="border-base text-secondary hover:text-primary rounded-md border px-3 py-1.5 text-sm font-medium"
 						onclick={() => workspaces.closeModal('joinOrganization')}
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
-						class="text-on-solid rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium"
+						class="text-on-solid bg-accent-primary rounded-md px-3 py-1.5 text-sm font-medium"
 					>
 						Join
 					</button>

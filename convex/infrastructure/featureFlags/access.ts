@@ -1,5 +1,5 @@
-import { requireSystemAdmin } from '../rbac/permissions';
-import { validateSessionAndGetUserId } from './sessionValidation';
+import { requireSystemAdmin } from '../../rbac/permissions';
+import { validateSessionAndGetUserId } from '../sessionValidation';
 import type { UserContext } from './types';
 import type { Ctx } from './types';
 

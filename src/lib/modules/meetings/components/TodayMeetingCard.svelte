@@ -79,11 +79,11 @@
 
 <div class={cardClasses} style="max-width: 18.75rem;">
 	<Card variant="premium" padding="md">
-		<div class="flex flex-col gap-card">
+		<div class="gap-card flex flex-col">
 			<!-- Date + Title Group (4px spacing between date and title) -->
 			<div class="flex flex-col" style="gap: var(--spacing-1);">
 				<!-- Date Badge -->
-				<div class="flex items-center gap-fieldGroup">
+				<div class="gap-fieldGroup flex items-center">
 					<Text variant="body" size="sm" color="tertiary" weight="medium" as="span"
 						>{month}. {dayOfMonth}</Text
 					>
@@ -91,7 +91,7 @@
 				</div>
 
 				<!-- Title + Privacy Icon -->
-				<div class="flex items-center gap-fieldGroup">
+				<div class="gap-fieldGroup flex items-center">
 					{#if isPrivate}
 						<span class="flex-shrink-0">
 							<Icon type="lock" size="sm" color="tertiary" />
@@ -100,7 +100,7 @@
 					<Heading level={3}>{meeting.title}</Heading>
 				</div>
 				<!-- Template Badge + Time (8px spacing below title) -->
-				<div class="flex items-center gap-fieldGroup mt-fieldGroup">
+				<div class="gap-fieldGroup mt-fieldGroup flex items-center">
 					{#if templateName}
 						<Badge variant="default" size="sm">
 							{templateName}
@@ -114,7 +114,7 @@
 
 			<!-- Circle Badge (if exists) -->
 			{#if circleName}
-				<div class="flex items-center gap-fieldGroup">
+				<div class="gap-fieldGroup flex items-center">
 					<Icon type="circles" size="sm" color="tertiary" />
 					<Text variant="body" size="sm" color="secondary" as="span">{circleName}</Text>
 				</div>
@@ -145,7 +145,7 @@
 			{/if}
 
 			<!-- Actions -->
-			<div class="flex flex-col gap-fieldGroup">
+			<div class="gap-fieldGroup flex flex-col">
 				<!-- Add Agenda Item Button -->
 				{#if onAddAgendaItem}
 					<Button variant="outline" size="md" onclick={onAddAgendaItem}>

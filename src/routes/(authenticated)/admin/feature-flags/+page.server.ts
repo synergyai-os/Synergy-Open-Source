@@ -15,7 +15,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 	// Load feature flags
 	let flags: unknown[] = [];
 	try {
-		const flagsResult = await client.query(api.featureFlags.listFlags, { sessionId });
+		const flagsResult = await client.query(api.infrastructure.featureFlags.listFlags, {
+			sessionId
+		});
 		flags = (flagsResult as unknown[]) ?? [];
 	} catch (error) {
 		console.warn('Failed to load feature flags:', error);

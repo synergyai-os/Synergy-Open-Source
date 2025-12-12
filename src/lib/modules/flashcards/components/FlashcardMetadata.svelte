@@ -8,7 +8,7 @@
 	import type { Id } from '$lib/convex';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -49,7 +49,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Load all available tags (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
@@ -64,7 +64,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query tags for this flashcard (using the correct endpoint we created)
 	const flashcardTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listTagsForFlashcard, () => {
+			? useQuery(api.features.tags.index.listTagsForFlashcard, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
@@ -195,29 +195,29 @@ import { invariant } from '$lib/utils/invariant';
 
 	<!-- FSRS Stats Section -->
 	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
-		<h3 class="text-label tracking-wider text-secondary uppercase">FSRS Stats</h3>
+		<h3 class="text-label text-secondary tracking-wider uppercase">FSRS Stats</h3>
 		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Stability</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{flashcard.fsrsStability?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Difficulty</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{flashcard.fsrsDifficulty?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">State</span>
-				<span class="text-small font-medium text-primary capitalize">
+				<span class="text-small text-primary font-medium capitalize">
 					{flashcard.fsrsState ?? 'new'}
 				</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Next Review</span>
-				<span class="text-small font-medium text-primary">
+				<span class="text-small text-primary font-medium">
 					{formatNextReview(flashcard.fsrsDue)}
 				</span>
 			</div>
@@ -226,20 +226,20 @@ import { invariant } from '$lib/utils/invariant';
 
 	<!-- Review History Section -->
 	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
-		<h3 class="text-label tracking-wider text-secondary uppercase">Review History</h3>
+		<h3 class="text-label text-secondary tracking-wider uppercase">Review History</h3>
 		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Total Reviews</span>
-				<span class="text-small font-medium text-primary">{reviewCount}</span>
+				<span class="text-small text-primary font-medium">{reviewCount}</span>
 			</div>
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Lapses</span>
-				<span class="text-small font-medium text-primary">{flashcard.lapses || 0}</span>
+				<span class="text-small text-primary font-medium">{flashcard.lapses || 0}</span>
 			</div>
 			{#if flashcard.lastReviewAt}
 				<div class="flex items-center justify-between">
 					<span class="text-small text-secondary">Last Reviewed</span>
-					<span class="text-small font-medium text-primary">
+					<span class="text-small text-primary font-medium">
 						{formatDate(flashcard.lastReviewAt)}
 					</span>
 				</div>
@@ -249,11 +249,11 @@ import { invariant } from '$lib/utils/invariant';
 
 	<!-- Card Info Section -->
 	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
-		<h3 class="text-label tracking-wider text-secondary uppercase">Card Info</h3>
+		<h3 class="text-label text-secondary tracking-wider uppercase">Card Info</h3>
 		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Created</span>
-				<span class="text-small font-medium text-primary">{formatDate(flashcard.createdAt)}</span>
+				<span class="text-small text-primary font-medium">{formatDate(flashcard.createdAt)}</span>
 			</div>
 		</div>
 	</div>
@@ -262,13 +262,13 @@ import { invariant } from '$lib/utils/invariant';
 	<div class="gap-settings-section pt-settings-section mt-auto flex flex-col">
 		<Button.Root
 			onclick={onEdit}
-			class="border-base py-nav-item text-small hover:bg-hover-solid w-full rounded-button border bg-elevated px-2 font-medium text-primary transition-colors"
+			class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-primary w-full border px-2 font-medium transition-colors"
 		>
 			Edit Card
 		</Button.Root>
 		<Button.Root
 			onclick={onDelete}
-			class="bg-destructive py-nav-item text-small hover:bg-destructive-hover w-full rounded-button px-2 font-medium text-primary transition-colors"
+			class="bg-destructive py-nav-item text-small hover:bg-destructive-hover rounded-button text-primary w-full px-2 font-medium transition-colors"
 		>
 			Delete Card
 		</Button.Root>

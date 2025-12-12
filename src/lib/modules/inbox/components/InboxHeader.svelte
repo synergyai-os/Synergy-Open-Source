@@ -54,12 +54,12 @@
 			color="secondary"
 			weight="normal"
 			as="h2"
-			class="flex items-center gap-header"
+			class="gap-header flex items-center"
 		>
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="min-w-badge rounded-chip px-badge py-badge flex items-center justify-center bg-accent-primary text-center text-label leading-none font-medium text-primary"
+					class="min-w-badge rounded-chip px-badge py-badge bg-accent-primary text-label text-primary flex items-center justify-center text-center leading-none font-medium"
 				>
 					{inboxCount}
 				</span>
@@ -70,7 +70,7 @@
 		<DropdownMenu.Root bind:open={menuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
+				class="icon-xl hover:bg-hover-solid rounded-button text-secondary hover:text-primary flex items-center justify-center transition-colors"
 			>
 				<svg
 					class="icon-sm"
@@ -90,14 +90,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="border-base min-w-dropdown py-badge z-50 rounded-button border bg-elevated shadow-card"
+					class="border-base min-w-dropdown py-badge rounded-button bg-elevated shadow-card z-50 border"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					{#if onSync}
 						<DropdownMenu.Item
-							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none disabled:cursor-not-allowed disabled:opacity-50"
+							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							textValue="Sync Readwise Highlights"
 							disabled={isSyncing}
 							onSelect={() => {
@@ -127,11 +127,11 @@
 							{/if}
 						</DropdownMenu.Item>
 
-						<DropdownMenu.Separator class="my-badge h-px bg-base" />
+						<DropdownMenu.Separator class="my-badge bg-base h-px" />
 					{/if}
 
 					<DropdownMenu.Item
-						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
@@ -142,7 +142,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
@@ -153,7 +153,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item text-primary flex cursor-pointer items-center justify-between outline-none"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
@@ -174,7 +174,7 @@
 		<!-- Sort Icon -->
 		<button
 			type="button"
-			class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
+			class="icon-xl hover:bg-hover-solid rounded-button text-secondary hover:text-primary flex items-center justify-center transition-colors"
 			onclick={() => onSortClick?.()}
 			aria-label="Sort inbox items"
 		>

@@ -51,7 +51,7 @@
 
 		isSubmitting = true;
 		try {
-			await convexClient.mutation(api.circleRoles.create, {
+			await convexClient.mutation(api.core.roles.index.create, {
 				sessionId,
 				circleId,
 				name: name.trim(),
@@ -87,7 +87,7 @@
 			<Dialog.Title>Add Role to {circleName}</Dialog.Title>
 			<Dialog.Description>Create a new role in this circle.</Dialog.Description>
 
-			<form onsubmit={handleSubmit} class="mt-section flex flex-col gap-form">
+			<form onsubmit={handleSubmit} class="mt-section gap-form flex flex-col">
 				<FormInput
 					label="Name"
 					placeholder="e.g., Senior Engineer"
@@ -104,7 +104,7 @@
 					disabled={isSubmitting}
 				/>
 
-				<div class="mt-section flex items-center justify-end gap-button">
+				<div class="mt-section gap-button flex items-center justify-end">
 					<Dialog.Close asChild>
 						<Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
 					</Dialog.Close>

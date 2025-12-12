@@ -99,12 +99,12 @@
 	}
 </script>
 
-<div class="border-base flex h-full flex-col rounded-card border bg-surface">
+<div class="border-base rounded-card bg-surface flex h-full flex-col border">
 	<!-- Panel Header -->
-	<div class="border-base py-nav-item border-b px-button-sm-x">
+	<div class="border-base py-nav-item px-button-sm-x border-b">
 		<div class="flex items-center justify-between">
 			<div>
-				<h2 class="text-button font-semibold text-primary">Roles</h2>
+				<h2 class="text-button text-primary font-semibold">Roles</h2>
 				<p class="text-label text-secondary mt-fieldGroup">{roles.length} roles</p>
 			</div>
 			<button
@@ -126,7 +126,7 @@
 
 	<!-- Create Role Form -->
 	{#if showCreateForm}
-		<div class="border-base py-nav-item border-b px-button-sm-x">
+		<div class="border-base py-nav-item px-button-sm-x border-b">
 			<form
 				onsubmit={(e) => {
 					e.preventDefault();
@@ -138,16 +138,16 @@
 					type="text"
 					bind:value={newRoleName}
 					placeholder="Role name *"
-					class="border-base text-button w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
+					class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary w-full border focus:outline-none"
 					required
 				/>
 				<textarea
 					bind:value={newRolePurpose}
 					placeholder="Purpose (optional)"
 					rows={2}
-					class="border-base text-button w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
+					class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary w-full border focus:outline-none"
 				></textarea>
-				<div class="flex gap-button">
+				<div class="gap-button flex">
 					<button
 						type="button"
 						onclick={() => {
@@ -155,14 +155,14 @@
 							newRoleName = '';
 							newRolePurpose = '';
 						}}
-						class="border-base px-card text-button rounded-button border py-input-y font-medium text-secondary hover:text-primary"
+						class="border-base px-card text-button rounded-button py-input-y text-secondary hover:text-primary border font-medium"
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
 						disabled={circles.loading.createRole}
-						class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y font-medium hover:bg-accent-hover disabled:opacity-50"
+						class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y hover:bg-accent-hover font-medium disabled:opacity-50"
 					>
 						{circles.loading.createRole ? 'Creating...' : 'Create'}
 					</button>
@@ -172,7 +172,7 @@
 	{/if}
 
 	<!-- Roles List -->
-	<div class="py-nav-item flex-1 overflow-y-auto px-button-sm-x">
+	<div class="py-nav-item px-button-sm-x flex-1 overflow-y-auto">
 		{#if roles.length === 0}
 			<div class="flex h-32 items-center justify-center text-center">
 				<p class="text-button text-secondary">No roles yet</p>
@@ -180,14 +180,14 @@
 		{:else}
 			<div class="space-y-2">
 				{#each roles as role (role.roleId)}
-					<div class="border-base rounded-button border bg-elevated">
+					<div class="border-base rounded-button bg-elevated border">
 						<!-- Role Header -->
 						<div class="px-card py-nav-item flex items-start justify-between">
 							<button
 								onclick={() => toggleRoleExpand(role.roleId)}
 								class="min-w-0 flex-1 text-left"
 							>
-								<div class="flex items-center gap-button">
+								<div class="gap-button flex items-center">
 									<svg
 										class="size-[0.75rem] flex-shrink-0 transition-transform {expandedRoleId ===
 										role.roleId
@@ -204,7 +204,7 @@
 											d="M9 5l7 7-7 7"
 										/>
 									</svg>
-									<p class="text-button truncate font-medium text-primary">{role.name}</p>
+									<p class="text-button text-primary truncate font-medium">{role.name}</p>
 								</div>
 								{#if role.purpose}
 									<p class="text-label text-secondary mt-fieldGroup">{role.purpose}</p>
@@ -214,7 +214,7 @@
 							<button
 								onclick={() => handleArchiveRole(role.roleId, role.name)}
 								disabled={circles.loading.archiveRole}
-								class="hover:bg-sidebar-hover ml-2 rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
+								class="hover:bg-sidebar-hover rounded-button inset-sm text-secondary hover:text-primary ml-2 disabled:opacity-50"
 								title="Archive role"
 							>
 								<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,10 +233,10 @@
 							<div class="border-base px-card py-nav-item border-t">
 								<!-- Assign User Form -->
 								<div class="mb-header">
-									<div class="flex gap-button">
+									<div class="gap-button flex">
 										<select
 											bind:value={assignUserId[role.roleId]}
-											class="border-base text-button flex-1 rounded-button border bg-surface px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
+											class="border-base text-button rounded-button bg-surface px-input-x py-input-y text-primary focus:border-accent-primary flex-1 border focus:outline-none"
 											disabled={circles.loading.assignUser ||
 												getAvailableUsersForRole(role.roleId).length === 0}
 										>
@@ -254,7 +254,7 @@
 										<button
 											onclick={() => handleAssignUser(role.roleId)}
 											disabled={!assignUserId[role.roleId] || circles.loading.assignUser}
-											class="text-on-solid px-card rounded-button bg-accent-primary py-input-y text-label font-medium hover:bg-accent-hover disabled:opacity-50"
+											class="text-on-solid px-card rounded-button bg-accent-primary py-input-y text-label hover:bg-accent-hover font-medium disabled:opacity-50"
 										>
 											Assign
 										</button>
@@ -267,7 +267,7 @@
 										<p class="text-label text-secondary">No users assigned</p>
 									{:else}
 										{#each roleFillers as filler (filler.userId)}
-											<div class="flex items-center justify-between text-label">
+											<div class="text-label flex items-center justify-between">
 												<span class="text-primary">{filler.name || filler.email}</span>
 												<button
 													onclick={() => handleRemoveUser(role.roleId, filler.userId)}

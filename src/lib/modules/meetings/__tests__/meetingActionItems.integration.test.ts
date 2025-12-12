@@ -19,6 +19,7 @@ import {
 	createTestSession,
 	createTestOrganization,
 	createTestOrganizationMember,
+	createTestMeetingTemplate,
 	cleanupTestData,
 	cleanupTestOrganization
 } from '$tests/convex/integration/setup';
@@ -46,12 +47,15 @@ describe('tasks: create', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda item
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -65,7 +69,7 @@ describe('tasks: create', () => {
 		});
 
 		// Create task assigned to user
-		const result = await t.mutation(api.tasks.create, {
+		const result = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -96,6 +100,8 @@ describe('tasks: create', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create circle and role
@@ -121,6 +127,7 @@ describe('tasks: create', () => {
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -134,7 +141,7 @@ describe('tasks: create', () => {
 		});
 
 		// Create task assigned to role
-		const result = await t.mutation(api.tasks.create, {
+		const result = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -162,11 +169,14 @@ describe('tasks: create', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -180,7 +190,7 @@ describe('tasks: create', () => {
 		});
 
 		await expect(
-			t.mutation(api.tasks.create, {
+			t.mutation(api.features.tasks.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				meetingId: meetingResult.meetingId,
@@ -197,11 +207,14 @@ describe('tasks: create', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -215,7 +228,7 @@ describe('tasks: create', () => {
 		});
 
 		await expect(
-			t.mutation(api.tasks.create, {
+			t.mutation(api.features.tasks.index.create, {
 				sessionId: 'invalid-session',
 				workspaceId: orgId,
 				meetingId: meetingResult.meetingId,
@@ -250,12 +263,15 @@ describe('tasks: queries', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Create meeting and agenda items
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -269,7 +285,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Create two tasks
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -279,7 +295,7 @@ describe('tasks: queries', () => {
 			description: 'Action 1'
 		});
 
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -290,7 +306,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Query by meeting
-		const items = await t.query(api.tasks.listByMeeting, {
+		const items = await t.query(api.features.tasks.index.listByMeeting, {
 			sessionId,
 			meetingId: meetingResult.meetingId
 		});
@@ -306,11 +322,14 @@ describe('tasks: queries', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -330,7 +349,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Create tasks for different agenda items
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -340,7 +359,7 @@ describe('tasks: queries', () => {
 			description: 'Agenda 1 Action'
 		});
 
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -351,7 +370,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Query by agenda item 1
-		const items = await t.query(api.tasks.listByAgendaItem, {
+		const items = await t.query(api.features.tasks.index.listByAgendaItem, {
 			sessionId,
 			agendaItemId: agenda1.itemId
 		});
@@ -368,11 +387,14 @@ describe('tasks: queries', () => {
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 		await createTestOrganizationMember(t, orgId, user2, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId }, { userId: user2 });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -386,7 +408,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Create tasks for different users
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -396,8 +418,9 @@ describe('tasks: queries', () => {
 			description: 'User 1 Action'
 		});
 
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
+			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
 			agendaItemId: agendaResult.itemId,
 			assigneeType: 'user',
@@ -406,9 +429,9 @@ describe('tasks: queries', () => {
 		});
 
 		// Query by assignee (user 1)
-		const items = await t.query(api.tasks.listByAssignee, {
+		const items = await t.query(api.features.tasks.index.listByAssignee, {
 			sessionId,
-			userId
+			assigneeUserId: userId
 		});
 
 		expect(items.length).toBe(1);
@@ -421,11 +444,14 @@ describe('tasks: queries', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -439,7 +465,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Create tasks with different statuses
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -450,7 +476,7 @@ describe('tasks: queries', () => {
 			status: 'todo'
 		});
 
-		await t.mutation(api.tasks.create, {
+		await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -462,9 +488,9 @@ describe('tasks: queries', () => {
 		});
 
 		// Query only 'todo' status
-		const todoItems = await t.query(api.tasks.listByAssignee, {
+		const todoItems = await t.query(api.features.tasks.index.listByAssignee, {
 			sessionId,
-			userId,
+			assigneeUserId: userId,
 			status: 'todo'
 		});
 
@@ -472,9 +498,9 @@ describe('tasks: queries', () => {
 		expect(todoItems[0]?.status).toBe('todo');
 
 		// Query only 'in-progress' status
-		const inProgressItems = await t.query(api.tasks.listByAssignee, {
+		const inProgressItems = await t.query(api.features.tasks.index.listByAssignee, {
 			sessionId,
-			userId,
+			assigneeUserId: userId,
 			status: 'in-progress'
 		});
 
@@ -488,11 +514,14 @@ describe('tasks: queries', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -505,7 +534,7 @@ describe('tasks: queries', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -516,7 +545,7 @@ describe('tasks: queries', () => {
 		});
 
 		// Get action item
-		const item = await t.query(api.tasks.get, {
+		const item = await t.query(api.features.tasks.index.get, {
 			sessionId,
 			actionItemId: createResult.actionItemId
 		});
@@ -548,11 +577,14 @@ describe('tasks: mutations', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -565,7 +597,7 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -576,7 +608,7 @@ describe('tasks: mutations', () => {
 		});
 
 		// Update task
-		await t.mutation(api.tasks.update, {
+		await t.mutation(api.features.tasks.index.update, {
 			sessionId,
 			actionItemId: createResult.actionItemId,
 			description: 'Updated description'
@@ -598,11 +630,14 @@ describe('tasks: mutations', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -615,7 +650,7 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -626,7 +661,7 @@ describe('tasks: mutations', () => {
 		});
 
 		// Update status
-		await t.mutation(api.tasks.updateStatus, {
+		await t.mutation(api.features.tasks.index.updateStatus, {
 			sessionId,
 			actionItemId: createResult.actionItemId,
 			status: 'in-progress'
@@ -647,11 +682,14 @@ describe('tasks: mutations', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -664,7 +702,7 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -675,7 +713,7 @@ describe('tasks: mutations', () => {
 		});
 
 		// Update assignee to user2
-		await t.mutation(api.tasks.updateAssignee, {
+		await t.mutation(api.features.tasks.index.updateAssignee, {
 			sessionId,
 			actionItemId: createResult.actionItemId,
 			assigneeType: 'user',
@@ -696,11 +734,14 @@ describe('tasks: mutations', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -713,7 +754,7 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -724,7 +765,7 @@ describe('tasks: mutations', () => {
 		});
 
 		// Remove action item
-		await t.mutation(api.tasks.remove, {
+		await t.mutation(api.features.tasks.index.remove, {
 			sessionId,
 			actionItemId: createResult.actionItemId
 		});
@@ -743,11 +784,14 @@ describe('tasks: mutations', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, orgId, userId);
+
 		cleanupQueue.push({ userId, orgId });
 
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId,
 			workspaceId: orgId,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -760,7 +804,7 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			meetingId: meetingResult.meetingId,
@@ -772,7 +816,7 @@ describe('tasks: mutations', () => {
 
 		// Try to update with invalid session
 		await expect(
-			t.mutation(api.tasks.update, {
+			t.mutation(api.features.tasks.index.update, {
 				sessionId: 'invalid-session',
 				actionItemId: createResult.actionItemId,
 				description: 'Updated'
@@ -788,6 +832,8 @@ describe('tasks: mutations', () => {
 		const org1 = await createTestOrganization(t, 'Org 1');
 		await createTestOrganizationMember(t, org1, user1, 'member');
 
+		const templateId = await createTestMeetingTemplate(t, org1, user1);
+
 		// User 2 in Org 2
 		const { sessionId: session2, userId: user2 } = await createTestSession(t);
 		const org2 = await createTestOrganization(t, 'Org 2');
@@ -799,6 +845,7 @@ describe('tasks: mutations', () => {
 		const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
 			sessionId: session1,
 			workspaceId: org1,
+			templateId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 3600000,
 			duration: 60,
@@ -811,8 +858,9 @@ describe('tasks: mutations', () => {
 			title: 'Test Agenda Item'
 		});
 
-		const createResult = await t.mutation(api.tasks.create, {
+		const createResult = await t.mutation(api.features.tasks.index.create, {
 			sessionId: session1,
+			workspaceId: org1,
 			meetingId: meetingResult.meetingId,
 			agendaItemId: agendaResult.itemId,
 			assigneeType: 'user',
@@ -822,7 +870,7 @@ describe('tasks: mutations', () => {
 
 		// Try to access from Org 2 user
 		await expect(
-			t.query(api.tasks.get, {
+			t.query(api.features.tasks.index.get, {
 				sessionId: session2,
 				actionItemId: createResult.actionItemId
 			})

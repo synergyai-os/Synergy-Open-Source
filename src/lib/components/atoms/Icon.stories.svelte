@@ -72,19 +72,19 @@
 		<div class="flex items-center gap-4">
 			<div class="flex flex-col items-center gap-2">
 				<Icon type={args.type} size="sm" />
-				<span class="text-xs text-secondary">Small</span>
+				<span class="text-secondary text-xs">Small</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type={args.type} size="md" />
-				<span class="text-xs text-secondary">Medium</span>
+				<span class="text-secondary text-xs">Medium</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type={args.type} size="lg" />
-				<span class="text-xs text-secondary">Large</span>
+				<span class="text-secondary text-xs">Large</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type={args.type} size="xl" />
-				<span class="text-xs text-secondary">Extra Large</span>
+				<span class="text-secondary text-xs">Extra Large</span>
 			</div>
 		</div>
 	{/snippet}
@@ -95,27 +95,27 @@
 		<div class="flex flex-wrap items-center gap-6">
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="add" size="md" />
-				<span class="text-xs text-secondary">Add</span>
+				<span class="text-secondary text-xs">Add</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="edit" size="md" />
-				<span class="text-xs text-secondary">Edit</span>
+				<span class="text-secondary text-xs">Edit</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="delete" size="md" />
-				<span class="text-xs text-secondary">Delete</span>
+				<span class="text-secondary text-xs">Delete</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="close" size="md" />
-				<span class="text-xs text-secondary">Close</span>
+				<span class="text-secondary text-xs">Close</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="download" size="md" />
-				<span class="text-xs text-secondary">Download</span>
+				<span class="text-secondary text-xs">Download</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="share" size="md" />
-				<span class="text-xs text-secondary">Share</span>
+				<span class="text-secondary text-xs">Share</span>
 			</div>
 		</div>
 	{/snippet}
@@ -126,7 +126,7 @@
 		<div class="flex flex-wrap items-center gap-6">
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="chevron-right" size="md" />
-				<span class="text-xs text-secondary">Chevron Right</span>
+				<span class="text-secondary text-xs">Chevron Right</span>
 			</div>
 		</div>
 	{/snippet}
@@ -137,43 +137,43 @@
 		<div class="flex flex-wrap items-center gap-6">
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="inbox" size="md" />
-				<span class="text-xs text-secondary">Inbox</span>
+				<span class="text-secondary text-xs">Inbox</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="flashcards" size="md" />
-				<span class="text-xs text-secondary">Flashcards</span>
+				<span class="text-secondary text-xs">Flashcards</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="study" size="md" />
-				<span class="text-xs text-secondary">Study</span>
+				<span class="text-secondary text-xs">Study</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="tags" size="md" />
-				<span class="text-xs text-secondary">Tags</span>
+				<span class="text-secondary text-xs">Tags</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="circles" size="md" />
-				<span class="text-xs text-secondary">Circles</span>
+				<span class="text-secondary text-xs">Circles</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="members" size="md" />
-				<span class="text-xs text-secondary">Members</span>
+				<span class="text-secondary text-xs">Members</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="dashboard" size="md" />
-				<span class="text-xs text-secondary">Dashboard</span>
+				<span class="text-secondary text-xs">Dashboard</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="calendar" size="md" />
-				<span class="text-xs text-secondary">Calendar</span>
+				<span class="text-secondary text-xs">Calendar</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="lightbulb" size="md" />
-				<span class="text-xs text-secondary">Lightbulb</span>
+				<span class="text-secondary text-xs">Lightbulb</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="payment" size="md" />
-				<span class="text-xs text-secondary">Payment</span>
+				<span class="text-secondary text-xs">Payment</span>
 			</div>
 		</div>
 	{/snippet}
@@ -184,71 +184,71 @@
 		<div class="grid grid-cols-4 gap-6">
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="add" size="md" />
-				<span class="text-xs text-secondary">add</span>
+				<span class="text-secondary text-xs">add</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="calendar" size="md" />
-				<span class="text-xs text-secondary">calendar</span>
+				<span class="text-secondary text-xs">calendar</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="chevron-right" size="md" />
-				<span class="text-xs text-secondary">chevron-right</span>
+				<span class="text-secondary text-xs">chevron-right</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="circles" size="md" />
-				<span class="text-xs text-secondary">circles</span>
+				<span class="text-secondary text-xs">circles</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="close" size="md" />
-				<span class="text-xs text-secondary">close</span>
+				<span class="text-secondary text-xs">close</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="dashboard" size="md" />
-				<span class="text-xs text-secondary">dashboard</span>
+				<span class="text-secondary text-xs">dashboard</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="delete" size="md" />
-				<span class="text-xs text-secondary">delete</span>
+				<span class="text-secondary text-xs">delete</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="download" size="md" />
-				<span class="text-xs text-secondary">download</span>
+				<span class="text-secondary text-xs">download</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="edit" size="md" />
-				<span class="text-xs text-secondary">edit</span>
+				<span class="text-secondary text-xs">edit</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="flashcards" size="md" />
-				<span class="text-xs text-secondary">flashcards</span>
+				<span class="text-secondary text-xs">flashcards</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="inbox" size="md" />
-				<span class="text-xs text-secondary">inbox</span>
+				<span class="text-secondary text-xs">inbox</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="lightbulb" size="md" />
-				<span class="text-xs text-secondary">lightbulb</span>
+				<span class="text-secondary text-xs">lightbulb</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="members" size="md" />
-				<span class="text-xs text-secondary">members</span>
+				<span class="text-secondary text-xs">members</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="payment" size="md" />
-				<span class="text-xs text-secondary">payment</span>
+				<span class="text-secondary text-xs">payment</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="share" size="md" />
-				<span class="text-xs text-secondary">share</span>
+				<span class="text-secondary text-xs">share</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="study" size="md" />
-				<span class="text-xs text-secondary">study</span>
+				<span class="text-secondary text-xs">study</span>
 			</div>
 			<div class="flex flex-col items-center gap-2">
 				<Icon type="tags" size="md" />
-				<span class="text-xs text-secondary">tags</span>
+				<span class="text-secondary text-xs">tags</span>
 			</div>
 		</div>
 	{/snippet}

@@ -71,7 +71,7 @@
 			return;
 		}
 		try {
-			await convexClient.mutation(api.circles.create, {
+			await convexClient.mutation(api.core.circles.index.create, {
 				sessionId,
 				workspaceId: orgId as Id<'workspaces'>,
 				name: `Test Circle ${Math.floor(Math.random() * 1000)}`
@@ -101,7 +101,7 @@
 			return;
 		}
 		try {
-			await convexClient.mutation(api.workspaces.createWorkspaceInvite, {
+			await convexClient.mutation(api.core.workspaces.index.createWorkspaceInvite, {
 				sessionId,
 				workspaceId: orgId as Id<'workspaces'>,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
@@ -131,7 +131,7 @@
 			return;
 		}
 		try {
-			await convexClient.mutation(api.users.updateUserProfile, {
+			await convexClient.mutation(api.core.users.index.updateUserProfile, {
 				sessionId,
 				targetUserId: userId as Id<'users'>,
 				firstName: `Test${Math.floor(Math.random() * 100)}`,
@@ -157,29 +157,29 @@
 	<!-- Page Header with Workspace Context -->
 	<header class="mb-section-tight">
 		<div class="mb-2 flex items-baseline gap-2">
-			<h1 class="text-display-lg font-semibold text-primary">Permission System Test</h1>
+			<h1 class="text-display-lg text-primary font-semibold">Permission System Test</h1>
 			{#if activeWorkspace}
-				<span class="text-sm text-secondary">
+				<span class="text-secondary text-sm">
 					for <strong class="text-primary">{activeWorkspace.name}</strong>
 				</span>
 			{:else}
 				<span class="text-danger text-sm"> ⚠️ No workspace selected </span>
 			{/if}
 		</div>
-		<p class="max-w-prose text-body text-secondary">
+		<p class="text-body text-secondary max-w-prose">
 			Test and verify the RBAC permission system with your current user account
 		</p>
 	</header>
 
 	<!-- Status Overview Card (Collapsible) -->
 	<div
-		class="mb-content-section border-base px-card py-card rounded-card border bg-surface shadow-card"
+		class="mb-content-section border-base px-card py-card rounded-card bg-surface shadow-card border"
 	>
 		<div class="mb-4 flex items-center justify-between">
-			<h2 class="text-display-sm font-semibold text-primary">Current Status</h2>
+			<h2 class="text-display-sm text-primary font-semibold">Current Status</h2>
 			<button
 				onclick={() => (showPermissionDetails = !showPermissionDetails)}
-				class="text-sm text-link hover:underline"
+				class="text-link text-sm hover:underline"
 			>
 				{showPermissionDetails ? 'Hide' : 'Show'} Details
 			</button>
@@ -194,7 +194,7 @@
 				<dd class="text-body text-primary">
 					{activeWorkspace()?.name ?? 'None selected'}
 					{#if activeWorkspaceId()}
-						<span class="font-code text-sm text-secondary">({activeWorkspaceId()})</span>
+						<span class="font-code text-secondary text-sm">({activeWorkspaceId()})</span>
 					{/if}
 				</dd>
 			</div>
@@ -212,11 +212,11 @@
 			</div>
 		</dl>
 		{#if showPermissionDetails && permissions.permissions.length > 0}
-			<div class="p-card mt-4 rounded-card border border-subtle bg-surface">
-				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
+			<div class="p-card rounded-card border-subtle bg-surface mt-4 border">
+				<h3 class="text-label text-secondary mb-2 font-semibold">Your Permissions:</h3>
 				<ul class="space-y-1">
 					{#each permissions.permissions as permission (permission)}
-						<li class="font-code text-sm text-primary">✓ {permission}</li>
+						<li class="font-code text-primary text-sm">✓ {permission}</li>
 					{/each}
 				</ul>
 			</div>
@@ -224,8 +224,8 @@
 	</div>
 
 	<!-- Quick Test Actions -->
-	<div class="p-card mb-section-normal border-base rounded-card border shadow-card">
-		<h2 class="text-display-sm mb-4 font-semibold text-primary">Quick Test Actions</h2>
+	<div class="p-card mb-section-normal border-base rounded-card shadow-card border">
+		<h2 class="text-display-sm text-primary mb-4 font-semibold">Quick Test Actions</h2>
 		<div class="flex flex-wrap gap-3">
 			<PermissionButton
 				requires="teams.create"
@@ -255,17 +255,17 @@
 				Delete Circle (No action)
 			</PermissionButton>
 		</div>
-		<p class="mt-4 text-sm text-secondary">
+		<p class="text-secondary mt-4 text-sm">
 			💡 <strong>Tip:</strong> Buttons are automatically disabled if you lack the required permission.
 		</p>
 	</div>
 
 	<!-- Permission Gates (Conditional Content) -->
-	<div class="p-card mb-section-normal border-base rounded-card border shadow-card">
-		<h2 class="text-display-sm mb-4 font-semibold text-primary">PermissionGate Component Test</h2>
+	<div class="p-card mb-section-normal border-base rounded-card shadow-card border">
+		<h2 class="text-display-sm text-primary mb-4 font-semibold">PermissionGate Component Test</h2>
 		<div class="space-y-4">
 			<div>
-				<h3 class="mb-2 text-label font-semibold text-secondary">Can create teams?</h3>
+				<h3 class="text-label text-secondary mb-2 font-semibold">Can create teams?</h3>
 				<PermissionGate can="teams.create" {permissions}>
 					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to create teams
@@ -279,7 +279,7 @@
 			</div>
 
 			<div>
-				<h3 class="mb-2 text-label font-semibold text-secondary">Can delete teams?</h3>
+				<h3 class="text-label text-secondary mb-2 font-semibold">Can delete teams?</h3>
 				<PermissionGate can="teams.delete" {permissions}>
 					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to delete teams
@@ -293,7 +293,7 @@
 			</div>
 
 			<div>
-				<h3 class="mb-2 text-label font-semibold text-secondary">Can invite users?</h3>
+				<h3 class="text-label text-secondary mb-2 font-semibold">Can invite users?</h3>
 				<PermissionGate can="users.invite" {permissions}>
 					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to invite users
@@ -310,18 +310,18 @@
 
 	<!-- Setup Instructions (Collapsible) -->
 	<div
-		class="space-y-content-section border-base px-card py-card rounded-card border bg-surface shadow-card"
+		class="space-y-content-section border-base px-card py-card rounded-card bg-surface shadow-card border"
 	>
 		<div class="flex items-center justify-between">
-			<h2 class="text-display-sm font-semibold text-primary">Setup Instructions</h2>
-			<button onclick={() => (showSetup = !showSetup)} class="text-sm text-link hover:underline">
+			<h2 class="text-display-sm text-primary font-semibold">Setup Instructions</h2>
+			<button onclick={() => (showSetup = !showSetup)} class="text-link text-sm hover:underline">
 				{showSetup ? 'Hide' : 'Show'} Instructions
 			</button>
 		</div>
 		{#if showSetup}
 			<div class="prose prose-sm max-w-none">
-				<h3 class="text-label font-semibold text-secondary">To test permissions:</h3>
-				<ol class="list-inside list-decimal space-y-2 text-sm text-secondary">
+				<h3 class="text-label text-secondary font-semibold">To test permissions:</h3>
+				<ol class="text-secondary list-inside list-decimal space-y-2 text-sm">
 					<li>
 						Ensure RBAC data is seeded: <code class="rounded-card bg-surface px-1 py-0.5 text-xs"
 							>npx convex run rbac/seedRBAC:seedAllRBAC</code
@@ -336,7 +336,7 @@
 					<li>Refresh this page to load your permissions</li>
 					<li>Try clicking the buttons above to test different permissions</li>
 				</ol>
-				<p class="mt-4 text-sm text-secondary">
+				<p class="text-secondary mt-4 text-sm">
 					<strong>Note:</strong> Replace
 					<code class="rounded-card bg-surface px-1 py-0.5 text-xs">YOUR_USER_ID</code> with your actual
 					user ID shown in "Current Status" above.

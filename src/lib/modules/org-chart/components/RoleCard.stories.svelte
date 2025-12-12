@@ -184,7 +184,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="flex flex-col gap-card">
+		<div class="gap-card flex flex-col">
 			<p class="mb-card text-label text-secondary">
 				The current user's card (Randy Hereman) is highlighted with the brand teal background.
 			</p>

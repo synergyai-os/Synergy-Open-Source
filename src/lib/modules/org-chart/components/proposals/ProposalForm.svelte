@@ -113,10 +113,10 @@
 <form onsubmit={handleSubmit} class="space-y-6 {className}">
 	<!-- Header -->
 	<div class="border-border border-b pb-4">
-		<h2 class="text-lg font-semibold text-primary">
+		<h2 class="text-primary text-lg font-semibold">
 			{mode === 'create' ? 'Create Proposal' : 'Edit Proposal'}
 		</h2>
-		<p class="mt-1 text-sm text-secondary">
+		<p class="text-secondary mt-1 text-sm">
 			Propose changes to <span class="font-medium">{entityName}</span>
 			({entityType})
 		</p>
@@ -125,7 +125,7 @@
 	<!-- Error message -->
 	{#if error}
 		<div class="bg-error/10 border-error/20 px-card-compact py-card-compact rounded-card border">
-			<p class="text-sm text-error">{error}</p>
+			<p class="text-error text-sm">{error}</p>
 		</div>
 	{/if}
 
@@ -150,7 +150,7 @@
 	{#if mode === 'edit' || evolutions.length > 0}
 		<div class="space-y-3">
 			<div class="flex items-center justify-between">
-				<h3 class="text-sm font-medium text-primary">Proposed Changes</h3>
+				<h3 class="text-primary text-sm font-medium">Proposed Changes</h3>
 				{#if onAddEvolution}
 					<Button variant="ghost" size="sm" onclick={() => (showAddEvolution = !showAddEvolution)}>
 						<Icon name="plus" size="xs" />
@@ -161,7 +161,7 @@
 
 			<!-- Add evolution form -->
 			{#if showAddEvolution && onAddEvolution}
-				<div class="bg-surface-alt border-border p-card-compact space-y-3 rounded-card border">
+				<div class="bg-surface-alt border-border p-card-compact rounded-card space-y-3 border">
 					<FormInput
 						label="Field Name"
 						placeholder="e.g., Purpose, Name, Domain"

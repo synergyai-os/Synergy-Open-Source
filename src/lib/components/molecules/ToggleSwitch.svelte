@@ -52,7 +52,7 @@
 	);
 </script>
 
-<label class="inline-flex cursor-pointer items-center gap-fieldGroup">
+<label class="gap-fieldGroup inline-flex cursor-pointer items-center">
 	{#if label}
 		<Text variant="body" size="sm" color="secondary" as="span" class="font-medium">
 			{label}

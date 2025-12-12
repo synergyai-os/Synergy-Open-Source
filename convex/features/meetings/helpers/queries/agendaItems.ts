@@ -2,8 +2,11 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
 import { ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type GetAgendaItemsArgs = { sessionId: string; meetingId: Id<'meetings'> };
 
@@ -13,9 +16,13 @@ export const getAgendaItemsArgs = {
 };
 
 export async function getAgendaItemsQuery(ctx: QueryCtx, args: GetAgendaItemsArgs) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -27,10 +34,10 @@ export async function getAgendaItemsQuery(ctx: QueryCtx, args: GetAgendaItemsArg
 
 	const itemsWithCreators = await Promise.all(
 		items.map(async (item) => {
-			const creator = await ctx.db.get(item.createdBy);
+			const creator = item.createdByPersonId ? await ctx.db.get(item.createdByPersonId) : null;
 			return {
 				...item,
-				creatorName: creator?.name ?? creator?.email ?? 'Unknown person'
+				creatorName: creator?.displayName ?? creator?.email ?? 'Unknown person'
 			};
 		})
 	);

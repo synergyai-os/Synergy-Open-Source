@@ -10,12 +10,12 @@
 </script>
 
 <header
-	class="h-system-header border-base px-inbox-container py-system-header sticky top-0 z-50 flex items-center justify-between border-b bg-surface"
+	class="h-system-header border-base px-inbox-container py-system-header bg-surface sticky top-0 z-50 flex items-center justify-between border-b"
 >
 	<!-- Logo -->
 	<a
 		href={resolve('/')}
-		class="text-h3 font-bold text-primary transition-colors hover:text-accent-primary"
+		class="text-h3 text-primary hover:text-accent-primary font-bold transition-colors"
 	>
 		SYOS
 	</a>

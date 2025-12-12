@@ -65,7 +65,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(template.name).toBe('Product Sync Template');
 		expect(template.description).toBe('Weekly product team sync');
 		expect(template.workspaceId).toBe(orgId);
-		expect(template.createdBy).toBe(userId);
+		expect(template.createdByPersonId).toBeDefined();
 	});
 
 	it('should list templates for an workspace', async () => {

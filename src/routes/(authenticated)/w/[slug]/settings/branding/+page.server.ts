@@ -22,7 +22,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const sessionId = locals.auth.sessionId;
 
 	// Check user is org admin/owner (listMembers returns all members, filter by current user)
-	const membersResult = (await client.query(api.workspaces.listMembers, {
+	const membersResult = (await client.query(api.core.workspaces.index.listMembers, {
 		sessionId,
 		workspaceId: workspaceId as Id<'workspaces'>
 	})) as Array<{ userId: string; email: string; name: string; role: 'owner' | 'admin' | 'member' }>;
@@ -41,7 +41,8 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	}
 
 	// Load current branding
-	const brandingResult = (await client.query(api.workspaces.findBranding, {
+	const brandingResult = (await client.query(api.core.workspaces.index.findBranding, {
+		sessionId,
 		workspaceId: workspaceId as Id<'workspaces'>
 	})) as { primaryColor: string; secondaryColor: string; logo?: string } | null;
 

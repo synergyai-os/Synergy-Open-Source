@@ -1,13 +1,17 @@
-import { captureCreate, captureUpdate } from '../../orgVersionHistory';
-import { requireQuickEditPermission } from '../../orgChartPermissions';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
+import { recordCreateHistory, recordUpdateHistory } from '../history';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { ensureUniqueCircleSlug, ensureWorkspaceMembership } from './circleAccess';
+import {
+	ensureUniqueCircleSlug,
+	ensureWorkspaceMembership,
+	requireWorkspacePersonFromSession
+} from './circleAccess';
 import { createCoreRolesForCircle } from './circleCoreRoles';
 import { slugifyName } from './slug';
 import { validateCircleName, validateCircleNameUpdate } from './validation';
+import type { CircleType } from './schema';
+import { requireQuickEditPermissionForPerson } from '../../rbac/orgChart';
 
 export async function createCircleInternal(
 	ctx: MutationCtx,
@@ -17,13 +21,17 @@ export async function createCircleInternal(
 		name: string;
 		purpose?: string;
 		parentCircleId?: Id<'circles'>;
-		circleType?: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+		circleType?: CircleType;
 		decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId
+	);
 
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, actorPersonId);
 
 	const nameValidationError = validateCircleName(args.name);
 	if (nameValidationError) {
@@ -76,15 +84,15 @@ export async function createCircleInternal(
 		status: 'active',
 		createdAt: now,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	const newCircle = await ctx.db.get(circleId);
 	if (newCircle) {
-		await captureCreate(ctx, 'circle', newCircle);
+		await recordCreateHistory(ctx, 'circle', newCircle);
 	}
 
-	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId, circleType);
+	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, actorPersonId, circleType);
 
 	return {
 		circleId,
@@ -102,18 +110,22 @@ export async function updateCircleInternal(
 		parentCircleId?: Id<'circles'>;
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) {
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actorPersonId);
 
 	const updates: Partial<Doc<'circles'>> = {
 		updatedAt: Date.now(),
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	};
 
 	if (args.name !== undefined) {
@@ -156,7 +168,7 @@ export async function updateCircleInternal(
 
 	const updatedCircle = await ctx.db.get(args.circleId);
 	if (updatedCircle) {
-		await captureUpdate(ctx, 'circle', circle, updatedCircle);
+		await recordUpdateHistory(ctx, 'circle', circle, updatedCircle);
 	}
 
 	return { success: true };
@@ -170,25 +182,29 @@ export async function updateInlineCircle(
 		updates: {
 			name?: string;
 			purpose?: string;
-			circleType?: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+			circleType?: CircleType;
 			decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
 		};
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) {
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	await requireQuickEditPermission(ctx, userId, circle);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+
+	await requireQuickEditPermissionForPerson(ctx, actorPersonId, circle);
 
 	const beforeDoc = { ...circle };
 
 	const updateData: Partial<Doc<'circles'>> = {
 		updatedAt: Date.now(),
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	};
 
 	if (args.updates.name !== undefined) {
@@ -220,7 +236,7 @@ export async function updateInlineCircle(
 
 	const afterDoc = await ctx.db.get(args.circleId);
 	if (afterDoc) {
-		await captureUpdate(ctx, 'circle', beforeDoc, afterDoc);
+		await recordUpdateHistory(ctx, 'circle', beforeDoc, afterDoc);
 	}
 
 	return { success: true };

@@ -2,8 +2,11 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 import {
 	fetchCircleMembersByMeeting,
 	getInvitationsByMeetingMap,
@@ -18,14 +21,18 @@ export const getInvitedUsersArgs = {
 };
 
 export async function getInvitedUsersQuery(ctx: QueryCtx, args: GetInvitedUsersArgs) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
 
 	if (meeting.deletedAt) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Meeting not found');
 	}
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});

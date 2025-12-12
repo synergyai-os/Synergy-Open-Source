@@ -27,11 +27,17 @@ export interface ConvexClient {
 
 // Inbox API functions interface
 export interface InboxApi {
-	findInboxItemWithDetails: FunctionReference<'query', 'public', { inboxItemId: string }>;
+	findInboxItemWithDetails: FunctionReference<
+		'query',
+		'public',
+		{ sessionId: string; inboxItemId: string }
+	>;
 	fetchReadwiseHighlights: FunctionReference<
 		'action',
 		'public',
 		{
+			sessionId: string;
+			workspaceId?: string;
 			dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
 			customStartDate?: string;
 			customEndDate?: string;
@@ -53,7 +59,10 @@ export type SyncProgress = {
 type BaseInboxItem = {
 	_id: string;
 	type: 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
-	userId: string;
+	personId: string;
+	workspaceId?: string | null;
+	circleId?: string | null;
+	ownershipType?: 'user' | 'workspace' | 'circle' | 'purchased';
 	processed: boolean;
 	processedAt?: number;
 	createdAt: number;
@@ -113,7 +122,8 @@ export type ReadwiseHighlightWithDetails = BaseInboxItem & {
 	}>;
 	tags: Array<{
 		_id: string;
-		userId: string;
+		personId: string;
+		workspaceId?: string;
 		name: string;
 		displayName: string;
 		color?: string;

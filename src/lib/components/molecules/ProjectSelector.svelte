@@ -24,7 +24,7 @@
 
 <button
 	type="button"
-	class="gap-2-wide text-button hover:bg-hover-solid inline-flex items-center rounded-button bg-transparent px-2 py-1 font-normal text-secondary transition-colors"
+	class="gap-2-wide text-button hover:bg-hover-solid rounded-button text-secondary inline-flex items-center bg-transparent px-2 py-1 font-normal transition-colors"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(project)}
 >

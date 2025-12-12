@@ -27,7 +27,7 @@
 				: 'bg-toggle-off'}"
 		>
 			<Switch.Thumb
-				class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+				class="bg-elevated pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 			/>
 		</Switch.Root>
 	{/snippet}
@@ -42,7 +42,7 @@
 				: 'bg-toggle-off'}"
 		>
 			<Switch.Thumb
-				class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+				class="bg-elevated pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 			/>
 		</Switch.Root>
 	{/snippet}
@@ -58,7 +58,7 @@
 					: 'bg-toggle-off'}"
 			>
 				<Switch.Thumb
-					class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+					class="bg-elevated pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 				/>
 			</Switch.Root>
 			<Label.Root>Enable notifications</Label.Root>
@@ -76,7 +76,7 @@
 					: 'bg-toggle-off'}"
 			>
 				<Switch.Thumb
-					class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+					class="bg-elevated pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 				/>
 			</Switch.Root>
 			<Label.Root>Disabled switch</Label.Root>
@@ -94,7 +94,7 @@
 					: 'bg-toggle-off'}"
 			>
 				<Switch.Thumb
-					class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+					class="bg-elevated pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 				/>
 			</Switch.Root>
 			<Label.Root>Disabled checked</Label.Root>

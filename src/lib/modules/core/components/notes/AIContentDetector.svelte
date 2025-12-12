@@ -74,7 +74,7 @@
 {#if visible}
 	<div
 		data-ai-detector-menu
-		class="border-base fixed z-50 rounded-button border bg-surface px-2 py-1 shadow-card"
+		class="border-base rounded-button bg-surface shadow-card fixed z-50 border px-2 py-1"
 		transition:fade={{ duration: 150 }}
 		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
 	>
@@ -84,7 +84,7 @@
 			<button
 				type="button"
 				onclick={onConfirm}
-				class="text-small flex-1 rounded-button bg-interactive-primary px-button-x py-button-y font-medium text-inverse transition-colors hover:bg-interactive-primaryHover"
+				class="text-small rounded-button bg-interactive-primary px-button-x py-button-y text-inverse hover:bg-interactive-primaryHover flex-1 font-medium transition-colors"
 			>
 				AI Generated
 			</button>
@@ -92,7 +92,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="text-small flex-1 rounded-button bg-hover px-button-x py-button-y text-primary transition-colors hover:bg-active"
+				class="text-small rounded-button bg-hover px-button-x py-button-y text-primary hover:bg-active flex-1 transition-colors"
 			>
 				Close
 			</button>
@@ -100,7 +100,7 @@
 
 		<!-- Arrow pointer -->
 		<div
-			class="icon-xs border-base absolute rotate-45 transform border-t border-l bg-surface"
+			class="icon-xs border-base bg-surface absolute rotate-45 transform border-t border-l"
 			style="top: -{arrowLift()}px; left: {arrowOffset()}px;"
 		></div>
 	</div>

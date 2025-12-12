@@ -146,14 +146,14 @@
   - Radial gradient uses brand hue (195) at 8% opacity for subtle depth
   - This is a page-level effect, not a design token (intentional)
 -->
-<div class="relative min-h-screen overflow-hidden bg-subtle">
+<div class="bg-subtle relative min-h-screen overflow-hidden">
 	<!-- Radial glow: brand hue at 8% opacity - visible but subtle -->
 	<div
 		class="pointer-events-none absolute inset-0 bg-radial-[at_50%_35%] from-[oklch(55%_0.12_195_/_0.08)] via-[oklch(55%_0.06_195_/_0.03)] to-transparent"
 		aria-hidden="true"
 	></div>
 	<div
-		class="relative mx-auto flex min-h-screen max-w-md items-center justify-center px-page py-page"
+		class="px-page py-page relative mx-auto flex min-h-screen max-w-md items-center justify-center"
 	>
 		<LoginBox
 			bind:email

@@ -17,8 +17,8 @@
 
 	type Props = {
 		proposal: ProposalWithDetails | null;
-		/** Current user ID (to show different actions based on ownership) */
-		currentUserId?: string;
+		/** Current person ID (to show different actions based on ownership) */
+		currentPersonId?: string;
 		/** Whether proposal is loading */
 		isLoading?: boolean;
 		/** Error state */
@@ -44,7 +44,7 @@
 
 	let {
 		proposal,
-		currentUserId,
+		currentPersonId,
 		isLoading = false,
 		error = null,
 		isMutating = false,
@@ -58,8 +58,8 @@
 		class: className = ''
 	}: Props = $props();
 
-	// Check if current user is the proposal creator
-	const isCreator = $derived(proposal ? currentUserId === proposal.createdBy : false);
+	// Check if current person is the proposal creator
+	const isCreator = $derived(proposal ? currentPersonId === proposal.createdByPersonId : false);
 
 	// Check what actions are available based on status
 	const canEdit = $derived(proposal ? isCreator && proposal.status === 'draft' : false);
@@ -144,7 +144,7 @@
 				<div class="flex h-full items-center justify-center">
 					<div class="text-center">
 						<svg
-							class="mx-auto size-icon-xl animate-spin text-tertiary"
+							class="size-icon-xl text-tertiary mx-auto animate-spin"
 							fill="none"
 							viewBox="0 0 24 24"
 						>
@@ -169,7 +169,7 @@
 				<!-- Error State -->
 				<div class="flex h-full items-center justify-center">
 					<div class="text-center">
-						<p class="text-body font-medium text-error">Failed to load proposal</p>
+						<p class="text-body text-error font-medium">Failed to load proposal</p>
 						<p class="text-body text-secondary mb-header">
 							{error instanceof Error ? error.message : String(error)}
 						</p>
@@ -179,9 +179,9 @@
 			{:else if proposal}
 				<div class="flex h-full flex-col {className}">
 					<!-- Header -->
-					<header class="flex items-start justify-between border-b border-default card-padding">
+					<header class="border-default card-padding flex items-start justify-between border-b">
 						<div class="min-w-0 flex-1">
-							<div class="flex items-center gap-fieldGroup mb-header">
+							<div class="gap-fieldGroup mb-header flex items-center">
 								{#if panelContext.isMobile && panelContext.canGoBack && panelContext.onBack}
 									<Button
 										variant="ghost"
@@ -211,23 +211,23 @@
 					</header>
 
 					<!-- Content -->
-					<div class="flex flex-1 flex-col gap-section overflow-y-auto card-padding">
+					<div class="gap-section card-padding flex flex-1 flex-col overflow-y-auto">
 						<!-- Description -->
 						<section>
-							<h3 class="text-body font-medium text-secondary mb-header">Description</h3>
-							<p class="text-body whitespace-pre-wrap text-primary">
+							<h3 class="text-body text-secondary mb-header font-medium">Description</h3>
+							<p class="text-body text-primary whitespace-pre-wrap">
 								{proposal.description}
 							</p>
 						</section>
 
 						<!-- Timeline -->
 						<section>
-							<h3 class="text-body font-medium text-secondary mb-header">Timeline</h3>
-							<div class="flex flex-col gap-fieldGroup">
+							<h3 class="text-body text-secondary mb-header font-medium">Timeline</h3>
+							<div class="gap-fieldGroup flex flex-col">
 								{#each statusTimeline as event (event.date)}
-									<div class="flex items-center gap-content text-body">
+									<div class="gap-content text-body flex items-center">
 										<div class="bg-primary size-icon-sm rounded-full"></div>
-										<span class="font-medium text-primary">{event.label}</span>
+										<span class="text-primary font-medium">{event.label}</span>
 										<span class="text-tertiary">{formatDate(event.date)}</span>
 									</div>
 								{/each}
@@ -237,15 +237,15 @@
 						<!-- Creator info -->
 						{#if proposal.creator}
 							<section>
-								<h3 class="text-body font-medium text-secondary mb-header">Created by</h3>
-								<div class="flex items-center gap-fieldGroup">
+								<h3 class="text-body text-secondary mb-header font-medium">Created by</h3>
+								<div class="gap-fieldGroup flex items-center">
 									<div
-										class="bg-surface-alt flex size-icon-lg items-center justify-center rounded-full text-body font-medium text-primary"
+										class="bg-surface-alt size-icon-lg text-body text-primary flex items-center justify-center rounded-full font-medium"
 									>
 										{proposal.creator.name?.charAt(0) ?? proposal.creator.email.charAt(0)}
 									</div>
 									<div>
-										<p class="text-body font-medium text-primary">
+										<p class="text-body text-primary font-medium">
 											{proposal.creator.name ?? 'Unknown'}
 										</p>
 										<p class="text-small text-tertiary">{proposal.creator.email}</p>
@@ -256,7 +256,7 @@
 
 						<!-- Proposed Changes -->
 						<section>
-							<h3 class="text-body font-medium text-secondary mb-header">
+							<h3 class="text-body text-secondary mb-header font-medium">
 								Proposed Changes ({proposal.evolutions.length})
 							</h3>
 							<ProposalEvolutionList evolutions={proposal.evolutions} editable={false} />
@@ -265,12 +265,12 @@
 						<!-- Objections (if any) -->
 						{#if proposal.objections.length > 0}
 							<section>
-								<h3 class="text-body font-medium text-secondary mb-header">
+								<h3 class="text-body text-secondary mb-header font-medium">
 									Objections ({proposal.objections.length})
 								</h3>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each proposal.objections as objection (objection._id || objection.objectionText)}
-										<div class="bg-error/10 border-error/20 rounded-card border inset-sm">
+										<div class="bg-error/10 border-error/20 rounded-card inset-sm border">
 											<p class="text-body text-error">{objection.objectionText}</p>
 										</div>
 									{/each}
@@ -281,10 +281,10 @@
 
 					<!-- Actions Footer -->
 					{#if canEdit || canSubmit || canWithdraw}
-						<div class="border-t border-default card-padding">
-							<div class="flex items-center justify-between gap-content">
+						<div class="border-default card-padding border-t">
+							<div class="gap-content flex items-center justify-between">
 								<!-- Left: Secondary actions -->
-								<div class="flex gap-fieldGroup">
+								<div class="gap-fieldGroup flex">
 									{#if canWithdraw}
 										<Button
 											variant="ghost"
@@ -300,7 +300,7 @@
 								</div>
 
 								<!-- Right: Primary actions -->
-								<div class="flex gap-fieldGroup">
+								<div class="gap-fieldGroup flex">
 									{#if canEdit}
 										<Button variant="secondary" size="sm" onclick={onEdit} disabled={isMutating}>
 											<Icon type="edit" size="sm" />

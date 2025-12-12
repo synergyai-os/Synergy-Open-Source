@@ -16,19 +16,25 @@ import { v } from 'convex/values';
 import type { Id } from '../_generated/dataModel';
 import type { QueryCtx, MutationCtx } from '../_generated/server';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 
 /**
  * Assign admin role to a user
  */
 export const setupAdmin = mutation({
 	args: {
-		userId: v.id('users'),
+		sessionId: v.optional(v.string()),
+		assigneeUserId: v.id('users'),
 		workspaceId: v.optional(v.id('workspaces')) // Optional: scope to specific org
 	},
 	handler: async (ctx, args) => {
 		const now = Date.now();
 
-		console.log(`🔧 Setting up admin for user: ${args.userId}`);
+		if (args.sessionId) {
+			await validateSessionAndGetUserId(ctx, args.sessionId);
+		}
+
+		console.log(`🔧 Setting up admin for user: ${args.assigneeUserId}`);
 
 		// 1. Find admin role
 		const adminRole = await ctx.db
@@ -46,7 +52,7 @@ export const setupAdmin = mutation({
 		// 2. Check if user already has admin role
 		const existing = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.assigneeUserId))
 			.filter((q) => q.eq(q.field('roleId'), adminRole._id))
 			.first();
 
@@ -61,17 +67,17 @@ export const setupAdmin = mutation({
 
 		// 3. Assign admin role
 		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.userId,
+			userId: args.assigneeUserId,
 			roleId: adminRole._id,
 			assignedAt: now,
-			assignedBy: args.userId, // Self-assigned
+			assignedBy: args.assigneeUserId, // Self-assigned
 			workspaceId: args.workspaceId ?? undefined
 		});
 
-		console.log(`✅ Admin role assigned to user ${args.userId}`);
+		console.log(`✅ Admin role assigned to user ${args.assigneeUserId}`);
 
 		// 4. Verify permissions
-		const permissions = await getUserPermissions(ctx, args.userId);
+		const permissions = await getUserPermissions(ctx, args.assigneeUserId);
 
 		return {
 			success: true,
@@ -88,13 +94,18 @@ export const setupAdmin = mutation({
  */
 export const verifyAdminSetup = query({
 	args: {
-		userId: v.id('users')
+		sessionId: v.optional(v.string()),
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
+		if (args.sessionId) {
+			await validateSessionAndGetUserId(ctx, args.sessionId);
+		}
+
 		// Get user's roles
 		const userRoles = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
 		const roles = await Promise.all(
@@ -112,10 +123,10 @@ export const verifyAdminSetup = query({
 		);
 
 		// Get user's permissions
-		const permissions = await getUserPermissions(ctx, args.userId);
+		const permissions = await getUserPermissions(ctx, args.targetUserId);
 
 		return {
-			userId: args.userId,
+			userId: args.targetUserId,
 			roles: roles.filter((r) => r !== null),
 			permissions: permissions.map((p) => ({
 				slug: p.permissionSlug,

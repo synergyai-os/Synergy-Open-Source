@@ -4,7 +4,8 @@
 	import { ToggleSwitch } from '$lib/components/molecules';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
-	import { FeatureFlags, getFlagDescription } from '$lib/infrastructure/feature-flags';
+	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
+	import { getFlagDescription } from '$lib/infrastructure/feature-flags/utils';
 	import { api, type Id } from '$lib/convex';
 	import { useConvexClient } from 'convex-svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -45,6 +46,13 @@
 	let userNotFound = $state(false);
 	// eslint-disable-next-line svelte/no-unnecessary-state-wrap
 	let expandedFlags = $state(new SvelteSet<string>());
+
+	const userSearchEnabledFlags = $derived(
+		userSearchResult ? userSearchResult.flags.filter((f) => f.result) : []
+	);
+	const userSearchDisabledFlags = $derived(
+		userSearchResult ? userSearchResult.flags.filter((f) => !f.result) : []
+	);
 
 	// Guidance card state
 	let guidanceDismissed = $state(false);
@@ -119,7 +127,7 @@
 		if (browser && activeTab === 'impact' && !impactStats && !impactLoading && sessionId) {
 			impactLoading = true;
 			convexClient
-				?.query(api.featureFlags.getImpactStats, { sessionId })
+				?.query(api.infrastructure.featureFlags.getImpactStats, { sessionId })
 				.then((stats) => {
 					impactStats = stats as ImpactStats;
 				})
@@ -152,7 +160,7 @@
 		userSearchResult = null;
 
 		try {
-			const result = await convexClient?.query(api.featureFlags.findFlagsForUser, {
+			const result = await convexClient?.query(api.infrastructure.featureFlags.findFlagsForUser, {
 				sessionId,
 				userEmail: userSearchQuery.trim()
 			});
@@ -256,7 +264,7 @@
 		if (!convexClient || !sessionId) return;
 
 		try {
-			await convexClient.mutation(api.featureFlags.updateFlagState, {
+			await convexClient.mutation(api.infrastructure.featureFlags.updateFlagState, {
 				sessionId,
 				flag: flag.flag,
 				enabled
@@ -324,9 +332,9 @@
 			};
 
 			if (editModalOpen) {
-				await convexClient.mutation(api.featureFlags.updateFlag, commonArgs);
+				await convexClient.mutation(api.infrastructure.featureFlags.updateFlag, commonArgs);
 			} else {
-				await convexClient.mutation(api.featureFlags.createFlag, commonArgs);
+				await convexClient.mutation(api.infrastructure.featureFlags.createFlag, commonArgs);
 			}
 
 			createModalOpen = false;
@@ -348,7 +356,7 @@
 		if (!confirm(`Are you sure you want to delete the flag "${flag.flag}"?`)) return;
 
 		try {
-			await convexClient.mutation(api.featureFlags.archiveFlag, {
+			await convexClient.mutation(api.infrastructure.featureFlags.archiveFlag, {
 				sessionId,
 				flag: flag.flag
 			});
@@ -373,7 +381,7 @@
 		try {
 			// Note: getFlagDebugInfo uses the current user's sessionId
 			// For evaluating other users, we'd need a separate admin debug endpoint
-			const result = await convexClient.query(api.featureFlags.getFlagDebugInfo, {
+			const result = await convexClient.query(api.infrastructure.featureFlags.getFlagDebugInfo, {
 				sessionId,
 				flag: debugFlagSelect
 			});
@@ -404,10 +412,10 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<header
-		class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b px-page"
+		class="h-system-header border-base py-system-header px-page flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<div>
-			<h1 class="text-h2 font-bold text-primary">Feature Flags</h1>
+			<h1 class="text-h2 text-primary font-bold">Feature Flags</h1>
 			<p class="mt-form-field-gap text-small text-secondary">
 				Manage feature flags for progressive rollouts and A/B testing
 			</p>
@@ -418,7 +426,7 @@
 	</header>
 
 	<!-- Main Content -->
-	<main class="py-system-content flex-1 overflow-y-auto px-page">
+	<main class="py-system-content px-page flex-1 overflow-y-auto">
 		<!-- Overview Cards -->
 		<div class="mb-settings-section gap-content-section grid grid-cols-1 md:grid-cols-3">
 			<button
@@ -427,10 +435,10 @@
 					activeTab = 'flags';
 					statusFilter = 'all';
 				}}
-				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card bg-surface border text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Total Flags</p>
-				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{totalFlags}</p>
+				<p class="mt-form-field-gap text-h2 text-primary font-semibold">{totalFlags}</p>
 			</button>
 
 			<button
@@ -439,10 +447,10 @@
 					activeTab = 'flags';
 					statusFilter = 'enabled';
 				}}
-				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card bg-surface border text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Enabled Flags</p>
-				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{enabledFlags}</p>
+				<p class="mt-form-field-gap text-h2 text-primary font-semibold">{enabledFlags}</p>
 				<p class="mt-form-field-gap text-label text-secondary">
 					{totalFlags > 0 ? Math.round((enabledFlags / totalFlags) * 100) : 0}% of total
 				</p>
@@ -454,10 +462,10 @@
 					activeTab = 'flags';
 					statusFilter = 'targeting';
 				}}
-				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card bg-surface border text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Flags with Targeting</p>
-				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{flagsWithTargeting}</p>
+				<p class="mt-form-field-gap text-h2 text-primary font-semibold">{flagsWithTargeting}</p>
 			</button>
 		</div>
 
@@ -468,7 +476,7 @@
 			>
 				<div class="gap-content-section flex items-start justify-between">
 					<div class="flex-1">
-						<h3 class="mb-content-section text-small font-semibold text-primary">
+						<h3 class="mb-content-section text-small text-primary font-semibold">
 							What are Feature Flags?
 						</h3>
 						<p class="mb-content-section text-small text-secondary">
@@ -495,7 +503,7 @@
 					<button
 						type="button"
 						onclick={dismissGuidance}
-						class="flex-shrink-0 text-tertiary hover:text-primary"
+						class="text-tertiary hover:text-primary flex-shrink-0"
 						aria-label="Dismiss guidance"
 					>
 						<svg class="size-icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -516,19 +524,19 @@
 			<Tabs.List class="size-tab rounded-tab-container border-border-base flex border-b">
 				<Tabs.Trigger
 					value="flags"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Flags ({flags.length})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="impact"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Impact
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="debug"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Debug
 				</Tabs.Trigger>
@@ -548,7 +556,7 @@
 						</div>
 						<select
 							bind:value={statusFilter}
-							class="border-base bg-input text-small focus:ring-accent-primary rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+							class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary border focus:ring-2 focus:outline-none"
 						>
 							<option value="all">All Status</option>
 							<option value="enabled">Enabled</option>
@@ -564,7 +572,7 @@
 							class="flex flex-col items-center justify-center text-center"
 							style="padding-block: var(--spacing-8);"
 						>
-							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
+							<p class="mb-form-field-gap text-h3 text-secondary font-medium">
 								{searchQuery.trim() || statusFilter !== 'all'
 									? 'No flags match your filters'
 									: 'No flags yet'}
@@ -579,11 +587,11 @@
 						<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 							{#each filteredFlags as flag (flag._id)}
 								<div
-									class="group gap-content-section border-base px-card py-card hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors hover:border-accent-primary"
+									class="group gap-content-section border-base px-card py-card hover:bg-hover-solid rounded-card bg-surface hover:border-accent-primary flex flex-col border transition-colors"
 								>
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
-											<h3 class="font-semibold text-primary">{flag.flag}</h3>
+											<h3 class="text-primary font-semibold">{flag.flag}</h3>
 											<p class="mt-form-field-gap font-code text-label text-tertiary">
 												{flag.flag}
 											</p>
@@ -652,7 +660,7 @@
 							class="flex flex-col items-center justify-center text-center"
 							style="padding-block: var(--spacing-8);"
 						>
-							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
+							<p class="mb-form-field-gap text-h3 text-secondary font-medium">
 								Loading impact statistics...
 							</p>
 						</div>
@@ -661,24 +669,24 @@
 							class="flex flex-col items-center justify-center text-center"
 							style="padding-block: var(--spacing-8);"
 						>
-							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
+							<p class="mb-form-field-gap text-h3 text-secondary font-medium">
 								No impact data available
 							</p>
 						</div>
 					{:else}
 						<!-- Overview Statistics -->
 						<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-							<div class="border-base px-card py-card rounded-card border bg-surface">
+							<div class="border-base px-card py-card rounded-card bg-surface border">
 								<p class="text-label text-tertiary">Total Users</p>
-								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+								<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 									{impactStats.totalUsers.toLocaleString()}
 								</p>
 								<p class="mt-form-field-gap text-label text-secondary">System-wide user count</p>
 							</div>
 
-							<div class="border-base px-card py-card rounded-card border bg-surface">
+							<div class="border-base px-card py-card rounded-card bg-surface border">
 								<p class="text-label text-tertiary">Flags with Impact</p>
-								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+								<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 									{impactStats.flagImpacts.filter((f) => f.enabled && f.estimatedAffected > 0)
 										.length}
 								</p>
@@ -687,9 +695,9 @@
 								</p>
 							</div>
 
-							<div class="border-base px-card py-card rounded-card border bg-surface">
+							<div class="border-base px-card py-card rounded-card bg-surface border">
 								<p class="text-label text-tertiary">Total Affected Users</p>
-								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+								<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 									{impactStats.flagImpacts
 										.reduce((sum, f) => sum + f.estimatedAffected, 0)
 										.toLocaleString()}
@@ -699,9 +707,9 @@
 								</p>
 							</div>
 
-							<div class="border-base px-card py-card rounded-card border bg-surface">
+							<div class="border-base px-card py-card rounded-card bg-surface border">
 								<p class="text-label text-tertiary">Unique Domains</p>
-								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+								<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 									{Object.keys(impactStats.usersByDomain).length}
 								</p>
 								<p class="mt-form-field-gap text-label text-secondary">Email domains in system</p>
@@ -709,8 +717,8 @@
 						</div>
 
 						<!-- User Search -->
-						<div class="border-base px-card py-card rounded-card border bg-surface">
-							<h3 class="mb-content-section text-h3 font-semibold text-primary">
+						<div class="border-base px-card py-card rounded-card bg-surface border">
+							<h3 class="mb-content-section text-h3 text-primary font-semibold">
 								Search User Impact
 							</h3>
 							<p class="mb-content-section text-small text-secondary">
@@ -739,25 +747,23 @@
 
 							{#if userSearchResult}
 								<div
-									class="mt-settings-section border-base px-card py-card rounded-card border bg-elevated"
+									class="mt-settings-section border-base px-card py-card rounded-card bg-elevated border"
 								>
-									<h4 class="mb-content-section text-small font-semibold text-primary">
+									<h4 class="mb-content-section text-small text-primary font-semibold">
 										Results for: {userSearchResult.userEmail}
 									</h4>
-									{@const enabledFlags = userSearchResult.flags.filter((f) => f.result)}
-									{@const disabledFlags = userSearchResult.flags.filter((f) => !f.result)}
 									<div class="space-y-content-section">
-										{#if enabledFlags.length > 0}
+										{#if userSearchEnabledFlags.length > 0}
 											<div>
-												<p class="mb-form-field-gap text-small font-medium text-primary">
-													✅ Enabled Flags ({enabledFlags.length}):
+												<p class="mb-form-field-gap text-small text-primary font-medium">
+													✅ Enabled Flags ({userSearchEnabledFlags.length}):
 												</p>
 												<div class="space-y-form-field-gap">
-													{#each enabledFlags as flagFlag (flagFlag.flag)}
+													{#each userSearchEnabledFlags as flagFlag (flagFlag.flag)}
 														<div
 															class="border-accent-primary/20 bg-accent-primary/5 px-card py-card rounded-button border"
 														>
-															<p class="text-small font-medium text-primary">{flagFlag.flag}</p>
+															<p class="text-small text-primary font-medium">{flagFlag.flag}</p>
 															<p class="text-label text-secondary">{flagFlag.reason}</p>
 														</div>
 													{/each}
@@ -765,17 +771,17 @@
 											</div>
 										{/if}
 
-										{#if disabledFlags.length > 0}
+										{#if userSearchDisabledFlags.length > 0}
 											<div>
-												<p class="mb-form-field-gap text-small font-medium text-primary">
-													❌ Disabled Flags ({disabledFlags.length}):
+												<p class="mb-form-field-gap text-small text-primary font-medium">
+													❌ Disabled Flags ({userSearchDisabledFlags.length}):
 												</p>
 												<div class="space-y-form-field-gap">
-													{#each disabledFlags as flagFlag (flagFlag.flag)}
+													{#each userSearchDisabledFlags as flagFlag (flagFlag.flag)}
 														<div
-															class="border-base px-card py-card rounded-button border bg-elevated"
+															class="border-base px-card py-card rounded-button bg-elevated border"
 														>
-															<p class="text-small font-medium text-secondary">{flagFlag.flag}</p>
+															<p class="text-small text-secondary font-medium">{flagFlag.flag}</p>
 															<p class="text-label text-tertiary">{flagFlag.reason}</p>
 														</div>
 													{/each}
@@ -786,7 +792,7 @@
 								</div>
 							{:else if userNotFound}
 								<div
-									class="mt-settings-section border-base px-card py-card rounded-card border bg-elevated"
+									class="mt-settings-section border-base px-card py-card rounded-card bg-elevated border"
 								>
 									<p class="text-small text-secondary">
 										User {userSearchQuery.trim()} not found in system
@@ -797,15 +803,15 @@
 
 						<!-- Flag Impact Breakdown -->
 						<div class="space-y-content-section">
-							<h3 class="text-h3 font-semibold text-primary">Flag Impact Breakdown</h3>
+							<h3 class="text-h3 text-primary font-semibold">Flag Impact Breakdown</h3>
 							{#each flags as flag (flag._id)}
 								{@const impact = getFlagImpact(flag.flag)}
 								{@const isExpanded = expandedFlags.has(flag.flag)}
-								<div class="border-base px-card py-card rounded-card border bg-surface">
+								<div class="border-base px-card py-card rounded-card bg-surface border">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<div class="flex items-center gap-2">
-												<h4 class="font-semibold text-primary">{flag.flag}</h4>
+												<h4 class="text-primary font-semibold">{flag.flag}</h4>
 												<Badge variant={flag.enabled ? 'default' : 'system'}>
 													{flag.enabled ? 'Enabled' : 'Disabled'}
 												</Badge>
@@ -819,7 +825,7 @@
 												{getTargetingSummary(flag)}
 											</p>
 											{#if impact && impact.enabled}
-												<p class="mt-form-field-gap text-small font-medium text-primary">
+												<p class="mt-form-field-gap text-small text-primary font-medium">
 													Estimated affected: ~{impact.estimatedAffected.toLocaleString()} users
 												</p>
 											{:else if impact && !impact.enabled}
@@ -832,7 +838,7 @@
 											<button
 												type="button"
 												onclick={() => toggleFlagExpansion(flag.flag)}
-												class="flex-shrink-0 rounded-button p-button-icon text-tertiary transition-colors hover:text-primary"
+												class="rounded-button p-button-icon text-tertiary hover:text-primary flex-shrink-0 transition-colors"
 												aria-label={isExpanded ? 'Collapse' : 'Expand'}
 											>
 												<svg
@@ -856,34 +862,34 @@
 										<div
 											class="mt-content-section space-y-content-section border-base pt-content-section border-t"
 										>
-											<h5 class="text-small font-semibold text-primary">Impact Breakdown:</h5>
+											<h5 class="text-small text-primary font-semibold">Impact Breakdown:</h5>
 											<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
 												{#if impact.breakdown.byDomain > 0}
 													<div
-														class="border-base px-card py-card rounded-button border bg-elevated"
+														class="border-base px-card py-card rounded-button bg-elevated border"
 													>
 														<p class="text-label text-tertiary">Domain Targeting</p>
-														<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+														<p class="mt-form-field-gap text-h3 text-primary font-semibold">
 															{impact.breakdown.byDomain.toLocaleString()}
 														</p>
 													</div>
 												{/if}
 												{#if impact.breakdown.byUserIds > 0}
 													<div
-														class="border-base px-card py-card rounded-button border bg-elevated"
+														class="border-base px-card py-card rounded-button bg-elevated border"
 													>
 														<p class="text-label text-tertiary">User ID Targeting</p>
-														<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+														<p class="mt-form-field-gap text-h3 text-primary font-semibold">
 															{impact.breakdown.byUserIds.toLocaleString()}
 														</p>
 													</div>
 												{/if}
 												{#if impact.breakdown.byOrgIds > 0}
 													<div
-														class="border-base px-card py-card rounded-button border bg-elevated"
+														class="border-base px-card py-card rounded-button bg-elevated border"
 													>
 														<p class="text-label text-tertiary">Organization Targeting</p>
-														<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+														<p class="mt-form-field-gap text-h3 text-primary font-semibold">
 															{impact.breakdown.byOrgIds.toLocaleString()}
 														</p>
 														<p class="mt-form-field-gap text-label text-tertiary">(estimated)</p>
@@ -891,10 +897,10 @@
 												{/if}
 												{#if impact.breakdown.byRollout > 0}
 													<div
-														class="border-base px-card py-card rounded-button border bg-elevated"
+														class="border-base px-card py-card rounded-button bg-elevated border"
 													>
 														<p class="text-label text-tertiary">Percentage Rollout</p>
-														<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+														<p class="mt-form-field-gap text-h3 text-primary font-semibold">
 															{impact.breakdown.byRollout.toLocaleString()}
 														</p>
 													</div>
@@ -917,8 +923,8 @@
 			<!-- Debug Tab -->
 			<Tabs.Content value="debug">
 				<div class="gap-settings-section flex flex-col">
-					<div class="border-base px-card py-card rounded-card border bg-surface">
-						<h3 class="mb-content-section text-h3 font-semibold text-primary">
+					<div class="border-base px-card py-card rounded-card bg-surface border">
+						<h3 class="mb-content-section text-h3 text-primary font-semibold">
 							Debug Flag Evaluation
 						</h3>
 						<p class="mb-content-section text-small text-secondary">
@@ -938,14 +944,14 @@
 							<div>
 								<label
 									for="debug-flag-select"
-									class="mb-form-field-gap text-small block font-medium text-primary"
+									class="mb-form-field-gap text-small text-primary block font-medium"
 								>
 									Feature Flag <span class="text-accent-primary">*</span>
 								</label>
 								<select
 									id="debug-flag-select"
 									bind:value={debugFlagSelect}
-									class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+									class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-full border focus:ring-2 focus:outline-none"
 								>
 									<option value="">Select a flag to evaluate...</option>
 									{#each flags as flag (flag._id)}
@@ -971,9 +977,9 @@
 
 						{#if debugResult}
 							<div
-								class="mt-settings-section border-base px-card py-card rounded-card border bg-elevated"
+								class="mt-settings-section border-base px-card py-card rounded-card bg-elevated border"
 							>
-								<h4 class="mb-content-section text-small font-semibold text-primary">
+								<h4 class="mb-content-section text-small text-primary font-semibold">
 									Evaluation Result
 								</h4>
 								<div class="space-y-form-field-gap">
@@ -989,7 +995,7 @@
 									</div>
 									{#if debugResult.flagConfig}
 										<div class="mt-content-section">
-											<span class="text-small font-medium text-secondary">Flag Configuration:</span>
+											<span class="text-small text-secondary font-medium">Flag Configuration:</span>
 											<pre
 												class="mt-form-field-gap px-card py-card rounded-button bg-surface text-label text-tertiary">
 {JSON.stringify(debugResult.flagConfig, null, 2)}
@@ -1013,12 +1019,12 @@
 			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
 		/>
 		<Dialog.Content
-			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border-base shadow-card-hover fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(600px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-card border bg-surface text-primary"
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border-base shadow-card-hover rounded-card bg-surface text-primary fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(600px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto border"
 		>
 			<div class="space-y-settings-section px-page py-page">
 				<div class="flex items-center justify-between">
 					<div>
-						<Dialog.Title class="text-h3 font-semibold text-primary"
+						<Dialog.Title class="text-h3 text-primary font-semibold"
 							>Create Feature Flag</Dialog.Title
 						>
 						<Dialog.Description class="mt-form-field-gap text-small text-secondary">
@@ -1028,7 +1034,7 @@
 					<button
 						type="button"
 						onclick={() => (createModalOpen = false)}
-						class="rounded-button p-button-icon text-tertiary transition-colors hover:text-primary"
+						class="rounded-button p-button-icon text-tertiary hover:text-primary transition-colors"
 						aria-label="Close"
 					>
 						<svg class="size-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1047,14 +1053,14 @@
 					<div>
 						<label
 							for="create-flag-select"
-							class="mb-form-field-gap text-small block font-medium text-primary"
+							class="mb-form-field-gap text-small text-primary block font-medium"
 						>
 							Flag Name <span class="text-accent-primary">*</span>
 						</label>
 						<select
 							id="create-flag-select"
 							bind:value={formFlag}
-							class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+							class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-full border focus:ring-2 focus:outline-none"
 						>
 							<option value="">Select a predefined flag...</option>
 							{#each availableFlagNames as flagName (flagName)}
@@ -1066,12 +1072,12 @@
 							type="text"
 							bind:value={formFlag}
 							placeholder="Or type a custom flag name (e.g., new_feature_beta)"
-							class="mt-form-field-gap border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+							class="mt-form-field-gap border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-full border focus:ring-2 focus:outline-none"
 						/>
 						<p class="mt-form-field-gap text-label text-secondary">
 							<strong>What is this?</strong> A unique identifier for your feature flag. Use
 							lowercase with underscores (e.g.,
-							<code class="px-badge py-badge rounded bg-elevated text-tertiary"
+							<code class="px-badge py-badge bg-elevated text-tertiary rounded"
 								>notes_editor_v2</code
 							>).
 						</p>
@@ -1093,7 +1099,7 @@
 					</div>
 
 					<!-- Global Toggle -->
-					<div class="border-base px-card py-card rounded-card border bg-elevated">
+					<div class="border-base px-card py-card rounded-card bg-elevated border">
 						<ToggleSwitch
 							checked={formEnabled}
 							onChange={(checked) => {
@@ -1111,7 +1117,7 @@
 					<!-- Targeting Section -->
 					<div class="space-y-content-section">
 						<div class="border-base pb-form-field-gap flex items-center gap-2 border-b">
-							<h4 class="text-small font-semibold text-primary">Targeting Rules</h4>
+							<h4 class="text-small text-primary font-semibold">Targeting Rules</h4>
 							<span class="text-label text-tertiary">(Optional - choose one or more)</span>
 						</div>
 						<p class="text-label text-secondary">
@@ -1120,10 +1126,10 @@
 						</p>
 
 						<!-- Rollout Percentage -->
-						<div class="border-base px-card py-card rounded-card border bg-elevated">
+						<div class="border-base px-card py-card rounded-card bg-elevated border">
 							<label
 								for="create-rollout-range"
-								class="mb-form-field-gap text-small block font-medium text-primary"
+								class="mb-form-field-gap text-small text-primary block font-medium"
 							>
 								Percentage Rollout
 							</label>
@@ -1143,7 +1149,7 @@
 									max="100"
 									bind:value={formRolloutPercentage}
 									placeholder="0"
-									class="border-base bg-input text-small focus:ring-accent-primary w-20 rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+									class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-20 border focus:ring-2 focus:outline-none"
 								/>
 								<span class="text-small text-secondary">%</span>
 							</div>
@@ -1158,10 +1164,10 @@
 						</div>
 
 						<!-- Domain Targeting -->
-						<div class="border-base px-card py-card rounded-card border bg-elevated">
+						<div class="border-base px-card py-card rounded-card bg-elevated border">
 							<label
 								for="create-domain-input"
-								class="mb-form-field-gap text-small block font-medium text-primary"
+								class="mb-form-field-gap text-small text-primary block font-medium"
 							>
 								Email Domain Targeting
 							</label>
@@ -1170,7 +1176,7 @@
 								type="text"
 								bind:value={formDomainInput}
 								placeholder="@acme.com, @example.com"
-								class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+								class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-full border focus:ring-2 focus:outline-none"
 							/>
 							<p class="mt-form-field-gap text-label text-secondary">
 								<strong>How it works:</strong> Users with email addresses matching these domains will
@@ -1202,7 +1208,7 @@
 								as follows:
 							</p>
 							<ol
-								class="mt-form-field-gap ml-content-section space-y-form-field-gap list-decimal text-label text-secondary"
+								class="mt-form-field-gap ml-content-section space-y-form-field-gap text-label text-secondary list-decimal"
 							>
 								<li>User IDs (if set) - highest priority</li>
 								<li>Organization IDs (if set)</li>
@@ -1221,14 +1227,14 @@
 					<button
 						type="button"
 						onclick={() => (createModalOpen = false)}
-						class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
+						class="border-base text-small rounded-button px-button-x py-button-y text-secondary hover:text-primary border font-medium"
 					>
 						Cancel
 					</button>
 					<button
 						type="button"
 						onclick={handleSaveFlag}
-						class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary"
+						class="text-small rounded-button bg-accent-primary px-button-x py-button-y text-primary font-medium"
 					>
 						Create Flag
 					</button>
@@ -1245,12 +1251,12 @@
 			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
 		/>
 		<Dialog.Content
-			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border-base shadow-card-hover fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(600px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-card border bg-surface text-primary"
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] border-base shadow-card-hover rounded-card bg-surface text-primary fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(600px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto border"
 		>
 			<div class="space-y-settings-section px-page py-page">
 				<div class="flex items-center justify-between">
 					<div>
-						<Dialog.Title class="text-h3 font-semibold text-primary">Edit Feature Flag</Dialog.Title
+						<Dialog.Title class="text-h3 text-primary font-semibold">Edit Feature Flag</Dialog.Title
 						>
 						<Dialog.Description class="mt-form-field-gap text-small text-secondary">
 							Update feature flag configuration
@@ -1259,7 +1265,7 @@
 					<button
 						type="button"
 						onclick={() => (editModalOpen = false)}
-						class="rounded-button p-button-icon text-tertiary transition-colors hover:text-primary"
+						class="rounded-button p-button-icon text-tertiary hover:text-primary transition-colors"
 						aria-label="Close"
 					>
 						<svg class="size-icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1278,14 +1284,14 @@
 					<div>
 						<label
 							for="edit-flag-name"
-							class="mb-form-field-gap text-small block font-medium text-primary">Flag Name</label
+							class="mb-form-field-gap text-small text-primary block font-medium">Flag Name</label
 						>
 						<input
 							id="edit-flag-name"
 							type="text"
 							bind:value={formFlag}
 							disabled
-							class="border-base bg-input text-small w-full rounded-input border px-input-x py-input-y text-tertiary opacity-50"
+							class="border-base bg-input text-small rounded-input px-input-x py-input-y text-tertiary w-full border opacity-50"
 						/>
 						<p class="mt-form-field-gap text-label text-tertiary">
 							Flag name cannot be changed after creation
@@ -1308,7 +1314,7 @@
 					</div>
 
 					<!-- Global Toggle -->
-					<div class="border-base px-card py-card rounded-card border bg-elevated">
+					<div class="border-base px-card py-card rounded-card bg-elevated border">
 						<ToggleSwitch
 							checked={formEnabled}
 							onChange={(checked) => {
@@ -1326,7 +1332,7 @@
 					<!-- Targeting Section -->
 					<div class="space-y-content-section">
 						<div class="border-base pb-form-field-gap flex items-center gap-2 border-b">
-							<h4 class="text-small font-semibold text-primary">Targeting Rules</h4>
+							<h4 class="text-small text-primary font-semibold">Targeting Rules</h4>
 							<span class="text-label text-tertiary">(Optional - choose one or more)</span>
 						</div>
 						<p class="text-label text-secondary">
@@ -1335,10 +1341,10 @@
 						</p>
 
 						<!-- Rollout Percentage -->
-						<div class="border-base px-card py-card rounded-card border bg-elevated">
+						<div class="border-base px-card py-card rounded-card bg-elevated border">
 							<label
 								for="create-rollout-range"
-								class="mb-form-field-gap text-small block font-medium text-primary"
+								class="mb-form-field-gap text-small text-primary block font-medium"
 							>
 								Percentage Rollout
 							</label>
@@ -1358,7 +1364,7 @@
 									max="100"
 									bind:value={formRolloutPercentage}
 									placeholder="0"
-									class="border-base bg-input text-small focus:ring-accent-primary w-20 rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+									class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-20 border focus:ring-2 focus:outline-none"
 								/>
 								<span class="text-small text-secondary">%</span>
 							</div>
@@ -1373,10 +1379,10 @@
 						</div>
 
 						<!-- Domain Targeting -->
-						<div class="border-base px-card py-card rounded-card border bg-elevated">
+						<div class="border-base px-card py-card rounded-card bg-elevated border">
 							<label
 								for="create-domain-input"
-								class="mb-form-field-gap text-small block font-medium text-primary"
+								class="mb-form-field-gap text-small text-primary block font-medium"
 							>
 								Email Domain Targeting
 							</label>
@@ -1385,7 +1391,7 @@
 								type="text"
 								bind:value={formDomainInput}
 								placeholder="@acme.com, @example.com"
-								class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
+								class="border-base bg-input text-small focus:ring-accent-primary rounded-input px-input-x py-input-y text-primary w-full border focus:ring-2 focus:outline-none"
 							/>
 							<p class="mt-form-field-gap text-label text-secondary">
 								<strong>How it works:</strong> Users with email addresses matching these domains will
@@ -1417,7 +1423,7 @@
 								as follows:
 							</p>
 							<ol
-								class="mt-form-field-gap ml-content-section space-y-form-field-gap list-decimal text-label text-secondary"
+								class="mt-form-field-gap ml-content-section space-y-form-field-gap text-label text-secondary list-decimal"
 							>
 								<li>User IDs (if set) - highest priority</li>
 								<li>Organization IDs (if set)</li>
@@ -1436,14 +1442,14 @@
 					<button
 						type="button"
 						onclick={() => (editModalOpen = false)}
-						class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
+						class="border-base text-small rounded-button px-button-x py-button-y text-secondary hover:text-primary border font-medium"
 					>
 						Cancel
 					</button>
 					<button
 						type="button"
 						onclick={handleSaveFlag}
-						class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary"
+						class="text-small rounded-button bg-accent-primary px-button-x py-button-y text-primary font-medium"
 					>
 						Save Changes
 					</button>

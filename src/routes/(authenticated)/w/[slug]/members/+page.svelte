@@ -129,18 +129,18 @@
 	}
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-base py-header border-b bg-surface px-page">
+	<header class="border-base py-header bg-surface px-page border-b">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-h3 font-semibold text-primary">Members</h1>
-				<p class="text-button mt-1 text-secondary">{organizationName()}</p>
+				<h1 class="text-h3 text-primary font-semibold">Members</h1>
+				<p class="text-button text-secondary mt-1">{organizationName()}</p>
 			</div>
 			{#if canInviteMembers()}
 				<button
 					onclick={() => (showInviteModal = true)}
-					class="text-on-solid py-nav-item text-button rounded-button bg-accent-primary px-2 font-medium transition-colors hover:bg-accent-hover"
+					class="text-on-solid py-nav-item text-button rounded-button bg-accent-primary hover:bg-accent-hover px-2 font-medium transition-colors"
 				>
 					Invite Member
 				</button>
@@ -149,7 +149,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex-1 overflow-y-auto px-page py-page">
+	<main class="px-page py-page flex-1 overflow-y-auto">
 		{#if isLoading}
 			<div class="flex h-64 items-center justify-center">
 				<div class="text-secondary">Loading members...</div>
@@ -158,7 +158,7 @@
 			<!-- Empty State -->
 			<div class="flex h-64 flex-col items-center justify-center">
 				<svg
-					class="mb-4 size-icon-xl text-secondary"
+					class="size-icon-xl text-secondary mb-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -171,28 +171,28 @@
 						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 					/>
 				</svg>
-				<h2 class="text-h3 font-medium text-primary">No members yet</h2>
-				<p class="text-button mt-1 text-secondary">Invite members to get started</p>
+				<h2 class="text-h3 text-primary font-medium">No members yet</h2>
+				<p class="text-button text-secondary mt-1">Invite members to get started</p>
 			</div>
 		{:else}
 			<!-- Members Table -->
-			<div class="border-base overflow-hidden rounded-card border bg-surface">
+			<div class="border-base rounded-card bg-surface overflow-hidden border">
 				<table class="w-full">
-					<thead class="border-base border-b bg-elevated">
+					<thead class="border-base bg-elevated border-b">
 						<tr>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Name
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Email
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Role
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Joined
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Actions
 							</th>
 						</tr>
@@ -200,14 +200,14 @@
 					<tbody>
 						{#each membersList as member (member.userId)}
 							<tr class="border-base hover:bg-sidebar-hover border-b last:border-b-0">
-								<td class="py-nav-item text-button px-2 text-primary">
+								<td class="py-nav-item text-button text-primary px-2">
 									{member.name || '—'}
 								</td>
-								<td class="py-nav-item text-button px-2 text-secondary">{member.email}</td>
-								<td class="py-nav-item text-button px-2 text-secondary">
+								<td class="py-nav-item text-button text-secondary px-2">{member.email}</td>
+								<td class="py-nav-item text-button text-secondary px-2">
 									{formatRole(member.role)}
 								</td>
-								<td class="py-nav-item text-button px-2 text-secondary">
+								<td class="py-nav-item text-button text-secondary px-2">
 									{formatDate(member.joinedAt)}
 								</td>
 								<td class="py-nav-item px-2">
@@ -217,7 +217,7 @@
 										<button
 											onclick={() => openRemoveDialog(member)}
 											disabled={members.loading.remove}
-											class="text-button text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+											class="text-button text-secondary hover:text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 											title="Remove member"
 										>
 											Remove
@@ -235,24 +235,24 @@
 			<!-- Invited Table -->
 			{#if canInviteMembers() && invitesList.length > 0}
 				<div class="mt-8">
-					<h2 class="text-h3 mb-4 font-semibold text-primary">Invited</h2>
-					<div class="border-base overflow-hidden rounded-card border bg-surface">
+					<h2 class="text-h3 text-primary mb-4 font-semibold">Invited</h2>
+					<div class="border-base rounded-card bg-surface overflow-hidden border">
 						<table class="w-full">
-							<thead class="border-base border-b bg-elevated">
+							<thead class="border-base bg-elevated border-b">
 								<tr>
-									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+									<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 										Email
 									</th>
-									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+									<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 										Role
 									</th>
-									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+									<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 										Status
 									</th>
-									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+									<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 										Invited
 									</th>
-									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+									<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 										Actions
 									</th>
 								</tr>
@@ -260,10 +260,10 @@
 							<tbody>
 								{#each invitesList as invite (invite.inviteId)}
 									<tr class="border-base hover:bg-sidebar-hover border-b last:border-b-0">
-										<td class="py-nav-item text-button px-2 text-primary">
+										<td class="py-nav-item text-button text-primary px-2">
 											{invite.email}
 										</td>
-										<td class="py-nav-item text-button px-2 text-secondary">
+										<td class="py-nav-item text-button text-secondary px-2">
 											{formatRole(invite.role)}
 										</td>
 										<td class="py-nav-item text-button px-2">
@@ -275,7 +275,7 @@
 												{invite.status === 'accepted' ? 'Accepted' : 'Pending'}
 											</span>
 										</td>
-										<td class="py-nav-item text-button px-2 text-secondary">
+										<td class="py-nav-item text-button text-secondary px-2">
 											{formatDate(invite.invitedAt)}
 										</td>
 										<td class="py-nav-item px-2">
@@ -283,7 +283,7 @@
 												<button
 													onclick={() => members.resendInvite(invite.inviteId)}
 													disabled={members.loading.resend}
-													class="text-button text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+													class="text-button text-secondary hover:text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 													title="Resend invite email"
 												>
 													Resend
@@ -313,14 +313,14 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="border-base fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-card border bg-surface text-primary shadow-xl"
+			class="border-base rounded-card bg-surface text-primary fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 border shadow-xl"
 		>
-			<div class="space-y-6 px-page py-page">
+			<div class="px-page py-page space-y-6">
 				<div>
-					<Dialog.Title class="text-h3 font-semibold text-primary">Remove Member</Dialog.Title>
-					<Dialog.Description class="text-button mt-1 text-secondary">
+					<Dialog.Title class="text-h3 text-primary font-semibold">Remove Member</Dialog.Title>
+					<Dialog.Description class="text-button text-secondary mt-1">
 						Are you sure you want to remove
-						<span class="font-medium text-primary">
+						<span class="text-primary font-medium">
 							{confirmRemoveDialog.member?.name || confirmRemoveDialog.member?.email}
 						</span>
 						from this workspace? This action cannot be undone.
@@ -332,7 +332,7 @@
 						type="button"
 						onclick={closeRemoveDialog}
 						disabled={members.loading.remove}
-						class="border-base py-nav-item text-button hover:bg-sidebar-hover rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+						class="border-base py-nav-item text-button hover:bg-sidebar-hover rounded-button bg-elevated text-secondary border px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Cancel
 					</button>
@@ -340,7 +340,7 @@
 						type="button"
 						onclick={handleRemoveMember}
 						disabled={members.loading.remove}
-						class="text-on-solid py-nav-item text-button rounded-button bg-accent-primary px-2 font-medium transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+						class="text-on-solid py-nav-item text-button rounded-button bg-accent-primary hover:bg-accent-hover px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{members.loading.remove ? 'Removing...' : 'Remove Member'}
 					</button>

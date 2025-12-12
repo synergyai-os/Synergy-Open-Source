@@ -56,14 +56,14 @@
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Portal>
 			<DropdownMenu.Content
-				class="border-base z-[100] min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
+				class="border-base rounded-button bg-elevated shadow-card z-[100] min-w-[180px] border py-1"
 				side="bottom"
 				align="end"
 				sideOffset={4}
 			>
 				{#each dropdownItems as item (item.label)}
 					<DropdownMenu.Item
-						class="hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center px-[0.625rem] py-[0.375rem] text-[0.875rem] text-primary transition-colors outline-none"
+						class="hover:bg-hover-solid focus:bg-hover-solid text-primary flex cursor-pointer items-center px-[0.625rem] py-[0.375rem] text-[0.875rem] transition-colors outline-none"
 						textValue={item.label}
 						onSelect={() => {
 							item.onclick();

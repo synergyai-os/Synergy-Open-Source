@@ -34,12 +34,12 @@
 	onOpenChange={(value) => !value && circles.closeModal('createCircle')}
 >
 	<Dialog.Content
-		class="border-base shadow-card-hover w-[min(500px,90vw)] max-w-lg rounded-card border bg-surface text-primary"
+		class="border-base shadow-card-hover rounded-card bg-surface text-primary w-[min(500px,90vw)] max-w-lg border"
 	>
 		<div class="px-inbox-container py-inbox-container space-y-6">
 			<div>
-				<Dialog.Title class="text-h3 font-semibold text-primary">Create circle</Dialog.Title>
-				<Dialog.Description class="text-button mt-1 text-secondary">
+				<Dialog.Title class="text-h3 text-primary font-semibold">Create circle</Dialog.Title>
+				<Dialog.Description class="text-button text-secondary mt-1">
 					Circles represent work workspace units like value streams or coordination contexts.
 				</Dialog.Description>
 			</div>
@@ -52,9 +52,9 @@
 				}}
 			>
 				<label class="flex flex-col gap-2">
-					<span class="text-button font-medium text-primary">Circle name *</span>
+					<span class="text-button text-primary font-medium">Circle name *</span>
 					<input
-						class="border-base py-nav-item text-button w-full rounded-button border bg-elevated px-2 text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item text-button rounded-button bg-elevated text-primary focus:border-accent-primary w-full border px-2 focus:outline-none"
 						placeholder="e.g. Active Platforms"
 						bind:value={name}
 						required
@@ -63,9 +63,9 @@
 				</label>
 
 				<label class="flex flex-col gap-2">
-					<span class="text-button font-medium text-primary">Purpose (optional)</span>
+					<span class="text-button text-primary font-medium">Purpose (optional)</span>
 					<textarea
-						class="border-base py-nav-item text-button w-full rounded-button border bg-elevated px-2 text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item text-button rounded-button bg-elevated text-primary focus:border-accent-primary w-full border px-2 focus:outline-none"
 						placeholder="Why this work exists..."
 						bind:value={purpose}
 						rows={3}
@@ -74,9 +74,9 @@
 
 				{#if availableCircles.length > 0}
 					<label class="flex flex-col gap-2">
-						<span class="text-button font-medium text-primary">Parent circle (optional)</span>
+						<span class="text-button text-primary font-medium">Parent circle (optional)</span>
 						<select
-							class="border-base py-nav-item text-button w-full rounded-button border bg-elevated px-2 text-primary focus:border-accent-primary focus:outline-none"
+							class="border-base py-nav-item text-button rounded-button bg-elevated text-primary focus:border-accent-primary w-full border px-2 focus:outline-none"
 							bind:value={parentCircleId}
 						>
 							<option value="">None (top-level circle)</option>
@@ -90,7 +90,7 @@
 				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
-						class="border-base px-card text-button rounded-button border py-input-y font-medium text-secondary hover:text-primary disabled:opacity-50"
+						class="border-base px-card text-button rounded-button py-input-y text-secondary hover:text-primary border font-medium disabled:opacity-50"
 						onclick={() => circles.closeModal('createCircle')}
 						disabled={circles.loading.createCircle}
 					>

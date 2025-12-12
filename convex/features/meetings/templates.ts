@@ -1,3 +1,4 @@
+import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import { internalMutation, mutation, query } from '../../_generated/server';
 import {
@@ -28,52 +29,82 @@ import {
 } from './helpers/templates';
 
 export const list = query({
-	args: listTemplatesArgs,
+	args: {
+		sessionId: v.string(),
+		...listTemplatesArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => listTemplates(ctx, args)
 });
 
 export const get = query({
-	args: getTemplateArgs,
+	args: {
+		sessionId: v.string(),
+		...getTemplateArgs
+	},
 	handler: (ctx, args) => getTemplate(ctx, args)
 });
 
 export const getSteps = query({
-	args: getTemplateStepsArgs,
+	args: {
+		sessionId: v.string(),
+		...getTemplateStepsArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => getTemplateSteps(ctx, args)
 });
 
 export const create = mutation({
-	args: createTemplateArgs,
+	args: {
+		sessionId: v.string(),
+		...createTemplateArgs
+	},
 	handler: (ctx, args): Promise<{ templateId: Id<'meetingTemplates'> }> => createTemplate(ctx, args)
 });
 
 export const update = mutation({
-	args: updateTemplateArgs,
+	args: {
+		sessionId: v.string(),
+		...updateTemplateArgs
+	},
 	handler: (ctx, args) => updateTemplate(ctx, args)
 });
 
 export const archiveTemplate = mutation({
-	args: archiveTemplateArgs,
+	args: {
+		sessionId: v.string(),
+		...archiveTemplateArgs
+	},
 	handler: (ctx, args) => archiveTemplateMutation(ctx, args)
 });
 
 export const addStep = mutation({
-	args: addTemplateStepArgs,
+	args: {
+		sessionId: v.string(),
+		...addTemplateStepArgs
+	},
 	handler: (ctx, args) => addTemplateStep(ctx, args)
 });
 
 export const removeStep = mutation({
-	args: removeTemplateStepArgs,
+	args: {
+		sessionId: v.string(),
+		...removeTemplateStepArgs
+	},
 	handler: (ctx, args) => removeTemplateStep(ctx, args)
 });
 
 export const reorderSteps = mutation({
-	args: reorderTemplateStepsArgs,
+	args: {
+		sessionId: v.string(),
+		...reorderTemplateStepsArgs
+	},
 	handler: (ctx, args) => reorderTemplateSteps(ctx, args)
 });
 
 export const seedDefaultTemplates = mutation({
-	args: seedTemplatesArgs,
+	args: {
+		sessionId: v.string(),
+		...seedTemplatesArgs
+	},
 	handler: (ctx, args) => seedDefaultTemplatesHelper(ctx, args)
 });
 

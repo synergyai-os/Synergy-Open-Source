@@ -144,7 +144,7 @@
 		lastDecisionModel = decisionModelValue; // Update immediately to prevent sync
 
 		convexClient
-			.mutation(api.circles.updateInline, {
+			.mutation(api.core.circles.index.updateInline, {
 				sessionId,
 				circleId: circle.circleId,
 				updates: {

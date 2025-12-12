@@ -468,8 +468,11 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 					break;
 				}
 			}
+			// Check both dtcgRefConditional and _dtcgRefConditional (for syntax tokens)
 			if (current && current.dtcgRefConditional) {
 				dtcgRefConditional = current.dtcgRefConditional;
+			} else if (current && current._dtcgRefConditional) {
+				dtcgRefConditional = current._dtcgRefConditional;
 			}
 		}
 	} catch {
@@ -477,7 +480,17 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 		// Silent fail - not critical if we can't read the file
 	}
 
-	if (dtcgRefConditional && dtcgRefConditional.light && dtcgRefConditional.dark) {
+	// Check if values are already in var() format (converted by prepare-tokens.js to avoid Style Dictionary resolution)
+	if (
+		typeof lightValue === 'string' &&
+		lightValue.startsWith('var(') &&
+		typeof darkValue === 'string' &&
+		darkValue.startsWith('var(')
+	) {
+		// Values already converted to var() format - use directly
+		resolvedLight = lightValue;
+		resolvedDark = darkValue;
+	} else if (dtcgRefConditional && dtcgRefConditional.light && dtcgRefConditional.dark) {
 		// Check if preserved values are DTCG references (e.g., {color.brand.primary})
 		const originalLight = dtcgRefConditional.light;
 		const originalDark = dtcgRefConditional.dark;
@@ -506,6 +519,25 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 			resolvedLight = resolveConditionalValue(lightValue, pathParts);
 			resolvedDark = resolveConditionalValue(darkValue, pathParts);
 		}
+	} else if (
+		typeof lightValue === 'string' &&
+		lightValue.startsWith('{') &&
+		lightValue.endsWith('}') &&
+		typeof darkValue === 'string' &&
+		darkValue.startsWith('{') &&
+		darkValue.endsWith('}')
+	) {
+		// Handle case where Style Dictionary hasn't resolved the references yet
+		// Convert DTCG reference to CSS var() reference directly from token.value
+		const lightRefPath = lightValue.slice(1, -1); // Remove { }
+		const lightRefParts = lightRefPath.split('.');
+		const lightRefName = lightRefParts.join('-');
+		resolvedLight = `var(--${lightRefName})`;
+
+		const darkRefPath = darkValue.slice(1, -1); // Remove { }
+		const darkRefParts = darkRefPath.split('.');
+		const darkRefName = darkRefParts.join('-');
+		resolvedDark = `var(--${darkRefName})`;
 	} else {
 		// No preserved DTCG references, use resolved values
 		resolvedLight = resolveConditionalValue(lightValue, pathParts);

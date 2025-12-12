@@ -2,8 +2,10 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { resolveRequestSession } from '$lib/infrastructure/auth/server/session';
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '$lib/convex';
 import { env } from '$env/dynamic/public';
 import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { invariant } from '$lib/utils/invariant';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -30,9 +32,7 @@ function isPublicPath(pathname: string): boolean {
 
 async function resolveDefaultAppRedirect(event: Parameters<Handle>[0]['event']): Promise<string> {
 	const sessionId = event.locals.auth.sessionId;
-	if (!sessionId) {
-		throw new Error('Expected authenticated session for redirect');
-	}
+	invariant(sessionId, 'Expected authenticated session for redirect');
 
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	return resolveWorkspaceRedirect({
@@ -113,7 +113,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		const sessionId = event.locals.auth.sessionId;
 
 		// Load workspaces to determine active org
-		const workspaces = (await client.query(api.workspaces.listWorkspaces, {
+		const workspaces = (await client.query(api.core.workspaces.index.listWorkspaces, {
 			sessionId
 		})) as Array<{ workspaceId: string }>;
 

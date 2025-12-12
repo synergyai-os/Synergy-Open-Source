@@ -14,7 +14,9 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const cleanApi = browser
-		? (makeFunctionReference('readwiseCleanup:ensureCleanReadwiseData') as FunctionReference<
+		? (makeFunctionReference(
+				'features/readwise/cleanup:ensureCleanReadwiseData'
+			) as FunctionReference<
 				'action',
 				'public',
 				{ sessionId: string },
@@ -77,12 +79,12 @@
 
 {#if showConfirm}
 	<div class="space-y-1">
-		<p class="px-2 py-1 text-label text-tertiary">Are you sure?</p>
+		<p class="text-label text-tertiary px-2 py-1">Are you sure?</p>
 		<button
 			type="button"
 			onclick={handleClean}
 			disabled={isCleaning}
-			class="group flex w-full items-center gap-button rounded-button bg-status-error px-2 py-[0.375rem] text-sm text-inverse transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+			class="group gap-button rounded-button bg-status-error text-inverse flex w-full items-center px-2 py-[0.375rem] text-sm transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			<Icon type="delete" size="sm" />
 			<Text variant="body" size="sm" as="span" class="font-normal">
@@ -93,10 +95,10 @@
 			<Text variant="body" size="sm" as="span" class="font-normal">Cancel</Text>
 		</button>
 		{#if error}
-			<p class="px-2 text-label text-error">{error}</p>
+			<p class="text-label text-error px-2">{error}</p>
 		{/if}
 		{#if success}
-			<p class="px-2 text-label text-success">Cleaned! Reloading...</p>
+			<p class="text-label text-success px-2">Cleaned! Reloading...</p>
 		{/if}
 	</div>
 {:else}

@@ -39,7 +39,7 @@
 	// Query importable proposals count (only if meeting has circleId)
 	const proposalsQuery = $derived(
 		browser && sessionId && meetingId && hasCircleId
-			? useQuery(api.proposals.listForMeetingImport, () => ({
+			? useQuery(api.core.proposals.index.listForMeetingImport, () => ({
 					sessionId,
 					meetingId
 				}))
@@ -58,7 +58,7 @@
 	Import Proposal
 	{#if proposalCount > 0}
 		<span
-			class="ml-1 rounded-full bg-accent-primary px-1.5 py-0.5 text-xs font-medium text-primary"
+			class="bg-accent-primary text-primary ml-1 rounded-full px-1.5 py-0.5 text-xs font-medium"
 		>
 			{proposalCount}
 		</span>

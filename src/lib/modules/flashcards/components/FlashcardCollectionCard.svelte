@@ -18,18 +18,18 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="group border-base px-inbox-container py-inbox-container hover:shadow-card-hover relative flex w-full flex-col rounded-card border bg-elevated text-left transition-all duration-200 hover:border-accent-primary"
+	class="group border-base px-inbox-container py-inbox-container hover:shadow-card-hover rounded-card bg-elevated hover:border-accent-primary relative flex w-full flex-col border text-left transition-all duration-200"
 >
 	<!-- Collection Name -->
 	<div class="mb-inbox-title flex items-center gap-2">
 		{#if collection.color && collection.tagId !== 'all'}
 			<div
-				class="ring-base size-icon-sm flex-shrink-0 rounded-avatar ring-2"
+				class="ring-base size-icon-sm rounded-avatar flex-shrink-0 ring-2"
 				style="background-color: {collection.color};"
 			></div>
 		{:else}
 			<svg
-				class="size-icon-md flex-shrink-0 text-accent-primary"
+				class="size-icon-md text-accent-primary flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -43,17 +43,17 @@
 			</svg>
 		{/if}
 		<h3
-			class="text-h3 leading-tight font-semibold text-primary transition-colors group-hover:text-accent-primary"
+			class="text-h3 text-primary group-hover:text-accent-primary leading-tight font-semibold transition-colors"
 		>
 			{collection.name}
 		</h3>
 	</div>
 
 	<!-- Counts -->
-	<div class="text-small flex items-center gap-2 text-secondary">
+	<div class="text-small text-secondary flex items-center gap-2">
 		<span>{collection.count} card{collection.count !== 1 ? 's' : ''}</span>
 		{#if collection.dueCount !== undefined && collection.dueCount > 0}
-			<span class="font-semibold text-accent-primary">• {collection.dueCount} due</span>
+			<span class="text-accent-primary font-semibold">• {collection.dueCount} due</span>
 		{:else if collection.count > 0}
 			<span>• All caught up</span>
 		{/if}

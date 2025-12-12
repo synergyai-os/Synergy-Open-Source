@@ -1,89 +1,74 @@
-# Circles Core Module
-
-Pure business logic functions for the circles domain. This module contains no database dependencies and focuses on testable, isolated business logic.
+# Circles Domain
 
 ## Purpose
 
-Circles represent work workspace units (not people grouping). Examples include value streams, functions, and coordination contexts. Circles can be nested (parent-child relationships).
+Organizational containers for work within a workspace, with parent/child hierarchy and decision model.
 
-## Architecture
+## Status
 
-This module follows the core domain pattern established in `/convex/core/authority/`:
+**FROZEN** - Circle structure, lifecycle, and hierarchy rules are locked to preserve workspace hierarchy invariants.
 
-- **Pure functions only** - No side effects, no database dependencies
-- **Isolated files** - Each file focuses on a specific concern
-- **Index exports** - Clean public API via `index.ts`
-- **Unit tested** - All pure functions have comprehensive tests
+## Key Concepts
 
-## Module Structure
+- One root circle per workspace; all other circles have a parent.
+- `circleType` and `decisionModel` define governance style.
+- `slug` is unique per workspace for routing.
+- Soft delete via `archivedAt`/`archivedByPersonId`; `status` is lifecycle, not deletion.
 
-```
-circles/
-├── slug.ts          # Slug generation and uniqueness logic
-├── validation.ts    # Circle data validation rules
-├── index.ts         # Public API exports
-├── README.md        # This file
-└── slug.test.ts     # Unit tests for slug functions
-```
+## Identity Model
 
-## Usage
+| Field            | Type                                                             | Usage                    |
+| ---------------- | ---------------------------------------------------------------- | ------------------------ |
+| `circleId`       | `Id<'circles'>`                                                  | Primary identifier       |
+| `workspaceId`    | `Id<'workspaces'>`                                               | Scope boundary           |
+| `parentCircleId` | `Id<'circles'> \| null`                                          | Hierarchy (null = root)  |
+| `slug`           | `string`                                                         | Workspace-unique URL key |
+| `circleType`     | `'hierarchy' \| 'empowered_team' \| 'guild' \| 'hybrid' \| null` | Operating mode           |
+| `status`         | `'draft' \| 'active'`                                            | Lifecycle state          |
 
-### In Application Layer (convex/circles.ts)
+## Invariants
 
-```typescript
-import { slugifyName, ensureUniqueSlug, validateCircleName } from './core/circles';
+This domain is validated by the following invariants (see `convex/admin/invariants/INVARIANTS.md`):
 
-// Use pure functions for business logic
-const slugBase = slugifyName(circleName);
-const existingSlugs = new Set(existingCircles.map((c) => c.slug));
-const uniqueSlug = ensureUniqueSlug(slugBase, existingSlugs);
+| ID      | Rule                                                   |
+| ------- | ------------------------------------------------------ |
+| ORG-01  | Each workspace has exactly one root circle             |
+| ORG-02  | Non-root circles have valid `parentCircleId`           |
+| ORG-03  | No circular parent chains                              |
+| ORG-04  | `circle.workspaceId` points to existing workspace      |
+| ORG-05  | Parent circle is in the same workspace                 |
+| ORG-06  | `circleType` is valid enum when set                    |
+| ORG-07  | `status` is `draft` or `active`                        |
+| ORG-08  | `slug` is unique within workspace                      |
+| ORG-09  | `archivedByPersonId` implies `archivedAt`              |
+| CMEM-01 | `circleMember.circleId` points to existing circle      |
+| CMEM-02 | `circleMember.personId` points to existing person      |
+| CMEM-03 | Circle member workspace matches circle workspace       |
+| CMEM-04 | No duplicate active `(circleId, personId)` memberships |
+| XDOM-03 | Foreign keys stay within the same workspace            |
 
-// Validate before DB operations
-const validationError = validateCircleName(name);
-if (validationError) {
-	throw new Error(validationError);
-}
-```
+## Relationship to Other Domains
 
-### In Other Modules
+| Domain        | Relationship                                       |
+| ------------- | -------------------------------------------------- |
+| `workspaces`  | Each workspace owns one root circle                |
+| `roles`       | Circle roles belong to circles                     |
+| `assignments` | Assignments reference `circleId`                   |
+| `people`      | Circle membership uses `personId`                  |
+| `authority`   | Circle Lead role/assignments drive authority       |
+| `history`     | Circle changes are captured in org version history |
+| `proposals`   | Proposals can target circles                       |
 
-```typescript
-import { slugifyName } from '../core/circles';
+## Files
 
-// Use in any context without DB dependencies
-const slug = slugifyName('Engineering Team'); // 'engineering-team'
-```
-
-## Functions
-
-### Slug Functions (`slug.ts`)
-
-- `slugifyName(name: string): string` - Convert name to URL-friendly slug
-- `ensureUniqueSlug(baseSlug: string, existingSlugs: Set<string>): string` - Generate unique slug
-
-### Validation Functions (`validation.ts`)
-
-- `validateCircleName(name: string | undefined | null): string | null` - Validate circle name (for creation)
-- `validateCircleNameUpdate(name: string | undefined): string | null` - Validate circle name (for updates)
-
-## Testing
-
-All functions are unit tested without database mocking. Tests verify:
-
-- Edge cases (empty strings, special characters, length limits)
-- Business rules (slug uniqueness, validation rules)
-- Consistency (mutually exclusive validation states)
-
-See `slug.test.ts` for examples.
-
-## Design Decisions
-
-1. **Pure functions** - No DB dependencies enables isolated testing
-2. **Separation of concerns** - Business logic separate from data access
-3. **Domain language** - Functions use circle domain terminology
-4. **Idempotent operations** - Slug generation is deterministic
-
-## Related Modules
-
-- `/convex/circles.ts` - Application layer (DB operations, mutations/queries)
-- `/convex/core/authority/` - Authority calculation (similar pattern)
+| File                 | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `tables.ts`          | Defines circles, circleMembers, circleRoles tables |
+| `queries.ts`         | Read circles, children, and members                |
+| `mutations.ts`       | Create/update/archive circles                      |
+| `circleLifecycle.ts` | Lifecycle rules (activate/archive/restore)         |
+| `circleAccess.ts`    | Access control helpers for circle operations       |
+| `circleMembers.ts`   | Manage explicit circle membership                  |
+| `circleCoreRoles.ts` | Core Circle Lead role management                   |
+| `validation.ts`      | Name/slug validation helpers                       |
+| `index.ts`           | Public exports                                     |

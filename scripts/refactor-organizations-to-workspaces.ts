@@ -10,7 +10,7 @@
  * - Variable names: workspace → workspace (context-aware)
  * - File names: workspaces.ts → workspaces.ts
  * - Directory names: workspaces/ → workspaces/
- * - API endpoints: api.workspaces.* → api.workspaces.*
+ * - API endpoints: api.core.workspaces.index.* → api.core.workspaces.index.*
  *
  * Features:
  * - Dry-run mode for preview
@@ -74,8 +74,8 @@ const REPLACEMENTS = [
 	// API endpoints
 	{
 		pattern: /api\.workspaces\./g,
-		replacement: 'api.workspaces.',
-		description: 'API endpoint api.workspaces.*'
+		replacement: 'api.core.workspaces.index.',
+		description: 'API endpoint api.core.workspaces.index.*'
 	},
 
 	// Field names (with word boundaries)

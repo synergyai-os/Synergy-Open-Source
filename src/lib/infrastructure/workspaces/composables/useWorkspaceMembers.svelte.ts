@@ -33,7 +33,7 @@ export function useWorkspaceMembers(options: {
 	// Query workspace members
 	const membersQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.workspaces.listMembers, () => {
+			? useQuery(api.core.workspaces.index.listMembers, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
 					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
@@ -44,7 +44,7 @@ export function useWorkspaceMembers(options: {
 	// Query workspace invites
 	const invitesQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.workspaces.getWorkspaceInvites, () => {
+			? useQuery(api.core.workspaces.index.getWorkspaceInvites, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
 					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
@@ -65,17 +65,17 @@ export function useWorkspaceMembers(options: {
 		},
 
 		// Mutations
-		removeMember: async (args: { workspaceId: string; userId: string }) => {
+		removeMember: async (args: { workspaceId: string; memberUserId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
 			state.loading.remove = true;
 			try {
-				await convexClient.mutation(api.workspaces.removeOrganizationMember, {
+				await convexClient.mutation(api.core.workspaces.index.removeOrganizationMember, {
 					sessionId,
 					workspaceId: args.workspaceId as Id<'workspaces'>,
-					userId: args.userId as Id<'users'>
+					memberUserId: args.memberUserId as Id<'users'>
 				});
 
 				toast.success('Member removed');
@@ -96,11 +96,14 @@ export function useWorkspaceMembers(options: {
 
 			state.loading.invite = true;
 			try {
-				const result = await convexClient.mutation(api.workspaces.createWorkspaceInvite, {
-					sessionId,
-					workspaceId: workspaceId as Id<'workspaces'>,
-					email
-				});
+				const result = await convexClient.mutation(
+					api.core.workspaces.index.createWorkspaceInvite,
+					{
+						sessionId,
+						workspaceId: workspaceId as Id<'workspaces'>,
+						email
+					}
+				);
 				return result.code;
 			} catch (error) {
 				let message = 'Failed to create invite';
@@ -128,7 +131,7 @@ export function useWorkspaceMembers(options: {
 
 			state.loading.resend = true;
 			try {
-				await convexClient.mutation(api.workspaces.resendOrganizationInvite, {
+				await convexClient.mutation(api.core.workspaces.index.resendOrganizationInvite, {
 					sessionId,
 					inviteId: inviteId as Id<'workspaceInvites'>
 				});

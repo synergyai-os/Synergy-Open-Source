@@ -6,6 +6,7 @@
 import { browser } from '$app/environment';
 import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
 import type { ConvexClient, InboxApi, SyncProgress, SyncReadwiseResult } from '$lib/types/convex';
+import { invariant } from '$lib/utils/invariant';
 
 export interface UseInboxSyncReturn {
 	get isSyncing(): boolean;
@@ -29,7 +30,8 @@ export function useInboxSync(
 	inboxApi: InboxApi | null,
 	getSessionId: () => string | undefined,
 	onItemsReload?: () => Promise<void>,
-	onClearSelection?: () => void
+	onClearSelection?: () => void,
+	getWorkspaceId?: () => string | null
 ): UseInboxSyncReturn {
 	// Sync state - use single $state object for better reactivity tracking
 	const state = $state({
@@ -129,6 +131,9 @@ export function useInboxSync(
 		customEndDate?: string;
 	}) {
 		if (!browser || !convexClient || !inboxApi) return;
+		const sessionId = getSessionId();
+		invariant(sessionId, 'sessionId required for Readwise sync');
+		const workspaceId = getWorkspaceId?.();
 
 		state.showSyncConfig = false;
 		state.isSyncing = true;
@@ -182,10 +187,11 @@ export function useInboxSync(
 		pollSyncProgress();
 
 		try {
-			const result = (await convexClient.action(
-				inboxApi.fetchReadwiseHighlights,
-				options
-			)) as SyncReadwiseResult;
+			const result = (await convexClient.action(inboxApi.fetchReadwiseHighlights, {
+				...options,
+				sessionId,
+				workspaceId: workspaceId ?? undefined
+			})) as SyncReadwiseResult;
 
 			// Stop polling immediately after action completes (before processing result)
 			// This prevents race conditions where pollSyncProgress might mark completion too early

@@ -158,8 +158,8 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	// Return API with getters (Svelte 5 pattern)
 	return {
 		/**
-		 * List of currently active users
-		 * Format: [{ userId, name, joinedAt }]
+		 * List of currently active people
+		 * Format: [{ personId, name, joinedAt }]
 		 */
 		get activeUsers() {
 			return activeUsers;
@@ -174,7 +174,7 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 
 		/**
 		 * Combined attendance list (expected + active + guests)
-		 * Format: [{ userId, name, isExpected, isActive, attendeeType? }]
+		 * Format: [{ personId, name, isExpected, isActive, attendeeType? }]
 		 * Sorted: Expected first, then guests; alphabetically within groups
 		 */
 		get combinedAttendance() {

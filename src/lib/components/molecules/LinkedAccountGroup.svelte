@@ -42,7 +42,7 @@
 
 <DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 
-<div class="flex items-center justify-between px-input py-stack-header {className}">
+<div class="px-input py-stack-header flex items-center justify-between {className}">
 	<Text
 		variant="label"
 		size="sm"
@@ -65,7 +65,7 @@
 {#if workspaces.length > 0}
 	{#each workspaces as workspace (`${workspace.workspaceId}-${account.userId}`)}
 		<DropdownMenu.Item
-			class="mx-1 flex cursor-pointer items-center justify-between rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
+			class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 flex cursor-pointer items-center justify-between transition-all duration-200 outline-none"
 			textValue={workspace.name}
 			onSelect={() => {
 				// Switch to linked account and navigate to workspace
@@ -73,7 +73,7 @@
 				onClose?.();
 			}}
 		>
-			<div class="flex min-w-0 flex-1 items-center gap-header">
+			<div class="gap-header flex min-w-0 flex-1 items-center">
 				<Avatar
 					initials={workspace.initials ?? workspace.name.slice(0, 2).toUpperCase()}
 					size="sm"

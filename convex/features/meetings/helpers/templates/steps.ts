@@ -2,8 +2,11 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireTemplate } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireTemplate,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type AddStepArgs = {
 	sessionId: string;
@@ -43,9 +46,13 @@ export async function addTemplateStep(
 	ctx: MutationCtx,
 	args: AddStepArgs
 ): Promise<{ stepId: Id<'meetingTemplateSteps'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	const stepId = await ctx.db.insert('meetingTemplateSteps', {
 		templateId: args.templateId,
@@ -69,12 +76,16 @@ export async function removeTemplateStep(
 	ctx: MutationCtx,
 	args: RemoveStepArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const step = await ctx.db.get(args.stepId);
 	if (!step) throw createError(ErrorCodes.TEMPLATE_STEP_NOT_FOUND, 'Step not found');
 
 	const template = await requireTemplate(ctx, step.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	await ctx.db.delete(args.stepId);
 	return { success: true };
@@ -90,9 +101,13 @@ export async function reorderTemplateSteps(
 	ctx: MutationCtx,
 	args: ReorderStepsArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	for (let i = 0; i < args.stepIds.length; i++) {
 		const stepId = args.stepIds[i];

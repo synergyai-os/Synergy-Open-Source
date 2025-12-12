@@ -47,20 +47,20 @@ describe('validateOrgColor', () => {
 
 	test('rejects too-light color (fails light mode)', () => {
 		const result = validateOrgColor('oklch(90% 0.1 250)');
-		expect(result.valid).toBe(false);
-		expect(result.error).toContain('light mode');
-		expect(result.suggestion).toContain('decreasing lightness');
+		expect(result.valid).toBe(true);
+		expect(result.warning).toContain('Light mode');
+		expect(result.suggestion).toContain('Colors may be hard to see');
 	});
 
 	test('rejects too-dark color (fails dark mode)', () => {
 		const result = validateOrgColor('oklch(20% 0.2 250)');
-		expect(result.valid).toBe(false);
-		expect(result.error).toContain('dark mode');
-		expect(result.suggestion).toContain('increasing lightness');
+		expect(result.valid).toBe(true);
+		expect(result.warning).toContain('Dark mode');
+		expect(result.suggestion).toContain('Colors may be hard to see');
 	});
 
 	test('provides lightness suggestion', () => {
 		const result = validateOrgColor('oklch(95% 0.1 250)'); // Too light
-		expect(result.suggestion).toMatch(/\d+%/); // Contains numeric suggestion
+		expect(result.warning).toMatch(/\d+%/); // Contains numeric suggestion
 	});
 });

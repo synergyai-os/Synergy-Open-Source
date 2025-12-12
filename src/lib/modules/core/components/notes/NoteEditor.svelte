@@ -233,19 +233,19 @@
 				onkeydown={handleTitleKeydown}
 				placeholder="Note title"
 				disabled={readonly}
-				class="mb-content-section text-h3 w-full border-none bg-transparent p-0 font-semibold text-primary transition-colors outline-none placeholder:text-tertiary focus:placeholder:text-tertiary"
+				class="mb-content-section text-h3 text-primary placeholder:text-tertiary focus:placeholder:text-tertiary w-full border-none bg-transparent p-0 font-semibold transition-colors outline-none"
 			/>
 
 			<!-- ProseMirror Editor with Placeholder Overlay -->
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed min-h-[60px] max-w-none text-secondary {compact
+					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed text-secondary min-h-[60px] max-w-none {compact
 						? 'max-h-[60vh] overflow-y-auto'
 						: ''}"
 				></div>
 				{#if isEmpty && !isFocused}
-					<div class="text-small pointer-events-none absolute top-0 left-0 text-tertiary">
+					<div class="text-small text-tertiary pointer-events-none absolute top-0 left-0">
 						{placeholder}
 					</div>
 				{/if}
@@ -402,7 +402,7 @@
 	/* Code block styling using design tokens */
 	:global(.ProseMirror pre) {
 		position: relative;
-		background-color: var(--color-code-bg);
+		background-color: var(--color-component-code-bg);
 		border: 1px solid var(--color-border-base);
 		border-radius: 6px;
 		padding: 32px 12px 12px 12px;
@@ -411,7 +411,7 @@
 		font-family: 'Monaco', 'Menlo', 'Consolas', 'SF Mono', monospace;
 		font-size: 13px;
 		line-height: 1.6;
-		color: var(--color-code-text);
+		color: var(--color-component-code-text);
 	}
 
 	:global(.ProseMirror pre code) {
@@ -428,7 +428,7 @@
 	:global(.ProseMirror .hljs-doctag),
 	:global(.ProseMirror .hljs-name),
 	:global(.ProseMirror .hljs-strong) {
-		color: var(--color-code-keyword);
+		color: var(--color-syntax-keyword);
 		font-weight: bold;
 	}
 
@@ -438,17 +438,17 @@
 	:global(.ProseMirror .hljs-template-tag),
 	:global(.ProseMirror .hljs-template-variable),
 	:global(.ProseMirror .hljs-type) {
-		color: var(--color-code-string);
+		color: var(--color-syntax-string);
 	}
 
 	:global(.ProseMirror .hljs-number),
 	:global(.ProseMirror .hljs-meta) {
-		color: var(--color-code-number);
+		color: var(--color-syntax-number);
 	}
 
 	:global(.ProseMirror .hljs-comment),
 	:global(.ProseMirror .hljs-quote) {
-		color: var(--color-code-comment);
+		color: var(--color-syntax-comment);
 		font-style: italic;
 	}
 
@@ -457,21 +457,27 @@
 	:global(.ProseMirror .hljs-title),
 	:global(.ProseMirror .hljs-section),
 	:global(.ProseMirror .hljs-title.class_) {
-		color: var(--color-code-function);
+		color: var(--color-syntax-function);
 	}
 
 	:global(.ProseMirror .hljs-variable),
 	:global(.ProseMirror .hljs-attr) {
-		color: var(--color-code-variable);
+		color: var(--color-syntax-variable);
 	}
 
+	:global(.ProseMirror .hljs-operator),
+	:global(.ProseMirror .hljs-punctuation) {
+		color: var(--color-syntax-operator);
+	}
+
+	/* Note: hljs-tag uses keyword color for consistency */
 	:global(.ProseMirror .hljs-tag) {
-		color: var(--color-code-tag);
+		color: var(--color-syntax-keyword);
 	}
 
 	:global(.ProseMirror .hljs-regexp),
 	:global(.ProseMirror .hljs-link) {
-		color: var(--color-code-string);
+		color: var(--color-syntax-string);
 	}
 
 	/* Language badge using design tokens */
@@ -480,13 +486,13 @@
 		top: 6px;
 		right: 8px;
 		padding: 2px 8px;
-		background-color: var(--color-code-badge-bg);
+		background-color: var(--color-component-badge-neutral-bg);
 		border: 1px solid var(--color-border-base);
 		border-radius: 4px;
 		font-size: 11px;
 		font-weight: 500;
 		text-transform: uppercase;
-		color: var(--color-code-badge-text);
+		color: var(--color-component-badge-neutral-text);
 		cursor: pointer;
 		transition: all 0.2s;
 		user-select: none;

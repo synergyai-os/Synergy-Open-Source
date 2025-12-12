@@ -9,7 +9,7 @@
 
 <div class="flex flex-col" style="gap: var(--spacing-1);">
 	{#if label}
-		<span class="text-label tracking-wider text-tertiary uppercase">
+		<span class="text-label text-tertiary tracking-wider uppercase">
 			{label}
 		</span>
 	{/if}

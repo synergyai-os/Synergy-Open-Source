@@ -44,7 +44,7 @@
 	- Styling: Recipe handles background (bg-surface) and padding
 -->
 <header class={headerClasses} style="height: 2.5rem;">
-	<div class="flex items-center gap-button">
+	<div class="gap-button flex items-center">
 		{#if showBackButton && onBack}
 			<Button variant="ghost" size="md" iconOnly onclick={onBack} ariaLabel="Go back">
 				<Icon type="chevron-left" size="md" />
@@ -70,7 +70,7 @@
 			</Heading>
 		{/if}
 	</div>
-	<div class="flex items-center gap-button">
+	<div class="gap-button flex items-center">
 		{#if addMenuItems.length > 0}
 			<SplitButton
 				primaryLabel="Add"

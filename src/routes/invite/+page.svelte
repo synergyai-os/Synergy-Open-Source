@@ -14,15 +14,18 @@
 	// Get sessionId from page data (may be undefined for unauthenticated users)
 	const getSessionId = () => $page.data.sessionId;
 
-	// Query invite details (public query - no auth required)
+	// Query invite details (requires auth session)
 	// Only run in browser to avoid SSR issues
-	const inviteQuery = browser
-		? useQuery(api.workspaces.findInviteByCode, () => {
-				const code = inviteCode;
-				invariant(code, 'Code required');
-				return { code };
-			})
-		: null;
+	const inviteQuery =
+		browser && getSessionId()
+			? useQuery(api.core.workspaces.index.findInviteByCode, () => {
+					const code = inviteCode;
+					const sessionId = getSessionId();
+					invariant(code, 'Code required');
+					invariant(sessionId, 'sessionId required');
+					return { sessionId, code };
+				})
+			: null;
 
 	const invite = $derived(inviteQuery?.data);
 	// During SSR (browser=false), show loading state instead of error
@@ -64,10 +67,13 @@
 				return;
 			}
 
-			const result = await convexClient.mutation(api.workspaces.acceptOrganizationInvite, {
-				sessionId,
-				code: inviteCode
-			});
+			const result = await convexClient.mutation(
+				api.core.workspaces.index.acceptOrganizationInvite,
+				{
+					sessionId,
+					code: inviteCode
+				}
+			);
 
 			// Redirect to workspace page
 			const redirectUrl = resolveRoute(`/org/circles?org=${result.workspaceId}`);
@@ -108,7 +114,7 @@
 </script>
 
 <div
-	class="px-marketing-container-x py-marketing-section-y flex min-h-screen flex-col items-center justify-center bg-base"
+	class="px-marketing-container-x py-marketing-section-y bg-base flex min-h-screen flex-col items-center justify-center"
 >
 	<div class="w-full max-w-md">
 		{#if !inviteCode}
@@ -121,8 +127,8 @@
 			</div>
 		{:else if isLoading}
 			<!-- Loading state -->
-			<div class="border-base p-content-padding rounded-lg border bg-surface text-center">
-				<div class="mb-4 text-secondary">Loading invite...</div>
+			<div class="border-base p-content-padding bg-surface rounded-lg border text-center">
+				<div class="text-secondary mb-4">Loading invite...</div>
 			</div>
 		{:else if browser && (inviteError || !invite)}
 			<!-- Error state or invite not found (only show in browser, not during SSR) -->
@@ -137,10 +143,10 @@
 			{@const inviteData = invite}
 			{#if inviteData}
 				<!-- Invite details -->
-				<div class="border-base p-content-padding rounded-lg border bg-surface">
+				<div class="border-base p-content-padding bg-surface rounded-lg border">
 					<div class="mb-6 text-center">
-						<h1 class="mb-2 text-2xl font-semibold text-primary">You've been invited!</h1>
-						<p class="text-sm text-secondary">
+						<h1 class="text-primary mb-2 text-2xl font-semibold">You've been invited!</h1>
+						<p class="text-secondary text-sm">
 							{#if inviteData.type === 'workspace'}
 								You've been invited to join an workspace on SynergyOS
 							{:else}
@@ -152,20 +158,20 @@
 					<div class="mb-6 space-y-4">
 						<!-- Organization name -->
 						<div>
-							<div class="mb-1 text-xs font-medium text-secondary">Organization</div>
-							<div class="text-lg font-semibold text-primary">{inviteData.organizationName}</div>
+							<div class="text-secondary mb-1 text-xs font-medium">Organization</div>
+							<div class="text-primary text-lg font-semibold">{inviteData.organizationName}</div>
 						</div>
 
 						<!-- Inviter -->
 						<div>
-							<div class="mb-1 text-xs font-medium text-secondary">Invited by</div>
-							<div class="text-sm text-primary">{inviteData.inviterName}</div>
+							<div class="text-secondary mb-1 text-xs font-medium">Invited by</div>
+							<div class="text-primary text-sm">{inviteData.inviterName}</div>
 						</div>
 
 						<!-- Role -->
 						<div>
-							<div class="mb-1 text-xs font-medium text-secondary">Role</div>
-							<div class="text-sm text-primary">{formatRole(inviteData.role)}</div>
+							<div class="text-secondary mb-1 text-xs font-medium">Role</div>
+							<div class="text-primary text-sm">{formatRole(inviteData.role)}</div>
 						</div>
 					</div>
 
@@ -182,7 +188,7 @@
 							<Button
 								onclick={handleAcceptInvite}
 								disabled={isAccepting}
-								class="text-on-solid w-full bg-accent-primary hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+								class="text-on-solid bg-accent-primary hover:bg-accent-hover w-full disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{isAccepting ? 'Accepting...' : 'Accept Invite'}
 							</Button>
@@ -194,7 +200,7 @@
 							: ''}
 						<!-- Unauthenticated: Show Sign in / Create account links -->
 						<div class="space-y-3">
-							<p class="text-center text-sm text-secondary">
+							<p class="text-secondary text-center text-sm">
 								Sign in or create an account to accept this invite
 							</p>
 							<div class="flex gap-3">
@@ -202,7 +208,7 @@
 									href={resolveRoute(
 										`/login?redirect=${encodeURIComponent(redirectUrl)}${emailParam}`
 									)}
-									class="border-base hover:bg-sidebar-hover flex-1 rounded-md border bg-elevated px-button-x py-button-y text-center text-sm font-medium text-primary transition-colors"
+									class="border-base hover:bg-sidebar-hover bg-elevated px-button-x py-button-y text-primary flex-1 rounded-md border text-center text-sm font-medium transition-colors"
 								>
 									Sign In
 								</a>
@@ -210,7 +216,7 @@
 									href={resolveRoute(
 										`/register?redirect=${encodeURIComponent(redirectUrl)}${emailParam}`
 									)}
-									class="text-on-solid flex-1 rounded-md bg-accent-primary px-button-x py-button-y text-center text-sm font-medium transition-colors hover:bg-accent-hover"
+									class="text-on-solid bg-accent-primary px-button-x py-button-y hover:bg-accent-hover flex-1 rounded-md text-center text-sm font-medium transition-colors"
 								>
 									Create Account
 								</a>

@@ -28,7 +28,7 @@
 				id="email-input"
 				type="email"
 				placeholder="Enter your email"
-				class="border-base rounded-input border px-input-x py-input-y"
+				class="border-base rounded-input px-input-x py-input-y border"
 			/>
 		</div>
 	{/snippet}
@@ -44,7 +44,7 @@
 				id="required-input"
 				type="password"
 				placeholder="Enter password"
-				class="border-base rounded-input border px-input-x py-input-y"
+				class="border-base rounded-input px-input-x py-input-y border"
 			/>
 		</div>
 	{/snippet}

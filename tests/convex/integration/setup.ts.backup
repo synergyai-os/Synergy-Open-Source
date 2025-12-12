@@ -143,6 +143,27 @@ export async function createTestOrganizationMember(
 }
 
 /**
+ * Create a meeting template for an organization
+ */
+export async function createTestMeetingTemplate(
+	t: TestConvex<any>,
+	organizationId: Id<'organizations'>,
+	createdBy: Id<'users'>,
+	name: string = 'Test Meeting Template'
+): Promise<Id<'meetingTemplates'>> {
+	const now = Date.now();
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('meetingTemplates', {
+			organizationId,
+			name,
+			description: 'Test template',
+			createdAt: now,
+			createdBy
+		});
+	});
+}
+
+/**
  * Create an organization invite
  */
 export async function createTestInvite(

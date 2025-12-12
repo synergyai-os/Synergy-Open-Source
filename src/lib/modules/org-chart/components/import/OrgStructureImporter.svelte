@@ -14,6 +14,7 @@
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import * as AlertDialog from '$lib/components/organisms/AlertDialog.svelte';
 	import { Button, Text } from '$lib/components/atoms';
+	import { invariant } from '$lib/utils/invariant';
 
 	// Props
 	let { workspaceId, rootCircleId, workspaceSlug, targetCircleId } = $props<{
@@ -32,9 +33,9 @@
 	// Query core role templates for validation
 	const coreTemplatesQuery =
 		browser && workspaceId && $page.data.sessionId
-			? useQuery(api.roleTemplates.list, () => {
+			? useQuery(api.core.roles.templates.list, () => {
 					const sessionId = $page.data.sessionId;
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return {
 						sessionId,
 						workspaceId: workspaceId as Id<'workspaces'>
@@ -91,9 +92,9 @@
 	// Query target circle name if targetCircleId is provided
 	const targetCircleQuery =
 		browser && targetCircleId && $page.data.sessionId
-			? useQuery(api.circles.get, () => {
+			? useQuery(api.core.circles.index.get, () => {
 					const sessionId = $page.data.sessionId;
-					if (!sessionId) throw new Error('sessionId required');
+					invariant(sessionId, 'sessionId required');
 					return {
 						sessionId,
 						circleId: targetCircleId as Id<'circles'>
@@ -109,7 +110,7 @@
 		showConfirmDialog = false;
 		importing = true;
 		try {
-			await convexClient.mutation(api.orgStructureImport.importOrgStructure, {
+			await convexClient.mutation(api.admin.orgStructureImport.importOrgStructure, {
 				sessionId: $page.data.sessionId,
 				workspaceId: workspaceId,
 				rootCircleId: effectiveTargetCircleId,
@@ -133,18 +134,18 @@
 	}
 </script>
 
-<div class="flex h-full flex-col gap-section">
+<div class="gap-section flex h-full flex-col">
 	<!-- Banner: Show when importing into a specific circle -->
 	{#if targetCircleId && targetCircle}
 		<div
-			class="border-base rounded-card border bg-subtle px-page py-button text-body text-secondary"
+			class="border-base rounded-card bg-subtle px-page py-button text-body text-secondary border"
 		>
 			<span class="font-medium">Importing into:</span>
 			{targetCircle.name}
 		</div>
 	{/if}
 
-	<div class="grid flex-1 grid-cols-2 gap-section">
+	<div class="gap-section grid flex-1 grid-cols-2">
 		<!-- Left: Text Editor -->
 		<ImportTextarea bind:value={textInput} errors={parseResult?.errors ?? []} />
 
@@ -164,7 +165,7 @@
 	<AlertDialog.Portal>
 		<AlertDialog.Overlay class="fixed inset-0 z-50 bg-black/50" />
 		<AlertDialog.Content
-			class="border-base shadow-card-hover p-modal fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(100%,90vw)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card border bg-elevated"
+			class="border-base shadow-card-hover p-modal rounded-card bg-elevated fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(100%,90vw)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto border"
 		>
 			<AlertDialog.Title>
 				<Text variant="h3">⚠️ Core Role Detected</Text>
@@ -181,7 +182,7 @@
 					</Text>
 					<ul class="mt-1 list-inside list-disc space-y-1">
 						{#each parseResult?.coreRoleWarnings ?? [] as warning (warning.lineNumber)}
-							<li class="text-sm text-secondary">
+							<li class="text-secondary text-sm">
 								Line {warning.lineNumber}: {warning.message.split('.')[0]}
 							</li>
 						{/each}
@@ -192,7 +193,7 @@
 					automatically created.
 				</Text>
 			</AlertDialog.Description>
-			<div class="mt-section flex justify-end gap-button">
+			<div class="mt-section gap-button flex justify-end">
 				<AlertDialog.Cancel>
 					<Button variant="secondary" onclick={handleCancelImport}>Cancel</Button>
 				</AlertDialog.Cancel>

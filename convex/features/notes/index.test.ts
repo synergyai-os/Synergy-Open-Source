@@ -3,9 +3,18 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 vi.mock('../../infrastructure/sessionValidation', () => ({
 	validateSessionAndGetUserId: vi.fn()
 }));
+vi.mock('../../core/people/queries', () => ({
+	getPersonByUserAndWorkspace: vi.fn(),
+	listWorkspacesForUser: vi.fn()
+}));
+vi.mock('../../core/people/rules', () => ({
+	requireActivePerson: vi.fn()
+}));
 
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import { getPersonByUserAndWorkspace, listWorkspacesForUser } from '../../core/people/queries';
+import { requireActivePerson } from '../../core/people/rules';
 import { createNote, findNote, updateNote } from './index';
 
 const getHandler = <T extends Record<string, unknown>>(fn: T) =>
@@ -31,8 +40,13 @@ describe('features/notes', () => {
 		vi.clearAllMocks();
 	});
 
+	const person = { _id: 'p1', workspaceId: 'w1', userId: 'u1', status: 'active' } as any;
+
 	test('createNote validates the session and inserts a note for the acting user', async () => {
 		(validateSessionAndGetUserId as any).mockResolvedValue({ userId: 'u1' });
+		(listWorkspacesForUser as any).mockResolvedValue(['w1']);
+		(getPersonByUserAndWorkspace as any).mockResolvedValue(person);
+		(requireActivePerson as any).mockResolvedValue(person);
 		const ctx = makeCtx();
 		ctx.db.insert.mockResolvedValue('note-1');
 
@@ -49,7 +63,8 @@ describe('features/notes', () => {
 		expect(ctx.db.insert).toHaveBeenCalledWith(
 			'inboxItems',
 			expect.objectContaining({
-				userId: 'u1',
+				personId: 'p1',
+				workspaceId: 'w1',
 				type: 'note',
 				content: 'Body'
 			})
@@ -59,8 +74,16 @@ describe('features/notes', () => {
 
 	test('updateNote rejects when the note is not owned by the acting user', async () => {
 		(validateSessionAndGetUserId as any).mockResolvedValue({ userId: 'u1' });
+		(listWorkspacesForUser as any).mockResolvedValue(['w1']);
+		(getPersonByUserAndWorkspace as any).mockResolvedValue(person);
+		(requireActivePerson as any).mockResolvedValue(person);
 		const ctx = makeCtx();
-		ctx.db.get.mockResolvedValue({ _id: 'note-1', userId: 'other', type: 'note' });
+		ctx.db.get.mockResolvedValue({
+			_id: 'note-1',
+			personId: 'other',
+			type: 'note',
+			workspaceId: 'w1'
+		});
 
 		const handler = getHandler(updateNote);
 
@@ -75,8 +98,16 @@ describe('features/notes', () => {
 
 	test('updateNote patches when the note is owned by the acting user', async () => {
 		(validateSessionAndGetUserId as any).mockResolvedValue({ userId: 'u1' });
+		(listWorkspacesForUser as any).mockResolvedValue(['w1']);
+		(getPersonByUserAndWorkspace as any).mockResolvedValue(person);
+		(requireActivePerson as any).mockResolvedValue(person);
 		const ctx = makeCtx();
-		ctx.db.get.mockResolvedValue({ _id: 'note-1', userId: 'u1', type: 'note' });
+		ctx.db.get.mockResolvedValue({
+			_id: 'note-1',
+			personId: 'p1',
+			type: 'note',
+			workspaceId: 'w1'
+		});
 
 		const handler = getHandler(updateNote);
 
@@ -97,8 +128,16 @@ describe('features/notes', () => {
 
 	test('findNote returns null when the note does not belong to the user', async () => {
 		(validateSessionAndGetUserId as any).mockResolvedValue({ userId: 'u1' });
+		(listWorkspacesForUser as any).mockResolvedValue(['w1']);
+		(getPersonByUserAndWorkspace as any).mockResolvedValue(person);
+		(requireActivePerson as any).mockResolvedValue(person);
 		const ctx = makeCtx();
-		ctx.db.get.mockResolvedValue({ _id: 'note-1', userId: 'other', type: 'note' });
+		ctx.db.get.mockResolvedValue({
+			_id: 'note-1',
+			personId: 'other',
+			type: 'note',
+			workspaceId: 'w1'
+		});
 
 		const handler = getHandler(findNote);
 
@@ -114,6 +153,9 @@ describe('features/notes', () => {
 		(validateSessionAndGetUserId as any).mockRejectedValue(
 			createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated')
 		);
+		(listWorkspacesForUser as any).mockResolvedValue(['w1']);
+		(getPersonByUserAndWorkspace as any).mockResolvedValue(person);
+		(requireActivePerson as any).mockResolvedValue(person);
 		const ctx = makeCtx();
 
 		const handler = getHandler(createNote);

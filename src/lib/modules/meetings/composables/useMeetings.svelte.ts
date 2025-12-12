@@ -36,11 +36,13 @@ interface Meeting {
 		endDate?: number;
 	};
 	attendeeCount?: number;
-	invitedUsers?: Array<{ userId: string; name: string }>; // Invited users for display
+	invitedUsers?: Array<{ personId: string; name: string }>; // Invited users for display
 	createdAt: number;
-	createdBy: Id<'users'> | string;
+	createdByPersonId: Id<'people'> | string;
 	updatedAt: number;
 	closedAt?: number; // Meeting session closed timestamp
+	viewerPersonId?: Id<'people'> | string;
+	recorderPersonId?: Id<'people'> | string;
 }
 
 export function useMeetings(options: UseMeetingsOptions) {

@@ -79,7 +79,7 @@
 				return;
 			}
 
-			const mutation = api.workspaces.createWorkspaceInvite;
+			const mutation = api.core.workspaces.index.createWorkspaceInvite;
 			const args = {
 				sessionId: currentSessionId,
 				workspaceId: targetId as Id<'workspaces'>,
@@ -131,12 +131,12 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="border-base fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-surface text-primary shadow-xl"
+			class="border-base bg-surface text-primary fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border shadow-xl"
 		>
 			<div class="px-inbox-container py-inbox-container space-y-6">
 				<div>
-					<Dialog.Title class="text-lg font-semibold text-primary">Invite Member</Dialog.Title>
-					<Dialog.Description class="mt-1 text-sm text-secondary">
+					<Dialog.Title class="text-primary text-lg font-semibold">Invite Member</Dialog.Title>
+					<Dialog.Description class="text-secondary mt-1 text-sm">
 						Send an invite to a specific user by email. They'll receive a link to join this
 						{entityType}.
 					</Dialog.Description>
@@ -151,10 +151,10 @@
 						}}
 					>
 						<label class="flex flex-col gap-1">
-							<span class="text-sm font-medium text-primary">Email address *</span>
+							<span class="text-primary text-sm font-medium">Email address *</span>
 							<input
 								type="email"
-								class="py-nav-item w-full rounded-md border px-2 text-sm text-primary focus:outline-none disabled:opacity-50"
+								class="py-nav-item text-primary w-full rounded-md border px-2 text-sm focus:outline-none disabled:opacity-50"
 								class:border-base={!emailError}
 								class:border-error={!!emailError}
 								class:bg-elevated={!emailError}
@@ -171,7 +171,7 @@
 								disabled={isLoading}
 							/>
 							{#if emailError}
-								<span class="text-sm text-error">{emailError}</span>
+								<span class="text-error text-sm">{emailError}</span>
 							{/if}
 						</label>
 
@@ -191,12 +191,12 @@
 				{:else}
 					<div class="space-y-4">
 						<label class="flex flex-col gap-1">
-							<span class="text-sm font-medium text-primary">Invite Link</span>
+							<span class="text-primary text-sm font-medium">Invite Link</span>
 							<div class="flex gap-2">
 								<input
 									type="text"
 									readonly
-									class="border-base py-nav-item flex-1 rounded-md border bg-elevated px-2 text-sm text-primary focus:border-accent-primary focus:outline-none"
+									class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary flex-1 rounded-md border px-2 text-sm focus:outline-none"
 									value={inviteLink}
 									onclick={(e) => (e.target as HTMLInputElement).select()}
 								/>

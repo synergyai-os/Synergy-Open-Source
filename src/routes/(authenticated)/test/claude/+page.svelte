@@ -6,7 +6,7 @@
 	import { makeFunctionReference } from 'convex/server';
 	import type { FunctionReference } from 'convex/server';
 	import { resolveRoute } from '$lib/utils/navigation';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	let testInput = $state('');
 	let flashcard = $state<{ question: string; answer: string } | null>(null);
@@ -73,10 +73,13 @@ import { invariant } from '$lib/utils/invariant';
 
 			const sessionId = $page.data.sessionId;
 			invariant(sessionId, 'Session ID is required');
-			const result = await convexClient.action(api.flashcards.fetchFlashcardsFromSource, {
-				sessionId,
-				text: testInput.trim()
-			});
+			const result = await convexClient.action(
+				api.features.flashcards.index.fetchFlashcardsFromSource,
+				{
+					sessionId,
+					text: testInput.trim()
+				}
+			);
 
 			if (result.success && result.flashcard) {
 				flashcard = result.flashcard;
@@ -91,22 +94,22 @@ import { invariant } from '$lib/utils/invariant';
 	}
 </script>
 
-<div class="h-full overflow-y-auto bg-base">
+<div class="bg-base h-full overflow-y-auto">
 	<div class="p-inbox-container mx-auto max-w-4xl">
 		<!-- Page Header -->
 		<div class="mb-6">
-			<h1 class="mb-2 text-2xl font-bold text-primary">Claude Flashcard Generator</h1>
-			<p class="text-sm font-normal text-secondary">
+			<h1 class="text-primary mb-2 text-2xl font-bold">Claude Flashcard Generator</h1>
+			<p class="text-secondary text-sm font-normal">
 				Test Claude API integration by generating flashcards from your text input
 			</p>
 		</div>
 
 		<!-- API Key Status Card -->
-		<div class="border-border-elevated mb-6 rounded-md border bg-elevated p-4">
+		<div class="border-border-elevated bg-elevated mb-6 rounded-md border p-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="mb-1 text-sm font-medium text-primary">API Key Status</p>
-					<p class="text-sm text-secondary">
+					<p class="text-primary mb-1 text-sm font-medium">API Key Status</p>
+					<p class="text-secondary text-sm">
 						{#if settings.isLoading}
 							Loading...
 						{:else if settings.data?.hasClaudeKey}
@@ -116,7 +119,7 @@ import { invariant } from '$lib/utils/invariant';
 							<span class="text-orange-600 dark:text-orange-400"
 								>⚠️ Claude API key not configured.</span
 							>
-							<a href={resolveRoute('/settings')} class="ml-1 text-accent-primary hover:underline"
+							<a href={resolveRoute('/settings')} class="text-accent-primary ml-1 hover:underline"
 								>Go to Settings</a
 							>
 						{/if}
@@ -126,18 +129,18 @@ import { invariant } from '$lib/utils/invariant';
 		</div>
 
 		<!-- Input Form Card -->
-		<div class="border-border-elevated mb-6 rounded-md border bg-elevated p-6">
-			<label for="test-input" class="mb-2 block text-sm font-medium text-primary">
+		<div class="border-border-elevated bg-elevated mb-6 rounded-md border p-6">
+			<label for="test-input" class="text-primary mb-2 block text-sm font-medium">
 				Input Text
 			</label>
-			<p class="mb-3 text-xs text-tertiary">
+			<p class="text-tertiary mb-3 text-xs">
 				Enter any text you want to convert into a flashcard question and answer
 			</p>
 			<textarea
 				id="test-input"
 				bind:value={testInput}
 				placeholder="Example: The Build-Measure-Learn cycle is a fundamental concept in lean startup methodology..."
-				class="border-border placeholder-secondary focus:ring-accent-primary w-full resize-none rounded-md border bg-base px-3 py-2 text-primary transition-all focus:border-transparent focus:ring-2 focus:outline-none"
+				class="border-border placeholder-secondary focus:ring-accent-primary bg-base text-primary w-full resize-none rounded-md border px-3 py-2 transition-all focus:border-transparent focus:ring-2 focus:outline-none"
 				rows="6"
 				disabled={isGenerating}
 			></textarea>
@@ -145,7 +148,7 @@ import { invariant } from '$lib/utils/invariant';
 				type="button"
 				onclick={generateFlashcard}
 				disabled={isGenerating || !testInput.trim() || !settings.data?.hasClaudeKey}
-				class="hover:bg-accent-primary-hover mt-4 rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+				class="hover:bg-accent-primary-hover bg-accent-primary mt-4 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{isGenerating ? 'Generating...' : 'Generate Flashcard'}
 			</button>
@@ -163,27 +166,27 @@ import { invariant } from '$lib/utils/invariant';
 
 		<!-- Flashcard Display -->
 		{#if flashcard}
-			<div class="border-border-elevated mb-6 overflow-hidden rounded-md border bg-elevated">
+			<div class="border-border-elevated bg-elevated mb-6 overflow-hidden rounded-md border">
 				<!-- Flashcard Header -->
-				<div class="border-border border-b bg-surface px-6 py-4">
-					<p class="text-sm font-medium text-primary">Generated Flashcard</p>
+				<div class="border-border bg-surface border-b px-6 py-4">
+					<p class="text-primary text-sm font-medium">Generated Flashcard</p>
 				</div>
 
 				<!-- Flashcard Content -->
 				<div class="space-y-6 p-6">
 					<!-- Question -->
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-tertiary uppercase">Question</p>
-						<div class="border-border rounded-md border bg-base p-4">
-							<p class="text-base leading-relaxed text-primary">{flashcard.question}</p>
+						<p class="text-tertiary mb-2 text-xs font-medium tracking-wider uppercase">Question</p>
+						<div class="border-border bg-base rounded-md border p-4">
+							<p class="text-primary text-base leading-relaxed">{flashcard.question}</p>
 						</div>
 					</div>
 
 					<!-- Answer -->
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-tertiary uppercase">Answer</p>
-						<div class="border-border rounded-md border bg-base p-4">
-							<p class="text-base leading-relaxed whitespace-pre-wrap text-primary">
+						<p class="text-tertiary mb-2 text-xs font-medium tracking-wider uppercase">Answer</p>
+						<div class="border-border bg-base rounded-md border p-4">
+							<p class="text-primary text-base leading-relaxed whitespace-pre-wrap">
 								{flashcard.answer}
 							</p>
 						</div>
@@ -193,27 +196,27 @@ import { invariant } from '$lib/utils/invariant';
 		{/if}
 
 		<!-- Instructions Card -->
-		<div class="border-border-elevated rounded-md border bg-surface p-6">
-			<p class="mb-3 text-sm font-medium text-primary">📚 How to Use</p>
-			<ul class="space-y-2 text-sm text-secondary">
+		<div class="border-border-elevated bg-surface rounded-md border p-6">
+			<p class="text-primary mb-3 text-sm font-medium">📚 How to Use</p>
+			<ul class="text-secondary space-y-2 text-sm">
 				<li class="flex items-start gap-2">
-					<span class="mt-1 text-tertiary">•</span>
+					<span class="text-tertiary mt-1">•</span>
 					<span
 						>Enter any text (notes, article excerpts, book highlights, etc.) in the input field</span
 					>
 				</li>
 				<li class="flex items-start gap-2">
-					<span class="mt-1 text-tertiary">•</span>
+					<span class="text-tertiary mt-1">•</span>
 					<span>Click "Generate Flashcard" to send the text to Claude API</span>
 				</li>
 				<li class="flex items-start gap-2">
-					<span class="mt-1 text-tertiary">•</span>
+					<span class="text-tertiary mt-1">•</span>
 					<span
 						>Claude will create a question and answer format optimized for learning and retention</span
 					>
 				</li>
 				<li class="flex items-start gap-2">
-					<span class="mt-1 text-tertiary">•</span>
+					<span class="text-tertiary mt-1">•</span>
 					<span>The generated flashcard will appear below once processing is complete</span>
 				</li>
 			</ul>

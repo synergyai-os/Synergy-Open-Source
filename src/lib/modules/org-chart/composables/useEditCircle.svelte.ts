@@ -132,7 +132,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		state.error = null;
 
 		try {
-			const circle = await convexClient.query(api.circles.get, {
+			const circle = await convexClient.query(api.core.circles.index.get, {
 				sessionId,
 				circleId
 			});
@@ -195,7 +195,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 			const newAuthority = getLeadAuthorityLevel(newType);
 			const authorityChanged = oldType !== newType && oldAuthority !== newAuthority;
 
-			await convexClient.mutation(api.circles.updateInline, {
+			await convexClient.mutation(api.core.circles.index.updateInline, {
 				sessionId,
 				circleId,
 				updates: {
@@ -254,7 +254,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		state.error = null;
 
 		try {
-			const result = await convexClient.mutation(api.proposals.createFromDiff, {
+			const result = await convexClient.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId,
 				workspaceId,
 				entityType: 'circle',

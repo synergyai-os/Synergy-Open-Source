@@ -1,8 +1,12 @@
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
-import { ensureWorkspaceMembership, requireCircle, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireCircle,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type WorkspaceAccessArgs = { sessionId: string; workspaceId: Id<'workspaces'> };
 
@@ -11,12 +15,16 @@ export async function requireWorkspaceMember(
 	args: WorkspaceAccessArgs,
 	overrides?: { errorCode?: ErrorCodes; message?: string }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId, {
-		errorCode: overrides?.errorCode ?? ErrorCodes.GENERIC_ERROR,
-		message: overrides?.message ?? 'Workspace membership required'
-	});
-	return { userId };
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId,
+		{
+			errorCode: overrides?.errorCode ?? ErrorCodes.GENERIC_ERROR,
+			message: overrides?.message ?? 'Workspace membership required'
+		}
+	);
+	return { personId };
 }
 
 export async function fetchMeetingsByWorkspace(ctx: QueryCtx, workspaceId: Id<'workspaces'>) {
@@ -30,10 +38,14 @@ export async function fetchMeetingsByWorkspace(ctx: QueryCtx, workspaceId: Id<'w
 export async function fetchAttendeeCounts(ctx: QueryCtx, meetingIds: Id<'meetings'>[]) {
 	if (!meetingIds.length) return new Map<Id<'meetings'>, number>();
 
-	const allAttendees = await ctx.db
-		.query('meetingAttendees')
-		.withIndex('by_meeting', (q) => q.in('meetingId', meetingIds))
-		.collect();
+	const allAttendees: Array<{ meetingId: Id<'meetings'> }> = [];
+	for (const meetingId of meetingIds) {
+		const attendees = await ctx.db
+			.query('meetingAttendees')
+			.withIndex('by_meeting', (q) => q.eq('meetingId', meetingId))
+			.collect();
+		allAttendees.push(...attendees);
+	}
 
 	const counts = new Map<Id<'meetings'>, number>();
 	for (const attendee of allAttendees) {
@@ -55,10 +67,10 @@ export async function loadMeetingOrThrow(ctx: QueryCtx, meetingId: Id<'meetings'
 export async function ensureCircleMembership(
 	ctx: QueryCtx,
 	circleId: Id<'circles'>,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ) {
 	const circle = await requireCircle(ctx, circleId, ErrorCodes.GENERIC_ERROR);
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});

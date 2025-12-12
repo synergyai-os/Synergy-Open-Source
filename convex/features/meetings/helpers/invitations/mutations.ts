@@ -2,14 +2,17 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type CreateInvitationArgs = {
 	sessionId: string;
 	meetingId: Id<'meetings'>;
 	invitationType: 'user' | 'circle';
-	userId?: Id<'users'>;
+	personId?: Id<'people'>;
 	circleId?: Id<'circles'>;
 };
 type RemoveInvitationArgs = { sessionId: string; invitationId: Id<'meetingInvitations'> };
@@ -19,7 +22,7 @@ export const createInvitationArgs = {
 	sessionId: v.string(),
 	meetingId: v.id('meetings'),
 	invitationType: v.union(v.literal('user'), v.literal('circle')),
-	userId: v.optional(v.id('users')),
+	personId: v.optional(v.id('people')),
 	circleId: v.optional(v.id('circles'))
 };
 
@@ -27,13 +30,17 @@ export async function createInvitation(
 	ctx: MutationCtx,
 	args: CreateInvitationArgs
 ): Promise<{ invitationId: Id<'meetingInvitations'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.MEETING_NOT_FOUND);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
 
-	if (args.invitationType === 'user' && !args.userId) {
+	if (args.invitationType === 'user' && !args.personId) {
 		throw createError(
 			ErrorCodes.VALIDATION_REQUIRED_FIELD,
-			'userId is required when invitationType is "user"'
+			'personId is required when invitationType is "user"'
 		);
 	}
 	if (args.invitationType === 'circle' && !args.circleId) {
@@ -43,10 +50,10 @@ export async function createInvitation(
 		);
 	}
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
-	if (args.invitationType === 'user' && args.userId) {
-		await ensureWorkspaceMembership(ctx, meeting.workspaceId, args.userId);
+	if (args.invitationType === 'user' && args.personId) {
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, args.personId);
 	}
 	if (args.invitationType === 'circle' && args.circleId) {
 		const circle = await ctx.db.get(args.circleId);
@@ -62,13 +69,13 @@ export async function createInvitation(
 	const invitationId = await ctx.db.insert('meetingInvitations', {
 		meetingId: args.meetingId,
 		invitationType: args.invitationType,
-		userId: args.userId,
+		personId: args.personId,
 		circleId: args.circleId,
 		status: 'pending',
 		respondedAt: undefined,
 		lastSentAt: Date.now(),
 		createdAt: Date.now(),
-		createdBy: userId
+		createdByPersonId: personId
 	});
 
 	return { invitationId };
@@ -83,14 +90,18 @@ export async function removeInvitation(
 	ctx: MutationCtx,
 	args: RemoveInvitationArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const invitation = await ctx.db.get(args.invitationId);
 	if (!invitation) {
 		throw createError(ErrorCodes.MEETING_INVITATION_NOT_FOUND, 'Invitation not found');
 	}
 
 	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 	await ctx.db.delete(args.invitationId);
 	return { success: true };
@@ -105,7 +116,6 @@ export async function updateInvitationAccept(
 	ctx: MutationCtx,
 	args: UpdateInvitationArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const invitation = await ctx.db.get(args.invitationId);
 	if (!invitation) {
 		throw createError(ErrorCodes.MEETING_INVITATION_NOT_FOUND, 'Invitation not found');
@@ -115,12 +125,18 @@ export async function updateInvitationAccept(
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only user invitations can be accepted');
 	}
 
-	if (invitation.userId !== userId) {
+	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+
+	if (invitation.personId !== personId) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only the invited user can accept this invitation');
 	}
 
-	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 	if (invitation.status === 'accepted') {
 		return { success: true };
@@ -128,15 +144,15 @@ export async function updateInvitationAccept(
 
 	const existingAttendee = await ctx.db
 		.query('meetingAttendees')
-		.withIndex('by_meeting_user', (q) =>
-			q.eq('meetingId', invitation.meetingId).eq('userId', userId)
+		.withIndex('by_meeting_person', (q) =>
+			q.eq('meetingId', invitation.meetingId).eq('personId', personId)
 		)
 		.first();
 
 	if (!existingAttendee) {
 		await ctx.db.insert('meetingAttendees', {
 			meetingId: invitation.meetingId,
-			userId,
+			personId,
 			joinedAt: Date.now()
 		});
 	}
@@ -158,7 +174,6 @@ export async function updateInvitationDecline(
 	ctx: MutationCtx,
 	args: UpdateInvitationArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const invitation = await ctx.db.get(args.invitationId);
 	if (!invitation) {
 		throw createError(ErrorCodes.MEETING_INVITATION_NOT_FOUND, 'Invitation not found');
@@ -168,15 +183,21 @@ export async function updateInvitationDecline(
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only user invitations can be declined');
 	}
 
-	if (invitation.userId !== userId) {
+	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+
+	if (invitation.personId !== personId) {
 		throw createError(
 			ErrorCodes.GENERIC_ERROR,
 			'Only the invited user can decline this invitation'
 		);
 	}
 
-	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
 	if (invitation.status === 'declined') {
 		return { success: true };
@@ -185,8 +206,8 @@ export async function updateInvitationDecline(
 	if (invitation.status === 'accepted') {
 		const attendee = await ctx.db
 			.query('meetingAttendees')
-			.withIndex('by_meeting_user', (q) =>
-				q.eq('meetingId', invitation.meetingId).eq('userId', userId)
+			.withIndex('by_meeting_person', (q) =>
+				q.eq('meetingId', invitation.meetingId).eq('personId', personId)
 			)
 			.first();
 		if (attendee) {
@@ -211,16 +232,20 @@ export async function updateInvitationResend(
 	ctx: MutationCtx,
 	args: UpdateInvitationArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const invitation = await ctx.db.get(args.invitationId);
 	if (!invitation) {
 		throw createError(ErrorCodes.MEETING_INVITATION_NOT_FOUND, 'Invitation not found');
 	}
 
 	const meeting = await requireMeeting(ctx, invitation.meetingId, ErrorCodes.MEETING_NOT_FOUND);
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId);
 
-	if (meeting.createdBy !== userId && invitation.createdBy !== userId) {
+	if (meeting.createdByPersonId !== personId && invitation.createdByPersonId !== personId) {
 		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Not allowed to resend this invitation');
 	}
 

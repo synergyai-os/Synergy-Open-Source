@@ -133,7 +133,7 @@
 		/>
 	{:else if editReason}
 		<EditPermissionTooltip reason={editReason}>
-			<div class="text-button leading-relaxed break-words text-secondary">
+			<div class="text-button text-secondary leading-relaxed break-words">
 				{#if singleFieldContent}
 					{singleFieldContent}
 				{:else}
@@ -144,7 +144,7 @@
 			</div>
 		</EditPermissionTooltip>
 	{:else}
-		<p class="text-button leading-relaxed break-words text-secondary">
+		<p class="text-button text-secondary leading-relaxed break-words">
 			{singleFieldContent || `No ${categoryName.toLowerCase()} set`}
 		</p>
 	{/if}
@@ -165,7 +165,7 @@
 					/>
 				{:else}
 					<Button variant="ghost" size="sm" onclick={handleStartAdding}>
-						<span class="flex items-center gap-button">
+						<span class="gap-button flex items-center">
 							<Icon type="plus" size="sm" />
 							<span>Add {singularName}</span>
 						</span>
@@ -184,7 +184,7 @@
 			{/if}
 		{:else}
 			{#each items as item (item.itemId)}
-				<div class="flex items-start gap-button">
+				<div class="gap-button flex items-start">
 					<div class="flex-1">
 						{#if canEdit}
 							<InlineEditText
@@ -233,7 +233,7 @@
 					/>
 				{:else}
 					<Button variant="ghost" size="sm" onclick={handleStartAdding}>
-						<span class="flex items-center gap-button">
+						<span class="gap-button flex items-center">
 							<Icon type="plus" size="sm" />
 							<span>Add {singularName}</span>
 						</span>

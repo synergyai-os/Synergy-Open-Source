@@ -1,14 +1,11 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
-}));
-
 vi.mock('../access', () => ({
-	ensureWorkspaceMembership: vi.fn().mockResolvedValue(undefined)
+	ensureWorkspaceMembership: vi.fn().mockResolvedValue(undefined),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' })
 }));
 
-import { ensureWorkspaceMembership } from '../access';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from '../access';
 import { listMeetingsForUser } from './listForUser';
 
 type QueryResult = { collect: () => Promise<any[]>; first?: () => Promise<any> };
@@ -38,7 +35,7 @@ const makeCtx = (opts: { meetings?: any[]; invitations?: any[]; circleMembers?: 
 
 describe('helpers/queries/listForUser', () => {
 	test('throws when membership check fails', async () => {
-		(ensureWorkspaceMembership as any).mockRejectedValueOnce(new Error('denied'));
+		(requireWorkspacePersonFromSession as any).mockRejectedValueOnce(new Error('denied'));
 		const ctx = makeCtx({});
 
 		await expect(listMeetingsForUser(ctx, { sessionId: 's', workspaceId: 'w1' })).rejects.toThrow(
@@ -48,6 +45,9 @@ describe('helpers/queries/listForUser', () => {
 
 	test('returns only accessible meetings (direct invite)', async () => {
 		(ensureWorkspaceMembership as any).mockResolvedValue(undefined);
+		(requireWorkspacePersonFromSession as any).mockResolvedValue({
+			personId: 'person1'
+		});
 		const ctx = makeCtx({
 			meetings: [
 				{
@@ -61,7 +61,7 @@ describe('helpers/queries/listForUser', () => {
 				{
 					meetingId: 'm1',
 					invitationType: 'user',
-					userId: 'user1',
+					personId: 'person1',
 					status: 'pending'
 				}
 			],
@@ -73,7 +73,7 @@ describe('helpers/queries/listForUser', () => {
 		expect(result).toEqual([
 			expect.objectContaining({
 				_id: 'm1',
-				invitedUsers: [expect.objectContaining({ userId: 'user1' })]
+				invitedUsers: [expect.objectContaining({ personId: 'person1' })]
 			})
 		]);
 	});

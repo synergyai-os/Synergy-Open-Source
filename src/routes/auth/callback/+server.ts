@@ -56,7 +56,8 @@ export const GET: RequestHandler = async (event) => {
 		console.log('🔍 Syncing user to Convex...');
 		const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -73,10 +74,16 @@ export const GET: RequestHandler = async (event) => {
 
 		// Handle account linking flow
 		if (linkAccount && primaryUserId && primaryUserId !== convexUserId) {
+			const existingSessionId = event.locals.auth?.sessionId;
+			const existingUserId = event.locals.auth?.user?.userId;
+			if (!existingSessionId || !existingUserId || existingUserId !== primaryUserId) {
+				console.error('❌ Missing or mismatched session for account linking');
+				throw redirect(302, `/login?error=link_invalid_session`);
+			}
 			try {
-				await convex.mutation(api.users.linkAccounts, {
-					primaryUserId,
-					linkedUserId: convexUserId
+				await convex.mutation(api.core.users.index.linkAccounts, {
+					sessionId: existingSessionId,
+					targetUserId: convexUserId
 				});
 
 				// Create session record for linked account (so they can switch to it later)

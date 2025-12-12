@@ -88,7 +88,10 @@ export function useTagging(
 		entityId: Id<'highlights'> | Id<'flashcards'> | Id<'inboxItems'>,
 		tagIds: Id<'tags'>[]
 	): Promise<void> {
-		invariant(convexClient && assignTagsMutation, 'Convex client not available (server-side rendering?)');
+		invariant(
+			convexClient && assignTagsMutation,
+			'Convex client not available (server-side rendering?)'
+		);
 
 		state.isAssigning = true;
 		state.error = null;
@@ -128,7 +131,10 @@ export function useTagging(
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		invariant(convexClient && createTagMutation, 'Convex client not available (server-side rendering?)');
+		invariant(
+			convexClient && createTagMutation,
+			'Convex client not available (server-side rendering?)'
+		);
 
 		state.error = null;
 

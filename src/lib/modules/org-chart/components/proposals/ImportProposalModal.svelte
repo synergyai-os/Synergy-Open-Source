@@ -18,7 +18,7 @@
 	import type { Proposal } from '../../composables/useProposals.svelte';
 	import { useProposalMutations } from '../../composables/useProposals.svelte';
 	import { toast } from 'svelte-sonner';
-	import { SvelteSet } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	type Props = {
 		open: boolean;
@@ -47,7 +47,7 @@
 	// Query importable proposals
 	const proposalsQuery = $derived(
 		browser && open && sessionId && meetingId && hasCircleId
-			? useQuery(api.proposals.listForMeetingImport, () => ({
+			? useQuery(api.core.proposals.index.listForMeetingImport, () => ({
 					sessionId,
 					meetingId
 				}))
@@ -59,7 +59,7 @@
 	const error = $derived(proposalsQuery?.error ?? meetingQuery?.error ?? null);
 
 	// Selected proposals state
-	let selectedIds = $state<SvelteSet<Id<'circleProposals'>>>(new SvelteSet());
+	let selectedIds = new SvelteSet<Id<'circleProposals'>>();
 
 	// Mutations
 	const mutations = useProposalMutations({
@@ -74,15 +74,12 @@
 		} else {
 			selectedIds.add(proposalId);
 		}
-		// Reassign to trigger reactivity (Svelte 5 needs this for Set mutations)
-		selectedIds = new SvelteSet(selectedIds);
 	}
 
 	// Select all / deselect all
 	function toggleSelectAll() {
 		if (selectedIds.size === proposals.length) {
 			selectedIds.clear();
-			selectedIds = new SvelteSet(selectedIds); // Trigger reactivity
 		} else {
 			selectedIds = new SvelteSet(proposals.map((p) => p._id));
 		}
@@ -102,7 +99,7 @@
 			});
 
 			toast.success(`Imported ${selectedIds.size} proposal${selectedIds.size === 1 ? '' : 's'}`);
-			selectedIds.clear();
+			selectedIds = new SvelteSet();
 			onOpenChange(false);
 			onImportComplete?.();
 		} catch (err) {
@@ -114,7 +111,7 @@
 	// Reset selection when modal closes
 	$effect(() => {
 		if (!open) {
-			selectedIds.clear();
+			selectedIds = new SvelteSet();
 		}
 	});
 </script>
@@ -124,7 +121,7 @@
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm" />
 		<DialogContent variant="wide" class="max-h-[90vh]">
 			<!-- Header -->
-			<div class="border-border pb-header flex items-center justify-between border-b mb-section">
+			<div class="border-border pb-header mb-section flex items-center justify-between border-b">
 				<Heading level={2} size="h3" class="font-semibold">Import Proposals</Heading>
 				<Dialog.Close>
 					<Button variant="ghost" size="sm" class="text-tertiary">
@@ -171,7 +168,7 @@
 				{:else}
 					<!-- Proposals List -->
 					<div>
-						<div class="flex items-center justify-between mb-header">
+						<div class="mb-header flex items-center justify-between">
 							<Text variant="label" color="secondary">
 								{proposals.length} proposal{proposals.length === 1 ? '' : 's'} available
 							</Text>
@@ -185,7 +182,7 @@
 						<div class="max-h-[60vh] space-y-2 overflow-y-auto">
 							{#each proposals as proposal (proposal._id)}
 								<label
-									class="border-border p-card hover:bg-surface-hover flex cursor-pointer items-start gap-fieldGroup rounded-card border bg-surface transition-colors {selectedIds.has(
+									class="border-border p-card hover:bg-surface-hover gap-fieldGroup rounded-card bg-surface flex cursor-pointer items-start border transition-colors {selectedIds.has(
 										proposal._id
 									)
 										? 'bg-accent-primary/5 border-accent-primary'
@@ -196,7 +193,7 @@
 										type="checkbox"
 										checked={selectedIds.has(proposal._id)}
 										onchange={() => toggleSelection(proposal._id)}
-										class="border-border focus:ring-accent-primary mt-1 size-icon-sm cursor-pointer rounded text-accent-primary focus:ring-2 focus:ring-offset-1"
+										class="border-border focus:ring-accent-primary size-icon-sm text-accent-primary mt-1 cursor-pointer rounded focus:ring-2 focus:ring-offset-1"
 									/>
 
 									<!-- Proposal Card Content -->
@@ -213,7 +210,7 @@
 			<!-- Footer Actions -->
 			{#if proposals.length > 0}
 				<div
-					class="mt-section border-border pt-header flex items-center justify-end gap-button border-t"
+					class="mt-section border-border pt-header gap-button flex items-center justify-end border-t"
 				>
 					<Dialog.Close>
 						<Button variant="outline">Cancel</Button>

@@ -59,18 +59,18 @@
 	const currentLayer = $derived(orgChart?.navigationStack.currentLayer ?? null);
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
 	<header
-		class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b bg-surface px-page"
+		class="h-system-header border-base py-system-header bg-surface px-page flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<div>
-			<h1 class="text-button font-normal text-secondary">Org Chart</h1>
+			<h1 class="text-button text-secondary font-normal">Org Chart</h1>
 			<p class="text-label text-tertiary">{organizationName}</p>
 		</div>
 		<div class="flex items-center gap-2">
 			<button
-				class="py-nav-item text-button hover:bg-hover-solid rounded-button px-2 text-secondary hover:text-primary"
+				class="py-nav-item text-button hover:bg-hover-solid rounded-button text-secondary hover:text-primary px-2"
 				onclick={() => {
 					const slug = workspaceSlug();
 					if (slug) {

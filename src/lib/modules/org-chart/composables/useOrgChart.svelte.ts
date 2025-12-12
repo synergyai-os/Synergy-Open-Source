@@ -14,7 +14,7 @@ import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
-// Type for role returned by api.circleRoles.get
+// Type for role returned by api.core.roles.index.get
 type CircleRoleDetail = {
 	roleId: Id<'circleRoles'>;
 	name: string;
@@ -91,7 +91,7 @@ export function useOrgChart(options: {
 	// The query function is reactive, so it will retry when workspaceId becomes available
 	// Pattern matches useCircles.svelte.ts (throws error when params not ready)
 	const circlesQuery = browser
-		? useQuery(api.circles.list, () => {
+		? useQuery(api.core.circles.index.list, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
@@ -106,7 +106,7 @@ export function useOrgChart(options: {
 	// The query function is reactive, so it will retry when workspaceId becomes available
 	// Pattern matches useCircles.svelte.ts (throws error when params not ready)
 	const rolesByWorkspaceQuery = browser
-		? useQuery(api.circleRoles.listByWorkspace, () => {
+		? useQuery(api.core.roles.index.listByWorkspace, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
@@ -120,7 +120,7 @@ export function useOrgChart(options: {
 	// CRITICAL: Always call useQuery when browser is true to ensure reactivity
 	// This prevents hydration errors - query throws when params not ready, Convex retries
 	const roleTemplatesQuery = browser
-		? useQuery(api.roleTemplates.list, () => {
+		? useQuery(api.core.roles.templates.list, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
@@ -133,7 +133,7 @@ export function useOrgChart(options: {
 	// Query workspace org settings (includes allowQuickChanges for quick edit permission)
 	// Loaded once per workspace - provides instant "quick edits disabled" check
 	const orgSettingsQuery = browser
-		? useQuery(api.workspaceSettings.getOrgSettings, () => {
+		? useQuery(api.core.workspaces.workspaceSettings.getOrgSettings, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
@@ -210,7 +210,7 @@ export function useOrgChart(options: {
 
 		// Load circle details
 		convexClient
-			.query(api.circles.get, {
+			.query(api.core.circles.index.get, {
 				sessionId,
 				circleId: state.selectedCircleId
 			})
@@ -267,7 +267,7 @@ export function useOrgChart(options: {
 
 		// Load circle members
 		convexClient
-			.query(api.circles.getMembers, {
+			.query(api.core.circles.index.getMembers, {
 				sessionId,
 				circleId: state.selectedCircleId
 			})
@@ -324,7 +324,7 @@ export function useOrgChart(options: {
 
 		// Load circle members without roles
 		convexClient
-			.query(api.circleRoles.getMembersWithoutRoles, {
+			.query(api.core.roles.index.getMembersWithoutRoles, {
 				sessionId,
 				circleId: state.selectedCircleId
 			})
@@ -358,7 +358,7 @@ export function useOrgChart(options: {
 	// CRITICAL: Use $derived to make query creation reactive - when selectedRoleId changes, query re-creates
 	const selectedRoleQuery = $derived(
 		browser && state.selectedRoleId
-			? useQuery(api.circleRoles.get, () => {
+			? useQuery(api.core.roles.index.get, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId && state.selectedRoleId, 'sessionId and selectedRoleId required');
 					return { sessionId, roleId: state.selectedRoleId };
@@ -406,7 +406,7 @@ export function useOrgChart(options: {
 
 		// Load role fillers
 		convexClient
-			.query(api.circleRoles.getRoleFillers, {
+			.query(api.core.roles.index.getRoleFillers, {
 				sessionId,
 				circleRoleId: state.selectedRoleId
 			})

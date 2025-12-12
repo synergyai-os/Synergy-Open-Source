@@ -76,11 +76,11 @@
 	in:fly={{ y: prefersReducedMotion.current ? 0 : 16, duration: 400, delay: 100, easing: cubicOut }}
 >
 	<!-- Header: Uses semantic tokens mb-header (32px), gap-header (12px) -->
-	<header class="flex flex-col gap-header text-center mb-header">
+	<header class="gap-header mb-header flex flex-col text-center">
 		<Heading level={1}>Welcome back</Heading>
 		<Text variant="body" size="base" color="secondary">
 			Sign in to continue where you left off. Don't have an account?
-			<a href={registerUrl} class="font-medium text-brand hover:underline"> Create one</a>.
+			<a href={registerUrl} class="text-brand font-medium hover:underline"> Create one</a>.
 		</Text>
 	</header>
 
@@ -95,7 +95,7 @@
 		</div>
 	{:else if errorMessage}
 		<div
-			class="rounded-input border border-error bg-status-errorLight px-input py-input mb-alert"
+			class="rounded-input border-error bg-status-errorLight px-input py-input mb-alert border"
 			in:scale={{ start: 0.98, duration: 200, easing: backOut }}
 			out:fade={{ duration: 150 }}
 		>
@@ -115,13 +115,13 @@
 	{/if}
 	{#if linkingFlow}
 		<div
-			class="flex items-center gap-header rounded-input border border-default bg-subtle px-input py-input mb-alert"
+			class="gap-header rounded-input border-default bg-subtle px-input py-input mb-alert flex items-center border"
 			in:fly={{ y: prefersReducedMotion.current ? 0 : 8, duration: 250, easing: cubicOut }}
 			out:fade={{ duration: 150 }}
 		>
 			<!-- Icon: Uses semantic token size-icon-md (20px) -->
 			<svg
-				class="size-icon-md flex-shrink-0 text-brand"
+				class="size-icon-md text-brand flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -147,7 +147,7 @@
 	{/if}
 
 	<!-- Form: Uses semantic token gap-form (20px) -->
-	<form class="flex flex-col gap-form" onsubmit={handleSubmit}>
+	<form class="gap-form flex flex-col" onsubmit={handleSubmit}>
 		<FormInput
 			type="email"
 			label="Email"
@@ -158,7 +158,7 @@
 		/>
 
 		<!-- Field group: Uses semantic tokens gap-fieldGroup (8px) -->
-		<div class="flex flex-col gap-fieldGroup">
+		<div class="gap-fieldGroup flex flex-col">
 			<FormInput
 				type="password"
 				label="Password"

@@ -36,7 +36,7 @@
 
 <!-- WORKAROUND: Header padding and z-index tokens missing - see missing-styles.md -->
 <div
-	class="flex flex-shrink-0 items-center justify-between border-b border-subtle bg-elevated {sticky
+	class="border-subtle bg-elevated flex flex-shrink-0 items-center justify-between border-b {sticky
 		? 'sticky top-0'
 		: ''} {className}"
 	style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2); {sticky
@@ -44,7 +44,7 @@
 		: ''}"
 >
 	<!-- Left: Optional left content + Title -->
-	<div class="flex items-center gap-header">
+	<div class="gap-header flex items-center">
 		{#if left}
 			{@render left()}
 		{/if}
@@ -60,7 +60,7 @@
 
 	<!-- Right: Optional right content -->
 	{#if right}
-		<div class="flex items-center gap-header">
+		<div class="gap-header flex items-center">
 			{@render right()}
 		</div>
 	{/if}

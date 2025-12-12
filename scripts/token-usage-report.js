@@ -333,8 +333,8 @@ function main() {
 			console.log(`❌ Hardcoded Values Found: ${Object.keys(violationsByFile).length} files`);
 			for (const [file, fileViolations] of Object.entries(violationsByFile)) {
 				for (const violation of fileViolations) {
-					// Format: file:line (violation) - matching ticket spec
-					console.log(`  - ${file}:${violation.line} (${violation.violation})`);
+					// Format: file-line (violation) - matching ticket spec
+					console.log(`  - ${file}-${violation.line} (${violation.violation})`);
 				}
 			}
 			console.log('');

@@ -47,7 +47,7 @@
 	const errorClasses = $derived(pinInputErrorRecipe());
 </script>
 
-<div class="flex flex-col gap-form">
+<div class="gap-form flex flex-col">
 	{#if label}
 		<label for={inputId} class={labelClasses}>
 			{label}

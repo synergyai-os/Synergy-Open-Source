@@ -17,9 +17,9 @@
 
 <Story name="Default" args={{ value: 50 }}>
 	{#snippet template(args)}
-		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
+		<Progress.Root {...args} class="bg-base h-2 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -28,9 +28,9 @@
 
 <Story name="Low" args={{ value: 25 }}>
 	{#snippet template(args)}
-		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
+		<Progress.Root {...args} class="bg-base h-2 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -39,9 +39,9 @@
 
 <Story name="High" args={{ value: 75 }}>
 	{#snippet template(args)}
-		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
+		<Progress.Root {...args} class="bg-base h-2 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -50,9 +50,9 @@
 
 <Story name="Complete" args={{ value: 100 }}>
 	{#snippet template(args)}
-		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
+		<Progress.Root {...args} class="bg-base h-2 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -61,9 +61,9 @@
 
 <Story name="Indeterminate" args={{ value: null }}>
 	{#snippet template(args)}
-		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
+		<Progress.Root {...args} class="bg-base h-2 w-full overflow-hidden rounded-full">
 			<div
-				class="h-full w-full animate-pulse rounded-full bg-accent-primary"
+				class="bg-accent-primary h-full w-full animate-pulse rounded-full"
 				style="animation: progress-indeterminate 1.5s ease-in-out infinite;"
 			></div>
 		</Progress.Root>

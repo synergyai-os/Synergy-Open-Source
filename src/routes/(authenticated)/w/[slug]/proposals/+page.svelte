@@ -45,17 +45,25 @@
 		return org?.workspaceId ?? undefined;
 	});
 
-	// Get current user ID
-	const currentUserId = $derived(() => $page.data.user?.userId);
+	// Resolve current person ID for this workspace
+	const personQuery = $derived(
+		browser && getSessionId() && workspaceId()
+			? useQuery(api.core.people.index.getPersonForWorkspace, () => ({
+					sessionId: getSessionId()!,
+					workspaceId: workspaceId()! as Id<'workspaces'>
+				}))
+			: null
+	);
+	const currentPersonId = $derived(() => personQuery?.data?.personId as Id<'people'> | undefined);
 
 	// Query all proposals for this workspace, filtered by creator
 	const getWorkspaceId = () => workspaceId();
 	const proposalsQuery = $derived(
-		browser && getSessionId() && getWorkspaceId() && currentUserId()
-			? useQuery(api.proposals.list, () => ({
+		browser && getSessionId() && getWorkspaceId() && currentPersonId()
+			? useQuery(api.core.proposals.index.list, () => ({
 					sessionId: getSessionId()!,
 					workspaceId: getWorkspaceId()! as Id<'workspaces'>,
-					creatorId: currentUserId()! as Id<'users'>,
+					creatorId: currentPersonId()! as Id<'people'>,
 					limit: 100 // Get all user's proposals
 				}))
 			: null
@@ -82,7 +90,7 @@
 	// Query selected proposal details
 	const selectedProposalQuery = $derived(
 		browser && getSessionId() && selectedProposalId
-			? useQuery(api.proposals.get, () => ({
+			? useQuery(api.core.proposals.index.get, () => ({
 					sessionId: getSessionId()!,
 					proposalId: selectedProposalId!
 				}))
@@ -135,7 +143,7 @@
 	}
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
 	<PageHeader>
 		{#snippet titleSlot()}
@@ -146,7 +154,7 @@
 	<!-- Content -->
 	<ScrollArea.Root class={scrollAreaRootRecipe()}>
 		<ScrollArea.Viewport class={scrollAreaViewportRecipe()}>
-			<div class="max-w-container mx-auto px-page py-page">
+			<div class="max-w-container px-page py-page mx-auto">
 				{#if isLoading}
 					<div class="flex h-64 items-center justify-center">
 						<Text variant="body" color="secondary">Loading proposals...</Text>
@@ -171,14 +179,14 @@
 						</Text>
 					</div>
 				{:else}
-					<div class="flex flex-col gap-section">
+					<div class="gap-section flex flex-col">
 						<!-- Active Proposals Section -->
 						{#if activeProposals.length > 0}
 							<section>
 								<Heading level={5} color="secondary" class="mb-header">
 									Active ({activeProposals.length})
 								</Heading>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each activeProposals as proposal (proposal._id)}
 										<ProposalCard {proposal} onClick={() => handleProposalClick(proposal)} />
 									{/each}
@@ -192,7 +200,7 @@
 								<Heading level={5} color="secondary" class="mb-header">
 									Completed ({completedProposals.length})
 								</Heading>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each completedProposals as proposal (proposal._id)}
 										<ProposalCard {proposal} onClick={() => handleProposalClick(proposal)} />
 									{/each}
@@ -212,7 +220,7 @@
 	{#if browser}
 		<ProposalDetailPanel
 			proposal={selectedProposal}
-			currentUserId={currentUserId()}
+			currentPersonId={currentPersonId()}
 			isLoading={selectedProposalIsLoading}
 			error={selectedProposalError}
 			isMutating={mutations.isWithdrawing}

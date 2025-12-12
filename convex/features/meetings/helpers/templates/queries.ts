@@ -1,8 +1,11 @@
 import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { QueryCtx } from '../../../../_generated/server';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireTemplate } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireTemplate,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type ListTemplatesArgs = { sessionId: string; workspaceId: Id<'workspaces'> };
 type GetTemplateArgs = { sessionId: string; templateId: Id<'meetingTemplates'> };
@@ -13,8 +16,12 @@ export const listTemplatesArgs = {
 };
 
 export async function listTemplates(ctx: QueryCtx, args: ListTemplatesArgs): Promise<unknown[]> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
 
 	const templates = await ctx.db
 		.query('meetingTemplates')
@@ -30,9 +37,13 @@ export const getTemplateArgs = {
 };
 
 export async function getTemplate(ctx: QueryCtx, args: GetTemplateArgs) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 	return template;
 }
 
@@ -42,9 +53,13 @@ export const getTemplateStepsArgs = {
 };
 
 export async function getTemplateSteps(ctx: QueryCtx, args: GetTemplateArgs): Promise<unknown[]> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	const steps = await ctx.db
 		.query('meetingTemplateSteps')

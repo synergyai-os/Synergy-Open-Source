@@ -6,6 +6,7 @@
 	import { Text } from '$lib/components/atoms';
 	import type { ParsedNode } from '../../utils/parseOrgStructure';
 	import type { Id } from '$lib/convex/_generated/dataModel';
+	import PreviewTree from './PreviewTree.svelte';
 
 	type CoreTemplate = {
 		_id: Id<'roleTemplates'>;
@@ -54,7 +55,7 @@
 
 <div class="mb-fieldGroup">
 	<!-- Node Header -->
-	<div class="flex items-start gap-fieldGroup">
+	<div class="gap-fieldGroup flex items-start">
 		<span class="text-secondary">{icon}</span>
 		<div class="flex-1">
 			<Text variant="body" size="sm" class="font-medium">
@@ -70,17 +71,17 @@
 
 	<!-- Children (user-defined + auto-created core roles) -->
 	{#if allChildren().length > 0}
-		<div class="border-base pl-fieldGroup ml-6 border-l mt-fieldGroup">
+		<div class="border-base pl-fieldGroup mt-fieldGroup ml-6 border-l">
 			{#each allChildren() as child (child.isAutoCreated ? `auto-${child.name}` : child.lineNumber)}
 				{#if child.isAutoCreated}
 					<!-- Auto-created core role -->
 					<div class="mb-fieldGroup">
-						<div class="flex items-start gap-fieldGroup">
+						<div class="gap-fieldGroup flex items-start">
 							<span class="text-secondary">👤</span>
 							<div class="flex-1">
 								<Text variant="body" size="sm" class="font-medium">
 									{child.name} <span class="text-secondary">(Role)</span>
-									<span class="ml-1 text-xs text-tertiary">🤖 Auto-created</span>
+									<span class="text-tertiary ml-1 text-xs">🤖 Auto-created</span>
 								</Text>
 								{#if child.purpose}
 									<Text variant="body" size="sm" color="secondary" class="mt-1">
@@ -92,7 +93,7 @@
 					</div>
 				{:else}
 					<!-- User-defined node (recursive) -->
-					<svelte:self node={child} {coreTemplates} />
+					<PreviewTree node={child} {coreTemplates} />
 				{/if}
 			{/each}
 		</div>

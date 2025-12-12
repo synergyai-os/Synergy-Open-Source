@@ -18,17 +18,17 @@
 
 <div class="flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-sidebar py-system-content border-b px-page">
-		<h1 class="text-h1 font-bold text-primary">System Settings</h1>
-		<p class="mt-1 text-sm text-secondary">Configure system-wide settings</p>
+	<header class="border-sidebar py-system-content px-page border-b">
+		<h1 class="text-h1 text-primary font-bold">System Settings</h1>
+		<p class="text-secondary mt-1 text-sm">Configure system-wide settings</p>
 	</header>
 
 	<!-- Main Content -->
-	<main class="py-system-content flex-1 overflow-y-auto px-page">
+	<main class="py-system-content px-page flex-1 overflow-y-auto">
 		{#if settings}
 			<div class="space-y-6">
-				<div class="p-card border-sidebar rounded-card border bg-surface shadow-card">
-					<h3 class="text-h3 mb-4 font-semibold text-primary">System Information</h3>
+				<div class="p-card border-sidebar rounded-card bg-surface shadow-card border">
+					<h3 class="text-h3 text-primary mb-4 font-semibold">System Information</h3>
 					<dl class="space-y-2">
 						<div class="flex justify-between">
 							<dt class="text-secondary">Version</dt>
@@ -47,8 +47,8 @@
 					</dl>
 				</div>
 
-				<div class="p-card border-sidebar rounded-card border bg-surface shadow-card">
-					<p class="text-sm text-secondary">
+				<div class="p-card border-sidebar rounded-card bg-surface shadow-card border">
+					<p class="text-secondary text-sm">
 						System settings management UI coming soon. For now, settings are managed via database.
 					</p>
 				</div>

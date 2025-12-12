@@ -34,7 +34,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -44,7 +44,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -54,7 +54,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-3',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 3',
@@ -87,7 +87,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -97,7 +97,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -107,7 +107,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-3',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 3',
@@ -140,7 +140,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -150,7 +150,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -191,7 +191,7 @@ describe('useKeyboardNavigation - J/K Navigation', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -241,7 +241,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -251,7 +251,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -261,7 +261,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-3',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 3',
@@ -297,7 +297,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -307,7 +307,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -317,7 +317,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-3',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 3',
@@ -353,7 +353,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -363,7 +363,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -399,7 +399,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -409,7 +409,7 @@ describe('useKeyboardNavigation - Wrapping Behavior', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -454,7 +454,7 @@ describe('useKeyboardNavigation - Navigation Helpers', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',
@@ -464,7 +464,7 @@ describe('useKeyboardNavigation - Navigation Helpers', () => {
 			{
 				_id: 'item-2',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 2',
@@ -474,7 +474,7 @@ describe('useKeyboardNavigation - Navigation Helpers', () => {
 			{
 				_id: 'item-3',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 3',
@@ -501,7 +501,7 @@ describe('useKeyboardNavigation - Navigation Helpers', () => {
 			{
 				_id: 'item-1',
 				type: 'readwise_highlight',
-				userId: 'user-1',
+				personId: 'user-1',
 				processed: false,
 				createdAt: Date.now(),
 				title: 'Item 1',

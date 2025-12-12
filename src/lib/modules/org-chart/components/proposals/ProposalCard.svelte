@@ -41,35 +41,35 @@
 <button
 	type="button"
 	class="
-		focus:ring-primary w-full
-		overflow-hidden rounded-card
-		border border-default bg-surface
-		inset-sm text-left
-		transition-colors duration-150
-		hover:bg-hover focus:ring-2 focus:ring-offset-1 focus:outline-none
+		focus:ring-primary rounded-card
+		border-default bg-surface
+		inset-sm hover:bg-hover w-full
+		overflow-hidden border
+		text-left transition-colors
+		duration-150 focus:ring-2 focus:ring-offset-1 focus:outline-none
 		{className}
 	"
 	onclick={onClick}
 >
-	<div class="flex items-start justify-between gap-card">
+	<div class="gap-card flex items-start justify-between">
 		<!-- Left: Title and metadata -->
 		<div class="min-w-0 flex-1">
-			<div class="flex items-center gap-fieldGroup mb-header">
+			<div class="gap-fieldGroup mb-header flex items-center">
 				<ProposalStatusBadge status={proposal.status} />
 				{#if showTarget && targetName}
 					<span class="text-small text-secondary">→ {targetName}</span>
 				{/if}
 			</div>
 
-			<h4 class="truncate text-body font-medium text-primary">
+			<h4 class="text-body text-primary truncate font-medium">
 				{proposal.title}
 			</h4>
 
-			<p class="text-small line-clamp-2 text-secondary mt-fieldGroup">
+			<p class="text-small text-secondary mt-fieldGroup line-clamp-2">
 				{proposal.description}
 			</p>
 
-			<div class="text-small flex items-center gap-fieldGroup text-tertiary mt-fieldGroup">
+			<div class="text-small gap-fieldGroup text-tertiary mt-fieldGroup flex items-center">
 				{#if creatorName}
 					<span>{creatorName}</span>
 					<span>•</span>
@@ -88,7 +88,7 @@
 
 		<!-- Right: Arrow indicator -->
 		{#if onClick}
-			<div class="flex-shrink-0 text-tertiary">
+			<div class="text-tertiary flex-shrink-0">
 				<Icon name="chevron-right" size="sm" />
 			</div>
 		{/if}

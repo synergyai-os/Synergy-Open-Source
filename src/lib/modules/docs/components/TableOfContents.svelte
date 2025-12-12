@@ -16,27 +16,42 @@
 
 	// Spring physics for smooth, organic animations
 	let panelScale = spring(1, { stiffness: 0.3, damping: 0.8 });
-	// Read opacity-full token (1.0) for fully opaque state
-	const opacityFull = $derived(() => {
-		if (typeof window === 'undefined') {
-			// eslint-disable-next-line synergyos/no-hardcoded-design-values
-			return 1; // SSR fallback - token not available during SSR
-		}
+
+	function readOpacityToken(tokenName: string, fallback: number) {
+		if (typeof window === 'undefined') return fallback;
 		const root = document.documentElement;
-		const opacity = getComputedStyle(root).getPropertyValue('--opacity-100').trim();
-		// eslint-disable-next-line synergyos/no-hardcoded-design-values
-		return opacity ? parseFloat(opacity) : 1; // Fallback if token not found (should not happen)
+		const value = getComputedStyle(root).getPropertyValue(tokenName).trim();
+		const parsed = value ? parseFloat(value) : Number.NaN;
+		return Number.isFinite(parsed) ? parsed : fallback;
+	}
+
+	// Use semantic opacity tokens (100 for full, 80 for collapsed/hover)
+	const opacityFull = $derived(() => readOpacityToken('--opacity-100', Number.NaN));
+	const opacityCollapsed = $derived(() => readOpacityToken('--opacity-80', opacityFull()));
+	const initialPanelOpacity = $derived(() => {
+		const collapsed = opacityCollapsed();
+		const full = opacityFull();
+		return Number.isFinite(collapsed) ? collapsed : full;
 	});
-	let panelOpacity = spring(opacityFull(), { stiffness: 0.2, damping: 0.9 });
+
+	let panelOpacity = spring(initialPanelOpacity(), { stiffness: 0.2, damping: 0.9 });
+
+	$effect(() => {
+		const collapsedOpacity = opacityCollapsed();
+		const fallbackOpacity = opacityFull();
+		panelOpacity.set(Number.isFinite(collapsedOpacity) ? collapsedOpacity : fallbackOpacity);
+	});
 
 	// React to hover state with spring physics
 	$effect(() => {
+		const collapsedOpacity = opacityCollapsed();
+		const fullOpacity = opacityFull();
 		if (isHovering && !isOpen) {
 			panelScale.set(1.02);
-			panelOpacity.set(opacityFull());
+			panelOpacity.set(fullOpacity);
 		} else {
 			panelScale.set(1);
-			panelOpacity.set(isOpen ? opacityFull() : 0.95);
+			panelOpacity.set(isOpen ? fullOpacity : collapsedOpacity);
 		}
 	});
 

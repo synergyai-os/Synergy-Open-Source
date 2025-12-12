@@ -1,7 +1,6 @@
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { ensureWorkspaceMembership } from './circleAccess';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 
 export async function listCircles(
 	ctx: QueryCtx,
@@ -27,9 +26,9 @@ export async function listCircles(
 		archivedAt?: number;
 	}>
 > {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, args.workspaceId);
 
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
 
 	const circles = args.includeArchived
 		? await ctx.db

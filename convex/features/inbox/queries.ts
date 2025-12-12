@@ -1,14 +1,15 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
 import type { ProseMirrorNode } from '../../infrastructure/types/prosemirror';
-import { getUserId, findInboxItemOwnedByUser, findUserId } from './access';
+import { findInboxActor, getInboxActor } from './access';
+import { findSyncProgressForPerson } from '../readwise/queries/progress';
 
 type InboxItem = Doc<'inboxItems'>;
 
 type FilterArgs = {
 	filterType?: string;
 	processed?: boolean;
-	workspaceId?: Id<'workspaces'>;
+	workspaceId?: Id<'workspaces'> | null;
 	circleId?: Id<'circles'>;
 };
 
@@ -19,14 +20,15 @@ export async function listInboxItemsForSession(
 	ctx: QueryCtx,
 	args: ListInboxItemsArgs
 ): Promise<Array<InboxItem & { title: string; snippet: string; tags: string[] }>> {
-	const userId = await getUserId(ctx, args.sessionId);
-	return listInboxItemsForUser(ctx, args, userId);
+	const actor = await getInboxActor(ctx, args.sessionId, args.workspaceId);
+	return listInboxItemsForPerson(ctx, args, actor);
 }
 
 export async function findInboxItemForSession(ctx: QueryCtx, args: FindInboxItemArgs) {
-	const userId = await findUserId(ctx, args.sessionId);
-	if (!userId) return null;
-	return findInboxItemOwnedByUser(ctx, args.inboxItemId, userId);
+	const item = await ctx.db.get(args.inboxItemId);
+	const actor = await findInboxActor(ctx, args.sessionId, item?.workspaceId ?? null);
+	if (!actor || !item || item.personId !== actor.personId) return null;
+	return item;
 }
 
 export async function findInboxItemWithDetailsForSession(
@@ -42,8 +44,9 @@ export async function findInboxItemWithDetailsForSession(
 	  })
 	| null
 > {
-	const userId = await getUserId(ctx, args.sessionId);
-	return findInboxItemWithDetails(ctx, args.inboxItemId, userId);
+	const item = await ctx.db.get(args.inboxItemId);
+	const actor = await getInboxActor(ctx, args.sessionId, item?.workspaceId ?? null);
+	return findInboxItemWithDetails(ctx, args.inboxItemId, actor.personId);
 }
 
 export async function findSyncProgressForSession(
@@ -55,15 +58,17 @@ export async function findSyncProgressForSession(
 	total: number;
 	message?: string;
 } | null> {
-	return findSyncProgressForUser(ctx, sessionId, getUserId);
+	const actor = await findInboxActor(ctx, sessionId);
+	if (!actor) return null;
+	return findSyncProgressForPerson(ctx, actor.personId);
 }
 
-async function listInboxItemsForUser(
+async function listInboxItemsForPerson(
 	ctx: QueryCtx,
 	args: FilterArgs,
-	userId: string
+	actor: { personId: Id<'people'>; workspaceId: Id<'workspaces'> }
 ): Promise<Array<InboxItem & { title: string; snippet: string; tags: string[] }>> {
-	const items = await fetchItems(ctx, args, userId);
+	const items = await fetchItems(ctx, args, actor);
 	const filteredItems = args.filterType
 		? items.filter((item) => item.type === args.filterType)
 		: items;
@@ -74,7 +79,7 @@ async function listInboxItemsForUser(
 async function findInboxItemWithDetails(
 	ctx: QueryCtx,
 	inboxItemId: Id<'inboxItems'>,
-	userId: string
+	personId: Id<'people'>
 ): Promise<
 	| (Doc<'inboxItems'> & {
 			highlight?: Doc<'highlights'> | null;
@@ -86,7 +91,7 @@ async function findInboxItemWithDetails(
 	| null
 > {
 	const item = await ctx.db.get(inboxItemId);
-	if (!item || item.userId !== userId) return null;
+	if (!item || item.personId !== personId) return null;
 	if (item.type !== 'readwise_highlight') return item;
 
 	const highlight = await ctx.db.get(item.highlightId);
@@ -121,25 +126,38 @@ async function findInboxItemWithDetails(
 	};
 }
 
-async function fetchItems(ctx: QueryCtx, args: FilterArgs, userId: string): Promise<InboxItem[]> {
+async function fetchItems(
+	ctx: QueryCtx,
+	args: FilterArgs,
+	actor: { personId: Id<'people'>; workspaceId: Id<'workspaces'> }
+): Promise<InboxItem[]> {
+	const targetWorkspace = args.workspaceId ?? actor.workspaceId;
+
 	if (args.processed !== undefined) {
-		return ctx.db
+		const items = await ctx.db
 			.query('inboxItems')
-			.withIndex('by_user_processed', (q) => q.eq('userId', userId).eq('processed', args.processed))
+			.withIndex('by_person_processed', (q) =>
+				q.eq('personId', actor.personId).eq('processed', args.processed)
+			)
 			.collect();
+		return filterByScope(items, targetWorkspace, args.circleId);
 	}
 
 	const items = await ctx.db
 		.query('inboxItems')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', actor.personId))
 		.collect();
-	if (args.workspaceId === undefined) return items;
+	return filterByScope(items, targetWorkspace, args.circleId);
+}
 
-	if (args.circleId) {
-		return items.filter((item) => item.circleId === args.circleId);
-	}
-
-	return items.filter((item) => item.workspaceId === args.workspaceId && !item.circleId);
+function filterByScope(
+	items: InboxItem[],
+	workspaceId: Id<'workspaces'> | null | undefined,
+	circleId?: Id<'circles'>
+) {
+	if (workspaceId === undefined || workspaceId === null) return items;
+	if (circleId) return items.filter((item) => item.circleId === circleId);
+	return items.filter((item) => item.workspaceId === workspaceId && !item.circleId);
 }
 
 async function enrichInboxItem(ctx: QueryCtx, item: InboxItem) {
@@ -268,28 +286,4 @@ async function listHighlightAndSourceTagIds(
 	return Array.from(
 		new Set([...highlightTags.map((ht) => ht.tagId), ...sourceTags.map((st) => st.tagId)])
 	);
-}
-
-async function findSyncProgressForUser(
-	ctx: QueryCtx,
-	sessionId: string,
-	userFetcher: (ctx: QueryCtx, sessionId: string) => Promise<string>
-): Promise<{
-	step: string;
-	current: number;
-	total: number;
-	message?: string;
-} | null> {
-	const userId = await userFetcher(ctx, sessionId);
-	const progress = await ctx.db
-		.query('syncProgress')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
-		.first();
-	if (!progress) return null;
-	return {
-		step: progress.step,
-		current: progress.current,
-		total: progress.total,
-		message: progress.message
-	};
 }

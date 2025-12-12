@@ -22,7 +22,7 @@ export function useCircleMembers(options: {
 	// Query workspace members to show in dropdown
 	const orgMembersQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.workspaces.listMembers, () => {
+			? useQuery(api.core.workspaces.index.listMembers, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
 					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');

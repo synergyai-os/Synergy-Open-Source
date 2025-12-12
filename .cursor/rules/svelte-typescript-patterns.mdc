@@ -70,6 +70,7 @@ $effect(() => {
 ### Authentication Pattern: sessionId (MANDATORY)
 
 **CRITICAL**: Always use `sessionId` for authenticated queries/mutations. Never trust client-provided `userId`.
+**Target identifiers**: When another user is the target, use whitelisted names only — `targetUserId` (general), `memberUserId`, `assigneeUserId`, `inviteeUserId`, `ownerUserId`, `candidateUserId`. Do **not** use `personId`.
 
 ```typescript
 // ✅ Backend: sessionId parameter + destructure userId

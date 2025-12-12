@@ -71,12 +71,12 @@
 
 			<!-- Main action title -->
 			<div class="max-w-md text-center">
-				<h2 class="text-2xl font-semibold text-primary">{titleText()}</h2>
+				<h2 class="text-primary text-2xl font-semibold">{titleText()}</h2>
 			</div>
 
 			<!-- Detailed progress step -->
 			<div class="text-center">
-				<p class="text-sm text-secondary">{currentStageText}</p>
+				<p class="text-secondary text-sm">{currentStageText}</p>
 			</div>
 		</div>
 	</div>

@@ -2,28 +2,18 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
-import { ensureWorkspaceMembership } from './roleAccess';
-
-type UserLike = { email?: string; name?: string } | null | undefined;
-
-function toUserFields(user: UserLike) {
-	return {
-		email: (user && user.email) ?? '',
-		name: (user && user.name) ?? ''
-	};
-}
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './roleAccess';
+import { getPersonById } from '../people/queries';
 
 export async function listMembersWithoutRoles(
 	ctx: QueryCtx,
 	args: { sessionId: string; circleId: Id<'circles'>; includeArchived?: boolean }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) return [];
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, circle.workspaceId);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, personId);
 
 	const roles = args.includeArchived
 		? await ctx.db
@@ -55,12 +45,11 @@ export async function listMembersWithoutRoles(
 	if (roleIds.length === 0) {
 		const members = await Promise.all(
 			memberships.map(async (membership) => {
-				const user = await ctx.db.get(membership.userId);
-				const { email, name } = toUserFields(user as UserLike);
+				const person = await getPersonById(ctx, membership.personId);
 				return {
-					userId: membership.userId,
-					email,
-					name,
+					personId: membership.personId,
+					email: person.email ?? '',
+					displayName: person.displayName,
 					joinedAt: membership.joinedAt
 				};
 			})
@@ -85,25 +74,24 @@ export async function listMembersWithoutRoles(
 		})
 	);
 
-	const userIdsWithRoles = new Set<Id<'users'>>();
+	const personIdsWithRoles = new Set<Id<'people'>>();
 	for (const assignments of allAssignments) {
 		for (const assignment of assignments) {
-			userIdsWithRoles.add(assignment.userId);
+			personIdsWithRoles.add(assignment.personId);
 		}
 	}
 
 	const membersWithoutRoles = memberships.filter(
-		(membership) => !userIdsWithRoles.has(membership.userId)
+		(membership) => !personIdsWithRoles.has(membership.personId)
 	);
 
 	const members = await Promise.all(
 		membersWithoutRoles.map(async (membership) => {
-			const user = await ctx.db.get(membership.userId);
-			const { email, name } = toUserFields(user as UserLike);
+			const person = await getPersonById(ctx, membership.personId);
 			return {
-				userId: membership.userId,
-				email,
-				name,
+				personId: membership.personId,
+				email: person.email ?? '',
+				displayName: person.displayName,
 				joinedAt: membership.joinedAt
 			};
 		})

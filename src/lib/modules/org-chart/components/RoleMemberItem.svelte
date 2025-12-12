@@ -55,17 +55,12 @@
 	>
 		<Avatar {initials} size="md" image={avatarImage} />
 		<div class="min-w-0 flex-1">
-			<p class="truncate text-label font-medium text-primary">{displayName}</p>
+			<p class="text-label text-primary truncate font-medium">{displayName}</p>
 			{#if scope}
-				<p class="truncate text-label text-secondary">{scope}</p>
+				<p class="text-label text-secondary truncate">{scope}</p>
 			{/if}
 		</div>
-		<div
-			class="flex items-center gap-fieldGroup"
-			role="group"
-			onmousedown={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
+		<div class="gap-fieldGroup flex items-center" role="group">
 			<ActionMenu items={menuItems} class="flex-shrink-0" />
 		</div>
 	</button>
@@ -73,17 +68,12 @@
 	<div class={containerClasses} data-user-id={userId}>
 		<Avatar {initials} size="md" image={avatarImage} />
 		<div class="min-w-0 flex-1">
-			<p class="truncate text-label font-medium text-primary">{displayName}</p>
+			<p class="text-label text-primary truncate font-medium">{displayName}</p>
 			{#if scope}
-				<p class="truncate text-label text-secondary">{scope}</p>
+				<p class="text-label text-secondary truncate">{scope}</p>
 			{/if}
 		</div>
-		<div
-			class="flex items-center gap-fieldGroup"
-			role="group"
-			onmousedown={(e) => e.stopPropagation()}
-			onkeydown={(e) => e.stopPropagation()}
-		>
+		<div class="gap-fieldGroup flex items-center" role="group">
 			<ActionMenu items={menuItems} class="flex-shrink-0" />
 		</div>
 	</div>

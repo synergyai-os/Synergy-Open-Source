@@ -28,7 +28,7 @@
 			</Popover.Trigger>
 		{/if}
 		<Popover.Content
-			class="border-control-border bg-control z-50 rounded-button border shadow-card"
+			class="border-control-border bg-control rounded-button shadow-card z-50 border"
 			style="padding: var(--spacing-3);"
 			side="bottom"
 			align="start"

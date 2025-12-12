@@ -19,12 +19,11 @@
 	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
 	import ImportProposalButton from '$lib/modules/org-chart/components/proposals/ImportProposalButton.svelte';
 	import { Icon, Heading, Text, Button } from '$lib/components/atoms';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		data: {
 			sessionId: string;
-			userId: Id<'users'>;
 			enabledFeatures: string[];
 		};
 	}
@@ -37,13 +36,11 @@ import { invariant } from '$lib/utils/invariant';
 	// Get meetingId from URL params
 	const meetingId = () => page.params.id as Id<'meetings'> | undefined;
 	const sessionId = () => data.sessionId;
-	const userId = () => data.userId;
 
 	// Real-time meeting session
 	const session = useMeetingSession({
 		meetingId,
-		sessionId,
-		userId
+		sessionId
 	});
 
 	// Query template to check if it's a governance meeting
@@ -233,7 +230,7 @@ import { invariant } from '$lib/utils/invariant';
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<div
-				class="inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-accent-primary border-r-transparent"
+				class="size-icon-lg rounded-avatar border-accent-primary inline-block animate-spin border-4 border-solid border-r-transparent"
 			></div>
 			<Text variant="body" color="secondary" class="mb-header">Loading meeting...</Text>
 		</div>
@@ -247,28 +244,29 @@ import { invariant } from '$lib/utils/invariant';
 		</div>
 	</div>
 {:else if session.meeting}
-	<div class="flex h-screen flex-col overflow-hidden bg-surface">
+	<div class="bg-surface flex h-screen flex-col overflow-hidden">
 		<!-- Header -->
 		<div
-			class="border-border-base flex items-center justify-between border-b bg-elevated px-page py-stack-header"
+			class="border-border-base bg-elevated px-page py-stack-header flex items-center justify-between border-b"
 		>
-			<div class="flex items-center gap-content">
+			<div class="gap-content flex items-center">
 				<Heading level="h1" size="h2" class="font-semibold">{session.meeting.title}</Heading>
 
 				<!-- Recorder Indicator - visible to everyone -->
-				{#if session.isStarted && session.meeting?.recorderId}
-					<div class="flex items-center gap-fieldGroup">
+				{#if session.isStarted && session.meeting?.recorderPersonId}
+					<div class="gap-fieldGroup flex items-center">
 						<Text variant="label" color="tertiary">Recorder:</Text>
 						<Text variant="body" size="sm" class="font-medium">
-							{session.meeting.attendees?.find((a) => a.userId === session.meeting.recorderId)
-								?.userName || 'Unknown'}
+							{session.meeting.attendees?.find(
+								(a) => a.personId === session.meeting.recorderPersonId
+							)?.personName || 'Unknown'}
 						</Text>
 					</div>
 				{/if}
 
 				<!-- Active Users Indicator (SYOS-227) -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="flex items-center gap-fieldGroup">
+					<div class="gap-fieldGroup flex items-center">
 						<Text variant="label" color="secondary">Active:</Text>
 						<Text variant="label" class="font-medium">
 							{presence.activeCount}/{presence.expectedCount}
@@ -277,10 +275,10 @@ import { invariant } from '$lib/utils/invariant';
 				{/if}
 			</div>
 
-			<div class="flex items-center gap-content">
+			<div class="gap-content flex items-center">
 				<!-- Timer -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="text-text-secondary flex items-center gap-fieldGroup">
+					<div class="text-text-secondary gap-fieldGroup flex items-center">
 						<Icon type="clock" size="md" />
 						<Text variant="body" size="sm" class="font-code">{session.elapsedTimeFormatted}</Text>
 					</div>
@@ -316,12 +314,12 @@ import { invariant } from '$lib/utils/invariant';
 		<!-- Content Area -->
 		<div class="flex flex-1 overflow-hidden">
 			<!-- Sidebar (Agenda) -->
-			<div class="w-sidebar border-border-base overflow-y-auto border-r bg-elevated">
+			<div class="w-sidebar border-border-base bg-elevated overflow-y-auto border-r">
 				<div class="card-padding">
-					<div class="flex items-center justify-between mb-header">
+					<div class="mb-header flex items-center justify-between">
 						<Heading level="h2" size="h3" class="font-semibold">Agenda</Heading>
 						{#if !session.isClosed}
-							<div class="flex items-center gap-button">
+							<div class="gap-button flex items-center">
 								{#if shouldShowImportButton}
 									<ImportProposalButton
 										meetingId={session.meeting._id}
@@ -343,7 +341,7 @@ import { invariant } from '$lib/utils/invariant';
 								type="text"
 								bind:value={state.newAgendaTitle}
 								placeholder="Agenda item title"
-								class="border-border-base text-button text-text-primary placeholder-text-tertiary focus:ring-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y focus:border-accent-primary focus:ring-1 focus:outline-none"
+								class="border-border-base text-button text-text-primary placeholder-text-tertiary focus:ring-accent-primary rounded-input bg-surface px-input-x py-input-y focus:border-accent-primary w-full border focus:ring-1 focus:outline-none"
 								onkeydown={(e) => {
 									if (e.key === 'Enter') handleAddAgendaItem();
 									if (e.key === 'Escape') {
@@ -352,7 +350,7 @@ import { invariant } from '$lib/utils/invariant';
 									}
 								}}
 							/>
-							<div class="mt-text-gap flex gap-fieldGroup">
+							<div class="mt-text-gap gap-fieldGroup flex">
 								<Button variant="primary" size="sm" onclick={handleAddAgendaItem}>Add</Button>
 								<Button
 									variant="outline"
@@ -382,12 +380,12 @@ import { invariant } from '$lib/utils/invariant';
 								>
 									To Process ({todoItems.length})
 								</Text>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each todoItems as item (item._id)}
 										<button
 											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
 											disabled={!session.isRecorder}
-											class="px-fieldGroup py-nav-item w-full rounded-button border text-left transition-colors {session.activeAgendaItemId ===
+											class="px-fieldGroup py-nav-item rounded-button w-full border text-left transition-colors {session.activeAgendaItemId ===
 											item._id
 												? 'bg-accent-primary/10 border-accent-primary'
 												: 'border-border-base bg-surface hover:border-accent-primary'} {session.isRecorder
@@ -408,7 +406,7 @@ import { invariant } from '$lib/utils/invariant';
 						<!-- Processed Section -->
 						{#if processedItems.length > 0}
 							<div class="mb-header">
-								<div class="mb-text-gap flex items-center gap-fieldGroup">
+								<div class="mb-text-gap gap-fieldGroup flex items-center">
 									<Icon type="check" size="sm" color="tertiary" />
 									<Text
 										variant="label"
@@ -418,14 +416,14 @@ import { invariant } from '$lib/utils/invariant';
 										Processed ({processedItems.length})
 									</Text>
 								</div>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each processedItems as item (item._id)}
 										<button
 											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
 											disabled={!session.isRecorder}
 											onmouseenter={() => (state.hoveredProcessedId = item._id)}
 											onmouseleave={() => (state.hoveredProcessedId = null)}
-											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {session.isRecorder
+											class="border-border-base px-fieldGroup py-nav-item rounded-button bg-surface w-full border text-left transition-all {session.isRecorder
 												? 'cursor-pointer'
 												: 'cursor-not-allowed'}"
 											style="opacity: var(--opacity-{state.hoveredProcessedId === item._id
@@ -447,7 +445,7 @@ import { invariant } from '$lib/utils/invariant';
 						<!-- Rejected Section -->
 						{#if rejectedItems.length > 0}
 							<div>
-								<div class="mb-text-gap flex items-center gap-fieldGroup">
+								<div class="mb-text-gap gap-fieldGroup flex items-center">
 									<Icon type="close" size="sm" color="error" />
 									<Text
 										variant="label"
@@ -457,14 +455,14 @@ import { invariant } from '$lib/utils/invariant';
 										Rejected ({rejectedItems.length})
 									</Text>
 								</div>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									{#each rejectedItems as item (item._id)}
 										<button
 											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
 											disabled={!session.isRecorder}
 											onmouseenter={() => (state.hoveredProcessedId = item._id)}
 											onmouseleave={() => (state.hoveredProcessedId = null)}
-											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {session.isRecorder
+											class="border-border-base px-fieldGroup py-nav-item rounded-button bg-surface w-full border text-left transition-all {session.isRecorder
 												? 'cursor-pointer'
 												: 'cursor-not-allowed'}"
 											style="opacity: var(--opacity-{state.hoveredProcessedId === item._id
@@ -490,13 +488,13 @@ import { invariant } from '$lib/utils/invariant';
 			<div class="flex flex-1 flex-col overflow-hidden">
 				<!-- Step Navigation (Tabs) -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="border-border-base flex border-b bg-elevated">
+					<div class="border-border-base bg-elevated flex border-b">
 						{#each steps as step (step.id)}
 							<button
 								onclick={() => handleAdvanceStep(step.id)}
 								class="border-border-base px-form-section py-header text-button cursor-pointer font-medium transition-colors {session.currentStep ===
 								step.id
-									? 'border-b-2 border-accent-primary text-accent-primary'
+									? 'border-accent-primary text-accent-primary border-b-2'
 									: 'text-text-secondary hover:text-text-primary'}"
 							>
 								{step.label}
@@ -506,14 +504,14 @@ import { invariant } from '$lib/utils/invariant';
 				{/if}
 
 				<!-- Step Content -->
-				<div class="pb-page flex-1 overflow-y-auto px-page py-page">
+				<div class="pb-page px-page py-page flex-1 overflow-y-auto">
 					{#if !session.isStarted}
 						<!-- Before meeting starts -->
 						<div class="text-center">
 							<div class="mx-auto">
 								<Icon type="clock" size="xl" color="tertiary" />
 							</div>
-							<Heading level="h2" size="h3" class="font-semibold mb-header">
+							<Heading level="h2" size="h3" class="mb-header font-semibold">
 								Meeting Not Started
 							</Heading>
 							<Text variant="body" color="secondary" class="mt-text-gap">
@@ -526,7 +524,7 @@ import { invariant } from '$lib/utils/invariant';
 							<div class="mx-auto">
 								<Icon type="check-circle" size="xl" color="success" />
 							</div>
-							<Heading level="h2" size="h3" class="font-semibold mb-header">Meeting Closed</Heading>
+							<Heading level="h2" size="h3" class="mb-header font-semibold">Meeting Closed</Heading>
 							<Text variant="body" color="secondary" class="mt-text-gap">
 								This meeting has ended. Duration: {session.elapsedTimeFormatted}
 							</Text>
@@ -546,10 +544,10 @@ import { invariant } from '$lib/utils/invariant';
 								</Heading>
 
 								{#if presence.combinedAttendance.length > 0}
-									<div class="flex flex-col gap-fieldGroup mb-header">
-										{#each presence.combinedAttendance as attendee (attendee.userId)}
+									<div class="gap-fieldGroup mb-header flex flex-col">
+										{#each presence.combinedAttendance as attendee (attendee.personId)}
 											<label
-												class="border-border-base px-card py-card flex items-center gap-fieldGroup rounded-button border bg-surface transition-colors {attendee.isActive
+												class="border-border-base px-card py-card gap-fieldGroup rounded-button bg-surface flex items-center border transition-colors {attendee.isActive
 													? 'border-accent-primary/30 bg-accent-primary/5'
 													: ''}"
 											>
@@ -558,13 +556,13 @@ import { invariant } from '$lib/utils/invariant';
 													type="checkbox"
 													checked={attendee.isActive}
 													disabled
-													class="border-border-base size-icon-sm cursor-default rounded text-accent-primary focus:ring-0"
+													class="border-border-base size-icon-sm text-accent-primary cursor-default rounded focus:ring-0"
 													style="opacity: var(--opacity-{attendee.isActive ? '100' : '50'});"
 												/>
 
 												<!-- User Avatar -->
 												<div
-													class="text-button flex size-icon-lg items-center justify-center rounded-avatar font-medium {attendee.isActive
+													class="text-button size-icon-lg rounded-avatar flex items-center justify-center font-medium {attendee.isActive
 														? 'bg-accent-primary text-primary'
 														: 'bg-surface-tertiary text-text-tertiary'}"
 												>
@@ -621,7 +619,7 @@ import { invariant } from '$lib/utils/invariant';
 									<div class="mx-auto">
 										<Icon type="clipboard" size="xl" color="tertiary" />
 									</div>
-									<Heading level="h3" size="h3" class="font-semibold mb-header">
+									<Heading level="h3" size="h3" class="mb-header font-semibold">
 										No Agenda Items
 									</Heading>
 									<Text variant="body" color="secondary" class="mt-text-gap">
@@ -636,7 +634,7 @@ import { invariant } from '$lib/utils/invariant';
 									<div class="mx-auto">
 										<Icon type="check-circle" size="xxl" color="success" />
 									</div>
-									<Heading level="h3" size="h1" class="font-bold mb-header">
+									<Heading level="h3" size="h1" class="mb-header font-bold">
 										All Agenda Items Processed!
 									</Heading>
 									<Text variant="body" color="secondary" class="mt-text-gap">
@@ -669,9 +667,9 @@ import { invariant } from '$lib/utils/invariant';
 								Recap decisions, action items, and next steps.
 							</Text>
 							<div class="mb-header">
-								<div class="border-border-base rounded-card border bg-surface card-padding">
+								<div class="border-border-base rounded-card bg-surface card-padding border">
 									<Heading level="h3" size="h3" class="font-semibold">Meeting Summary</Heading>
-									<div class="flex flex-col gap-fieldGroup mb-header">
+									<div class="gap-fieldGroup mb-header flex flex-col">
 										<Text variant="body" size="sm" color="secondary"
 											>Duration: {session.elapsedTimeFormatted}</Text
 										>

@@ -159,13 +159,13 @@
 			<!-- Animated spinner -->
 			<div class="size-avatar-lg relative">
 				<div
-					class="border-border-base border-t-accent-primary absolute inset-0 animate-spin rounded-avatar border-4"
+					class="border-border-base border-t-accent-primary rounded-avatar absolute inset-0 animate-spin border-4"
 				></div>
 			</div>
 
 			<!-- Main title -->
 			<div class="max-w-md text-center">
-				<h2 class="text-h1 font-semibold text-primary">{displayTitle}</h2>
+				<h2 class="text-h1 text-primary font-semibold">{displayTitle}</h2>
 			</div>
 
 			<!-- Progress stage -->

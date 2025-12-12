@@ -23,7 +23,7 @@
 		getLeadAuthorityLevel,
 		getAuthorityUI
 	} from '$lib/infrastructure/organizational-model/constants';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -47,7 +47,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query circle for permission checking (roles belong to circles)
 	const circleQuery = $derived(
 		browser && role?.circleId && sessionId
-			? useQuery(api.circles.get, () => {
+			? useQuery(api.core.circles.index.get, () => {
 					invariant(role?.circleId && sessionId, 'Role circleId and sessionId required');
 					return { sessionId, circleId: role.circleId };
 				})
@@ -115,7 +115,7 @@ import { invariant } from '$lib/utils/invariant';
 	async function handleQuickUpdateRole(updates: { name?: string; purpose?: string }) {
 		if (!convexClient || !role || !sessionId) return;
 
-		await convexClient.mutation(api.circleRoles.updateInline, {
+		await convexClient.mutation(api.core.roles.index.updateInline, {
 			sessionId,
 			circleRoleId: role.roleId,
 			updates
@@ -249,7 +249,7 @@ import { invariant } from '$lib/utils/invariant';
 			<div class="flex h-full items-center justify-center">
 				<div class="text-center">
 					<svg
-						class="mx-auto size-icon-xl animate-spin text-tertiary"
+						class="size-icon-xl text-tertiary mx-auto animate-spin"
 						fill="none"
 						viewBox="0 0 24 24"
 					>
@@ -271,9 +271,9 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else if error}
 			<!-- Error State -->
-			<div class="flex h-full items-center justify-center px-page">
+			<div class="px-page flex h-full items-center justify-center">
 				<div class="text-center">
-					<p class="text-button font-medium text-error">Failed to load role</p>
+					<p class="text-button text-error font-medium">Failed to load role</p>
 					<p class="text-button text-secondary mt-fieldGroup">{String(error)}</p>
 					{#if orgChart.selectedRoleId}
 						<p class="text-label text-tertiary mt-fieldGroup">
@@ -315,8 +315,8 @@ import { invariant } from '$lib/utils/invariant';
 				<div class="flex-1 overflow-y-auto">
 					<Tabs.Root bind:value={activeTab}>
 						<!-- Navigation Tabs - Sticky at top -->
-						<div class="sticky top-0 z-10 bg-surface px-page">
-							<Tabs.List class={[tabsListRecipe(), 'flex flex-shrink-0 gap-form overflow-x-auto']}>
+						<div class="bg-surface px-page sticky top-0 z-10">
+							<Tabs.List class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}>
 								<Tabs.Trigger
 									value="overview"
 									class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}
@@ -327,7 +327,7 @@ import { invariant } from '$lib/utils/invariant';
 									value="members"
 									class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Members</span>
 										{#if tabCounts.members > 0}
 											<span class="text-label text-tertiary">({tabCounts.members})</span>
@@ -341,7 +341,7 @@ import { invariant } from '$lib/utils/invariant';
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Documents</span>
 										{#if tabCounts.documents > 0}
 											<span class="text-label text-tertiary">({tabCounts.documents})</span>
@@ -355,7 +355,7 @@ import { invariant } from '$lib/utils/invariant';
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Activities</span>
 										{#if tabCounts.activities > 0}
 											<span class="text-label text-tertiary">({tabCounts.activities})</span>
@@ -366,7 +366,7 @@ import { invariant } from '$lib/utils/invariant';
 									value="metrics"
 									class={[tabsTriggerRecipe({ active: activeTab === 'metrics' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Metrics</span>
 										{#if tabCounts.metrics > 0}
 											<span class="text-label text-tertiary">({tabCounts.metrics})</span>
@@ -380,7 +380,7 @@ import { invariant } from '$lib/utils/invariant';
 										'flex-shrink-0'
 									]}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Checklists</span>
 										{#if tabCounts.checklists > 0}
 											<span class="text-label text-tertiary">({tabCounts.checklists})</span>
@@ -391,7 +391,7 @@ import { invariant } from '$lib/utils/invariant';
 									value="projects"
 									class={[tabsTriggerRecipe({ active: activeTab === 'projects' }), 'flex-shrink-0']}
 								>
-									<span class="flex items-center gap-button">
+									<span class="gap-button flex items-center">
 										<span>Projects</span>
 										{#if tabCounts.projects > 0}
 											<span class="text-label text-tertiary">({tabCounts.projects})</span>
@@ -402,7 +402,7 @@ import { invariant } from '$lib/utils/invariant';
 						</div>
 
 						<!-- Tab Content -->
-						<div class="flex-1 overflow-y-auto px-page py-page">
+						<div class="px-page py-page flex-1 overflow-y-auto">
 							<Tabs.Content value="overview" class={tabsContentRecipe()}>
 								<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
 								<div
@@ -410,11 +410,11 @@ import { invariant } from '$lib/utils/invariant';
 									style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
 								>
 									<!-- Left Column: Overview Details -->
-									<div class="flex min-w-0 flex-col gap-section overflow-hidden">
+									<div class="gap-section flex min-w-0 flex-col overflow-hidden">
 										<!-- Purpose -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Purpose
 											</h4>
@@ -429,7 +429,7 @@ import { invariant } from '$lib/utils/invariant';
 												/>
 											{:else if editReason}
 												<EditPermissionTooltip reason={editReason}>
-													<div class="text-button leading-relaxed break-words text-secondary">
+													<div class="text-button text-secondary leading-relaxed break-words">
 														{#if role.purpose}
 															{role.purpose}
 														{:else}
@@ -438,7 +438,7 @@ import { invariant } from '$lib/utils/invariant';
 													</div>
 												</EditPermissionTooltip>
 											{:else}
-												<p class="text-button leading-relaxed break-words text-secondary">
+												<p class="text-button text-secondary leading-relaxed break-words">
 													{role.purpose || 'No purpose set'}
 												</p>
 											{/if}
@@ -448,11 +448,11 @@ import { invariant } from '$lib/utils/invariant';
 										{#if isLeadRole && authorityUI}
 											<div>
 												<h4
-													class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+													class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 												>
 													Authority
 												</h4>
-												<div class="flex items-center gap-button">
+												<div class="gap-button flex items-center">
 													<span class="text-button">{authorityUI.emoji}</span>
 													<Badge variant="default" size="md">
 														{authorityUI.badge}
@@ -477,7 +477,7 @@ import { invariant } from '$lib/utils/invariant';
 										<!-- Domains -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Domains
 											</h4>
@@ -496,7 +496,7 @@ import { invariant } from '$lib/utils/invariant';
 										<!-- Accountabilities -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Accountabilities
 											</h4>
@@ -515,7 +515,7 @@ import { invariant } from '$lib/utils/invariant';
 										<!-- Policies -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Policies
 											</h4>
@@ -534,7 +534,7 @@ import { invariant } from '$lib/utils/invariant';
 										<!-- Decision Rights -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Decision Rights
 											</h4>
@@ -553,7 +553,7 @@ import { invariant } from '$lib/utils/invariant';
 										<!-- Notes -->
 										<div>
 											<h4
-												class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
 											>
 												Notes
 											</h4>
@@ -572,7 +572,7 @@ import { invariant } from '$lib/utils/invariant';
 
 									<!-- Right Column: Filled By List -->
 									<div
-										class="flex flex-col gap-section"
+										class="gap-section flex flex-col"
 										style="padding-right: var(--spacing-page-x);"
 									>
 										<!-- Filled By List -->
@@ -584,10 +584,10 @@ import { invariant } from '$lib/utils/invariant';
 												onAdd={() => {}}
 											/>
 											{#if fillers.length > 0}
-												<div class="flex flex-col gap-content mb-section">
+												<div class="gap-content mb-section flex flex-col">
 													{#each fillers as filler (filler.userId)}
 														<div
-															class="p-card flex items-center gap-button rounded-card bg-surface"
+															class="p-card gap-button rounded-card bg-surface flex items-center"
 														>
 															<Avatar
 																initials={getInitials(filler.name || filler.email)}
@@ -595,11 +595,11 @@ import { invariant } from '$lib/utils/invariant';
 															/>
 															<!-- Info -->
 															<div class="min-w-0 flex-1">
-																<p class="text-button truncate font-medium text-primary">
+																<p class="text-button text-primary truncate font-medium">
 																	{filler.name || filler.email}
 																</p>
 																{#if filler.name}
-																	<p class="truncate text-label text-secondary">{filler.email}</p>
+																	<p class="text-label text-secondary truncate">{filler.email}</p>
 																{/if}
 															</div>
 														</div>
@@ -619,7 +619,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Members -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -631,7 +631,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No members yet</p>
+									<p class="text-button text-primary mb-header font-medium">No members yet</p>
 									<p class="text-button text-secondary mb-header">
 										Members assigned to this role will appear here. This feature will be available
 										in a future update.
@@ -643,7 +643,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Documents -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -655,7 +655,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No documents yet</p>
+									<p class="text-button text-primary mb-header font-medium">No documents yet</p>
 									<p class="text-button text-secondary mb-header">
 										Documents related to this role will appear here. This feature will be available
 										in a future update.
@@ -667,7 +667,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Activities -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -679,7 +679,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No activities yet</p>
+									<p class="text-button text-primary mb-header font-medium">No activities yet</p>
 									<p class="text-button text-secondary mb-header">
 										Recent activities and updates for this role will appear here. This feature will
 										be available in a future update.
@@ -691,7 +691,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Metrics -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -703,7 +703,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No metrics yet</p>
+									<p class="text-button text-primary mb-header font-medium">No metrics yet</p>
 									<p class="text-button text-secondary mb-header">
 										Performance metrics and analytics for this role will appear here. This feature
 										will be available in a future update.
@@ -715,7 +715,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Checklists -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -727,7 +727,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No checklists yet</p>
+									<p class="text-button text-primary mb-header font-medium">No checklists yet</p>
 									<p class="text-button text-secondary mb-header">
 										Checklists and task lists for this role will appear here. This feature will be
 										available in a future update.
@@ -739,7 +739,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Empty State: Projects -->
 								<div class="py-page text-center">
 									<svg
-										class="mx-auto size-icon-xl text-tertiary"
+										class="size-icon-xl text-tertiary mx-auto"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
@@ -751,7 +751,7 @@ import { invariant } from '$lib/utils/invariant';
 											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
 										/>
 									</svg>
-									<p class="text-button font-medium text-primary mb-header">No projects yet</p>
+									<p class="text-button text-primary mb-header font-medium">No projects yet</p>
 									<p class="text-button text-secondary mb-header">
 										Projects associated with this role will appear here. This feature will be
 										available in a future update.
@@ -764,7 +764,7 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else}
 			<!-- Empty State - Panel open but no role data -->
-			<div class="flex h-full items-center justify-center px-page">
+			<div class="px-page flex h-full items-center justify-center">
 				<div class="text-center">
 					<p class="text-button text-secondary">No role selected</p>
 				</div>

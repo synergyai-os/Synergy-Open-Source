@@ -1,11 +1,11 @@
 import { query } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
 import { ensureWorkspaceMembership } from './proposalAccess';
 import type { ProposalStatus } from './proposalTypes';
+import { getPersonForSessionAndWorkspace } from '../people/queries';
 
 async function listProposalsQuery(
 	ctx: QueryCtx,
@@ -14,12 +14,12 @@ async function listProposalsQuery(
 		workspaceId: Id<'workspaces'>;
 		status?: ProposalStatus;
 		circleId?: Id<'circles'>;
-		creatorId?: Id<'users'>;
+		creatorId?: Id<'people'>;
 		limit?: number;
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
 	let proposals: Doc<'circleProposals'>[];
 
@@ -39,7 +39,7 @@ async function listProposalsQuery(
 	} else if (args.creatorId) {
 		proposals = await ctx.db
 			.query('circleProposals')
-			.withIndex('by_creator', (q) => q.eq('createdBy', args.creatorId))
+			.withIndex('by_creatorPerson', (q) => q.eq('createdByPersonId', args.creatorId))
 			.collect();
 		proposals = proposals.filter((p) => p.workspaceId === args.workspaceId);
 	} else {
@@ -52,9 +52,6 @@ async function listProposalsQuery(
 	if (args.status && args.circleId) {
 		proposals = proposals.filter((p) => p.status === args.status);
 	}
-	if (args.creatorId && !args.creatorId) {
-		proposals = proposals.filter((p) => p.createdBy === args.creatorId);
-	}
 
 	proposals.sort((a, b) => b.createdAt - a.createdAt);
 
@@ -66,12 +63,15 @@ async function getProposalQuery(
 	ctx: QueryCtx,
 	args: { sessionId: string; proposalId: Id<'circleProposals'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db.get(args.proposalId);
 	if (!proposal) return null;
 
-	await ensureWorkspaceMembership(ctx, proposal.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, proposal.workspaceId, person._id);
 
 	const evolutions = await ctx.db
 		.query('proposalEvolutions')
@@ -88,7 +88,7 @@ async function getProposalQuery(
 		.withIndex('by_proposal', (q) => q.eq('proposalId', args.proposalId))
 		.collect();
 
-	const creator = await ctx.db.get(proposal.createdBy);
+	const creator = await ctx.db.get(proposal.createdByPersonId);
 
 	let targetEntity: { type: string; name: string } | null = null;
 	if (proposal.entityType === 'circle') {
@@ -108,7 +108,9 @@ async function getProposalQuery(
 		evolutions,
 		objections,
 		attachments,
-		creator: creator ? { id: creator._id, name: creator.name, email: creator.email } : null,
+		creator: creator
+			? { id: creator._id, name: creator.displayName ?? '', email: creator.email }
+			: null,
 		targetEntity
 	};
 }
@@ -117,8 +119,6 @@ async function getProposalByAgendaItemQuery(
 	ctx: QueryCtx,
 	args: { sessionId: string; agendaItemId: Id<'meetingAgendaItems'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db
 		.query('circleProposals')
 		.withIndex('by_agendaItem', (q) => q.eq('agendaItemId', args.agendaItemId))
@@ -126,7 +126,12 @@ async function getProposalByAgendaItemQuery(
 
 	if (!proposal) return null;
 
-	await ensureWorkspaceMembership(ctx, proposal.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, proposal.workspaceId, person._id);
 
 	return proposal;
 }
@@ -135,12 +140,11 @@ async function listProposalsByCircleQuery(
 	ctx: QueryCtx,
 	args: { sessionId: string; circleId: Id<'circles'>; includeTerminal?: boolean }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) return [];
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, circle.workspaceId);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, person._id);
 
 	let proposals = await ctx.db
 		.query('circleProposals')
@@ -161,12 +165,12 @@ async function listMyDraftProposalsQuery(
 	ctx: QueryCtx,
 	args: { sessionId: string; workspaceId: Id<'workspaces'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
 	const proposals = await ctx.db
 		.query('circleProposals')
-		.withIndex('by_creator', (q) => q.eq('createdBy', userId))
+		.withIndex('by_creatorPerson', (q) => q.eq('createdByPersonId', person._id))
 		.collect();
 
 	return proposals
@@ -178,12 +182,15 @@ async function listForMeetingImportQuery(
 	ctx: QueryCtx,
 	args: { sessionId: string; meetingId: Id<'meetings'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const meeting = await ctx.db.get(args.meetingId);
 	if (!meeting) throw createError(ErrorCodes.MEETING_NOT_FOUND, 'Meeting not found');
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, person._id);
 
 	if (!meeting.circleId) {
 		return [];
@@ -203,30 +210,28 @@ async function listForMeetingImportQuery(
 	return proposals;
 }
 
-const listProposalsArgs = {
-	sessionId: v.string(),
-	workspaceId: v.id('workspaces'),
-	status: v.optional(
-		v.union(
-			v.literal('draft'),
-			v.literal('submitted'),
-			v.literal('in_meeting'),
-			v.literal('objections'),
-			v.literal('integrated'),
-			v.literal('approved'),
-			v.literal('rejected'),
-			v.literal('withdrawn')
-		)
-	),
-	circleId: v.optional(v.id('circles')),
-	creatorId: v.optional(v.id('users')),
-	limit: v.optional(v.number())
-};
-
 export { listProposalsQuery };
 
 export const list = query({
-	args: listProposalsArgs,
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		status: v.optional(
+			v.union(
+				v.literal('draft'),
+				v.literal('submitted'),
+				v.literal('in_meeting'),
+				v.literal('objections'),
+				v.literal('integrated'),
+				v.literal('approved'),
+				v.literal('rejected'),
+				v.literal('withdrawn')
+			)
+		),
+		circleId: v.optional(v.id('circles')),
+		creatorId: v.optional(v.id('people')),
+		limit: v.optional(v.number())
+	},
 	handler: async (ctx, args): Promise<Doc<'circleProposals'>[]> => listProposalsQuery(ctx, args)
 });
 

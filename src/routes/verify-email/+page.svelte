@@ -241,7 +241,7 @@
 	}
 </script>
 
-<div class="relative min-h-screen overflow-hidden bg-base">
+<div class="bg-base relative min-h-screen overflow-hidden">
 	<!-- Animated background gradient -->
 	{#if mounted}
 		<div
@@ -254,7 +254,7 @@
 		class="py-system-content relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="border-base p-content-padding w-full max-w-md rounded-modal border bg-elevated shadow-lg transition-all duration-300 hover:shadow-xl"
+			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-lg transition-all duration-300 hover:shadow-xl"
 			style="animation: fadeInUp 0.5s ease-out"
 		>
 			<!-- Email icon with animation -->
@@ -262,7 +262,7 @@
 				class="bg-accent-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
 			>
 				<svg
-					class="h-8 w-8 text-accent-primary"
+					class="text-accent-primary h-8 w-8"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -278,17 +278,17 @@
 			</div>
 
 			<header class="gap-form-section flex flex-col text-center">
-				<h1 class="text-3xl font-bold tracking-tight text-primary">Check your inbox</h1>
-				<p class="text-base leading-relaxed text-secondary">
+				<h1 class="text-primary text-3xl font-bold tracking-tight">Check your inbox</h1>
+				<p class="text-secondary text-base leading-relaxed">
 					We sent a 6-digit code to<br />
-					<span class="font-semibold text-primary">{email}</span>
+					<span class="text-primary font-semibold">{email}</span>
 				</p>
 			</header>
 
 			<!-- Already authenticated message with countdown -->
 			{#if isAuthenticated()}
 				<div
-					class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
+					class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
 					style="animation: slideDown 0.3s ease-out"
 				>
 					<div class="flex flex-col gap-3">
@@ -324,7 +324,7 @@
 				<!-- Success message with animation -->
 				{#if resendSuccess}
 					<div
-						class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
+						class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex items-center gap-2">
@@ -349,13 +349,13 @@
 				<!-- Redirect to login message with countdown (for "already registered" error) -->
 				{#if shouldRedirectToLogin}
 					<div
-						class="mt-content-section bg-accent-primary/10 rounded-input border border-accent-primary px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-accent-primary/10 rounded-input border-accent-primary px-input-x py-input-y border shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex flex-col gap-3">
 							<div class="flex items-start gap-2">
 								<svg
-									class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+									class="text-accent-primary mt-0.5 h-5 w-5 flex-shrink-0"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -368,7 +368,7 @@
 									/>
 								</svg>
 								<div class="flex-1">
-									<p class="text-sm font-medium text-primary">
+									<p class="text-primary text-sm font-medium">
 										This email is already registered. Redirecting you to sign in in {redirectCountdown}
 										seconds...
 									</p>
@@ -380,7 +380,7 @@
 				{:else if errorMessage}
 					<!-- Error message with animation -->
 					<div
-						class="mt-content-section bg-error rounded-input border border-error px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border shadow-sm"
 						style="animation: shake 0.5s ease-out"
 					>
 						<div class="flex items-start gap-2">
@@ -413,7 +413,7 @@
 
 					<!-- Paste hint -->
 					{#if !code && mounted}
-						<p class="mt-2 text-center text-sm text-tertiary">
+						<p class="text-tertiary mt-2 text-center text-sm">
 							💡 Tip: Copy the code from your email and it will auto-paste
 						</p>
 					{/if}
@@ -422,9 +422,9 @@
 				<!-- Timer display with visual feedback -->
 				<div class="mt-6 text-center">
 					{#if timeLeft > 0}
-						<div class="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+						<div class="bg-surface inline-flex items-center gap-2 rounded-full px-4 py-2">
 							<svg
-								class="h-4 w-4 text-tertiary"
+								class="text-tertiary h-4 w-4"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -441,7 +441,7 @@
 							</span>
 						</div>
 					{:else}
-						<p class="text-sm font-medium text-error">Code expired. Please request a new one.</p>
+						<p class="text-error text-sm font-medium">Code expired. Please request a new one.</p>
 					{/if}
 				</div>
 
@@ -478,11 +478,11 @@
 
 				<!-- Helper text -->
 				<div class="border-base mt-6 border-t pt-6 text-center">
-					<p class="text-sm text-secondary">
+					<p class="text-secondary text-sm">
 						Wrong email?
 						<a
 							href={resolveRoute('/register')}
-							class="hover:text-accent-hover font-medium text-accent-primary transition-colors"
+							class="hover:text-accent-hover text-accent-primary font-medium transition-colors"
 						>
 							Start over
 						</a>

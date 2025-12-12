@@ -241,7 +241,7 @@
 	{#snippet template(args)}
 		<div class="max-w-md">
 			<Combobox {...args} />
-			<p class="mt-4 text-sm text-secondary">
+			<p class="text-secondary mt-4 text-sm">
 				💡 Try typing "berry" or "apple" to see the search/filter functionality in action!
 			</p>
 		</div>

@@ -18,6 +18,7 @@ import type { WorkspaceSummary } from './useWorkspaces.svelte';
 export interface UseOrganizationAnalyticsOptions {
 	convexClient: ConvexClient | null;
 	getUserId: () => string | undefined;
+	getSessionId: () => string | undefined;
 	workspaces: () => WorkspaceSummary[]; // Reactive function to get workspaces list
 	setActiveWorkspace: (workspaceId: string | null) => void; // State composable function
 	getCurrentOrganizationId: () => string | null; // Reactive function to get current org ID (captures before change)
@@ -39,6 +40,7 @@ export function useWorkspaceAnalytics(
 	const {
 		convexClient,
 		getUserId,
+		getSessionId,
 		workspaces,
 		setActiveWorkspace: setActiveOrgState,
 		getCurrentOrganizationId
@@ -66,12 +68,19 @@ export function useWorkspaceAnalytics(
 				console.debug('⏭️ Skipping workspace switch tracking - user not authenticated yet');
 				return;
 			}
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				console.debug('⏭️ Skipping workspace switch tracking - missing sessionId');
+				return;
+			}
 
 			const mutationArgs: {
+				sessionId: string;
 				fromOrganizationId?: Id<'workspaces'>;
 				toOrganizationId: Id<'workspaces'>;
 				availableCircleCount: number;
 			} = {
+				sessionId,
 				toOrganizationId: targetOrgId as Id<'workspaces'>,
 				availableCircleCount
 			};
@@ -81,7 +90,7 @@ export function useWorkspaceAnalytics(
 			}
 
 			convexClient
-				.mutation(api.workspaces.recordOrganizationSwitch, mutationArgs)
+				.mutation(api.core.workspaces.index.recordOrganizationSwitch, mutationArgs)
 				.catch((_error) => {
 					console.warn('Failed to record workspace switch', _error);
 				});

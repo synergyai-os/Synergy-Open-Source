@@ -65,11 +65,14 @@ export function useCircleItems(options: UseCircleItemsOptions): UseCircleItemsRe
 	// Query: Get all items for entity (all categories)
 	const itemsQuery = $derived(
 		browser && getSessionId() && getEntityType() && getEntityId()
-			? useQuery(api.circleItems.listByEntity, () => {
+			? useQuery(api.core.circleItems.listByEntity, () => {
 					const sessionId = getSessionId();
 					const entityType = getEntityType();
 					const entityId = getEntityId();
-					invariant(sessionId && entityType && entityId, 'sessionId, entityType, and entityId required');
+					invariant(
+						sessionId && entityType && entityId,
+						'sessionId, entityType, and entityId required'
+					);
 					return {
 						sessionId,
 						entityType: entityType as 'circle' | 'role',
@@ -96,7 +99,7 @@ export function useCircleItems(options: UseCircleItemsOptions): UseCircleItemsRe
 
 		invariant(sessionId && entityType && entityId, 'sessionId, entityType, and entityId required');
 
-		await convexClient.mutation(api.circleItems.create, {
+		await convexClient.mutation(api.core.circleItems.create, {
 			sessionId,
 			entityType: entityType as 'circle' | 'role',
 			entityId,
@@ -111,7 +114,7 @@ export function useCircleItems(options: UseCircleItemsOptions): UseCircleItemsRe
 
 		invariant(sessionId, 'sessionId required');
 
-		await convexClient.mutation(api.circleItems.update, {
+		await convexClient.mutation(api.core.circleItems.update, {
 			sessionId,
 			circleItemId: itemId,
 			content
@@ -124,7 +127,7 @@ export function useCircleItems(options: UseCircleItemsOptions): UseCircleItemsRe
 
 		invariant(sessionId, 'sessionId required');
 
-		await convexClient.mutation(api.circleItems.deleteItem, {
+		await convexClient.mutation(api.core.circleItems.deleteItem, {
 			sessionId,
 			circleItemId: itemId
 		});

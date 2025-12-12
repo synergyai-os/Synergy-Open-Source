@@ -62,10 +62,10 @@ async function main() {
 		};
 
 		try {
-			await client.mutation(api.featureFlags.updateFlag, mutationArgs);
+			await client.mutation(api.infrastructure.featureFlags.updateFlag, mutationArgs);
 		} catch (error) {
 			if (error instanceof Error && error.message.includes('not found')) {
-				await client.mutation(api.featureFlags.createFlag, mutationArgs);
+				await client.mutation(api.infrastructure.featureFlags.createFlag, mutationArgs);
 			} else {
 				throw error;
 			}

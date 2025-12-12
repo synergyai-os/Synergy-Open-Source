@@ -21,7 +21,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid inline-flex h-10 items-center justify-center rounded-button border bg-elevated px-2 font-medium text-primary transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid rounded-button bg-elevated text-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary inline-flex h-10 items-center justify-center border px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 		>
 			Toggle
 		</Toggle.Root>
@@ -32,7 +32,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid inline-flex h-10 items-center justify-center rounded-button border bg-elevated px-2 font-medium text-primary transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid rounded-button bg-elevated text-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary inline-flex h-10 items-center justify-center border px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 		>
 			Toggle
 		</Toggle.Root>
@@ -43,7 +43,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring border-base hover:bg-hover-solid inline-flex h-10 w-10 items-center justify-center rounded-button border bg-elevated text-primary transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring border-base hover:bg-hover-solid rounded-button bg-elevated text-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary inline-flex h-10 w-10 items-center justify-center border transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 		>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid inline-flex h-10 items-center justify-center rounded-button border bg-elevated px-2 font-medium text-primary transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring border-base text-button hover:bg-hover-solid rounded-button bg-elevated text-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary inline-flex h-10 items-center justify-center border px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 		>
 			Toggle
 		</Toggle.Root>

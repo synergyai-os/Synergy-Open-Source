@@ -58,12 +58,12 @@
 </script>
 
 <div
-	class="flex min-h-screen items-center justify-center px-page"
+	class="px-page flex min-h-screen items-center justify-center"
 	style="padding-block: var(--spacing-12);"
 >
 	<div class="space-y-error-page w-full max-w-md text-center">
 		<!-- Icon -->
-		<div class="size-avatar-sm bg-error-bg mx-auto flex items-center justify-center rounded-avatar">
+		<div class="size-avatar-sm bg-error-bg rounded-avatar mx-auto flex items-center justify-center">
 			<svg
 				class="icon-lg text-error-text"
 				fill="none"
@@ -81,7 +81,7 @@
 
 		<!-- Title -->
 		<div>
-			<h1 class="text-h2 font-semibold text-primary">Admin Access Required</h1>
+			<h1 class="text-h2 text-primary font-semibold">Admin Access Required</h1>
 			<p class="text-small mt-form-field-gap text-secondary">
 				You need system administrator privileges to access this page.
 			</p>
@@ -89,8 +89,8 @@
 
 		<!-- Error Details (if available) -->
 		{#if error}
-			<div class="p-card border-base rounded-card border bg-elevated text-left">
-				<p class="text-label font-medium text-tertiary">Error Details</p>
+			<div class="p-card border-base rounded-card bg-elevated border text-left">
+				<p class="text-label text-tertiary font-medium">Error Details</p>
 				<p class="text-small mt-section-y text-secondary">
 					{error instanceof Error
 						? error.message
@@ -103,21 +103,21 @@
 
 		<!-- Account Switching -->
 		{#if isLoadingAccounts}
-			<div class="border-base p-card-compact rounded-card border bg-elevated">
+			<div class="border-base p-card-compact rounded-card bg-elevated border">
 				<p class="text-small text-secondary">Loading accounts...</p>
 			</div>
 		{:else if linkedAccounts.length > 0}
 			<div class="space-y-form-section">
-				<p class="text-small font-medium text-primary">Switch to an account with admin access:</p>
+				<p class="text-small text-primary font-medium">Switch to an account with admin access:</p>
 				<div class="space-y-form-field-gap">
 					{#each linkedAccounts as account (account.userId)}
 						<button
 							type="button"
 							onclick={() => switchAccount(account.userId)}
 							disabled={isSwitching}
-							class="hover:bg-elevated-hover border-base p-card-compact w-full rounded-card border bg-elevated text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							class="hover:bg-elevated-hover border-base p-card-compact rounded-card bg-elevated w-full border text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<p class="text-small font-medium text-primary">{account.name || account.email}</p>
+							<p class="text-small text-primary font-medium">{account.name || account.email}</p>
 							<p class="mt-badge-y text-label text-secondary">{account.email}</p>
 						</button>
 					{/each}

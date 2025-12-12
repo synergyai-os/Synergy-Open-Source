@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
-	import { KeyboardShortcut } from '$lib/components/atoms';
+	import { Button, KeyboardShortcut } from '$lib/components/atoms';
 	import { ContextSelector, ToggleSwitch } from '$lib/components/molecules';
 	import NoteEditorWithDetection from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import QuickCreateMetadataBar from './QuickCreateMetadataBar.svelte';

@@ -45,7 +45,7 @@
 		<div class="flex flex-col items-center gap-2">
 			<!-- Loading Spinner -->
 			<svg
-				class="animate-spin text-accent-primary"
+				class="text-accent-primary animate-spin"
 				style={sizeStyle}
 				fill="none"
 				stroke="currentColor"
@@ -60,7 +60,7 @@
 			</svg>
 			<!-- Loading Message -->
 			{#if message}
-				<p class="text-button font-medium text-secondary">{message}</p>
+				<p class="text-button text-secondary font-medium">{message}</p>
 			{/if}
 		</div>
 	</div>
@@ -68,7 +68,7 @@
 	<div class="flex flex-col items-center gap-2" style="padding-block: var(--spacing-8);">
 		<!-- Loading Spinner -->
 		<svg
-			class="animate-spin text-accent-primary"
+			class="text-accent-primary animate-spin"
 			style={sizeStyle}
 			fill="none"
 			stroke="currentColor"
@@ -83,7 +83,7 @@
 		</svg>
 		<!-- Loading Message -->
 		{#if message}
-			<p class="text-button font-medium text-secondary">{message}</p>
+			<p class="text-button text-secondary font-medium">{message}</p>
 		{/if}
 	</div>
 {/if}

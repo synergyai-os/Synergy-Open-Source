@@ -15,7 +15,10 @@ import { invariant } from '$lib/utils/invariant';
 // Import TagWithHierarchy type from Convex (matches convex/tags.ts)
 export type TagWithHierarchy = {
 	_id: Id<'tags'>;
-	userId: Id<'users'>;
+	personId: Id<'people'>;
+	workspaceId: Id<'workspaces'>;
+	circleId?: Id<'circles'>;
+	ownershipType?: 'user' | 'workspace' | 'circle';
 	name: string;
 	displayName: string;
 	color: string;
@@ -64,7 +67,11 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 		void
 	> | null = null;
 
-	if (browser && api.tags?.createTag && api.tags?.updateHighlightTagAssignments) {
+	if (
+		browser &&
+		api.features.tags.index?.createTag &&
+		api.features.tags.index?.updateHighlightTagAssignments
+	) {
 		try {
 			createTagApi = makeFunctionReference('tags:createTag') as FunctionReference<
 				'mutation',
@@ -96,8 +103,8 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 
 	// Query all tags for user (with error handling if API not generated yet)
 	const allTagsQuery =
-		browser && api.tags?.listAllTags && params?.sessionId
-			? useQuery(api.tags.listAllTags, () => {
+		browser && api.features.tags.index?.listAllTags && params?.sessionId
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
 					invariant(sessionId, 'sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 					const orgId = params.activeWorkspaceId?.();

@@ -80,7 +80,7 @@ export function useUsers(options: UseUsersOptions): UsersInfrastructureAPI {
 		loadingState.updateProfile = true;
 
 		try {
-			await convexClient.mutation(api.users.updateUserProfile, {
+			await convexClient.mutation(api.core.users.index.updateUserProfile, {
 				sessionId,
 				targetUserId: userId,
 				firstName: updates.firstName,

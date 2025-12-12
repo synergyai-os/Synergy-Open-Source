@@ -1,11 +1,10 @@
 import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership } from '../access';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from '../access';
 
 type SeedArgs = { sessionId: string; workspaceId: Id<'workspaces'> };
-type SeedInternalArgs = { workspaceId: Id<'workspaces'>; userId: Id<'users'> };
+type SeedInternalArgs = { workspaceId: Id<'workspaces'>; personId: Id<'people'> };
 
 export const seedTemplatesArgs = {
 	sessionId: v.string(),
@@ -16,14 +15,18 @@ export async function seedDefaultTemplates(
 	ctx: MutationCtx,
 	args: SeedArgs
 ): Promise<{ governanceId: Id<'meetingTemplates'>; tacticalId: Id<'meetingTemplates'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
-	return seedTemplates(ctx, { workspaceId: args.workspaceId, userId });
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
+	return seedTemplates(ctx, { workspaceId: args.workspaceId, personId });
 }
 
 export const seedTemplatesInternalArgs = {
 	workspaceId: v.id('workspaces'),
-	userId: v.id('users')
+	personId: v.id('people')
 };
 
 export async function seedDefaultTemplatesInternal(
@@ -35,7 +38,7 @@ export async function seedDefaultTemplatesInternal(
 
 async function seedTemplates(
 	ctx: MutationCtx,
-	args: { workspaceId: Id<'workspaces'>; userId: Id<'users'> }
+	args: { workspaceId: Id<'workspaces'>; personId: Id<'people'> }
 ): Promise<{ governanceId: Id<'meetingTemplates'>; tacticalId: Id<'meetingTemplates'> }> {
 	const now = Date.now();
 
@@ -44,7 +47,7 @@ async function seedTemplates(
 		name: 'Governance',
 		description: 'Holacracy governance meeting for role and policy updates',
 		createdAt: now,
-		createdBy: args.userId
+		createdByPersonId: args.personId
 	});
 
 	await ctx.db.insert('meetingTemplateSteps', {
@@ -81,7 +84,7 @@ async function seedTemplates(
 		name: 'Weekly Tactical',
 		description: 'Weekly tactical meeting for operational updates and coordination',
 		createdAt: now,
-		createdBy: args.userId
+		createdByPersonId: args.personId
 	});
 
 	await ctx.db.insert('meetingTemplateSteps', {

@@ -74,8 +74,8 @@
 	});
 </script>
 
-<div class="flex flex-col gap-form {className}">
-	<div class="flex items-center gap-fieldGroup">
+<div class="gap-form flex flex-col {className}">
+	<div class="gap-fieldGroup flex items-center">
 		<ToggleSwitch checked={enabled} onChange={onEnabledChange} />
 		<Text variant="body" size="sm" color="default" as="span" class="font-medium">
 			Repeat this meeting
@@ -90,11 +90,11 @@
 			- Padding-left uses semantic token var(--spacing-form-sectionGap) for indentation
 		-->
 		<div
-			class="flex flex-col gap-form-sectionGap border-l-2 border-accent-primary"
+			class="gap-form-sectionGap border-accent-primary flex flex-col border-l-2"
 			style="padding-left: var(--spacing-form-sectionGap);"
 		>
 			<!-- Frequency -->
-			<div class="flex items-center gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-center">
 				<Text variant="body" size="sm" color="secondary" as="span">Every</Text>
 				<FormInput type="number" bind:value={localInterval} min="1" max="99" class="w-input-xs" />
 				<!--
@@ -111,9 +111,9 @@
 
 			<!-- Days of Week (for weekly and daily) -->
 			{#if localFrequency === 'weekly' || localFrequency === 'daily'}
-				<div class="flex flex-col gap-fieldGroup">
+				<div class="gap-fieldGroup flex flex-col">
 					<Text variant="body" size="sm" color="secondary" as="span" class="block">On</Text>
-					<div class="flex flex-wrap items-center gap-fieldGroup">
+					<div class="gap-fieldGroup flex flex-wrap items-center">
 						{#if localFrequency === 'weekly'}
 							<ToggleGroup.Root
 								type="single"

@@ -1,6 +1,7 @@
 import type { ConvexHttpClient } from 'convex/browser';
 import type { Id } from '$lib/convex';
 import { api } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 interface ResolveWorkspaceRedirectParams {
 	client: ConvexHttpClient;
@@ -18,7 +19,7 @@ export async function resolveWorkspaceRedirect({
 	sessionId,
 	activeWorkspaceId
 }: ResolveWorkspaceRedirectParams): Promise<string> {
-	const workspaces = (await client.query(api.workspaces.listWorkspaces, {
+	const workspaces = (await client.query(api.core.workspaces.index.listWorkspaces, {
 		sessionId
 	})) as Array<{ workspaceId: Id<'workspaces'>; slug?: string }>;
 
@@ -40,5 +41,5 @@ export async function resolveWorkspaceRedirect({
 		return `/w/${firstWithSlug.slug}/inbox`;
 	}
 
-	throw new Error('No workspace with slug available for redirect');
+	invariant(false, 'No workspace with slug available for redirect');
 }

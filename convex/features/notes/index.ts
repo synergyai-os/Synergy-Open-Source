@@ -4,18 +4,84 @@
  * Handles CRUD operations for rich text notes with AI detection and blog workflow
  */
 
-import { query, mutation } from '../../_generated/server';
+import { mutation, query } from '../../_generated/server';
+import type { MutationCtx, Query, QueryCtx } from '../../_generated/server';
 import { v } from 'convex/values';
-// TODO: Re-enable when Doc type is needed
-// import type { Doc } from '../../_generated/dataModel';
+import type { Doc, Id } from '../../_generated/dataModel';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import type { Doc } from '../../_generated/dataModel';
+import { getPersonByUserAndWorkspace, listWorkspacesForUser } from '../../core/people/queries';
+import { requireActivePerson } from '../../core/people/rules';
+
+type NoteDoc = Doc<'inboxItems'> & { type: 'note' };
+type NoteActor = { personId: Id<'people'>; workspaceId: Id<'workspaces'>; userId: Id<'users'> };
+type AnyCtx = QueryCtx | MutationCtx;
+
+async function resolveWorkspaceId(
+	ctx: AnyCtx,
+	userId: Id<'users'>,
+	workspaceId?: Id<'workspaces'> | null
+): Promise<Id<'workspaces'>> {
+	if (workspaceId) return workspaceId;
+
+	const workspaces = await listWorkspacesForUser(ctx, userId);
+	if (workspaces.length === 0) {
+		throw createError(
+			ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
+			'Workspace membership required for notes'
+		);
+	}
+	return workspaces[0];
+}
+
+async function getNoteActor(
+	ctx: AnyCtx,
+	sessionId: string,
+	workspaceId?: Id<'workspaces'> | null
+): Promise<NoteActor> {
+	const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
+	const resolvedWorkspaceId = await resolveWorkspaceId(ctx, userId, workspaceId);
+	const person = await getPersonByUserAndWorkspace(ctx, userId, resolvedWorkspaceId);
+	const activePerson = await requireActivePerson(ctx, person._id);
+
+	return {
+		personId: activePerson._id,
+		workspaceId: resolvedWorkspaceId,
+		userId
+	};
+}
+
+function ensureNoteForActor(note: Doc<'inboxItems'> | null, actor: NoteActor): NoteDoc {
+	if (!note || note.type !== 'note' || note.personId !== actor.personId) {
+		throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
+	}
+	return note as NoteDoc;
+}
+
+async function findNoteForActor(
+	ctx: QueryCtx,
+	noteId: Id<'inboxItems'>,
+	actor: NoteActor
+): Promise<NoteDoc | null> {
+	const note = await ctx.db.get(noteId);
+	if (!note || note.type !== 'note' || note.personId !== actor.personId) return null;
+	return note as NoteDoc;
+}
+
+function filterNotesByScope(
+	items: NoteDoc[],
+	workspaceId?: Id<'workspaces'> | null,
+	circleId?: Id<'circles'>
+) {
+	if (!workspaceId) return items;
+	if (circleId) return items.filter((item) => item.circleId === circleId);
+	return items.filter((item) => item.workspaceId === workspaceId && !item.circleId);
+}
 
 /**
  * Create a new note
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive personId server-side (prevents impersonation)
  */
 export const createNote = mutation({
 	args: {
@@ -24,19 +90,18 @@ export const createNote = mutation({
 		content: v.string(), // ProseMirror JSON
 		contentMarkdown: v.optional(v.string()),
 		isAIGenerated: v.optional(v.boolean()),
-		workspaceId: v.optional(v.id('workspaces')),
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
+		const actor = await getNoteActor(ctx, args.sessionId, args.workspaceId ?? null);
 		const now = Date.now();
+		const workspaceId = args.workspaceId ?? actor.workspaceId;
 
 		const noteId = await ctx.db.insert('inboxItems', {
 			type: 'note',
-			userId,
-			processed: false, // New notes start unprocessed
+			personId: actor.personId,
+			processed: false,
 			createdAt: now,
 			updatedAt: now,
 			title: args.title,
@@ -44,9 +109,9 @@ export const createNote = mutation({
 			contentMarkdown: args.contentMarkdown,
 			isAIGenerated: args.isAIGenerated,
 			aiGeneratedAt: args.isAIGenerated ? now : undefined,
-			workspaceId: args.workspaceId === null ? undefined : args.workspaceId,
-			circleId: args.circleId,
-			ownershipType: args.workspaceId ? 'workspace' : args.circleId ? 'circle' : 'user'
+			workspaceId,
+			circleId: args.circleId ?? undefined,
+			ownershipType: args.circleId ? 'circle' : 'workspace'
 		});
 
 		return noteId;
@@ -56,7 +121,7 @@ export const createNote = mutation({
 /**
  * Update an existing note
  *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * SECURITY: Uses sessionId to derive personId server-side (prevents impersonation)
  */
 export const updateNote = mutation({
 	args: {
@@ -70,20 +135,10 @@ export const updateNote = mutation({
 		slug: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		const note = ensureNoteForActor(existing, actor);
 
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
-
-		// Type-safe update data for note type only
 		const updateData: {
 			updatedAt: number;
 			title?: string;
@@ -118,8 +173,6 @@ export const updateNote = mutation({
 
 /**
  * Mark note as AI-generated
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNoteAIFlag = mutation({
 	args: {
@@ -127,18 +180,9 @@ export const updateNoteAIFlag = mutation({
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		ensureNoteForActor(existing, actor);
 
 		await ctx.db.patch(args.noteId, {
 			isAIGenerated: true,
@@ -152,8 +196,6 @@ export const updateNoteAIFlag = mutation({
 
 /**
  * Mark note for blog export
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNoteExport = mutation({
 	args: {
@@ -162,18 +204,9 @@ export const updateNoteExport = mutation({
 		slug: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		ensureNoteForActor(existing, actor);
 
 		await ctx.db.patch(args.noteId, {
 			blogCategory: 'BLOG',
@@ -187,8 +220,6 @@ export const updateNoteExport = mutation({
 
 /**
  * Mark note as published to blog file
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNotePublished = mutation({
 	args: {
@@ -197,22 +228,13 @@ export const updateNotePublished = mutation({
 		publishedTo: v.string() // File path
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		ensureNoteForActor(existing, actor);
 
 		await ctx.db.patch(args.noteId, {
 			publishedTo: args.publishedTo,
-			processed: true, // Published notes are considered processed
+			processed: true,
 			processedAt: Date.now(),
 			updatedAt: Date.now()
 		});
@@ -223,8 +245,6 @@ export const updateNotePublished = mutation({
 
 /**
  * Delete a note
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const archiveNote = mutation({
 	args: {
@@ -232,18 +252,9 @@ export const archiveNote = mutation({
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		ensureNoteForActor(existing, actor);
 
 		await ctx.db.delete(args.noteId);
 
@@ -253,8 +264,6 @@ export const archiveNote = mutation({
 
 /**
  * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNoteDevDocsExport = mutation({
 	args: {
@@ -262,20 +271,10 @@ export const updateNoteDevDocsExport = mutation({
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		const note = ensureNoteForActor(existing, actor);
 
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			throw createError(ErrorCodes.NOTE_ACCESS_DENIED, 'Note not found or access denied');
-		}
-
-		if (note.type !== 'note') {
-			throw createError(ErrorCodes.NOTE_INVALID_TYPE, 'Item is not a note');
-		}
-
-		// Generate slug from title or use note ID
 		const title = note.title || 'untitled';
 		const slug = title
 			.toLowerCase()
@@ -292,16 +291,14 @@ export const updateNoteDevDocsExport = mutation({
 });
 
 /**
- * List all notes for current user
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * List all notes for current person
  */
 export const listNotes: Query<
 	{
 		sessionId: string;
 		processed?: boolean;
 		blogOnly?: boolean;
-		workspaceId?: Id<'workspaces'>;
+		workspaceId?: Id<'workspaces'> | null;
 		circleId?: Id<'circles'>;
 	},
 	Doc<'inboxItems'>[]
@@ -310,43 +307,34 @@ export const listNotes: Query<
 		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		processed: v.optional(v.boolean()),
 		blogOnly: v.optional(v.boolean()),
-		workspaceId: v.optional(v.id('workspaces')),
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args): Promise<Doc<'inboxItems'>[]> => {
-		// Validate session and derive userId (prevents impersonation)
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const actor = await getNoteActor(ctx, args.sessionId, args.workspaceId ?? null);
 
-		const itemsQuery = ctx.db
+		const items = await ctx.db
 			.query('inboxItems')
-			.withIndex('by_user_type', (q) => q.eq('userId', userId).eq('type', 'note'));
+			.withIndex('by_person_type', (q) => q.eq('personId', actor.personId).eq('type', 'note'))
+			.collect();
 
-		let items = await itemsQuery.collect();
+		let filtered = filterNotesByScope(
+			items as NoteDoc[],
+			args.workspaceId ?? actor.workspaceId,
+			args.circleId
+		);
 
-		// Filter by workspace context
-		if (args.workspaceId !== undefined) {
-			// Organization workspace
-			if (args.circleId) {
-				items = items.filter((item) => item.circleId === args.circleId);
-			} else {
-				items = items.filter((item) => item.workspaceId === args.workspaceId && !item.circleId);
-			}
-		}
-
-		// Filter by processed status
 		if (args.processed !== undefined) {
-			items = items.filter((item) => item.processed === args.processed);
+			filtered = filtered.filter((item) => item.processed === args.processed);
 		}
 
-		// Filter for blog posts only
 		if (args.blogOnly) {
-			items = items.filter((item) => item.type === 'note' && item.blogCategory === 'BLOG');
+			filtered = filtered.filter((item) => item.blogCategory === 'BLOG');
 		}
 
-		// Sort by updatedAt or createdAt descending
-		return items.sort((a, b) => {
-			const aTime = a.type === 'note' && a.updatedAt ? a.updatedAt : a.createdAt;
-			const bTime = b.type === 'note' && b.updatedAt ? b.updatedAt : b.createdAt;
+		return filtered.sort((a, b) => {
+			const aTime = a.updatedAt ?? a.createdAt;
+			const bTime = b.updatedAt ?? b.createdAt;
 			return bTime - aTime;
 		});
 	}
@@ -354,8 +342,6 @@ export const listNotes: Query<
 
 /**
  * Get a single note by ID
- *
- * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const findNote = query({
 	args: {
@@ -363,18 +349,9 @@ export const findNote = query({
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const note = await ctx.db.get(args.noteId);
-
-		if (!note || note.userId !== userId) {
-			return null;
-		}
-
-		if (note.type !== 'note') {
-			return null;
-		}
-
-		return note;
+		const existing = await ctx.db.get(args.noteId);
+		const actor = await getNoteActor(ctx, args.sessionId, existing?.workspaceId ?? null);
+		const note = await findNoteForActor(ctx, args.noteId, actor);
+		return note ?? null;
 	}
 });

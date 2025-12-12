@@ -1,8 +1,11 @@
 import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireTemplate } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireTemplate,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type CreateTemplateArgs = {
 	sessionId: string;
@@ -31,15 +34,19 @@ export async function createTemplate(
 	ctx: MutationCtx,
 	args: CreateTemplateArgs
 ): Promise<{ templateId: Id<'meetingTemplates'> }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		args.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
 
 	const templateId = await ctx.db.insert('meetingTemplates', {
 		workspaceId: args.workspaceId,
 		name: args.name,
 		description: args.description,
 		createdAt: Date.now(),
-		createdBy: userId
+		createdByPersonId: personId
 	});
 
 	return { templateId };
@@ -56,9 +63,13 @@ export async function updateTemplate(
 	ctx: MutationCtx,
 	args: UpdateTemplateArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	const updates: Partial<{ name: string; description?: string }> = {};
 	if (args.name !== undefined) updates.name = args.name;
@@ -77,9 +88,13 @@ export async function archiveTemplateMutation(
 	ctx: MutationCtx,
 	args: ArchiveTemplateArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const template = await requireTemplate(ctx, args.templateId);
-	await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		template.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, template.workspaceId, personId);
 
 	const steps = await ctx.db
 		.query('meetingTemplateSteps')

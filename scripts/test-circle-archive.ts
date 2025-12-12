@@ -35,7 +35,7 @@ async function testCircleArchive() {
 	try {
 		// Step 1: Create a circle
 		console.log('1️⃣ Creating test circle...');
-		const createResult = await client.mutation(api.circles.create, {
+		const createResult = await client.mutation(api.core.circles.index.create, {
 			sessionId,
 			workspaceId,
 			name: `Test Circle ${Date.now()}`,
@@ -45,7 +45,7 @@ async function testCircleArchive() {
 
 		// Step 2: Archive the circle
 		console.log('\n2️⃣ Archiving circle...');
-		const archiveResult = await client.mutation(api.circles.archive, {
+		const archiveResult = await client.mutation(api.core.circles.index.archive, {
 			sessionId,
 			circleId: createResult.circleId
 		});
@@ -53,7 +53,7 @@ async function testCircleArchive() {
 
 		// Step 3: Query the circle directly to verify fields
 		console.log('\n3️⃣ Verifying archivedBy and updatedBy fields...');
-		const circle = await client.query(api.circles.get, {
+		const circle = await client.query(api.core.circles.index.get, {
 			sessionId,
 			circleId: createResult.circleId
 		});

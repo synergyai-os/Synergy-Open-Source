@@ -169,10 +169,10 @@ export function getLeadAuthorityLevel(circleType) {
    - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error (for hierarchy/hybrid only)
    - **Conditional Lead creation**: On circle creation, only create Lead for `hierarchy` and `hybrid` types
 
-2. **Authority Resolution** (`convex/orgChartPermissions.ts`):
-   - **Simple constant lookup**: `getLeadAuthorityLevel(circle.circleType)` - no database queries
-   - **Permission check**: `canApproveProposal()` uses authority level to determine approval rights
-   - **Quick edit check**: `canQuickEdit()` respects authority levels
+2. **Authority Resolution** (`convex/core/authority/rules.ts`):
+   - **Simple constant lookup**: `calculateAuthorityLevel(circle.circleType)` - no database queries
+   - **Permission check**: `hasApprovalAuthority()` uses authority level to determine approval rights
+   - **Quick edit access** lives in RBAC (`convex/rbac/orgChart.ts`) and composes authority where needed
 
 3. **UI Display** (`src/lib/modules/org-chart/components/RoleDetailPanel.svelte`):
    - Display authority badge based on circle type

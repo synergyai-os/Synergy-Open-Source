@@ -22,7 +22,7 @@ export const GET: RequestHandler = withRateLimit(RATE_LIMITS.token, async ({ eve
 	try {
 		// Fetch session record from Convex to get encrypted access token
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-		const sessionRecord = await convex.query(api.authSessions.getSessionById, {
+		const sessionRecord = await convex.query(api.infrastructure.authSessions.getSessionById, {
 			sessionId: locals.auth.sessionId
 		});
 

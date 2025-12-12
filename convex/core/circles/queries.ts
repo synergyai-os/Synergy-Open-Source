@@ -1,10 +1,9 @@
 import { mutation, query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { archiveCircle, restoreCircle } from './circleArchival';
-import { ensureWorkspaceMembership } from './circleAccess';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 import { listCircles } from './circleList';
 import { addCircleMember, getCircleMembers, removeCircleMember } from './circleMembers';
 import { createCircleInternal, updateCircleInternal, updateInlineCircle } from './circleLifecycle';
@@ -29,14 +28,17 @@ export const get = query({
 		circleId: v.id('circles')
 	},
 	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 		const circle = await ctx.db.get(args.circleId);
 		if (!circle) {
 			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 
-		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+		const personId = await requireWorkspacePersonFromSession(
+			ctx,
+			args.sessionId,
+			circle.workspaceId
+		);
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, personId);
 
 		const members = await ctx.db
 			.query('circleMembers')
@@ -177,7 +179,7 @@ export const addMember = mutation({
 	args: {
 		sessionId: v.string(),
 		circleId: v.id('circles'),
-		targetUserId: v.id('users')
+		memberPersonId: v.id('people')
 	},
 	handler: async (ctx, args) => {
 		return addCircleMember(ctx, args);
@@ -188,7 +190,7 @@ export const removeMember = mutation({
 	args: {
 		sessionId: v.string(),
 		circleId: v.id('circles'),
-		targetUserId: v.id('users')
+		memberPersonId: v.id('people')
 	},
 	handler: async (ctx, args) => {
 		return removeCircleMember(ctx, args);

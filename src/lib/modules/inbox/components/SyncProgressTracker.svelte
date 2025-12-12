@@ -19,12 +19,12 @@
 	<div
 		class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 	>
-		<h3 class="text-small font-normal text-primary">Importing...</h3>
+		<h3 class="text-small text-primary font-normal">Importing...</h3>
 		{#if onCancel}
 			<button
 				type="button"
 				onclick={onCancel}
-				class="text-label text-tertiary transition-colors hover:text-secondary"
+				class="text-label text-tertiary hover:text-secondary transition-colors"
 			>
 				Cancel
 			</button>
@@ -39,8 +39,8 @@
 			<!-- Progress Bar -->
 			<div class="gap-form-section flex flex-col">
 				<div class="flex flex-col gap-2">
-					<div class="flex items-center justify-between text-label">
-						<span class="font-medium text-secondary">{step}</span>
+					<div class="text-label flex items-center justify-between">
+						<span class="text-secondary font-medium">{step}</span>
 						{#if total}
 							<span class="text-tertiary">{current} of {total}</span>
 						{:else if current > 0}
@@ -48,14 +48,14 @@
 						{/if}
 					</div>
 
-					<div class="rounded-chip h-2.5 w-full overflow-hidden bg-base">
+					<div class="rounded-chip bg-base h-2.5 w-full overflow-hidden">
 						<div
-							class="h-full bg-interactive-primary transition-all duration-300 ease-out"
+							class="bg-interactive-primary h-full transition-all duration-300 ease-out"
 							style="width: {progressPercentage}%"
 						></div>
 					</div>
 					{#if total}
-						<p class="text-center text-label text-tertiary">
+						<p class="text-label text-tertiary text-center">
 							Processing {current} of {total} highlights...
 						</p>
 					{/if}
@@ -64,13 +64,13 @@
 
 			<!-- Message -->
 			{#if message}
-				<p class="text-small text-center text-secondary">{message}</p>
+				<p class="text-small text-secondary text-center">{message}</p>
 			{/if}
 
 			<!-- Loading Indicator -->
 			<div class="flex justify-center">
 				<svg
-					class="icon-md animate-spin text-primary"
+					class="icon-md text-primary animate-spin"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

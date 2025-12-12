@@ -900,13 +900,13 @@
 	}
 </script>
 
-<div class="relative h-full w-full overflow-hidden bg-surface">
+<div class="bg-surface relative h-full w-full overflow-hidden">
 	<!-- Zoom Controls -->
 	<div
-		class="bg-elevated/95 shadow-card-hover absolute top-4 right-4 z-10 flex flex-col gap-button rounded-card inset-md backdrop-blur-sm"
+		class="bg-elevated/95 shadow-card-hover gap-button rounded-card inset-md absolute top-4 right-4 z-10 flex flex-col backdrop-blur-sm"
 	>
 		<button
-			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleZoomIn}
 			aria-label="Zoom in"
 		>
@@ -920,7 +920,7 @@
 			</svg>
 		</button>
 		<button
-			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleZoomOut}
 			aria-label="Zoom out"
 		>
@@ -930,7 +930,7 @@
 		</button>
 		<div class="bg-border-base my-1 h-px"></div>
 		<button
-			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid size-icon-xl rounded-button text-secondary hover:text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95"
 			onclick={handleResetView}
 			aria-label="Reset view"
 		>
@@ -1104,7 +1104,7 @@
 										>
 											<div
 												xmlns="http://www.w3.org/1999/xhtml"
-												class="flex h-full w-full flex-col items-center justify-center gap-fieldGroup"
+												class="gap-fieldGroup flex h-full w-full flex-col items-center justify-center"
 											>
 												<!-- Role name lines -->
 												{#each labelParams.lines as line, i (i)}
@@ -1252,7 +1252,7 @@
 		<div class="absolute inset-0 flex items-center justify-center">
 			<div class="text-center">
 				<svg
-					class="mx-auto size-icon-xl text-secondary mb-header"
+					class="size-icon-xl text-secondary mb-header mx-auto"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

@@ -1,17 +1,17 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { captureCreate, captureUpdate } from '../../orgVersionHistory';
-import { requireQuickEditPermission } from '../../orgChartPermissions';
+import { recordCreateHistory, recordUpdateHistory } from '../history';
+import { requireQuickEditPermissionForPerson } from '../../rbac/orgChart';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { hasDuplicateRoleName } from './validation';
 import {
 	ensureCircleExists,
 	ensureWorkspaceMembership,
 	isLeadRole,
-	isWorkspaceAdmin
+	isWorkspaceAdmin,
+	requireWorkspacePersonFromSession
 } from './roleAccess';
 
 export const create = mutation({
@@ -22,10 +22,9 @@ export const create = mutation({
 		purpose: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 		const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
-		await ensureWorkspaceMembership(ctx, workspaceId, userId);
+		const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+		await ensureWorkspaceMembership(ctx, workspaceId, personId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
@@ -54,12 +53,12 @@ export const create = mutation({
 			isHiring: false,
 			createdAt: now,
 			updatedAt: now,
-			updatedBy: userId
+			updatedByPersonId: personId
 		});
 
 		const newRole = await ctx.db.get(roleId);
 		if (newRole) {
-			await captureCreate(ctx, 'circleRole', newRole);
+			await recordCreateHistory(ctx, 'circleRole', newRole);
 		}
 
 		return { roleId };
@@ -100,20 +99,19 @@ async function updateCircleRole(
 		representsToParent?: boolean;
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.circleRoleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, personId);
 
 	const roleIsLead = await isLeadRole(ctx, args.circleRoleId);
 	if (roleIsLead) {
-		const userIsAdmin = await isWorkspaceAdmin(ctx, workspaceId, userId);
-		if (!userIsAdmin) {
+		const personIsAdmin = await isWorkspaceAdmin(ctx, workspaceId, personId);
+		if (!personIsAdmin) {
 			throw createError(
 				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
 				'Circle roles created from Lead template cannot be edited directly. Only workspace admins can edit Lead roles via the role template.'
@@ -130,10 +128,10 @@ async function updateCircleRole(
 		purpose?: string;
 		representsToParent?: boolean;
 		updatedAt: number;
-		updatedBy: Id<'users'>;
+		updatedByPersonId: Id<'people'>;
 	} = {
 		updatedAt: Date.now(),
-		updatedBy: userId
+		updatedByPersonId: personId
 	};
 
 	if (args.name !== undefined) {
@@ -169,7 +167,7 @@ async function updateCircleRole(
 
 	const updatedRole = await ctx.db.get(args.circleRoleId);
 	if (updatedRole) {
-		await captureUpdate(ctx, 'circleRole', role, updatedRole);
+		await recordUpdateHistory(ctx, 'circleRole', role, updatedRole);
 	}
 
 	return { success: true };
@@ -183,8 +181,6 @@ async function updateInlineCircleRole(
 		updates: { name?: string; purpose?: string; representsToParent?: boolean };
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.circleRoleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
@@ -195,7 +191,8 @@ async function updateInlineCircleRole(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	await requireQuickEditPermission(ctx, userId, circle);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, circle.workspaceId);
+	await requireQuickEditPermissionForPerson(ctx, personId, circle);
 
 	const roleIsLead = await isLeadRole(ctx, args.circleRoleId);
 	if (roleIsLead) {
@@ -209,7 +206,7 @@ async function updateInlineCircleRole(
 
 	const updateData: Partial<Doc<'circleRoles'>> = {
 		updatedAt: Date.now(),
-		updatedBy: userId
+		updatedByPersonId: personId
 	};
 
 	if (args.updates.name !== undefined) {

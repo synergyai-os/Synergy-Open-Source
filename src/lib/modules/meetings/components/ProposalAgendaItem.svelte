@@ -44,7 +44,7 @@
 	const convexClient = useConvexClient();
 
 	// Fetch proposal with details
-	const proposalQuery = useQuery(api.proposals.get, {
+	const proposalQuery = useQuery(api.core.proposals.index.get, {
 		sessionId,
 		proposalId
 	});
@@ -58,7 +58,7 @@
 		if (!isRecorder || isClosed) return;
 
 		try {
-			await convexClient.mutation(api.proposals.approve, {
+			await convexClient.mutation(api.core.proposals.index.approve, {
 				sessionId,
 				proposalId
 			});
@@ -83,7 +83,7 @@
 		if (!isRecorder || isClosed) return;
 
 		try {
-			await convexClient.mutation(api.proposals.reject, {
+			await convexClient.mutation(api.core.proposals.index.reject, {
 				sessionId,
 				proposalId
 			});
@@ -114,7 +114,7 @@
 	<div class="flex h-full items-center justify-center">
 		<div class="text-center">
 			<div
-				class="inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-accent-primary border-r-transparent"
+				class="size-icon-lg rounded-avatar border-accent-primary inline-block animate-spin border-4 border-solid border-r-transparent"
 			></div>
 			<Text variant="body" color="secondary" class="mt-text-gap">Loading proposal...</Text>
 		</div>
@@ -144,14 +144,14 @@
 {:else}
 	<div class="flex h-full flex-col">
 		<!-- Header -->
-		<div class="border-border-base border-b bg-elevated px-page py-stack-header">
+		<div class="border-border-base bg-elevated px-page py-stack-header border-b">
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
-					<div class="mb-fieldGroup flex items-center gap-fieldGroup">
+					<div class="mb-fieldGroup gap-fieldGroup flex items-center">
 						<Heading level="h2" size="h1">{proposal.title}</Heading>
 						<ProposalStatusBadge status={proposal.status} />
 					</div>
-					<div class="text-body-sm text-text-tertiary flex items-center gap-fieldGroup">
+					<div class="text-body-sm text-text-tertiary gap-fieldGroup flex items-center">
 						{#if proposal.creator}
 							<Text variant="body" size="sm" color="tertiary" as="span"
 								>Proposed by {proposal.creator.name}</Text
@@ -173,7 +173,7 @@
 
 				<!-- Action Buttons (recorder only) -->
 				{#if canApprove || canReject}
-					<div class="flex gap-fieldGroup">
+					<div class="gap-fieldGroup flex">
 						{#if canApprove}
 							<Button variant="primary" onclick={handleApprove}>Approve</Button>
 						{/if}
@@ -186,7 +186,7 @@
 		</div>
 
 		<!-- Content: Proposed Changes -->
-		<div class="flex-1 overflow-y-auto px-page py-page">
+		<div class="px-page py-page flex-1 overflow-y-auto">
 			{#if proposal.evolutions.length === 0}
 				<div class="py-stack-item text-center">
 					<Icon type="alert-circle" size="lg" color="tertiary" />
@@ -196,7 +196,7 @@
 					</Text>
 				</div>
 			{:else}
-				<div class="flex flex-col gap-section">
+				<div class="gap-section flex flex-col">
 					<div>
 						<Heading level="h3" size="h3" class="mb-header">Proposed Changes</Heading>
 						<Text variant="body" size="sm" color="secondary" class="mb-content">

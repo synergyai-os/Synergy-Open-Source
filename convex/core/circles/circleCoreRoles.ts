@@ -1,13 +1,14 @@
-import { captureCreate } from '../../orgVersionHistory';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
+import { recordCreateHistory } from '../history';
+import type { CircleType } from './schema';
 
 export async function createCoreRolesForCircle(
 	ctx: MutationCtx,
 	circleId: Id<'circles'>,
 	workspaceId: Id<'workspaces'>,
-	userId: Id<'users'>,
-	circleType: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid' = 'hierarchy'
+	personId: Id<'people'>,
+	circleType: CircleType = 'hierarchy'
 ): Promise<void> {
 	const now = Date.now();
 
@@ -68,10 +69,7 @@ export async function createCoreRolesForCircle(
 				leadRequired = orgSettings.leadRequirementByCircleType[circleType];
 			} else {
 				// Fallback to system defaults
-				const DEFAULT_LEAD_REQUIRED: Record<
-					'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
-					boolean
-				> = {
+				const DEFAULT_LEAD_REQUIRED: Record<CircleType, boolean> = {
 					hierarchy: true,
 					empowered_team: false,
 					guild: false,
@@ -97,13 +95,13 @@ export async function createCoreRolesForCircle(
 			isHiring: false,
 			createdAt: now,
 			updatedAt: now,
-			updatedBy: userId
+			updatedByPersonId: personId
 		});
 
 		// Capture version history for role creation
 		const newRole = await ctx.db.get(roleId);
 		if (newRole) {
-			await captureCreate(ctx, 'circleRole', newRole);
+			await recordCreateHistory(ctx, 'circleRole', newRole);
 		}
 	}
 }

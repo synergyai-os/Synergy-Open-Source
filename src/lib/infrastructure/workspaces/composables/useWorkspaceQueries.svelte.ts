@@ -40,7 +40,7 @@ export function useWorkspaceQueries(
 	// Organizations query
 	const organizationsQuery =
 		browser && getSessionId()
-			? useQuery(api.workspaces.listWorkspaces, () => {
+			? useQuery(api.core.workspaces.index.listWorkspaces, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return { sessionId };
@@ -50,7 +50,7 @@ export function useWorkspaceQueries(
 	// Organization invites query
 	const organizationInvitesQuery =
 		browser && getSessionId()
-			? useQuery(api.workspaces.listWorkspaceInvites, () => {
+			? useQuery(api.core.workspaces.index.listWorkspaceInvites, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };

@@ -2,15 +2,14 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
-import { ensureWorkspaceMembership } from './roleAccess';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './roleAccess';
 
 async function listRolesByWorkspace(
 	ctx: QueryCtx,
 	args: { sessionId: string; workspaceId: Id<'workspaces'>; includeArchived?: boolean }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
 
 	const circles = await ctx.db
 		.query('circles')

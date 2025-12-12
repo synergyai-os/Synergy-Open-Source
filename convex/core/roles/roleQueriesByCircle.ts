@@ -2,16 +2,19 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
-import { ensureCircleExists, ensureWorkspaceMembership } from './roleAccess';
+import {
+	ensureCircleExists,
+	ensureWorkspaceMembership,
+	requireWorkspacePersonFromSession
+} from './roleAccess';
 
 async function listRolesByCircle(
 	ctx: QueryCtx,
 	args: { sessionId: string; circleId: Id<'circles'>; includeArchived?: boolean }
 ): Promise<Doc<'circleRoles'>[]> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, personId);
 
 	const roles = args.includeArchived
 		? await ctx.db

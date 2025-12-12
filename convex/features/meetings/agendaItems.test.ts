@@ -1,7 +1,8 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+vi.mock('./helpers/access', () => ({
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' }),
+	ensureWorkspaceMembership: vi.fn()
 }));
 
 import type { MutationCtx } from '../../_generated/server';
@@ -24,7 +25,7 @@ describe('meetings/agendaItems', () => {
 				ctx as any,
 				{ sessionId: 's', agendaItemId: 'a1' as any, notes: 'n' },
 				{
-					validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' }),
+					requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' }),
 					getAgendaItem: vi.fn().mockResolvedValue(null),
 					getMeeting: vi.fn()
 				}

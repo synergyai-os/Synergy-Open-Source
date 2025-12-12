@@ -99,13 +99,13 @@
 
 {#if active && position && items.length > 0}
 	<div
-		class="border-base py-badge fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-button border bg-elevated shadow-card"
+		class="border-base py-badge rounded-button bg-elevated shadow-card fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto border"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
 		{#each items as item, index (item.id)}
 			<button
 				type="button"
-				class="text-small hover:bg-hover-solid flex w-full items-center gap-2 px-input-x py-input-y text-left transition-colors {index ===
+				class="text-small hover:bg-hover-solid px-input-x py-input-y flex w-full items-center gap-2 text-left transition-colors {index ===
 				selectedIndex
 					? 'bg-hover-solid'
 					: ''}"
@@ -115,7 +115,7 @@
 					<span class="text-body">{item.icon}</span>
 				{/if}
 				<div class="flex-1">
-					<div class="font-medium text-primary">{item.label}</div>
+					<div class="text-primary font-medium">{item.label}</div>
 					{#if item.description}
 						<div class="text-label text-tertiary">{item.description}</div>
 					{/if}

@@ -13,6 +13,7 @@ import {
 import { toast } from '$lib/utils/toast';
 import { resolveRoute } from '$lib/utils/navigation';
 import type { LinkedAccountInfo, UseAuthSessionReturn } from '../types';
+import { invariant } from '$lib/utils/invariant';
 
 interface SessionResponse {
 	authenticated: boolean;
@@ -62,9 +63,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 				credentials: 'include'
 			});
 
-			if (!response.ok) {
-				throw new Error(`Failed to load session (${response.status})`);
-			}
+			invariant(response.ok, `Failed to load session (${response.status})`);
 
 			const data = (await response.json()) as SessionResponse;
 

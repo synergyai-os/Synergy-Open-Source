@@ -2,7 +2,7 @@ import type { Doc, Id } from '../../_generated/dataModel';
 
 export interface TagWithHierarchy {
 	_id: Id<'tags'>;
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 	name: string;
 	displayName: string;
 	color: string;

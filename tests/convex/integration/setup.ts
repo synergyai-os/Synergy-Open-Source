@@ -7,6 +7,11 @@
 import type { TestConvex } from 'convex-test';
 import type { Id } from '$convex/_generated/dataModel';
 
+// Provide a deterministic public URL for tests that rely on invite links.
+if (!process.env.PUBLIC_APP_URL) {
+	process.env.PUBLIC_APP_URL = 'http://localhost:4173';
+}
+
 // Counter to ensure unique sessions even within the same millisecond
 let sessionCounter = 0;
 
@@ -14,9 +19,12 @@ let sessionCounter = 0;
  * Create a test session and user for integration tests
  * Returns sessionId and userId for use in test queries/mutations
  */
-export async function createTestSession(
-	t: TestConvex<any>
-): Promise<{ sessionId: string; userId: Id<'users'> }> {
+export async function createTestSession(t: TestConvex<any>): Promise<{
+	sessionId: string;
+	userId: Id<'users'>;
+	workspaceId: Id<'workspaces'>;
+	personId: Id<'people'>;
+}> {
 	const now = Date.now();
 	const uniqueId = `${now}_${sessionCounter++}`; // Ensure uniqueness
 
@@ -60,7 +68,12 @@ export async function createTestSession(
 		});
 	});
 
-	return { sessionId, userId };
+	// Create a default workspace and membership for this user to satisfy workspace-scoped features
+	const workspaceId = await createTestOrganization(t, `Test Org ${uniqueId}`);
+	await createTestOrganizationMember(t, workspaceId, userId, 'owner');
+	const personId = await getPersonIdForUser(t, workspaceId, userId);
+
+	return { sessionId, userId, workspaceId, personId };
 }
 
 /**
@@ -69,16 +82,22 @@ export async function createTestSession(
 export async function createTestTag(
 	t: TestConvex<any>,
 	userId: Id<'users'>,
-	name: string = 'Test Tag'
+	name: string = 'Test Tag',
+	workspaceId?: Id<'workspaces'>
 ): Promise<Id<'tags'>> {
+	const resolvedWorkspaceId = workspaceId ?? (await createTestOrganization(t));
+	await createTestOrganizationMember(t, resolvedWorkspaceId, userId, 'owner');
+	const personId = await getPersonIdForUser(t, resolvedWorkspaceId, userId);
+
 	return await t.run(async (ctx) => {
 		return await ctx.db.insert('tags', {
-			userId,
+			personId,
 			name,
 			displayName: name, // displayName is required
 			ownershipType: 'user',
 			color: '#3b82f6',
-			createdAt: Date.now()
+			createdAt: Date.now(),
+			workspaceId: resolvedWorkspaceId
 		});
 	});
 }
@@ -133,11 +152,74 @@ export async function createTestOrganizationMember(
 	role: 'owner' | 'admin' | 'member' = 'member'
 ): Promise<Id<'workspaceMembers'>> {
 	return await t.run(async (ctx) => {
+		const now = Date.now();
+
+		const existingPerson = await ctx.db
+			.query('people')
+			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
+			.first();
+
+		let personId = existingPerson?._id;
+		if (!personId) {
+			const user = await ctx.db.get(userId);
+			personId = await ctx.db.insert('people', {
+				workspaceId,
+				userId,
+				email: (user as any)?.email ?? `user-${userId}@example.com`,
+				displayName: (user as any)?.name ?? 'Test User',
+				workspaceRole: role,
+				status: 'active',
+				invitedAt: now,
+				invitedBy: undefined,
+				joinedAt: now,
+				archivedAt: undefined,
+				archivedBy: undefined
+			});
+		}
+
 		return await ctx.db.insert('workspaceMembers', {
 			workspaceId,
 			userId,
 			role,
 			joinedAt: Date.now()
+		});
+	});
+}
+
+export async function getPersonIdForUser(
+	t: TestConvex<any>,
+	workspaceId: Id<'workspaces'>,
+	userId: Id<'users'>
+): Promise<Id<'people'>> {
+	return await t.run(async (ctx) => {
+		const person = await ctx.db
+			.query('people')
+			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
+			.first();
+		if (!person) {
+			throw new Error('Person not found for user in workspace');
+		}
+		return person._id as Id<'people'>;
+	});
+}
+
+/**
+ * Create a meeting template for a workspace
+ */
+export async function createTestMeetingTemplate(
+	t: TestConvex<any>,
+	workspaceId: Id<'workspaces'>,
+	createdBy: Id<'users'>,
+	name: string = 'Test Meeting Template'
+): Promise<Id<'meetingTemplates'>> {
+	const now = Date.now();
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('meetingTemplates', {
+			workspaceId,
+			name,
+			description: 'Test template',
+			createdAt: now,
+			createdBy
 		});
 	});
 }
@@ -310,13 +392,20 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(link._id);
 		}
 
-		// Clean up tags
-		const tags = await ctx.db
-			.query('tags')
+		// Clean up tags and people
+		const people = await ctx.db
+			.query('people')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
-		for (const tag of tags) {
-			await ctx.db.delete(tag._id);
+		for (const person of people) {
+			const tags = await ctx.db
+				.query('tags')
+				.withIndex('by_person', (q) => q.eq('personId', person._id))
+				.collect();
+			for (const tag of tags) {
+				await ctx.db.delete(tag._id);
+			}
+			await ctx.db.delete(person._id);
 		}
 
 		// Clean up flashcards
@@ -376,9 +465,20 @@ export async function createTestCircleMember(
 	userId: Id<'users'>
 ): Promise<Id<'circleMembers'>> {
 	return await t.run(async (ctx) => {
+		const circle = await ctx.db.get(circleId);
+		const workspaceId = circle?.workspaceId as Id<'workspaces'>;
+		const person =
+			workspaceId &&
+			(await ctx.db
+				.query('people')
+				.withIndex('by_workspace_user', (q) =>
+					q.eq('workspaceId', workspaceId).eq('userId', userId)
+				)
+				.first());
+
 		return await ctx.db.insert('circleMembers', {
 			circleId,
-			userId,
+			personId: person?._id ?? (userId as unknown as Id<'people'>),
 			joinedAt: Date.now()
 		});
 	});
@@ -405,6 +505,13 @@ export async function cleanupTestOrganization(
 				.collect();
 			for (const member of circleMembers) {
 				await ctx.db.delete(member._id);
+			}
+			const people = await ctx.db
+				.query('people')
+				.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
+				.collect();
+			for (const person of people) {
+				await ctx.db.delete(person._id);
 			}
 			// Then delete the circle
 			await ctx.db.delete(circle._id);

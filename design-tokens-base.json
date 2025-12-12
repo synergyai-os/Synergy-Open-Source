@@ -82,10 +82,6 @@
 			"950": {
 				"$value": "oklch(13% 0.015 264)",
 				"$description": "Deepest gray - true dark backgrounds"
-			},
-			"1000": {
-				"$value": "oklch(0% 0 0)",
-				"$description": "Pure black"
 			}
 		},
 
@@ -219,34 +215,76 @@
 		},
 
 		"syntax": {
-			"$description": "Code syntax highlighting colors",
+			"$description": "Code syntax highlighting colors - light/dark variants for theme adaptation",
 			"keyword": {
-				"$value": "oklch(60% 0.2 350)",
-				"$description": "Pink/magenta for keywords"
+				"light": {
+					"$value": "oklch(45% 0.15 250)",
+					"$description": "Keywords in light mode - muted blue"
+				},
+				"dark": {
+					"$value": "oklch(70% 0.15 250)",
+					"$description": "Keywords in dark mode - bright blue"
+				}
 			},
 			"string": {
-				"$value": "oklch(65% 0.15 145)",
-				"$description": "Green for strings"
-			},
-			"number": {
-				"$value": "oklch(70% 0.15 65)",
-				"$description": "Orange for numbers"
-			},
-			"function": {
-				"$value": "oklch(65% 0.18 250)",
-				"$description": "Blue for functions"
+				"light": {
+					"$value": "oklch(40% 0.15 140)",
+					"$description": "Strings in light mode - muted green"
+				},
+				"dark": {
+					"$value": "oklch(65% 0.15 140)",
+					"$description": "Strings in dark mode - bright green"
+				}
 			},
 			"comment": {
-				"$value": "oklch(55% 0.02 264)",
-				"$description": "Gray for comments"
+				"light": {
+					"$value": "oklch(55% 0.02 250)",
+					"$description": "Comments in light mode - muted gray"
+				},
+				"dark": {
+					"$value": "oklch(50% 0.02 250)",
+					"$description": "Comments in dark mode - slightly brighter gray"
+				}
+			},
+			"function": {
+				"light": {
+					"$value": "oklch(45% 0.15 300)",
+					"$description": "Functions in light mode - muted purple"
+				},
+				"dark": {
+					"$value": "oklch(70% 0.15 300)",
+					"$description": "Functions in dark mode - bright purple"
+				}
 			},
 			"variable": {
-				"$value": "oklch(70% 0.12 195)",
-				"$description": "Teal for variables"
+				"light": {
+					"$value": "oklch(40% 0.12 30)",
+					"$description": "Variables in light mode - muted orange"
+				},
+				"dark": {
+					"$value": "oklch(65% 0.12 30)",
+					"$description": "Variables in dark mode - bright orange"
+				}
 			},
-			"tag": {
-				"$value": "oklch(60% 0.2 25)",
-				"$description": "Red for tags"
+			"operator": {
+				"light": {
+					"$value": "oklch(40% 0.10 250)",
+					"$description": "Operators in light mode - muted blue-gray"
+				},
+				"dark": {
+					"$value": "oklch(65% 0.10 250)",
+					"$description": "Operators in dark mode - bright blue-gray"
+				}
+			},
+			"number": {
+				"light": {
+					"$value": "oklch(45% 0.15 60)",
+					"$description": "Numbers in light mode - muted yellow"
+				},
+				"dark": {
+					"$value": "oklch(70% 0.15 60)",
+					"$description": "Numbers in dark mode - bright yellow"
+				}
 			}
 		}
 	},

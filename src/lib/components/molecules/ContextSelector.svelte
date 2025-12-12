@@ -34,7 +34,7 @@
 
 <button
 	type="button"
-	class="gap-2-wide border-base inline-flex items-center rounded-button border bg-transparent px-[0.625rem] py-1 text-[0.875rem] font-medium text-secondary transition-colors hover:bg-hover"
+	class="gap-2-wide border-base rounded-button text-secondary hover:bg-hover inline-flex items-center border bg-transparent px-[0.625rem] py-1 text-[0.875rem] font-medium transition-colors"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(context)}
 	tabindex={tabIndex}

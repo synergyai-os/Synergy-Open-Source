@@ -6,6 +6,7 @@ import { createLoginState, type AuthFlowMode } from '$lib/infrastructure/auth/se
 import { generateRandomToken } from '$lib/infrastructure/auth/server/crypto';
 import { createHash } from 'node:crypto';
 import type { Id } from '$lib/convex';
+import { invariant } from '$lib/utils/invariant';
 
 const WORKOS_AUTHORIZE_URL = 'https://api.workos.com/user_management/authorize';
 
@@ -64,14 +65,8 @@ export const GET: RequestHandler = async (event) => {
 	console.log('🔍 Auth start - Initiating WorkOS flow');
 
 	// Validate WorkOS configuration (checked at request time, not import time)
-	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
-		console.error('❌ PUBLIC_WORKOS_CLIENT_ID is not configured');
-		throw new Error('PUBLIC_WORKOS_CLIENT_ID is not configured.');
-	}
-	if (!env.WORKOS_REDIRECT_URI) {
-		console.error('❌ WORKOS_REDIRECT_URI is not configured');
-		throw new Error('WORKOS_REDIRECT_URI is not configured.');
-	}
+	invariant(publicEnv.PUBLIC_WORKOS_CLIENT_ID, 'PUBLIC_WORKOS_CLIENT_ID is not configured.');
+	invariant(env.WORKOS_REDIRECT_URI, 'WORKOS_REDIRECT_URI is not configured.');
 
 	console.log('✅ WorkOS credentials present');
 	console.log('   Client ID:', publicEnv.PUBLIC_WORKOS_CLIENT_ID?.substring(0, 15) + '...');
@@ -85,7 +80,7 @@ export const GET: RequestHandler = async (event) => {
 			const message = `WORKOS_REDIRECT_URI origin (${redirectOrigin}) does not match PUBLIC_APP_URL origin (${appOrigin})`;
 			if (env.NODE_ENV !== 'production') {
 				console.warn('⚠️  Auth config mismatch:', message);
-				throw new Error(message);
+				invariant(false, message);
 			} else {
 				console.warn('⚠️  Auth config mismatch (prod):', message);
 			}

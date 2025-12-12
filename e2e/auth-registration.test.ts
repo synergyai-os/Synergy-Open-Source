@@ -192,10 +192,8 @@ test.describe('Password Reset Flow', () => {
 		await page.fill('input[type="email"]', 'randy+cicduser@synergyai.nl');
 		await page.click('button[type="submit"]');
 
-		// Should show success message (more specific selector to avoid strict mode violation)
-		await expect(
-			page.locator('.text-sm.font-medium.text-primary:has-text("Check your email")')
-		).toBeVisible();
+		// Should show success message (use data-testid to avoid class drift)
+		await expect(page.getByTestId('forgot-password-success')).toBeVisible();
 	});
 
 	test('should reset password with valid token', async ({ page }) => {

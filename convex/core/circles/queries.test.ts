@@ -3,23 +3,28 @@ import type { QueryCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import { getCircleMembers } from './queries';
 
-const mockUserId = 'u1' as Id<'users'>;
-const mockWorkspaceId = 'w1' as Id<'workspaces'>;
-const mockCircleId = 'c1' as Id<'circles'>;
+const { mockPersonId, mockWorkspaceId, mockCircleId } = vi.hoisted(() => ({
+	mockPersonId: 'p1' as Id<'people'>,
+	mockWorkspaceId: 'w1' as Id<'workspaces'>,
+	mockCircleId: 'c1' as Id<'circles'>
+}));
 
 function createMockDb() {
 	const data: Record<string, any[]> = {
-		workspaceMembers: [{ workspaceId: mockWorkspaceId, userId: mockUserId }],
-		circles: [{ _id: mockCircleId, workspaceId: mockWorkspaceId }],
-		circleMembers: [
-			{ circleId: mockCircleId, userId: mockUserId, joinedAt: 123 },
-			{ circleId: mockCircleId, userId: 'ghost', joinedAt: 456 }
+		people: [
+			{
+				_id: mockPersonId,
+				workspaceId: mockWorkspaceId,
+				email: 'test@example.com',
+				displayName: 'Test User'
+			}
 		],
-		users: [{ _id: mockUserId, email: 'test@example.com', name: 'Test User' }]
+		circles: [{ _id: mockCircleId, workspaceId: mockWorkspaceId }],
+		circleMembers: [{ circleId: mockCircleId, personId: mockPersonId, joinedAt: 123 }]
 	};
 
 	const get = async (id: any) =>
-		data.circles?.find((c) => c._id === id) ?? data.users?.find((u) => u._id === id);
+		data.circles?.find((c) => c._id === id) ?? data.people?.find((u) => u._id === id) ?? null;
 
 	const query = (table: string) => ({
 		withIndex: (_name: string, _cb: (q: any) => any) => ({
@@ -31,8 +36,9 @@ function createMockDb() {
 	return { get, query };
 }
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: async () => ({ userId: mockUserId })
+vi.mock('./circleAccess', () => ({
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(mockPersonId),
+	ensureWorkspaceMembership: vi.fn()
 }));
 
 describe('getCircleMembers helper', () => {
@@ -46,9 +52,9 @@ describe('getCircleMembers helper', () => {
 
 		expect(result).toEqual([
 			{
-				userId: mockUserId,
+				personId: mockPersonId,
 				email: 'test@example.com',
-				name: 'Test User',
+				displayName: 'Test User',
 				joinedAt: 123
 			}
 		]);

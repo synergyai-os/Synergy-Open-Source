@@ -87,7 +87,7 @@ export function useWorkspaceMutations(
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID not available');
 
-			const result = await convexClient.mutation(api.workspaces.createWorkspace, {
+			const result = await convexClient.mutation(api.core.workspaces.index.createWorkspace, {
 				name: trimmed,
 				sessionId
 			});
@@ -146,10 +146,13 @@ export function useWorkspaceMutations(
 		if (!trimmed) return;
 
 		try {
-			const result = await convexClient.mutation(api.workspaces.acceptOrganizationInvite, {
-				sessionId,
-				code: trimmed
-			});
+			const result = await convexClient.mutation(
+				api.core.workspaces.index.acceptOrganizationInvite,
+				{
+					sessionId,
+					code: trimmed
+				}
+			);
 			if (result?.workspaceId) {
 				setActiveWorkspace(result.workspaceId);
 			}
@@ -165,7 +168,7 @@ export function useWorkspaceMutations(
 		const trimmed = code.trim();
 		if (!trimmed) return;
 
-		const result = await convexClient.mutation(api.workspaces.acceptOrganizationInvite, {
+		const result = await convexClient.mutation(api.core.workspaces.index.acceptOrganizationInvite, {
 			sessionId,
 			code: trimmed
 		});
@@ -178,7 +181,7 @@ export function useWorkspaceMutations(
 		if (!convexClient) return;
 		const sessionId = getSessionId();
 		if (!sessionId) return;
-		await convexClient.mutation(api.workspaces.declineOrganizationInvite, {
+		await convexClient.mutation(api.core.workspaces.index.declineOrganizationInvite, {
 			sessionId,
 			inviteId: inviteId as Id<'workspaceInvites'>
 		});

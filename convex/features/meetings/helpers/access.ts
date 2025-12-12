@@ -1,26 +1,50 @@
 import type { Id } from '../../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../../_generated/server';
 import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
+import { calculateAuthority, getAuthorityContextFromAssignments } from '../../../core/authority';
+import { getPersonById, getPersonForSessionAndWorkspace } from '../../../core/people/queries';
+import { requireActivePerson } from '../../../core/people/rules';
 
 type Ctx = QueryCtx | MutationCtx;
+type WorkspaceAccessOverrides = { errorCode?: ErrorCodes; message?: string };
 
 export async function ensureWorkspaceMembership(
 	ctx: Ctx,
 	workspaceId: Id<'workspaces'>,
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	{
 		errorCode = ErrorCodes.WORKSPACE_ACCESS_DENIED,
 		message = 'Workspace membership required'
-	}: { errorCode?: ErrorCodes; message?: string } = {}
+	}: WorkspaceAccessOverrides = {}
 ): Promise<void> {
-	const membership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
-		.first();
-
-	if (!membership) {
+	const person = await requireActivePerson(ctx, personId);
+	if (person.workspaceId !== workspaceId) {
 		throw createError(errorCode, message);
 	}
+}
+
+export async function requireWorkspacePersonFromSession(
+	ctx: Ctx,
+	sessionId: string,
+	workspaceId: Id<'workspaces'>,
+	overrides?: WorkspaceAccessOverrides
+): Promise<{ personId: Id<'people'> }> {
+	const { person } = await getPersonForSessionAndWorkspace(ctx, sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, person._id, overrides);
+	return { personId: person._id };
+}
+
+export async function requirePersonById(
+	ctx: Ctx,
+	personId: Id<'people'>,
+	workspaceId?: Id<'workspaces'>,
+	overrides?: WorkspaceAccessOverrides
+): Promise<{ personId: Id<'people'> }> {
+	const person = await getPersonById(ctx, personId);
+	if (workspaceId) {
+		await ensureWorkspaceMembership(ctx, workspaceId, personId, overrides);
+	}
+	return { personId: person._id };
 }
 
 export async function requireMeeting(
@@ -33,6 +57,20 @@ export async function requireMeeting(
 		throw createError(errorCode, 'Meeting not found');
 	}
 	return meeting;
+}
+
+export async function getMeetingAuthority(
+	ctx: Ctx,
+	meeting: { circleId?: Id<'circles'> },
+	personId: Id<'people'>
+) {
+	if (!meeting.circleId) return null;
+
+	const authorityCtx = await getAuthorityContextFromAssignments(ctx, {
+		personId,
+		circleId: meeting.circleId
+	});
+	return calculateAuthority(authorityCtx);
 }
 
 export async function requireTemplate(

@@ -15,6 +15,7 @@ import {
 	createTestOrganizationMember,
 	createTestCircle,
 	createTestCircleMember,
+	getPersonIdForUser,
 	cleanupTestData,
 	cleanupTestOrganization
 } from '$tests/convex/integration/setup';
@@ -47,7 +48,7 @@ describe('Circles Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const circles = await t.query(api.circles.list, {
+		const circles = await t.query(api.core.circles.index.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -66,26 +67,25 @@ describe('Circles Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.circles.create, {
+		const circleId = await t.mutation(api.core.circles.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Active Platforms',
 			purpose: 'Platform development and maintenance'
 		});
 
-		expect(result).toBeDefined();
-		expect(result.circleId).toBeDefined();
-		expect(result.slug).toMatch(/^active-platforms/);
+		expect(circleId).toBeDefined();
 
 		// Verify circle was created
-		const circle = await t.query(api.circles.get, {
+		const circle = await t.query(api.core.circles.index.get, {
 			sessionId,
-			circleId: result.circleId
+			circleId
 		});
 
 		expect(circle.name).toBe('Active Platforms');
 		expect(circle.purpose).toBe('Platform development and maintenance');
 		expect(circle.parentCircleId).toBeUndefined();
+		expect(circle.slug).toMatch(/^active-platforms/);
 	});
 
 	it('should create nested circles (parent-child relationship)', async () => {
@@ -97,7 +97,7 @@ describe('Circles Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create parent circle
-		const parentResult = await t.mutation(api.circles.create, {
+		const parentCircleId = await t.mutation(api.core.circles.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Engineering',
@@ -105,21 +105,21 @@ describe('Circles Integration Tests', () => {
 		});
 
 		// Create child circle
-		const childResult = await t.mutation(api.circles.create, {
+		const childCircleId = await t.mutation(api.core.circles.index.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Backend Team',
 			purpose: 'Backend development',
-			parentCircleId: parentResult.circleId
+			parentCircleId: parentCircleId
 		});
 
 		// Verify parent-child relationship
-		const childCircle = await t.query(api.circles.get, {
+		const childCircle = await t.query(api.core.circles.index.get, {
 			sessionId,
-			circleId: childResult.circleId
+			circleId: childCircleId
 		});
 
-		expect(childCircle.parentCircleId).toBe(parentResult.circleId);
+		expect(childCircle.parentCircleId).toBe(parentCircleId);
 		expect(childCircle.parentName).toBe('Engineering');
 	});
 
@@ -133,7 +133,7 @@ describe('Circles Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const circle = await t.query(api.circles.get, {
+		const circle = await t.query(api.core.circles.index.get, {
 			sessionId,
 			circleId
 		});
@@ -154,7 +154,7 @@ describe('Circles Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Update circle
-		const result = await t.mutation(api.circles.update, {
+		const result = await t.mutation(api.core.circles.index.update, {
 			sessionId,
 			circleId,
 			name: 'New Name',
@@ -164,7 +164,7 @@ describe('Circles Integration Tests', () => {
 		expect(result.success).toBe(true);
 
 		// Verify update
-		const circle = await t.query(api.circles.get, {
+		const circle = await t.query(api.core.circles.index.get, {
 			sessionId,
 			circleId
 		});
@@ -181,20 +181,28 @@ describe('Circles Integration Tests', () => {
 
 		const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
+		// Create a child circle to archive (root cannot be archived)
+		const childCircleId = await t.mutation(api.core.circles.index.create, {
+			sessionId,
+			workspaceId: orgId,
+			name: 'Child Circle',
+			parentCircleId: circleId
+		});
+
 		cleanupQueue.push({ userId, orgId });
 
 		// Archive circle
-		const result = await t.mutation(api.circles.archive, {
+		const result = await t.mutation(api.core.circles.index.archive, {
 			sessionId,
-			circleId
+			circleId: childCircleId
 		});
 
 		expect(result.success).toBe(true);
 
 		// Verify archive fields via query
-		const circle = await t.query(api.circles.get, {
+		const circle = await t.query(api.core.circles.index.get, {
 			sessionId,
-			circleId
+			circleId: childCircleId
 		});
 
 		expect(circle.archivedAt).toBeDefined();
@@ -202,12 +210,13 @@ describe('Circles Integration Tests', () => {
 
 		// Verify archivedBy and updatedBy are set correctly (direct DB access)
 		const circleDoc = await t.run(async (ctx) => {
-			return await ctx.db.get(circleId);
+			return await ctx.db.get(childCircleId);
 		});
 
 		expect(circleDoc).toBeDefined();
-		expect(circleDoc?.archivedBy).toBe(userId);
-		expect(circleDoc?.updatedBy).toBe(userId);
+		const actorPersonId = await getPersonIdForUser(t, orgId, userId);
+		expect(circleDoc?.archivedByPersonId).toBe(actorPersonId);
+		expect(circleDoc?.updatedByPersonId).toBe(actorPersonId);
 		expect(circleDoc?.archivedAt).toBeDefined();
 		expect(circleDoc?.archivedAt).toBeGreaterThan(0);
 	});
@@ -219,29 +228,33 @@ describe('Circles Integration Tests', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 		await createTestOrganizationMember(t, orgId, user2Id, 'member');
+		const memberPersonId = await getPersonIdForUser(t, orgId, user2Id);
 
 		const circleId = await createTestCircle(t, orgId, 'Test Circle');
 
 		cleanupQueue.push({ userId, orgId });
 		cleanupQueue.push({ userId: user2Id });
 
+		// Acting user must be a circle member to add others
+		await createTestCircleMember(t, circleId, userId);
+
 		// Add member
-		const result = await t.mutation(api.circles.addMember, {
+		const result = await t.mutation(api.core.circles.index.addMember, {
 			sessionId,
 			circleId,
-			userId: user2Id
+			memberPersonId
 		});
 
 		expect(result.success).toBe(true);
 
 		// Verify member was added
-		const members = await t.query(api.circles.getMembers, {
+		const members = await t.query(api.core.circles.index.getMembers, {
 			sessionId,
 			circleId
 		});
 
-		expect(members.length).toBe(1);
-		expect(members[0].userId).toBe(user2Id);
+		expect(members.length).toBe(2);
+		expect(members.some((member) => member.personId === memberPersonId)).toBe(true);
 	});
 
 	it('should remove a member from a circle', async () => {
@@ -251,35 +264,40 @@ describe('Circles Integration Tests', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 		await createTestOrganizationMember(t, orgId, user2Id, 'member');
+		const memberPersonId = await getPersonIdForUser(t, orgId, user2Id);
+		const actorPersonId = await getPersonIdForUser(t, orgId, userId);
 
 		const circleId = await createTestCircle(t, orgId, 'Test Circle');
 		await createTestCircleMember(t, circleId, user2Id);
+		await createTestCircleMember(t, circleId, userId);
 
 		cleanupQueue.push({ userId, orgId });
 		cleanupQueue.push({ userId: user2Id });
 
 		// Verify member exists
-		let members = await t.query(api.circles.getMembers, {
+		let members = await t.query(api.core.circles.index.getMembers, {
 			sessionId,
 			circleId
 		});
-		expect(members.length).toBe(1);
+		expect(members.length).toBe(2);
+		expect(members.some((member) => member.personId === memberPersonId)).toBe(true);
 
 		// Remove member
-		const result = await t.mutation(api.circles.removeMember, {
+		const result = await t.mutation(api.core.circles.index.removeMember, {
 			sessionId,
 			circleId,
-			userId: user2Id
+			memberPersonId
 		});
 
 		expect(result.success).toBe(true);
 
 		// Verify member was removed
-		members = await t.query(api.circles.getMembers, {
+		members = await t.query(api.core.circles.index.getMembers, {
 			sessionId,
 			circleId
 		});
-		expect(members.length).toBe(0);
+		expect(members.length).toBe(1);
+		expect(members[0].personId).toBe(actorPersonId);
 	});
 
 	it('should prevent adding a duplicate member to a circle', async () => {
@@ -289,21 +307,23 @@ describe('Circles Integration Tests', () => {
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 		await createTestOrganizationMember(t, orgId, user2Id, 'member');
+		const memberPersonId = await getPersonIdForUser(t, orgId, user2Id);
 
 		const circleId = await createTestCircle(t, orgId, 'Test Circle');
 		await createTestCircleMember(t, circleId, user2Id);
+		await createTestCircleMember(t, circleId, userId);
 
 		cleanupQueue.push({ userId, orgId });
 		cleanupQueue.push({ userId: user2Id });
 
 		// Try to add same member again
 		await expect(
-			t.mutation(api.circles.addMember, {
+			t.mutation(api.core.circles.index.addMember, {
 				sessionId,
 				circleId,
-				userId: user2Id
+				memberPersonId
 			})
-		).rejects.toThrow('User is already a member of this circle');
+		).rejects.toThrow('Person is already a member of this circle');
 	});
 
 	it('should prevent creating a circle with invalid parent circle', async () => {
@@ -322,7 +342,7 @@ describe('Circles Integration Tests', () => {
 
 		// Try to create child circle with parent from different org
 		await expect(
-			t.mutation(api.circles.create, {
+			t.mutation(api.core.circles.index.create, {
 				sessionId,
 				workspaceId: orgId,
 				name: 'Child Circle',
@@ -343,7 +363,7 @@ describe('Circles Integration Tests', () => {
 
 		// Try to set circle as its own parent
 		await expect(
-			t.mutation(api.circles.update, {
+			t.mutation(api.core.circles.index.update, {
 				sessionId,
 				circleId,
 				parentCircleId: circleId
@@ -368,11 +388,11 @@ describe('Circles Integration Tests', () => {
 
 		// User 2 should not be able to access User 1's circle
 		await expect(
-			t.query(api.circles.get, {
+			t.query(api.core.circles.index.get, {
 				sessionId: session2,
 				circleId: circle1
 			})
-		).rejects.toThrow('You do not have access to this workspace');
+		).rejects.toThrow('WORKSPACE_MEMBERSHIP_REQUIRED');
 	});
 
 	it('should fail with invalid sessionId', async () => {
@@ -382,7 +402,7 @@ describe('Circles Integration Tests', () => {
 		cleanupQueue.push({ orgId });
 
 		await expect(
-			t.query(api.circles.list, {
+			t.query(api.core.circles.index.list, {
 				sessionId: 'invalid_session_id',
 				workspaceId: orgId
 			})

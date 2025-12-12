@@ -4,13 +4,13 @@ import { findOperationalWorkspaces, makeResult, type InvariantResult } from './t
 export const checkHIST01 = internalQuery({
 	args: {},
 	handler: async (ctx): Promise<InvariantResult> => {
-		const [history, people] = await Promise.all([
+		const [history, workspaces] = await Promise.all([
 			ctx.db.query('orgVersionHistory').collect(),
-			ctx.db.query('people').collect()
+			ctx.db.query('workspaces').collect()
 		]);
 
-		// Abandoned workspaces excluded per SYOS-806
-		const operationalWorkspaces = findOperationalWorkspaces(people);
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 
 		const violations = history
 			.filter((entry) => {

@@ -77,7 +77,7 @@
 
 		isSubmitting = true;
 		try {
-			await convexClient.mutation(api.circles.create, {
+			await convexClient.mutation(api.core.circles.index.create, {
 				sessionId,
 				workspaceId,
 				name: name.trim(),
@@ -117,7 +117,7 @@
 			<Dialog.Title>Add Sub-Circle to {parentCircleName}</Dialog.Title>
 			<Dialog.Description>Create a new sub-circle within this circle.</Dialog.Description>
 
-			<form onsubmit={handleSubmit} class="mt-section flex flex-col gap-form">
+			<form onsubmit={handleSubmit} class="mt-section gap-form flex flex-col">
 				<FormInput
 					label="Name"
 					placeholder="e.g., Engineering"
@@ -141,7 +141,7 @@
 					disabled={isSubmitting}
 				/>
 
-				<div class="mt-section flex items-center justify-end gap-button">
+				<div class="mt-section gap-button flex items-center justify-end">
 					<Dialog.Close asChild>
 						<Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
 					</Dialog.Close>

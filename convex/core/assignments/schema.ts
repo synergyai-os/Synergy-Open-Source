@@ -1,6 +1,3 @@
-/**
- * Assignments domain schema scaffold.
- * SYOS-707: placeholder until assignments domain is modeled.
- */
+import type { Doc } from '../../_generated/dataModel';
 
-export type AssignmentsSchema = Record<string, never>;
+export type AssignmentDoc = Doc<'assignments'>;

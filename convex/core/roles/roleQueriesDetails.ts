@@ -2,23 +2,25 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { ensureCircleExists, ensureWorkspaceMembership } from './roleAccess';
+import {
+	ensureCircleExists,
+	ensureWorkspaceMembership,
+	requireWorkspacePersonFromSession
+} from './roleAccess';
 
 async function getRoleDetails(
 	ctx: QueryCtx,
 	args: { sessionId: string; roleId: Id<'circleRoles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.roleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, personId);
 
 	const circle = await ctx.db.get(role.circleId);
 	if (!circle) {

@@ -30,7 +30,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -46,7 +46,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -62,7 +62,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>
@@ -85,7 +85,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -101,7 +101,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -117,7 +117,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>
@@ -140,7 +140,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -156,7 +156,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -172,7 +172,7 @@
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>

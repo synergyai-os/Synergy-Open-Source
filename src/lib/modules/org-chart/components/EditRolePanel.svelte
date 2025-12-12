@@ -187,7 +187,7 @@
 			<div class="flex h-full items-center justify-center">
 				<div class="text-center">
 					<svg
-						class="mx-auto size-icon-xl animate-spin text-tertiary"
+						class="size-icon-xl text-tertiary mx-auto animate-spin"
 						fill="none"
 						viewBox="0 0 24 24"
 					>
@@ -206,18 +206,18 @@
 			<!-- Error State -->
 			<div class="flex h-full items-center justify-center">
 				<div class="text-center">
-					<p class="text-button font-medium text-error">Failed to load role</p>
+					<p class="text-button text-error font-medium">Failed to load role</p>
 					<p class="text-button text-secondary mb-header">{editRole.error}</p>
 				</div>
 			</div>
 		{:else}
 			<!-- Header -->
-			<div class="border-base py-header flex items-center justify-between border-b px-page">
+			<div class="border-base py-header px-page flex items-center justify-between border-b">
 				<Heading level={1}>Edit Role</Heading>
 			</div>
 
 			<!-- Form Content -->
-			<div class="flex-1 overflow-y-auto px-page py-page">
+			<div class="px-page py-page flex-1 overflow-y-auto">
 				<div class="space-y-section mx-auto max-w-2xl">
 					<!-- Error message -->
 					{#if editRole.error}
@@ -240,11 +240,11 @@
 					/>
 
 					<!-- Represents to Parent -->
-					<div class="flex flex-col gap-fieldGroup">
+					<div class="gap-fieldGroup flex flex-col">
 						<Label.Root for="represents-to-parent" class={labelRootRecipe()}>
 							Represents to Parent Circle
 						</Label.Root>
-						<div class="flex items-center gap-button">
+						<div class="gap-button flex items-center">
 							<Checkbox.Root bind:checked={representsToParentValue}>
 								{#snippet children({ checked })}
 									<div class={checkboxBoxRecipe({ checked })}>
@@ -273,7 +273,7 @@
 
 					<!-- Domains -->
 					<div>
-						<h4 class="text-button font-medium tracking-wide text-tertiary uppercase mb-header">
+						<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
 							Domains
 						</h4>
 						<CategoryItemsList
@@ -290,7 +290,7 @@
 
 					<!-- Accountabilities -->
 					<div>
-						<h4 class="text-button font-medium tracking-wide text-tertiary uppercase mb-header">
+						<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
 							Accountabilities
 						</h4>
 						<CategoryItemsList
@@ -307,7 +307,7 @@
 
 					<!-- Policies -->
 					<div>
-						<h4 class="text-button font-medium tracking-wide text-tertiary uppercase mb-header">
+						<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
 							Policies
 						</h4>
 						<CategoryItemsList
@@ -324,7 +324,7 @@
 
 					<!-- Decision Rights -->
 					<div>
-						<h4 class="text-button font-medium tracking-wide text-tertiary uppercase mb-header">
+						<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
 							Decision Rights
 						</h4>
 						<CategoryItemsList
@@ -341,7 +341,7 @@
 
 					<!-- Notes -->
 					<div>
-						<h4 class="text-button font-medium tracking-wide text-tertiary uppercase mb-header">
+						<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
 							Notes
 						</h4>
 						<CategoryItemsList
@@ -359,7 +359,7 @@
 			</div>
 
 			<!-- Footer with action buttons -->
-			<div class="border-base py-header flex items-center justify-end gap-button border-t px-page">
+			<div class="border-base py-header gap-button px-page flex items-center justify-end border-t">
 				<Button variant="outline" onclick={handleClose} disabled={editRole.isSaving}>Cancel</Button>
 				{#if canQuickEdit}
 					<Button

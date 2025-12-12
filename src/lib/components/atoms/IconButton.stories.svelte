@@ -67,7 +67,7 @@
 </Story>
 
 <Story name="Group">
-	<div class="flex gap-button">
+	<div class="gap-button flex">
 		<Button variant="ghost" iconOnly ariaLabel="Edit" size="md">
 			<Icon type="edit" size="md" />
 		</Button>
@@ -81,7 +81,7 @@
 </Story>
 
 <Story name="All Variants" args={{ size: 'md' }} let:args>
-	<div class="flex items-center gap-button">
+	<div class="gap-button flex items-center">
 		<Button variant="ghost" iconOnly ariaLabel="Ghost" size={args.size}>
 			<Icon type="add" size={args.size} />
 		</Button>
@@ -101,7 +101,7 @@
 </Story>
 
 <Story name="Sizes" args={{ variant: 'ghost' }} let:args>
-	<div class="flex items-center gap-button">
+	<div class="gap-button flex items-center">
 		<Button variant={args.variant} iconOnly ariaLabel="Small" size="sm">
 			<Icon type="add" size="sm" />
 		</Button>

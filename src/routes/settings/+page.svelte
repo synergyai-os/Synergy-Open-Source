@@ -346,7 +346,7 @@
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file-line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
@@ -403,7 +403,7 @@
 					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
 					''
 				)
-				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file-line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
@@ -485,16 +485,16 @@
 	}
 </script>
 
-<div class="h-screen overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl px-page py-page">
+<div class="bg-base h-screen overflow-y-auto">
+	<div class="px-page py-page mx-auto max-w-4xl">
 		<!-- Page Title -->
 		<Heading level={1} class="mb-section">Settings</Heading>
 
 		<!-- Workspace Context Banner -->
 		<div
-			class="border-accent-primary/20 bg-accent-primary/10 rounded-card border card-padding mb-header"
+			class="border-accent-primary/20 bg-accent-primary/10 rounded-card card-padding mb-header border"
 		>
-			<div class="flex items-start gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-start">
 				<Icon type="info" size="md" color="accent-primary" class="flex-shrink-0" />
 				<div class="min-w-0 flex-1">
 					<Text variant="body" size="sm" color="accent-primary" class="mb-fieldGroup font-medium">
@@ -511,16 +511,16 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-section">
+		<div class="gap-section flex flex-col">
 			<!-- General Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">General</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Theme Preference -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="theme-toggle" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -538,7 +538,7 @@
 										Theme preferences are personal and apply across all workspaces.
 									</Text>
 								</div>
-								<div class="flex items-center gap-fieldGroup" role="presentation">
+								<div class="gap-fieldGroup flex items-center" role="presentation">
 									<Text variant="body" size="sm" color="secondary">
 										{isDark ? 'Dark mode' : 'Light mode'}
 									</Text>
@@ -566,14 +566,14 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">AI</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Claude API Key -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="claude-key" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -592,7 +592,7 @@
 										workspace).
 									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -603,14 +603,14 @@
 											disabled={claudeValidationState === 'validating'}
 											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
 											style="width: 16rem;"
-											class="text-small border bg-base px-input py-input pr-input-iconRight {claudeValidationState ===
+											class="text-small bg-base px-input py-input pr-input-iconRight border {claudeValidationState ===
 											'valid'
 												? 'border-success'
 												: claudeValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-disabled'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
@@ -620,7 +620,7 @@
 												style="right: var(--spacing-fieldGroup-gap);"
 											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -658,7 +658,7 @@
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
-												class="absolute top-1/2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>
@@ -739,14 +739,14 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">Sources</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Readwise API Key -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="readwise-key" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -767,7 +767,7 @@
 										💡 Tip: Use the same key across workspaces to sync content everywhere
 									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"
@@ -778,14 +778,14 @@
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
 											style="width: 16rem;"
-											class="text-small border bg-base px-input py-input pr-input-iconRight {readwiseValidationState ===
+											class="text-small bg-base px-input py-input pr-input-iconRight border {readwiseValidationState ===
 											'valid'
 												? 'border-success'
 												: readwiseValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-disabled'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
@@ -795,7 +795,7 @@
 												style="right: var(--spacing-fieldGroup-gap);"
 											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -833,7 +833,7 @@
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
-												class="absolute top-1/2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>

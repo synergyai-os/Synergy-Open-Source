@@ -1,13 +1,14 @@
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
+import { requirePerson } from '../people/rules';
 
 export async function handleUserCircleRoleCreated(
 	ctx: MutationCtx,
 	userCircleRole: {
 		_id: Id<'userCircleRoles'>;
-		userId: Id<'users'>;
+		personId: Id<'people'>;
 		circleRoleId: Id<'circleRoles'>;
-		assignedBy: Id<'users'>;
+		assignedByPersonId: Id<'people'>;
 	},
 	circleRole: {
 		templateId?: Id<'roleTemplates'>;
@@ -45,11 +46,22 @@ export async function handleUserCircleRoleCreated(
 				continue;
 			}
 
+			// TODO: SYOS-791 - when workspaceRoles moves to personId, remove person->user mapping.
+			const person = await requirePerson(ctx, userCircleRole.personId);
+			if (!person.userId) {
+				// legacy bridge SYOS-791
+				continue;
+			}
+
+			const assignedByPerson = userCircleRole.assignedByPersonId
+				? await ctx.db.get(userCircleRole.assignedByPersonId)
+				: null;
+			const assignedByUserId =
+				assignedByPerson && 'userId' in assignedByPerson ? assignedByPerson.userId : null; // legacy bridge SYOS-791
+
 			const existingRole = await ctx.db
-				.query('userRoles')
-				.withIndex('by_user_role', (q) =>
-					q.eq('userId', userCircleRole.userId).eq('roleId', rbacRole._id)
-				)
+				.query('userRoles') // legacy bridge SYOS-791
+				.withIndex('by_user_role', (q) => q.eq('userId', person.userId!).eq('roleId', rbacRole._id)) // legacy bridge SYOS-791
 				.filter((q) =>
 					q.and(
 						q.eq(q.field('circleId'), circleRole.circleId),
@@ -60,12 +72,12 @@ export async function handleUserCircleRoleCreated(
 
 			if (!existingRole) {
 				await ctx.db.insert('userRoles', {
-					userId: userCircleRole.userId,
+					userId: person.userId!, // legacy bridge SYOS-791
 					roleId: rbacRole._id,
 					workspaceId: circleRole.workspaceId,
 					circleId: circleRole.circleId,
 					sourceCircleRoleId: userCircleRole._id,
-					assignedBy: userCircleRole.assignedBy,
+					assignedBy: assignedByUserId ?? person.userId!, // legacy bridge SYOS-791
 					assignedAt: Date.now()
 				});
 			}
@@ -107,6 +119,13 @@ export async function handleUserCircleRoleRestored(
 		return;
 	}
 
+	// TODO: SYOS-791 - person->user mapping to be removed when workspaceRoles uses personId
+	const person = await requirePerson(ctx, userCircleRole.personId);
+	if (!person.userId) {
+		// legacy bridge SYOS-791
+		return;
+	}
+
 	const circleRole = await ctx.db.get(userCircleRole.circleRoleId);
 	if (!circleRole) {
 		return;
@@ -121,9 +140,9 @@ export async function handleUserCircleRoleRestored(
 		ctx,
 		{
 			_id: userCircleRoleId,
-			userId: userCircleRole.userId,
+			personId: userCircleRole.personId,
 			circleRoleId: userCircleRole.circleRoleId,
-			assignedBy: userCircleRole.assignedBy
+			assignedByPersonId: userCircleRole.assignedByPersonId
 		},
 		{
 			templateId: circleRole.templateId,

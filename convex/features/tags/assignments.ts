@@ -2,50 +2,103 @@ import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
 
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import {
+	ensureCircleMembership,
+	ensureTagAccess,
+	ensureWorkspaceMembership,
+	getActorFromSession,
+	type ActorContext
+} from './access';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { canAccessContent } from '../../permissions';
 
-export async function assignTagsToEntity(
+type EntityType = 'highlights' | 'flashcards';
+type EntityScope = { workspaceId: Id<'workspaces'>; circleId?: Id<'circles'> };
+
+const ENTITY_CONFIG: Record<
+	EntityType,
+	{ label: string; notFound: ErrorCodes; accessDenied: ErrorCodes }
+> = {
+	highlights: {
+		label: 'Highlight',
+		notFound: ErrorCodes.HIGHLIGHT_NOT_FOUND,
+		accessDenied: ErrorCodes.HIGHLIGHT_ACCESS_DENIED
+	},
+	flashcards: {
+		label: 'Flashcard',
+		notFound: ErrorCodes.FLASHCARD_NOT_FOUND,
+		accessDenied: ErrorCodes.FLASHCARD_ACCESS_DENIED
+	}
+};
+
+async function resolveEntityScope(
 	ctx: MutationCtx,
-	userId: Id<'users'>,
-	entityType: 'highlights' | 'flashcards',
+	entityType: EntityType,
 	entityId: Id<'highlights'> | Id<'flashcards'>,
-	tagIds: Id<'tags'>[]
-): Promise<void> {
-	const entityLabel = entityType === 'highlights' ? 'Highlight' : 'Flashcard';
-	const notFoundCode =
-		entityType === 'highlights' ? ErrorCodes.HIGHLIGHT_NOT_FOUND : ErrorCodes.FLASHCARD_NOT_FOUND;
-	const accessDeniedCode =
-		entityType === 'highlights'
-			? ErrorCodes.HIGHLIGHT_ACCESS_DENIED
-			: ErrorCodes.FLASHCARD_ACCESS_DENIED;
+	sessionId: string
+): Promise<{ actor: ActorContext; scope: EntityScope }> {
+	const config = ENTITY_CONFIG[entityType];
 	const entity =
 		entityType === 'highlights'
 			? await ctx.db.get(entityId as Id<'highlights'>)
 			: await ctx.db.get(entityId as Id<'flashcards'>);
+
 	if (!entity) {
-		throw createError(notFoundCode, `${entityLabel} not found`);
-	}
-	if (!('userId' in entity) || entity.userId !== userId) {
-		throw createError(accessDeniedCode, `${entityLabel} not found or access denied`);
+		throw createError(config.notFound, `${config.label} not found`);
 	}
 
+	if (!entity.workspaceId) {
+		throw createError(ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED, 'Workspace is required');
+	}
+
+	const actor = await getActorFromSession(ctx, sessionId, entity.workspaceId);
+
+	try {
+		await ensureWorkspaceMembership(ctx, entity.workspaceId, actor.personId);
+		if (entity.circleId) {
+			await ensureCircleMembership(ctx, entity.circleId, actor.personId);
+		}
+	} catch (_err) {
+		throw createError(config.accessDenied, `${config.label} not found or access denied`);
+	}
+
+	return {
+		actor,
+		scope: {
+			workspaceId: entity.workspaceId,
+			circleId: entity.circleId ?? undefined
+		}
+	};
+}
+
+async function assignTagsToEntity(
+	ctx: MutationCtx,
+	entityType: EntityType,
+	entityId: Id<'highlights'> | Id<'flashcards'>,
+	tagIds: Id<'tags'>[],
+	sessionId: string
+): Promise<void> {
+	const { actor, scope } = await resolveEntityScope(ctx, entityType, entityId, sessionId);
 	const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
+
 	for (const tag of tags) {
 		if (!tag) {
 			throw createError(ErrorCodes.TAG_NOT_FOUND, 'One or more tags not found');
 		}
-		if (tag.userId !== userId) {
-			const hasAccess = await canAccessContent(ctx, userId, {
-				userId: tag.userId,
-				workspaceId: tag.workspaceId ?? undefined,
-				circleId: tag.circleId ?? undefined
-			});
-			if (!hasAccess) {
-				throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'One or more tags are not accessible');
-			}
+
+		await ensureTagAccess(ctx, actor, tag);
+
+		if (tag.workspaceId !== scope.workspaceId) {
+			throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'Tag belongs to a different workspace');
+		}
+
+		if (tag.circleId && tag.circleId !== scope.circleId) {
+			throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'Tag belongs to a different circle');
+		}
+
+		if (!tag.circleId && scope.circleId) {
+			// Circle-scoped entities require circle-compatible tags
+			throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'Circle items require circle tags');
 		}
 	}
 
@@ -87,8 +140,7 @@ export async function updateHighlightTagAssignmentsHandler(
 		tagIds: Id<'tags'>[];
 	}
 ): Promise<void> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	return assignTagsToEntity(ctx, userId, 'highlights', args.highlightId, args.tagIds);
+	return assignTagsToEntity(ctx, 'highlights', args.highlightId, args.tagIds, args.sessionId);
 }
 
 export const updateHighlightTagAssignments = mutation({
@@ -108,8 +160,7 @@ export async function updateFlashcardTagAssignmentsHandler(
 		tagIds: Id<'tags'>[];
 	}
 ): Promise<void> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	return assignTagsToEntity(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
+	return assignTagsToEntity(ctx, 'flashcards', args.flashcardId, args.tagIds, args.sessionId);
 }
 
 export const updateFlashcardTagAssignments = mutation({
@@ -125,11 +176,20 @@ export async function archiveHighlightTagAssignmentHandler(
 	ctx: MutationCtx,
 	args: { sessionId: string; highlightId: Id<'highlights'>; tagId: Id<'tags'> }
 ): Promise<Id<'tags'>> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+	const { actor, scope } = await resolveEntityScope(
+		ctx,
+		'highlights',
+		args.highlightId,
+		args.sessionId
+	);
 
-	const highlight = await ctx.db.get(args.highlightId);
-	if (!highlight || highlight.userId !== userId) {
-		throw createError(ErrorCodes.HIGHLIGHT_ACCESS_DENIED, 'Highlight not found or access denied');
+	const tag = await ctx.db.get(args.tagId);
+	if (!tag) {
+		throw createError(ErrorCodes.TAG_NOT_FOUND, 'Tag not found');
+	}
+	await ensureTagAccess(ctx, actor, tag);
+	if (tag.workspaceId !== scope.workspaceId) {
+		throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'Tag belongs to a different workspace');
 	}
 
 	const assignment = await ctx.db

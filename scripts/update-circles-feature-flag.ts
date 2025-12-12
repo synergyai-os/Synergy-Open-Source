@@ -52,7 +52,7 @@ async function main() {
 		// Replace with your actual userId from browser console debug output
 		const userId = 'jx7b6gcvkmpsppm7sqzst8s3q57v898d'; // randy@synergyai.nl
 
-		await client.mutation(api.featureFlags.updateFlag, {
+		await client.mutation(api.infrastructure.featureFlags.updateFlag, {
 			sessionId,
 			flag: 'circles_ui_beta',
 			enabled: true,

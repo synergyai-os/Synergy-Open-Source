@@ -33,7 +33,7 @@
          purpose: Optimize sales processes`;
 </script>
 
-<div class="flex h-full flex-col gap-form">
+<div class="gap-form flex h-full flex-col">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<Text variant="h3">Import Structure</Text>
@@ -46,7 +46,7 @@
 	</div>
 
 	{#if showHelp}
-		<div class="border-base rounded-card border bg-elevated inset-md">
+		<div class="border-base rounded-card bg-elevated inset-md border">
 			<Text variant="body" size="sm" color="secondary" class="mb-fieldGroup">
 				<strong>Syntax:</strong>
 			</Text>
@@ -58,19 +58,19 @@
 	<textarea
 		bind:value
 		placeholder="Paste or type your org structure here..."
-		class="border-base flex-1 rounded-input border bg-surface px-input py-input font-mono text-sm focus:border-accent-primary focus:outline-none"
+		class="border-base rounded-input bg-surface px-input py-input focus:border-accent-primary flex-1 border font-mono text-sm focus:outline-none"
 		spellcheck="false"
 	></textarea>
 
 	<!-- Errors -->
 	{#if errors.length > 0}
-		<div class="bg-error-subtle rounded-card border border-error inset-md">
+		<div class="bg-error-subtle rounded-card border-error inset-md border">
 			<Text variant="body" size="sm" color="error" class="mb-fieldGroup font-medium">
 				{errors.length} error{errors.length > 1 ? 's' : ''} found:
 			</Text>
 			<ul class="list-inside list-disc space-y-1">
 				{#each errors as error (error.lineNumber)}
-					<li class="text-sm text-error">
+					<li class="text-error text-sm">
 						Line {error.lineNumber}: {error.message}
 					</li>
 				{/each}

@@ -9,7 +9,7 @@
 	import type { Id } from '$lib/convex';
 	import { Button } from '$lib/components/atoms';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
@@ -126,7 +126,7 @@ import { invariant } from '$lib/utils/invariant';
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID is required');
 
-			const result = await convexClient.mutation(api.notes.updateNoteDevDocsExport, {
+			const result = await convexClient.mutation(api.features.notes.index.updateNoteDevDocsExport, {
 				sessionId,
 				noteId: inboxItem._id as Id<'inboxItems'>
 			});
@@ -169,7 +169,7 @@ import { invariant } from '$lib/utils/invariant';
 <div class="flex h-full flex-col">
 	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface"
+		class="h-system-header border-base py-system-header bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Title + Save Status -->
@@ -185,7 +185,7 @@ import { invariant } from '$lib/utils/invariant';
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small font-normal text-secondary">
+			<h2 class="text-small text-secondary font-normal">
 				{inboxItem.title || 'Untitled Note'}
 			</h2>
 			<span class="text-label text-tertiary">
@@ -224,7 +224,7 @@ import { invariant } from '$lib/utils/invariant';
 
 	<!-- Footer with metadata -->
 	<div class="border-base px-inbox-container py-system-header border-t">
-		<div class="flex items-center justify-between text-label text-tertiary">
+		<div class="text-label text-tertiary flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
@@ -238,7 +238,7 @@ import { invariant } from '$lib/utils/invariant';
 
 			{#if inboxItem.blogCategory === 'BLOG'}
 				<span
-					class="rounded-chip px-badge py-badge bg-accent-primary text-label font-medium text-primary"
+					class="rounded-chip px-badge py-badge bg-accent-primary text-label text-primary font-medium"
 				>
 					BLOG
 				</span>

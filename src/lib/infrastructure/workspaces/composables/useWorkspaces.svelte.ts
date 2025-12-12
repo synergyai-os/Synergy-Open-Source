@@ -1,7 +1,8 @@
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 import { useConvexClient } from 'convex-svelte';
-import { SvelteURLSearchParams } from 'svelte';
+import { SvelteURLSearchParams } from 'svelte/reactivity';
+// URLSearchParams available globally in browser/SSR
 import {
 	getStorageKey,
 	getStorageDetailsKey,
@@ -111,6 +112,7 @@ export function useWorkspaces(options?: {
 	const analytics = useWorkspaceAnalytics({
 		convexClient,
 		getUserId,
+		getSessionId,
 		workspaces: () => queries.workspaces, // Reactive getter
 		setActiveWorkspace: orgState.setActiveWorkspace,
 		getCurrentOrganizationId: () => orgState.activeWorkspaceId // Reactive getter (captures before change)

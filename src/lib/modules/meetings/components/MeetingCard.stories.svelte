@@ -42,7 +42,7 @@
 		{ name: 'Jane Smith', color: 'var(--color-success-text)' },
 		{ name: 'Bob Johnson', color: 'var(--color-warning-text)' },
 		{ name: 'Alice Brown', color: 'var(--color-error-text)' },
-		{ name: 'Charlie Wilson', color: 'var(--color-code-function)' },
+		{ name: 'Charlie Wilson', color: 'var(--color-syntax-function)' },
 		{ name: 'Diana Davis', color: 'var(--color-accent-primary)' },
 		{ name: 'Eve Miller', color: 'var(--color-accent-primary)' }
 	];

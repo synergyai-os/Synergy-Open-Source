@@ -1,6 +1,6 @@
 import { query } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
+import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import type { PermissionContext } from './types';
 import { checkIsSystemAdmin, listUserPermissions } from './access';
 

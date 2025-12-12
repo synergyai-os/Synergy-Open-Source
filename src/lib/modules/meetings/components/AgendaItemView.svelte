@@ -20,7 +20,7 @@
 	import { api, type Id } from '$lib/convex';
 	import { Button, Text, Heading, Icon } from '$lib/components/atoms';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		item?: {
@@ -57,7 +57,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Wrap in $derived to make query creation reactive
 	const proposalQuery = $derived(
 		browser && item?._id && sessionId
-			? useQuery(api.proposals.getByAgendaItem, () => {
+			? useQuery(api.core.proposals.index.getByAgendaItem, () => {
 					invariant(item?._id && sessionId, 'Agenda item ID and sessionId required');
 					return {
 						sessionId,
@@ -125,25 +125,25 @@ import { invariant } from '$lib/utils/invariant';
 	<!-- Active Agenda Item -->
 	<div class="flex h-full flex-col">
 		<!-- Item Header -->
-		<div class="border-border-base border-b bg-elevated px-page py-stack-header">
+		<div class="border-border-base bg-elevated px-page py-stack-header border-b">
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
 					<Heading level="h2" size="h1">
 						{item.title}
 					</Heading>
 					<div
-						class="text-body-sm text-text-tertiary flex items-center gap-fieldGroup mt-fieldGroup"
+						class="text-body-sm text-text-tertiary gap-fieldGroup mt-fieldGroup flex items-center"
 					>
 						<Text variant="body" size="sm" color="tertiary" as="span"
 							>Added by {item.creatorName}</Text
 						>
 						{#if item.status === 'processed'}
-							<span class="text-success-text flex items-center gap-fieldGroup">
+							<span class="text-success-text gap-fieldGroup flex items-center">
 								<Icon type="check" size="sm" />
 								<Text variant="body" size="sm" color="success" as="span">Processed</Text>
 							</span>
 						{:else if item.status === 'rejected'}
-							<span class="text-error-text flex items-center gap-fieldGroup">
+							<span class="text-error-text gap-fieldGroup flex items-center">
 								<Icon type="close" size="sm" />
 								<Text variant="body" size="sm" color="error" as="span">Rejected</Text>
 							</span>
@@ -153,7 +153,7 @@ import { invariant } from '$lib/utils/invariant';
 
 				<!-- Mark Status Buttons (recorder only) -->
 				{#if item.status === 'todo' && !isClosed && isRecorder}
-					<div class="flex gap-fieldGroup">
+					<div class="gap-fieldGroup flex">
 						<Button variant="primary" onclick={() => onMarkStatus(item._id, 'processed')}>
 							Mark as Processed
 						</Button>
@@ -166,17 +166,17 @@ import { invariant } from '$lib/utils/invariant';
 		</div>
 
 		<!-- Notes Editor (SYOS-222) -->
-		<div class="flex-1 overflow-y-auto px-page py-page">
+		<div class="px-page py-page flex-1 overflow-y-auto">
 			{#if browser && item}
-				<div class="flex flex-col gap-section">
+				<div class="gap-section flex flex-col">
 					<!-- Notes Editor: Editable for all users -->
 					<!-- Save State Indicator -->
 					{#if notes.saveState !== 'idle'}
-						<div class="text-body-sm flex items-center gap-fieldGroup">
+						<div class="text-body-sm gap-fieldGroup flex items-center">
 							{#if notes.saveState === 'saving'}
 								<Text variant="body" size="sm" color="tertiary" as="span">Saving...</Text>
 							{:else if notes.saveState === 'saved'}
-								<span class="text-success-text flex items-center gap-fieldGroup">
+								<span class="text-success-text gap-fieldGroup flex items-center">
 									<Icon type="check" size="sm" />
 									<Text variant="body" size="sm" color="success" as="span">Saved</Text>
 								</span>

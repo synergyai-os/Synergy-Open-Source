@@ -2,11 +2,15 @@ import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
 
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import {
+	ensureCircleMembership,
+	ensureWorkspaceMembership,
+	getActorFromSession,
+	type ActorContext
+} from './access';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { normalizeTagName } from '../../readwiseUtils';
-import { ensureOwnershipContext, ensureWorkspaceMembership } from './access';
+import { normalizeTagName } from '../readwise/utils';
 import type { TagOwnership } from './validation';
 import { ensureParentChainValid, ensureUniqueTagName, validateTagName } from './validation';
 
@@ -27,7 +31,7 @@ export async function createTagInternal(
 	ctx: MutationCtx,
 	args: CreateTagArgs
 ): Promise<Id<'tags'>> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+	const actor = await getActorFromSession(ctx, args.sessionId, args.workspaceId);
 	const ownership: TagOwnership = args.ownership ?? 'workspace';
 	if (ownership !== 'circle' && args.circleId) {
 		throw createError(
@@ -35,40 +39,38 @@ export async function createTagInternal(
 			'circleId is only allowed when ownership is "circle"'
 		);
 	}
-	const ownershipContext = await ensureOwnershipContext(
-		ctx,
-		userId,
-		ownership,
-		args.workspaceId,
-		args.circleId
-	);
+
+	const workspaceId = args.workspaceId ?? actor.workspaceId;
+	await ensureWorkspaceMembership(ctx, workspaceId, actor.personId);
+
+	let circleId: Id<'circles'> | undefined = undefined;
+	if (ownership === 'circle') {
+		if (!args.circleId) {
+			throw createError(ErrorCodes.TAG_CIRCLE_REQUIRED, 'circleId is required for circle tags');
+		}
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
+		if (circle.workspaceId !== workspaceId) {
+			throw createError(ErrorCodes.TAG_PARENT_WORKSPACE_MISMATCH, 'Circle must match workspace');
+		}
+		await ensureCircleMembership(ctx, args.circleId, actor.personId);
+		circleId = args.circleId;
+	}
 
 	const { normalizedName } = validateTagName(args.displayName);
-	await ensureUniqueTagName(
-		ctx,
-		ownershipContext.ownership,
-		ownershipContext.workspaceId,
-		ownershipContext.circleId,
-		normalizedName
-	);
-	await ensureParentChainValid(
-		ctx,
-		args.parentId,
-		userId,
-		ownershipContext.workspaceId,
-		ownershipContext.circleId
-	);
+	await ensureUniqueTagName(ctx, ownership, workspaceId, circleId, normalizedName);
+	await ensureParentChainValid(ctx, args.parentId, actor, workspaceId, circleId);
 
 	return ctx.db.insert('tags', {
-		userId,
+		personId: actor.personId,
 		name: normalizedName,
 		displayName: args.displayName,
 		color: args.color,
 		parentId: args.parentId,
 		createdAt: Date.now(),
-		workspaceId: ownershipContext.workspaceId,
-		circleId: ownershipContext.circleId,
-		ownershipType: ownershipContext.ownership
+		workspaceId,
+		circleId,
+		ownershipType: ownership
 	});
 }
 
@@ -95,7 +97,7 @@ export interface ShareTagArgs {
 
 async function ensureShareTarget(
 	ctx: MutationCtx,
-	userId: Id<'users'>,
+	actor: ActorContext,
 	shareWith: Exclude<TagOwnership, 'user'>,
 	workspaceId?: WorkspaceId,
 	circleId?: CircleId
@@ -107,7 +109,13 @@ async function ensureShareTarget(
 				'workspaceId is required when sharing with workspace'
 			);
 		}
-		await ensureWorkspaceMembership(ctx, userId, workspaceId);
+		await ensureWorkspaceMembership(ctx, workspaceId, actor.personId);
+		if (actor.workspaceId !== workspaceId) {
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'You can only share tags within your workspace'
+			);
+		}
 		return { workspaceId, circleId: undefined };
 	}
 
@@ -117,17 +125,13 @@ async function ensureShareTarget(
 			'circleId is required when sharing with circle'
 		);
 	}
-	const circleMembership = await ctx.db
-		.query('circleMembers')
-		.withIndex('by_circle_user', (q) => q.eq('circleId', circleId).eq('userId', userId))
-		.first();
-	if (!circleMembership) {
-		throw createError(ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER, 'You are not a member of this circle');
-	}
-
+	await ensureCircleMembership(ctx, circleId, actor.personId);
 	const circle = await ctx.db.get(circleId);
 	if (!circle) {
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
+	}
+	if (circle.workspaceId !== actor.workspaceId) {
+		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Circle must belong to your workspace');
 	}
 	return { workspaceId: circle.workspaceId, circleId };
 }
@@ -136,10 +140,12 @@ export async function createTagShareInternal(
 	ctx: MutationCtx,
 	args: ShareTagArgs
 ): Promise<Id<'tags'>> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const tag = await ctx.db.get(args.tagId);
 	if (!tag) throw createError(ErrorCodes.TAG_NOT_FOUND, 'Tag not found');
-	if (tag.userId !== userId) {
+	const actor = await getActorFromSession(ctx, args.sessionId, tag.workspaceId);
+	await ensureWorkspaceMembership(ctx, tag.workspaceId, actor.personId);
+
+	if (tag.personId !== actor.personId) {
 		throw createError(ErrorCodes.TAG_ACCESS_DENIED, 'You can only share tags you own');
 	}
 	if (tag.ownershipType && tag.ownershipType !== 'user') {
@@ -148,7 +154,7 @@ export async function createTagShareInternal(
 
 	const targets = await ensureShareTarget(
 		ctx,
-		userId,
+		actor,
 		args.shareWith,
 		args.workspaceId,
 		args.circleId
@@ -208,7 +214,7 @@ export async function createTagShareInternal(
 	console.log('📊 [TAG TRANSFERRED]', {
 		tagId: args.tagId,
 		tagName: tag.displayName,
-		transferredBy: userId,
+		transferredBy: actor.personId,
 		transferTo: args.shareWith,
 		workspaceId: targets.workspaceId,
 		organizationName: workspace?.name,

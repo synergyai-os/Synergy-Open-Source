@@ -18,7 +18,7 @@
 		<Button.Root
 			onclick={onClick}
 			disabled={isGenerating}
-			class="px-menu-item py-menu-item flex items-center gap-2 rounded-button bg-accent-primary font-medium text-primary shadow-card transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+			class="px-menu-item py-menu-item rounded-button bg-accent-primary text-primary shadow-card hover:bg-accent-hover flex items-center gap-2 font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if isGenerating}
 				<!-- Loading spinner -->

@@ -1,17 +1,13 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
-}));
-
-vi.mock('./access', () => ({
-	ensureOwnershipContext: vi.fn().mockResolvedValue({
-		ownership: 'workspace',
-		workspaceId: 'ws1',
-		circleId: undefined
-	}),
+const accessMocks = vi.hoisted(() => ({
+	getActorFromSession: vi
+		.fn()
+		.mockResolvedValue({ personId: 'person1', workspaceId: 'ws1', user: 'u1' }),
 	ensureWorkspaceMembership: vi.fn().mockResolvedValue(undefined)
 }));
+
+vi.mock('./access', () => accessMocks);
 
 vi.mock('./validation', () => ({
 	validateTagName: vi.fn(() => ({ normalizedName: 'tag-name' })),
@@ -19,7 +15,6 @@ vi.mock('./validation', () => ({
 	ensureParentChainValid: vi.fn().mockResolvedValue(undefined)
 }));
 
-import { ensureOwnershipContext } from './access';
 import { ensureUniqueTagName, validateTagName } from './validation';
 import { createTagInternal, createTagShareInternal } from './lifecycle';
 
@@ -89,7 +84,14 @@ describe('tags/lifecycle', () => {
 
 	test('createTagShare rejects when user does not own tag', async () => {
 		const ctx = makeCtx({
-			tag: { _id: 't1', userId: 'other', ownershipType: 'user', displayName: 'Tag' }
+			tag: {
+				_id: 't1',
+				personId: 'other',
+				ownershipType: 'user',
+				displayName: 'Tag',
+				workspaceId: 'ws1',
+				name: 'tag'
+			}
 		});
 
 		await expect(
@@ -104,12 +106,15 @@ describe('tags/lifecycle', () => {
 
 	test('createTagShare rejects when duplicate exists in workspace', async () => {
 		const ctx = makeCtx({
-			tag: { _id: 't1', userId: 'user1', ownershipType: 'user', displayName: 'Tag', name: 'tag' },
+			tag: {
+				_id: 't1',
+				personId: 'person1',
+				workspaceId: 'ws1',
+				ownershipType: 'user',
+				displayName: 'Tag',
+				name: 'tag'
+			},
 			existingByWorkspace: [{ _id: 'existing', name: 'tag' }]
-		});
-		(ensureOwnershipContext as any).mockResolvedValueOnce({
-			ownership: 'workspace',
-			workspaceId: 'ws1'
 		});
 
 		await expect(

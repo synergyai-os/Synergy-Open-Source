@@ -51,7 +51,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -77,7 +77,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -102,7 +102,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-16 rounded-button border bg-surface p-2">
+		<div class="border-base rounded-button bg-surface w-16 border p-2">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -128,7 +128,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -153,7 +153,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -178,7 +178,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -197,7 +197,7 @@
 	args={{ initials: 'T', username: 'test', orgName: 'Owner', showLabels: true, variant: 'sidebar' }}
 >
 	{#snippet template(args)}
-		<div class="border-base w-64 rounded-button border bg-surface p-4">
+		<div class="border-base rounded-button bg-surface w-64 border p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}

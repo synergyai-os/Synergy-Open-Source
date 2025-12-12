@@ -53,13 +53,13 @@
 	}
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-base py-header border-b bg-surface px-page">
+	<header class="border-base py-header bg-surface px-page border-b">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-h3 font-semibold text-primary">Circles</h1>
-				<p class="text-button mt-1 text-secondary">{organizationName}</p>
+				<h1 class="text-h3 text-primary font-semibold">Circles</h1>
+				<p class="text-button text-secondary mt-1">{organizationName}</p>
 			</div>
 			<Button variant="primary" onclick={() => circles.openModal('createCircle')}>
 				Create Circle
@@ -68,7 +68,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex-1 overflow-y-auto px-page py-page">
+	<main class="px-page py-page flex-1 overflow-y-auto">
 		{#if isLoading}
 			<div class="flex h-64 items-center justify-center">
 				<div class="text-secondary">Loading circles...</div>
@@ -77,7 +77,7 @@
 			<!-- Empty State -->
 			<div class="flex h-64 flex-col items-center justify-center">
 				<svg
-					class="mb-4 size-icon-xl text-secondary"
+					class="size-icon-xl text-secondary mb-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -90,28 +90,28 @@
 						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 					/>
 				</svg>
-				<h2 class="text-h3 font-medium text-primary">No circles yet</h2>
-				<p class="text-button mt-1 text-secondary">Create your first circle to get started</p>
+				<h2 class="text-h3 text-primary font-medium">No circles yet</h2>
+				<p class="text-button text-secondary mt-1">Create your first circle to get started</p>
 				<Button variant="primary" onclick={() => circles.openModal('createCircle')}>
 					Create Circle
 				</Button>
 			</div>
 		{:else}
 			<!-- Circles Table -->
-			<div class="border-base overflow-hidden rounded-card border bg-surface">
+			<div class="border-base rounded-card bg-surface overflow-hidden border">
 				<table class="w-full">
-					<thead class="border-base border-b bg-elevated">
+					<thead class="border-base bg-elevated border-b">
 						<tr>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Name
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Purpose
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Parent
 							</th>
-							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
+							<th class="py-nav-item text-button text-secondary px-2 text-left font-medium">
 								Members
 							</th>
 						</tr>
@@ -122,16 +122,16 @@
 								class="border-base hover:bg-sidebar-hover cursor-pointer border-b"
 								onclick={() => handleRowClick(circle.circleId)}
 							>
-								<td class="py-nav-item text-button px-2 text-primary">
+								<td class="py-nav-item text-button text-primary px-2">
 									{circle.name}
 								</td>
-								<td class="py-nav-item text-button px-2 text-secondary">
+								<td class="py-nav-item text-button text-secondary px-2">
 									{circle.purpose ?? '—'}
 								</td>
-								<td class="py-nav-item text-button px-2 text-secondary">
+								<td class="py-nav-item text-button text-secondary px-2">
 									{circle.parentName ?? '—'}
 								</td>
-								<td class="py-nav-item text-button px-2 text-secondary">
+								<td class="py-nav-item text-button text-secondary px-2">
 									{circle.memberCount}
 								</td>
 							</tr>

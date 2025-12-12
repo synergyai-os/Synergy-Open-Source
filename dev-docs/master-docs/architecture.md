@@ -2,23 +2,21 @@
 
 **Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-**Version**: 2.1  
-**Last Updated**: 2025-12-07  
+**Version**: 3.0  
+**Last Updated**: 2025-12-12  
 **Optimization Target**: AI-native development with domain cohesion
 
 ---
 
 ## Quick Reference
 
-**Note:** Code Hygiene rules (Principles 26–33) are enforceable standards. Apply them to all Convex domain files alongside the core architecture principles. Legacy numbering is preserved for existing references; new principles use semantic IDs to avoid renumbering drift.
-
-### The 25 Principles *(see Appendix E for enforcement definitions)*
+### The 25 Principles
 
 | # | Principle | Enforcement |
 |---|-----------|-------------|
 | **Foundation** |||
-| 1 | Core domains are foundational and complete (schema + queries + mutations + rules) | Directory structure |
-| 2 | Core domains: circles, roles, people, assignments, proposals, policies, authority | Code review |
+| 1 | Core domains are foundational and complete (tables + queries + mutations + rules) | Directory structure |
+| 2 | Core domains: users, people, circles, roles, assignments, proposals, policies, authority, history, workspaces | Code review |
 | 3 | Circle Lead authority implemented at core level | Tests |
 | 4 | Authority is calculated from roles, never stored on users | Tests |
 | **Dependencies** |||
@@ -63,21 +61,6 @@
 | 32 | Domain files ≤ 300 lines; split if larger | CI gate |
 | 33 | Error format consistent: `ERR_CODE: message` | Code review |
 
-### Semantic ID Convention
-
-| Prefix | Domain | Examples |
-|--------|--------|----------|
-| `core-` | Core domain principles | `core-complete`, `core-domains` |
-| `dep-` | Dependency rules | `dep-layer-direction`, `dep-no-circular` |
-| `cvx-` | Convex patterns | `cvx-queries-pure`, `cvx-auth-before-write` |
-| `svelte-` | Svelte patterns | `svelte-thin-components`, `svelte-runes` |
-| `lang-` | Domain language | `lang-terminology`, `lang-naming` |
-| `quality-` | Code quality | `quality-pure-functions`, `quality-no-magic` |
-| `test-` | Testing | `test-colocated`, `test-independent` |
-| `hygiene-` | Code hygiene | `hygiene-handler-thin`, `hygiene-file-size` |
-| `authz-` | Authorization | `authz-rbac-check`, `authz-authority-check` |
-| `err-` | Error handling | `err-code-format`, `err-codes-central` |
-
 ### AI Development Rules (No Judgment Calls)
 
 | Task | Location |
@@ -85,7 +68,8 @@
 | Add circle query | `/convex/core/circles/queries.ts` |
 | Add circle mutation | `/convex/core/circles/mutations.ts` |
 | Add circle business rule | `/convex/core/circles/rules.ts` |
-| Add circle schema/type | `/convex/core/circles/schema.ts` |
+| Add circle table definition | `/convex/core/circles/tables.ts` |
+| Add circle types/aliases | `/convex/core/circles/schema.ts` |
 | Add circle test | `/convex/core/circles/circles.test.ts` |
 | Add meeting feature | `/convex/features/meetings/` |
 | Add auth infrastructure | `/convex/infrastructure/auth/` |
@@ -101,26 +85,25 @@
 | Tension | Issue, Problem |
 | Consent | Approval, Sign-off |
 | Circle Lead | Manager, Boss |
-| Person | Member, User |
+| Person | Member, User (in workspace context) |
 | Authority | Permission |
 | Workspace | Organization |
+
+### Convex Auth Quick Reference
+
+| Task | Rule |
+|------|------|
+| Add/modify public endpoint | Require `sessionId` in args; derive actor via `validateSessionAndGetUserId(ctx, sessionId)` before any DB access |
+| Target user parameter | Use whitelisted identifiers only: `memberUserId`, `assigneeUserId`, `targetUserId`, `inviteeUserId`, `ownerUserId`, `candidateUserId` |
 
 ### Document Selection for AI
 
 | Task | Read First |
 |------|------------|
-| Backend logic, domain code, structure | This document (ARCHITECTURE.md) |
-| UI component, styling, tokens | DESIGN-SYSTEM.md |
-| Auth changes | workos-convex-auth-architecture.md |
+| Backend logic, domain code, structure | This document (architecture.md) |
+| UI component, styling, tokens | design-system.md |
 | Permission/access control logic | rbac/rbac-architecture.md |
-
-### Related Documentation
-
-| Document | Use When |
-|----------|----------|
-| [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md) | Implementing UI components, styling, tokens, recipes |
-| [RBAC Architecture](./rbac/rbac-architecture.md) | Working on access control features |
-| [WorkOS Auth](./workos-convex-auth-architecture.md) | Working on authentication |
+| Invariant definitions | convex/admin/invariants/INVARIANTS.md |
 
 ---
 
@@ -152,7 +135,7 @@ Governance structure is mutable through the system's own processes. You can chan
                            │ depends on
 ┌──────────────────────────▼──────────────────────────────────┐
 │  Features Layer                                             │
-│  /convex/features/ (meetings, tensions, projects)           │
+│  /convex/features/ (meetings, tensions, projects, inbox)    │
 └──────────────────────────┬──────────────────────────────────┘
                            │ depends on
 ┌──────────────────────────▼──────────────────────────────────┐
@@ -162,7 +145,7 @@ Governance structure is mutable through the system's own processes. You can chan
                            │ depends on
 ┌──────────────────────────▼──────────────────────────────────┐
 │  Infrastructure Layer                                       │
-│  /convex/infrastructure/ (auth, events)                     │
+│  /convex/infrastructure/ (auth, events, rbac)               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -181,41 +164,53 @@ Governance structure is mutable through the system's own processes. You can chan
 
 ```
 /convex/
-├── core/                           # Foundational domains (COMPLETE)
+├── core/                           # Foundational domains (10 total)
 │   ├── circles/
-│   │   ├── schema.ts               # Convex schema definitions
-│   │   ├── queries.ts              # Read operations (ctx.db)
-│   │   ├── mutations.ts            # Write operations (ctx.db)
-│   │   ├── rules.ts                # Business rules (pure OR contextual)
+│   │   ├── tables.ts               # Table definitions (REQUIRED)
+│   │   ├── schema.ts               # Types/aliases (OPTIONAL)
+│   │   ├── queries.ts              # Read operations
+│   │   ├── mutations.ts            # Write operations
+│   │   ├── rules.ts                # Business rules (pure + contextual)
 │   │   ├── index.ts                # Public exports only
-│   │   └── circles.test.ts         # All tests for this domain
+│   │   ├── README.md               # AI-friendly documentation
+│   │   └── circles.test.ts         # Co-located tests
 │   ├── roles/
 │   ├── people/
+│   ├── users/
 │   ├── assignments/
 │   ├── proposals/
 │   ├── policies/
-│   └── authority/
+│   ├── authority/
+│   ├── history/
+│   └── workspaces/
 │
 ├── features/                       # Application features (compose core)
 │   ├── meetings/
-│   │   ├── queries.ts
-│   │   ├── mutations.ts
-│   │   ├── rules.ts
-│   │   ├── index.ts
-│   │   └── meetings.test.ts
-│   ├── tensions/
-│   └── projects/
+│   ├── inbox/
+│   ├── projects/
+│   ├── tasks/
+│   └── ...
 │
-└── infrastructure/                 # Cross-cutting concerns
-    ├── auth/
-    └── events/
+├── infrastructure/                 # Cross-cutting concerns
+│   ├── auth/
+│   ├── rbac/
+│   └── events/
+│
+├── admin/                          # Operational tooling
+│   ├── invariants/                 # Data integrity checks
+│   └── migrations/
+│
+└── schema.ts                       # Main schema registration
 
 /src/
 ├── lib/
 │   ├── components/
-│   │   ├── ui/                     # Styled components (shared)
-│   │   │   └── primitives/         # Unstyled base components
-│   │   └── [feature]/              # Feature-specific components
+│   │   ├── atoms/                  # Single elements (Button, Badge)
+│   │   ├── molecules/              # Combined atoms (FormField)
+│   │   └── organisms/              # Complex sections (Dialog)
+│   ├── modules/[module]/
+│   │   ├── components/             # Feature-specific components
+│   │   └── composables/            # Feature-specific logic
 │   └── composables/                # Shared UI logic (.svelte.ts)
 └── routes/                         # SvelteKit routes (thin)
 
@@ -225,21 +220,143 @@ Governance structure is mutable through the system's own processes. You can chan
 /e2e/                               # End-to-end tests
 ```
 
-### Core Domains (The Seven Pillars)
+---
 
-These domains form the kernel. Everything else builds on top:
+## Core Domains (10 Total)
 
-| Domain | Purpose | Key Responsibilities |
-|--------|---------|---------------------|
-| **Circles** | Organizational containers | Hierarchy, membership, types |
-| **Roles** | Authority distribution units | Definition, accountabilities, domains |
-| **People** | Humans in the system | Identity, profile |
-| **Assignments** | People filling roles | Role ↔ Person mapping, terms |
-| **Proposals** | Change mechanism | Lifecycle, consent tracking |
-| **Policies** | Constraints within circles | Rules, permissions by circle |
-| **Authority** | Permission calculation | Derives authority from roles |
+These domains form the kernel — the minimum viable organizational truth.
 
-**Circle Lead Authority** belongs in core — it's the bootstrap mechanism that makes self-management practical.
+### Domain Status Classifications
+
+| Status | Meaning | Change Process |
+|--------|---------|----------------|
+| **FROZEN** | Organizational truth — foundational, rarely changes | RFC ticket + 1 week cooling + migration plan |
+| **STABLE** | Supporting infrastructure — can evolve carefully | Document reasoning in ticket, careful implementation |
+
+### The 10 Core Domains
+
+| Domain | Status | Purpose | Key Identifier |
+|--------|--------|---------|----------------|
+| **users** | FROZEN | Global auth identity | `userId` |
+| **people** | FROZEN | Workspace-scoped org identity | `personId` |
+| **circles** | FROZEN | Organizational units | `circleId` |
+| **roles** | FROZEN | Authority distribution units | `roleId` |
+| **assignments** | FROZEN | Person filling role in circle | `personId` + `roleId` + `circleId` |
+| **authority** | FROZEN | Permission calculation | Input: `personId` + `circleId` |
+| **history** | FROZEN | Immutable audit log | `changedByPersonId` |
+| **workspaces** | STABLE | Multi-tenant container | `workspaceId` |
+| **proposals** | STABLE | Change mechanism | `createdByPersonId` |
+| **policies** | STABLE | Circle-level rules | `circleId` |
+
+### Why FROZEN vs STABLE?
+
+**FROZEN domains (7)** — Organizational truth:
+- **users + people**: Identity chain (`sessionId → userId → personId`) is foundational
+- **circles + roles + assignments**: Organizational structure — the nouns of the system
+- **authority**: The USP calculation layer — what makes SynergyOS different
+- **history**: Immutable by definition — you can't change history without destroying trust
+
+**STABLE domains (3)** — Can evolve:
+- **workspaces**: Infrastructure (tenant separation), needs room for billing, enterprise features
+- **proposals + policies**: Governance mechanism — *how* we implement may evolve
+
+### What's NOT Core
+
+| Current Location | Target | Tracking |
+|------------------|--------|----------|
+| `core/circleItems/` | `features/customFields/` | SYOS-790 |
+
+**circleItems** is workspace-level customization (custom fields on entities), not organizational truth. Migration pending.
+
+---
+
+## Identity Architecture
+
+### The Three-Layer Identity Chain
+
+SynergyOS uses a deliberate three-layer identity model for security and workspace isolation:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                          IDENTITY CHAIN                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   sessionId ──────► userId ──────► personId ──────► workspaceId     │
+│       │                │                │                │          │
+│       │                │                │                └── "Which org?"
+│       │                │                │                            │
+│       │                │                └── "Who in THIS workspace?" │
+│       │                │                                             │
+│       │                └── "Which human logged in?"                  │
+│       │                                                              │
+│       └── "Which browser session?"                                   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Identity Layer Definitions
+
+| Layer | Identifier | Scope | Purpose |
+|-------|------------|-------|---------|
+| **Session** | `sessionId` | Browser/device | Current login session, rotates on logout |
+| **User** | `userId` | Global (1 per human) | Authentication identity, stored in `users` table |
+| **Person** | `personId` | Per workspace | Organizational identity, stored in `people` table |
+
+### The Rule
+
+- **`userId`** = auth/login identity (global, exactly 1 per human)
+- **`personId`** = organizational identity (scoped, 1 per workspace per user)
+- **All workspace operations use `personId`, not `userId`**
+
+### Two Separate Domains
+
+| Domain | Folder | Table | Purpose |
+|--------|--------|-------|---------|
+| **users** | `core/users/` | `users` | Global auth identity |
+| **people** | `core/people/` | `people` | Workspace-scoped org identity |
+
+These are **two distinct domains** with different tables and purposes. Do not confuse them.
+
+### Security & Privacy Rationale
+
+**Why this design?**
+
+| Concern | Solution |
+|---------|----------|
+| **Workspace isolation** | Using `personId` ensures all workspace data references local identities only |
+| **Cross-workspace correlation** | Requires explicit join through `people.userId` — a deliberate act, not an accident |
+| **Audit trail integrity** | All `changedByPersonId`, `createdByPersonId` fields reference the workspace-scoped identity |
+| **Data portability** | Workspaces can be exported without exposing global user data |
+| **Multi-workspace users** | Same human has separate `personId` per workspace — data stays isolated |
+
+**The invariant (XDOM-01):** No `userId` references in core domain tables (except `users`, `people`, `workspaceMembers`). All `createdBy`/`updatedBy` audit fields use `personId`.
+
+### Identity Resolution Flow
+
+```typescript
+// 1. Session → User (auth layer)
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+// 2. User → Person (workspace layer)  
+const person = await getPersonByUserAndWorkspace(ctx, userId, workspaceId);
+const personId = person._id;
+
+// 3. All workspace operations use personId
+await ctx.db.patch(circleId, { 
+  updatedByPersonId: personId,  // ✅ Correct
+  // updatedByUserId: userId    // ❌ Never do this
+});
+```
+
+### Identity Helper Functions
+
+| Function | Returns | Use When |
+|----------|---------|----------|
+| `getPersonById(ctx, personId)` | Person (throws if not found) | You have a personId |
+| `getPersonByUserAndWorkspace(ctx, userId, workspaceId)` | Person (throws if not found) | Resolving user to person |
+| `findPersonByUserAndWorkspace(ctx, userId, workspaceId)` | Person \| null | Checking if person exists |
+| `getMyPerson(ctx, sessionId, workspaceId)` | Person (throws if not found) | Getting current user's person |
+| `validateSessionAndGetUserId(ctx, sessionId)` | `{ userId, session }` | Auth validation |
 
 ---
 
@@ -254,8 +371,21 @@ Core provides factual answers about organizational state:
 hasRole(person, circle, 'Facilitator')     // → true/false
 isCircleLead(person, circle)               // → true/false
 isCircleMember(person, circle)             // → true/false
-getCircleType(circle)                      // → 'hierarchy' | 'empowered_team' | 'guild'
+getCircleType(circle)                      // → 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid'
 calculateAuthority(person, circle)         // → Authority object
+```
+
+### Authority Calculation
+
+```typescript
+calculateAuthority(personId, circleId) → Authority {
+  canApproveProposals: boolean;
+  canAssignRoles: boolean;
+  canModifyCircleStructure: boolean;
+  canFacilitate: boolean;
+  canRaiseObjections: boolean;
+  // ... based on role + circle type
+}
 ```
 
 ### Core Owns Foundational Permissions
@@ -276,26 +406,6 @@ Features build domain-specific permissions from core:
 | Meetings | canFacilitate | `isCircleLead OR hasRole('Facilitator')` |
 | Projects | canAssignTask | `isCircleMember AND (isTaskOwner OR isCircleLead)` |
 | Tensions | canProcessTension | `isCircleMember` |
-
-### Decision Boundary
-
-**Ask**: "Is this about organizational structure or feature behavior?"
-
-| If... | Then... |
-|-------|---------|
-| Rule defines WHO has authority in the org | Core |
-| Rule defines WHAT you can do in a feature | Feature (compose from core) |
-| Rule affects consent/proposals/governance | Core |
-| Rule is specific to one module's workflow | Feature |
-
-### Anti-Patterns
-
-| ❌ Anti-Pattern | Why It's Wrong |
-|----------------|----------------|
-| Feature defines its own role checks | Duplicates core, will drift |
-| Feature hardcodes user IDs | Bypasses authority model |
-| Core includes feature-specific logic | Core becomes bloated |
-| Feature queries DB directly for roles | Breaks single source of truth |
 
 ---
 
@@ -329,39 +439,85 @@ A user-created "Finance Lead" organizational role does NOT automatically get bil
 
 The *workspace admin* (RBAC role) decides who can access system features, regardless of their organizational role.
 
-### Where They Interact
-
-Organizational roles and RBAC can be *explicitly mapped* by workspace admins:
-- Workspace admin can say "Circle Leads get `circle.members.invite` permission"
-- But this is a workspace-level policy, not inherent to the Circle Lead role
-- This keeps security explicit while allowing flexibility
-
 ### Key Principle
 
 > Organizational roles define *domain authority* (what you're accountable for).
 > RBAC defines *system capabilities* (what features you can use).
 > They are intentionally separate to maintain security boundaries.
 
-For RBAC implementation details, see [RBAC Architecture](./rbac/rbac-architecture.md).
+For RBAC implementation details, see `rbac/rbac-architecture.md`.
 
 ### Authorization Check Flow
 
-1. **Get authenticated user**
-   - If missing → throw `AUTH_REQUIRED: Authentication required`.
-2. **Check RBAC capability** (system-level)
-   - Call `hasCapability(user, requiredCapability)`.
-   - If false → throw `AUTHZ_INSUFFICIENT_RBAC: Missing {capability}`.
-3. **Check Authority** (domain-level)
-   - Call the domain rule (e.g., `isCircleLead`, `isCircleMember`, `hasRole`, `canApproveProposal`).
-   - If false → throw domain-specific error (e.g., `AUTHZ_NOT_CIRCLE_LEAD`).
-4. **Both must pass** — order matters for clarity.
-   - RBAC failure → system configuration issue.
-   - Authority failure → organizational structure issue.
+1. **Get authenticated user** — If missing → throw `AUTH_REQUIRED`
+2. **Check RBAC capability** (system-level) — If false → throw `AUTHZ_INSUFFICIENT_RBAC`
+3. **Check Authority** (domain-level) — If false → throw domain-specific error
+4. **Both must pass** — order matters for clarity
+
+---
+
+## File Structure Patterns
+
+### Domain File Structure
+
+Each core domain follows this structure:
+
+```
+domain/
+├── tables.ts       # REQUIRED - Table definitions for convex/schema.ts
+├── schema.ts       # OPTIONAL - Types, aliases, re-exports
+├── queries.ts      # Read operations
+├── mutations.ts    # Write operations
+├── rules.ts        # Business rules (pure + contextual)
+├── index.ts        # Public exports only
+├── README.md       # AI-friendly documentation
+└── domain.test.ts  # Co-located tests
+```
+
+### tables.ts vs schema.ts
+
+| File | Purpose | Required | Contents |
+|------|---------|----------|----------|
+| `tables.ts` | Table definitions | **REQUIRED** | `defineTable()` calls, indexes |
+| `schema.ts` | Types and aliases | OPTIONAL | Type exports, re-exports from tables.ts |
+
+**Example tables.ts:**
+```typescript
+export const circlesTable = defineTable({
+  workspaceId: v.id('workspaces'),
+  name: v.string(),
+  parentCircleId: v.optional(v.id('circles')),
+  circleType: v.optional(v.union(...)),
+  // ...
+}).index('by_workspace', ['workspaceId']);
+```
+
+**Example schema.ts:**
+```typescript
+import type { Doc } from '../../_generated/dataModel';
+export type CircleDoc = Doc<'circles'>;
+export type CircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+```
+
+### Schema Registration
+
+The main `convex/schema.ts` imports tables directly from domain `tables.ts` files:
+
+```typescript
+import { circlesTable } from './core/circles/tables';
+import { peopleTable } from './core/people/tables';
+// ...
+
+export default defineSchema({
+  circles: circlesTable,
+  people: peopleTable,
+  // ...
+});
+```
 
 ---
 
 ## Code Standards
-See also: [Code Style Notes](./code-style-notes.md) for supplementary readability guidance.
 
 ### Function Types (In Order of Preference)
 
@@ -374,76 +530,37 @@ See also: [Code Style Notes](./code-style-notes.md) for supplementary readabilit
 | **Helper Functions** | Small reusable utilities | `formatCircleName(name)` |
 | **Component Functions** | UI logic only | `toggleDropdown()` |
 
-### Decision Tree
+### Function Prefixes
 
-```
-Need to read data?              → Convex Query (queries.ts)
-Need to write data?             → Convex Mutation (mutations.ts)
-Business rule or validation?    → Rule Function (rules.ts)
-Calculate without side effects? → Pure Function (rules.ts or helpers.ts)
-UI-specific logic?              → Component Function (in .svelte)
-```
-
-### Code Examples
-
-```typescript
-// ✅ DO: Types + Functions
-type Circle = { 
-  _id: Id<"circles">; 
-  name: string; 
-  parentId?: Id<"circles">; 
-};
-
-function canAddRole(circle: Circle, person: Person): boolean {
-  // Pure calculation
-}
-
-// ❌ DON'T: Classes
-class Circle {
-  constructor(public name: string) {}
-  canAddRole() { ... }
-}
-```
-
-```typescript
-// ✅ DO: Business logic in Convex
-// /convex/core/circles/mutations.ts
-export const create = mutation({
-  args: { name: v.string(), parentId: v.optional(v.id("circles")) },
-  handler: async (ctx, args) => {
-    // Validation here
-    if (args.name.length < 2) throw new Error("Name too short");
-    // Authorization here
-    const canCreate = await canCreateCircle(ctx, ctx.auth.userId);
-    if (!canCreate) throw new Error("Not authorized");
-    // Then write
-    return ctx.db.insert("circles", args);
-  },
-});
-
-// ❌ DON'T: Business logic in components
-<script lang="ts">
-  function validateAndSave() {
-    if (name.length < 2) { ... } // Wrong place!
-  }
-</script>
-```
+| Prefix | Returns | Use When |
+|--------|---------|----------|
+| `get___` | `T` (throws if missing) | Lookup that must succeed |
+| `find___` | `T \| null` | Lookup that may return nothing |
+| `list___` | `T[]` (non-null) | Return a collection |
+| `is___` / `has___` / `can___` | `boolean` | State/existence/permission checks |
+| `create___` | `Id` | Create entity, return ID |
+| `update___` | `void` or `T` | Modify existing entity |
+| `archive___` / `restore___` | `void` | Soft delete / un-archive |
+| `require___` | `T` (throws if invalid) | Fetch-or-throw validation |
+| `ensure___` | `void` (throws if invalid) | Validate condition |
+| `validate___` | `void` or `T` | Validation helpers |
 
 ### Handler Pattern (Thin Orchestration)
 
-Keep handlers as orchestration only. Auth, validation, rule checks, writes, and audit live in helpers. Target ≤20 lines in the handler body by extracting helpers.
+Keep handlers as orchestration only. Target ≤20 lines.
 
 ```typescript
 export const approve = mutation({
-  args: { proposalId: v.id("proposals") },
+  args: { sessionId: v.string(), proposalId: v.id("proposals") },
   handler: async (ctx, args) => {
-    const user = await requireAuth(ctx);
+    const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+    const person = await requirePersonForUser(ctx, userId, workspaceId);
     const proposal = await requireProposal(ctx, args.proposalId);
 
-    assertCanApprove(user, proposal);
+    assertCanApprove(person, proposal);
     validateProposalState(proposal, "pending");
 
-    const updated = await transitionProposal(ctx, proposal, "approved", user);
+    const updated = await transitionProposal(ctx, proposal, "approved", person._id);
     await emitProposalApproved(ctx, updated);
 
     return updated._id;
@@ -451,195 +568,180 @@ export const approve = mutation({
 });
 ```
 
-**Helper location**: Auth helpers (`requireAuth`, `requirePerson`) live in `convex/infrastructure/auth/helpers.ts`. See Appendix C for error codes these helpers throw.
-Domain fetchers like `requireProposal`, `requireCircle`, `requirePerson` live in each domain’s `rules.ts`.
+### Convex Auth Pattern (Public Endpoints)
 
-**Auth guard (CI + local)**: `npm run guard:auth` blocks legacy helpers (`getAuthUserId`, `getUserIdFromSession`) and public queries/mutations/actions that accept `userId` in `args`. Known debt is tracked in `scripts/auth-guard-baseline.json`—burn entries down when refactoring. Always pass `sessionId` and call `validateSessionAndGetUserId(ctx, sessionId)` in handlers.
+- **Session requirement**: Accept `sessionId` in args and immediately derive the actor with `validateSessionAndGetUserId(ctx, sessionId)` before any DB access
+- **Blocked patterns**: Do not accept `userId` in public args. Do not use legacy helpers
+- **Target identifier whitelist** (when another user is the *target* of the action):
+  - `memberUserId`: circle/workspace membership operations
+  - `assigneeUserId`: task/proposal assignment targets
+  - `targetUserId`: general "target this other user" lookups
+  - `inviteeUserId`: invitation flows
+  - `ownerUserId`: record/workspace ownership fields
+  - `candidateUserId`: recruiting or pipeline candidates
 
-### Svelte 5 Patterns
+### Actor vs Target Pattern
+
+| Concept | Source | Variable Name |
+|---------|--------|---------------|
+| **Actor** (who is doing the action) | Derived from `sessionId` | `actorUserId` or `userId` inside handler |
+| **Target** (who the action is about) | Passed in args | Use whitelisted name |
 
 ```typescript
-// ✅ Correct rune usage
-let count = $state(0);
-let doubled = $derived(count * 2);
-
-$effect(() => {
-  console.log(`Count changed to ${count}`);
+export const getUserRoles = query({
+  args: {
+    sessionId: v.string(),           // Actor identified via session
+    targetUserId: v.id('users'),     // Target user to look up
+  },
+  handler: async (ctx, args) => {
+    const { userId: actorUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+    const roles = await getRolesForUser(ctx, args.targetUserId);
+    return roles;
+  }
 });
-
-// ✅ Props are readonly
-let { circleId, onUpdate } = $props();
-
-// ✅ Component delegates to Convex
-<script lang="ts">
-  import { useQuery, useMutation } from "convex-svelte";
-  import { api } from "$convex/_generated/api";
-  
-  const circles = useQuery(api.core.circles.queries.list);
-  const createCircle = useMutation(api.core.circles.mutations.create);
-</script>
 ```
-
-### Module API Pattern (Cross-Feature Communication)
-
-When features need to expose functionality:
-
-```typescript
-// Feature defines its API
-interface MeetingsModuleAPI {
-  useAgenda: () => AgendaState;
-  useTimer: () => TimerState;
-}
-
-// Provider sets context
-setContext('feature:meetings', createMeetingsAPI());
-
-// Consumer retrieves from context
-const meetings = getContext<MeetingsModuleAPI>('feature:meetings');
-```
-
-**Context key naming**: `'feature:meetings'`, `'feature:projects'`
 
 ---
 
-## Frontend Architecture
+## Soft Delete Pattern
 
-### Directory Structure
+Entities use soft delete via `archivedAt` timestamp, not status change.
 
-```
-src/lib/
-├── components/
-│   ├── atoms/              # Single elements (Button, Badge, Input)
-│   ├── molecules/          # Combined atoms (FormField, SearchBar)
-│   └── organisms/          # Complex sections (Dialog, Header)
-├── modules/[module]/
-│   ├── components/         # Feature-specific components
-│   └── composables/        # Feature-specific logic (.svelte.ts)
-├── infrastructure/
-│   └── [area]/             # Cross-cutting (auth, analytics, rbac)
-└── composables/            # Shared UI logic (.svelte.ts)
-```
+| Field | Purpose |
+|-------|---------|
+| `archivedAt` | Timestamp when deleted (null = active) |
+| `archivedByPersonId` | Who deleted it |
+| `status` | Lifecycle state (`draft`, `active`) — NOT deletion |
 
-### Component Location Rules
+**Invariants:**
+- If `archivedByPersonId` is set, `archivedAt` must also be set
+- Archived entities are never hard-deleted (XDOM-04)
 
-| Component Type | Location | Can Import From |
-|----------------|----------|-----------------|
-| Atom | `components/atoms/` | Nothing (base level) |
-| Molecule | `components/molecules/` | Atoms only |
-| Organism | `components/organisms/` | Atoms, Molecules |
-| Feature | `modules/[module]/components/` | Atoms, Molecules, Organisms |
-| Infrastructure | `infrastructure/[area]/` | Atoms, Molecules |
+---
 
-**Critical rule**: Feature components MUST NOT cross module boundaries.
+## Proposal State Machine
 
-```typescript
-// ✅ CORRECT: Import from shared components
-import { Button, Card } from '$lib/components/atoms';
-import { FormField } from '$lib/components/molecules';
+**Source of truth:** `convex/core/proposals/stateMachine.ts`
 
-// ❌ WRONG: Cross-module import
-import { InboxCard } from '$lib/modules/inbox/components'; // From meetings module
-```
+### States
 
-### Styling Rule (Critical)
+| State | Description |
+|-------|-------------|
+| `draft` | Proposal being written, not yet submitted |
+| `submitted` | Submitted to a meeting, awaiting processing |
+| `in_meeting` | Being actively discussed in a meeting |
+| `objections` | Objections raised, needs integration |
+| `integrated` | Objections addressed, ready for final decision |
+| `approved` | **Terminal** — Proposal accepted |
+| `rejected` | **Terminal** — Proposal declined |
+| `withdrawn` | **Terminal** — Proposer withdrew |
 
-All component styling MUST use the recipe system:
+### Valid Transitions
 
 ```typescript
-// ✅ CORRECT: Use recipe
-import { buttonRecipe } from '$lib/design-system/recipes';
-const classes = buttonRecipe({ variant: 'primary', size: 'md' });
-
-// ❌ WRONG: Direct utility classes for variants
-const classes = variant === 'primary' ? 'bg-blue-500' : 'bg-gray-100';
-
-// ❌ WRONG: Hardcoded values
-<div class="px-4 py-2 bg-gray-100">  // Should use tokens
+const VALID_TRANSITIONS = {
+  draft: ['submitted', 'withdrawn'],
+  submitted: ['in_meeting', 'withdrawn'],
+  in_meeting: ['objections', 'integrated', 'approved', 'rejected', 'withdrawn'],
+  objections: ['integrated', 'rejected', 'withdrawn'],
+  integrated: ['approved', 'rejected', 'withdrawn'],
+  approved: [],   // terminal
+  rejected: [],   // terminal
+  withdrawn: []   // terminal
+};
 ```
 
-**Why**: Direct utility classes bypass the design system and cause visual drift. When a design token changes, components using recipes update automatically. Hardcoded values don't.
+---
 
-### Function Prefixes (all functions)
+## Legacy Migration Status
 
-| Prefix | Returns | Use When |
-| -- | -- | -- |
-| **Lookups** |  |  |
-| `find___` | `T \| null` | Lookup that may return nothing |
-| `get___` | `T` (throws if missing) | Lookup that must succeed |
-| `list___` | `T[]` (non-null) | Return a collection |
-| **Boolean checks** |  |  |
-| `is___` / `has___` / `can___` | `boolean` | State/existence/permission checks |
-| **Mutations** |  |  |
-| `create___` | `Id` | Create entity, return ID |
-| `update___` | `void` or `T` | Modify existing entity |
-| `archive___` / `restore___` | `void` | Soft delete / un-archive |
-| **State transitions** |  |  |
-| `start___` / `close___` / `advance___` / `submit___` / `approve___` / `reject___` / `withdraw___` | `void` or domain type | Move between states |
-| **Collections** |  |  |
-| `add___` / `remove___` / `assign___` | `void` or `Id` | Manage membership/collection items |
-| **Invitations** |  |  |
-| `accept___` / `decline___` / `resend___` | `void` or `Id` | Invitation flows |
-| **Status updates** |  |  |
-| `mark___` / `set___` | `void` or `T` | Update status/flags/fields |
-| **Import/export** |  |  |
-| `import___` / `record___` | `T` or `void` | Import data or record events |
-| **Transform/utilities** |  |  |
-| `normalize___` / `slugify___` / `calculate___` / `count___` / `describe___` / `seed___` / `reorder___` | `T` | Data transforms, counts, seeds, ordering |
-| `parse___` | `T` | String → structured data |
-| `fetch___` | `T` | External API call |
-| **Validation & context** |  |  |
-| `require___` | `T` (throws if invalid/missing) | Fetch-or-throw/validate and return |
-| `ensure___` | `void` (throws if invalid) | Validate condition, no return value |
-| `validate___` / `assert___` | `void` or `T` | Validation/assertion helpers |
-| `with___` | callback result | Setup context, then run callback |
-| **Modifier** |  |  |
-| `my___` | Combines with any base | Scope to authenticated user (e.g., `myListDrafts`) |
+### Active Migrations
 
-Unknown prefixes (e.g., `delete___`, `upsert___`) are not allowed. AI rule reference: `.cursor/rules/naming-conventions.mdc`. Keep this table and the linter (`scripts/lint-naming`) in sync.
+| Legacy Table | Replacement | Status | Tracking |
+|--------------|-------------|--------|----------|
+| `userCircleRoles` | `assignments` | Migration in progress | SYOS-809 |
+| `workspaceMembers` | `people` | Still actively used | Needs evaluation |
+| `workspaceInvites` | TBD | Still actively used | Needs evaluation |
 
-### Non-Function Naming
+### Code Markers
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Svelte component | PascalCase | `CircleCard.svelte` |
-| Composable | `use` prefix, camelCase | `useCircleForm.svelte.ts` |
-| Recipe | `{name}Recipe`, camelCase | `buttonRecipe.ts` |
-| Context creator | `create{Name}Context` | `createAuthContext.ts` |
-| Convex query | Verb, camelCase | `getCircleById`, `listCircles` |
-| Convex mutation | Verb, camelCase | `createCircle`, `approveProposal` |
-| Rule function | `can` / `is` prefix | `canApproveProposal`, `isCircleLead` |
-| Error code | SCREAMING_SNAKE | `AUTH_REQUIRED` |
-| Type | PascalCase | `Circle`, `ProposalState` |
-| Constant | SCREAMING_SNAKE | `MAX_CIRCLE_DEPTH` |
-
-For recipe implementation patterns, token usage, and styling details, see [DESIGN-SYSTEM.md](./DESIGN-SYSTEM.md).
-
-### Composables Pattern
-
-Use `.svelte.ts` files for reusable UI logic:
+Legacy tables are marked in `convex/schema.ts`:
 
 ```typescript
-// useCircleForm.svelte.ts
-export function useCircleForm(initialData: Circle | null) {
-  const state = $state({
-    name: initialData?.name ?? '',
-    isDirty: false
-  });
-
-  return {
-    get name() { return state.name; },
-    get isDirty() { return state.isDirty; },
-    setName(value: string) {
-      state.name = value;
-      state.isDirty = true;
-    }
-  };
-}
+// legacy - replaced by `assignments` table (SYOS-809)
+userCircleRoles: userCircleRolesTable,
 ```
 
-**Location**:
-- Shared composables → `src/lib/composables/`
-- Feature-specific → `src/lib/modules/[module]/composables/`
+### Invariants
+
+During migration, both old and new invariants are checked:
+- `ASSIGN-*` — New assignments table invariants
+- `UCROLE-*` — Legacy userCircleRoles invariants (retire after migration)
+
+---
+
+## Core Invariants
+
+**Source of truth:** `convex/admin/invariants/INVARIANTS.md`
+
+### What Are Invariants?
+
+Explicit, testable statements about what must be true for CORE to be sound. They define the minimum viable organizational truth.
+
+### Summary by Domain
+
+| Domain | Invariants | Critical Count |
+|--------|------------|----------------|
+| Identity Chain (IDENT-*) | 9 | 7 |
+| Organizational Structure (ORG-*) | 9 | 8 |
+| Circle Membership (CMEM-*) | 4 | 3 |
+| Role Definitions (ROLE-*) | 6 | 4 |
+| Assignments (ASSIGN-*) | 6 | 5 |
+| Legacy Assignments (UCROLE-*) | 4 | 3 |
+| Authority (AUTH-*) | 4 | 4 |
+| Proposals (PROP-*) | 6 | 5 |
+| History (HIST-*) | 4 | 1 |
+| Workspaces (WS-*) | 5 | 4 |
+| Cross-Domain (XDOM-*) | 5 | 3 |
+| **Total** | **62** | **47 critical** |
+
+### Running Invariant Checks
+
+```bash
+# Run all invariant checks
+npx convex run admin/invariants:runAllChecks
+
+# Run specific category
+npx convex run admin/invariants/identity:check
+npx convex run admin/invariants/organization:check
+npx convex run admin/invariants/authority:check
+```
+
+### Severity Levels
+
+| Severity | Meaning |
+|----------|---------|
+| **critical** | System cannot function correctly — blocks production use |
+| **warning** | System works but has data quality issues — should fix before production |
+
+---
+
+## Error Codes
+
+**Source of truth:** `convex/infrastructure/errors/codes.ts`
+
+**Format:** `ERR_CODE: message`
+
+**Core codes:**
+- `AUTH_REQUIRED` — Authentication required
+- `AUTH_INVALID_TOKEN` — Invalid session token
+- `AUTHZ_NOT_CIRCLE_MEMBER` — Not a circle member
+- `AUTHZ_NOT_CIRCLE_LEAD` — Not a Circle Lead
+- `AUTHZ_INSUFFICIENT_RBAC` — Missing RBAC capability
+- `PROPOSAL_INVALID_STATE` — Invalid proposal state transition
+- `PROPOSAL_NOT_FOUND` — Proposal not found
+- `VALIDATION_REQUIRED_FIELD` — Required field missing
+- `VALIDATION_INVALID_FORMAT` — Invalid format
 
 ---
 
@@ -649,40 +751,14 @@ export function useCircleForm(initialData: Circle | null) {
 
 ```
           ╱╲
-         ╱E2E╲           5-10 smoke tests (critical paths)
+         ╱E2E╲           5-10 smoke tests
         ╱──────╲
-       ╱  BDD   ╲        30-75 scenarios (user journeys)
+       ╱  BDD   ╲        30-75 scenarios
       ╱──────────╲
      ╱Integration ╲      Cross-domain workflows
     ╱──────────────╲
-   ╱   Unit Tests   ╲    Core domain logic (highest volume)
+   ╱   Unit Tests   ╲    Core domain logic
   ╱══════════════════╲
-```
-
-### Test Location (Co-located)
-
-| Test Type | Location | Naming |
-|-----------|----------|--------|
-| Unit tests | Next to source | `{domain}.test.ts` |
-| Integration | `/tests/integration/` | `{workflow}.test.ts` |
-| E2E | `/e2e/` | `{flow}.spec.ts` |
-| BDD features | `/features/` | `{domain}.feature` |
-
-**Why co-located unit tests:**
-- Proximity = visibility (missing tests are obvious)
-- Refactoring stays atomic (move module, tests move with it)
-- Discourages test interdependence
-- Simple import paths
-
-**Example:**
-```
-convex/core/circles/
-├── schema.ts
-├── queries.ts
-├── mutations.ts
-├── rules.ts
-├── index.ts
-└── circles.test.ts      ← Tests ALL of the above
 ```
 
 ### Coverage Requirements
@@ -693,373 +769,74 @@ convex/core/circles/
 | Features | 80%+ | Key workflows covered |
 | Infrastructure | 90%+ | Auth/events are critical |
 
-### Test Quality Rules
-
-1. **Tests are independent** — no test depends on another
-2. **Behavior-focused** — test scenarios, not implementation
-3. **Fast feedback** — unit tests run in seconds
-4. **No cross-test imports** — each test file is standalone
-
-### Minimum Viable Testing (Before Every Push)
-
-```bash
-npm run check          # Type safety (2 seconds)
-npm run test           # Unit tests (30 seconds)
-# Manual smoke test    # 5 minutes
-```
-
-**Definition of Done**: Would you be comfortable having a neutral facilitator demo it to an executive board without you in the room?
-
-### Required Test Cases
-
-**Per Mutation**
+### Required Test Cases Per Mutation
 
 | Case | What to Assert |
 |------|----------------|
 | Success | Returns expected ID/data; DB state correct |
 | Unauthorized (no auth) | Throws `AUTH_REQUIRED` |
-| Unauthorized (wrong role/RBAC) | Throws appropriate `AUTHZ_*` code |
+| Unauthorized (wrong role) | Throws appropriate `AUTHZ_*` code |
 | Invalid input | Throws `VALIDATION_*` code |
-| Business rule violation | Throws domain-specific error (e.g., `PROPOSAL_INVALID_STATE`) |
-
-**Per Query**
-
-| Case | What to Assert |
-|------|----------------|
-| Success | Returns expected shape |
-| Unauthorized | Throws `AUTH_REQUIRED` or returns filtered/empty |
-| Not found / missing input | Returns null/empty (not error) |
+| Business rule violation | Throws domain-specific error |
 
 ---
 
-## Development Workflow
+## Common AI Mistakes
 
-### Trunk-Based Development
-
-- Single branch: `main`
-- Small, frequent commits
-- Feature flags hide incomplete work
-- Deploy frequently
-
-### Commit Discipline
-
-```bash
-# ✅ Good: Separate refactoring from features
-git commit -m "refactor: extract authority calculator"
-git commit -m "feat: add Circle Lead approval flow"
-
-# ❌ Bad: Mixed concerns
-git commit -m "Add approval and refactor authority"
-```
-
-### Refactoring Rules
-
-- **Boy Scout Rule**: Leave code cleaner than you found it
-- **Rule of Three**: Tolerate duplication twice, refactor on third
-- **Separate commits**: Refactoring commits separate from feature commits
-
----
-
-## Configuration Standards
-
-### Environment Variables
-
-```typescript
-// ✅ RIGHT: Single source, derived values
-const APP_URL = requireEnv('PUBLIC_APP_URL');
-const WORKOS_REDIRECT_URI = `${APP_URL}/auth/callback`;
-
-// ❌ WRONG: Multiple independent configs
-const redirectUri = env.WORKOS_REDIRECT_URI;
-const baseUrl = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
-```
-
-### Rules
-
-1. Environment-specific values in env vars
-2. Required config validated at startup (fail fast)
-3. Derived values computed from single source
-4. No silent fallbacks to development values in production
-
----
-
-## Red Flags (Audit Patterns)
-
-Search for these during code review:
-
-| Red Flag | Violation | Detection |
-|----------|-----------|-----------|
-| Business logic in UI | Principle 10, 12 | `grep -rn "ctx.db" src/` |
-| Core importing features | Principle 5 | `grep -r "from.*features" convex/core/` |
-| Classes in codebase | Principle 11 | `grep -rn "^class " convex/ src/` |
-| Handler > 20 lines | Principle 26 | Line count in `queries.ts`/`mutations.ts` |
-| Inline type cast | Principle 29 | `grep -rn "as unknown as" convex/` |
-| File > 300 lines | Principle 32 | `wc -l convex/**/*.ts` |
-| Implicit authority | Principle 4 | `grep -rn "role ===" convex/` |
-| Wrong terminology | Principle 15 | `grep -rin "\"team\"" convex/ src/` |
-| Tests in wrong location | Principle 21 | Unit tests not next to source |
-| Test interdependencies | Principle 23 | `grep -r "import.*\.test"` |
-| Hardcoded fallbacks | Config rules | `grep -rn "\|\| 'http://localhost"` |
+| Mistake | Why It Happens | Correct Approach |
+|---------|----------------|------------------|
+| Auth check after DB read | "Check if exists first" | Auth before any DB access |
+| Creating new type instead of reusing | Doesn't search existing | Search `schema.ts` and domain types first |
+| Putting validation in component | Quick client-side check | All validation in mutation handler |
+| Using "team" in code/comments | Common industry term | Always use "circle" |
+| Exporting internal helpers directly | Seems useful | Export only via `index.ts` contract |
+| Feature importing another feature | Direct path works | Use core, events, or manifest |
+| Passing `userId` in public args | "Caller already knows user" | Add `sessionId` arg, derive actor |
+| Confusing `users` and `people` domains | Similar concepts | `users` = auth, `people` = workspace |
 
 ---
 
 ## Decision Records
 
 ### DR-001: Convex as Backend
-
 **Status**: Accepted  
-**Date**: 2025-12-06
-
 **Decision**: Use Convex instead of traditional REST API + database.
-
-**Rationale**: Real-time sync eliminates manual state management. Queries provide reactive subscriptions. Mutations handle validation and business logic. Reduces boilerplate significantly.
-
-**Consequences**: Business logic must live in Convex functions. Frontend becomes purely presentational. Testing focuses on Convex functions.
-
----
+**Rationale**: Real-time sync eliminates manual state management.
 
 ### DR-002: Svelte 5 for Frontend
-
 **Status**: Accepted  
-**Date**: 2025-12-06
-
 **Decision**: Use Svelte 5 with runes system.
-
-**Rationale**: Excellent reactivity with runes. No virtual DOM overhead. Composables pattern for reusable logic. Natural fit with Convex reactive queries.
-
-**Consequences**: Components must be thin (presentation only). Business logic stays in Convex. Use composables for shared UI logic.
-
----
+**Rationale**: Excellent reactivity, natural fit with Convex.
 
 ### DR-003: Functions Only, No Classes
-
 **Status**: Accepted  
-**Date**: 2025-12-06
-
 **Decision**: Zero classes in codebase — pure functions only.
-
-**Rationale**: Functions compose better than classes. Easier to test. Aligns with Convex + Svelte functional approach.
-
-**Consequences**: Use types for data structures, functions for behavior. Pure functions for calculations. Service functions for orchestration.
-
----
+**Rationale**: Functions compose better, easier to test.
 
 ### DR-004: Three-Layer Architecture
-
 **Status**: Accepted  
-**Date**: 2025-12-06
+**Decision**: Organize code into Core/Features/Infrastructure layers.
+**Rationale**: Clear dependencies, enables independent evolution.
 
-**Decision**: Organize code into Core/Features/Infrastructure layers with explicit dependencies.
-
-**Rationale**: Core must be stable before building features. Prevents spaghetti dependencies. Enables independent evolution. Clear boundaries for testing.
-
-**Consequences**: Core cannot import from features. Features compose core. Clear dependency direction.
-
----
-
-### DR-005: Trunk-Based Development
-
+### DR-005: Domain Cohesion over Technical Purity
 **Status**: Accepted  
-**Date**: 2025-12-06
+**Decision**: Organize by domain, not by technical concern.
+**Rationale**: "Working on circles" means one directory.
 
-**Decision**: Single main branch, feature flags for incomplete work.
-
-**Rationale**: Reduces merge conflicts. Faster feedback loop. Simpler for solo/small team.
-
-**Consequences**: Small, frequent commits. Feature flags hide incomplete work. Deploy frequently.
-
----
-
-### DR-006: Domain Language Enforcement
-
+### DR-006: Separate users and people Domains
 **Status**: Accepted  
-**Date**: 2025-12-06
-
-**Decision**: Code must use practitioner terminology (circles, roles, proposals, etc.).
-
-**Rationale**: Reduces cognitive load. Code matches how users think. Ubiquitous language principle from DDD.
-
-**Consequences**: Enforce in code reviews. Update legacy terms. Document for new contributors.
-
----
+**Decision**: Two distinct domains for auth vs workspace identity.
+**Rationale**: Security isolation, prevents cross-workspace correlation.
 
 ### DR-007: Authority Calculated, Not Stored
-
 **Status**: Accepted  
-**Date**: 2025-12-06
+**Decision**: Authority is computed from roles, not stored.
+**Rationale**: Single source of truth, no sync bugs.
 
-**Decision**: Authority is computed from roles, not stored as user attributes.
-
-**Rationale**: Single source of truth (roles). No synchronization bugs. Easier to test. Audit trail through role assignments.
-
-**Consequences**: Authority calculator is critical core component. Must be highly tested.
-
----
-
-### DR-008: Co-located Unit Tests
-
+### DR-008: Soft Delete via archivedAt
 **Status**: Accepted  
-**Date**: 2025-12-06
-
-**Decision**: Unit tests live next to their source files (`circles.test.ts` next to `circles/`).
-
-**Rationale**: Proximity = visibility. Refactoring stays atomic. Discourages test interdependence. Simple imports.
-
-**Consequences**: Integration tests remain in `/tests/integration/`. E2E in `/e2e/`.
-
----
-
-### DR-009: Domain Cohesion over Technical Purity
-
-**Status**: Accepted  
-**Date**: 2025-12-06
-
-**Decision**: Organize by domain, not by technical concern (pure vs. impure). Core domains include schema, queries, mutations, and rules together.
-
-**Rationale**: Domain cohesion reduces cognitive load. "Working on circles" means one directory. Eliminates judgment calls for AI development. Purity is a function property, not a location property.
-
-**Consequences**: No separate "pure logic" layer. Business rules in `rules.ts` can be pure or contextual. Everything about a domain lives together.
-
-**Alternatives Rejected**:
-- Separate `/core/` (pure) and `/modules/` (DB) — fragments domains
-- Purity as organizational principle — requires judgment calls
-
----
-
-## Reference Appendices
-
-### A. Rules Scope Definition
-
-- **Pure rules**: No `ctx` access; `(args) =>` signature; live in `rules.ts`.
-- **Contextual rules**: Require `ctx`/`ctx.db`; `(ctx, ...args) =>` signature; live in `rules.ts`; imported by queries/mutations.
-- **Location**: All business rules (pure or contextual) live in the domain’s `rules.ts`. Queries/mutations call them; components never do.
-
-**Examples**
-
-```typescript
-// rules.ts — Pure rule
-export function isValidCircleName(name: string): boolean {
-  return name.length >= 2 && name.length <= 100;
-}
-```
-
-```typescript
-// rules.ts — Contextual rule
-export async function canApproveProposal(
-  ctx: QueryCtx,
-  userId: Id<"people">,
-  proposal: Doc<"proposals">
-): Promise<boolean> {
-  const circle = await ctx.db.get(proposal.circleId);
-  if (!circle) return false;
-  return isCircleLead(ctx, userId, circle._id);
-}
-```
-
-**Entity fetchers**: Functions like `requireProposal`, `requireCircle` that fetch-or-throw belong in the domain’s `rules.ts` alongside validation rules. Pattern: `require{Entity}(ctx, id)` → returns entity or throws `{ENTITY}_NOT_FOUND`.
-
-### B. Proposal State Machine
-
-| From | To | Triggered By | Guard Rule |
-|------|----|--------------|------------|
-| draft | pending | Proposer | `canSubmitProposal(ctx, user, proposal)` |
-| draft | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
-| pending | approved | Circle Lead | `canApproveProposal(ctx, user, proposal)` |
-| pending | objected | Any Circle Member | `canRaiseObjection(ctx, user, proposal)` |
-| pending | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
-| objected | pending | Proposer (after addressing) | `canResubmitProposal(ctx, user, proposal)` |
-| objected | withdrawn | Proposer | `canWithdrawProposal(ctx, user, proposal)` |
-| approved | enacted | System/Lead (on enactment) | `canEnactProposal(ctx, user, proposal)` |
-
-Terminal states: `enacted`, `withdrawn` (no outgoing transitions).
-
-### C. Error Codes
-
-- Source of truth: `convex/infrastructure/errors/codes.ts`.
-- Format: `ERR_CODE: message` (e.g., `AUTH_REQUIRED: Authentication required`).
-- Add new codes to the file **before** using them in handlers or rules.
-- Seeded codes: `AUTH_REQUIRED`, `AUTH_INVALID_TOKEN`, `AUTHZ_NOT_CIRCLE_MEMBER`, `AUTHZ_NOT_CIRCLE_LEAD`, `AUTHZ_INSUFFICIENT_RBAC`, `PROPOSAL_INVALID_STATE`, `PROPOSAL_NOT_FOUND`, `VALIDATION_REQUIRED_FIELD`, `VALIDATION_INVALID_FORMAT`.
-
-### D. Feature Dependency Decision Tree
-
-1. Prefer no feature-to-feature imports.
-2. If two features need the same behavior, consider lifting to core (if domain-wide) or infrastructure (if cross-cutting).
-3. Otherwise use events: feature emits, other feature reacts.
-4. If direct dependency is unavoidable, declare an explicit `feature.manifest.ts` contract and import only via that contract.
-
-### E. Enforcement Legend
-
-| Enforcement | Meaning |
-|-------------|---------|
-| CI gate | Automated, blocks merge |
-| Lint rule | Automated, warns or blocks |
-| AI pre-commit | Planned, not implemented |
-| Manual review | Human catches this |
-
-### F. Common AI Mistakes
-
-| Mistake | Why It Happens | Correct Approach |
-|---------|----------------|------------------|
-| Auth check after DB read | “Check if exists first” | Auth before any DB access |
-| Creating new type instead of reusing | Doesn’t search existing | Search `schema.ts` and domain types first |
-| Putting validation in component | Quick client-side check | All validation in mutation handler |
-| Using "team" in code/comments | Common industry term | Always use "circle" |
-| Exporting internal helpers directly | Seems useful | Export only via `index.ts` contract |
-| Feature importing another feature | Direct path works | Use core, events, or manifest |
-
-### G. Architecture Evolution Triggers
-
-Update this document when:
-- A new domain is added to core.
-- A pattern is used 3+ times and should be canonical.
-- A decision record is needed for a non-obvious choice.
-- An AI agent repeats the same mistake (add to Common Mistakes).
-
-### H. Module Export Contract (`index.ts`)
-
-Each domain’s `index.ts` defines its public API. Only export:
-
-- Types needed by consumers
-- Rule functions needed by other domains
-- (Queries and mutations are accessed via `api.*`; no need to re-export)
-
-Never export:
-- Schema definitions
-- Internal helpers
-- Domain-internal constants
-
-Example:
-
-```typescript
-// convex/core/circles/index.ts
-
-export type { Circle, CircleType } from './schema';
-export { isCircleLead, isCircleMember, canCreateCircle } from './rules';
-// Queries/mutations are consumed via api.core.circles.*
-```
-
----
-
-## Checklist: Before Every Commit
-
-```markdown
-## Before Writing Code
-- [ ] Which domain does this belong to?
-- [ ] Am I using correct terminology? (circles, roles, tensions, proposals)
-- [ ] Will this create a dependency? → Verify direction
-
-## While Writing Code  
-- [ ] Functions only, no classes
-- [ ] Functions do one thing
-- [ ] Authorization checked BEFORE data writes
-- [ ] No hardcoded magic values
-
-## Before Committing
-- [ ] Unit test co-located? (`domain.test.ts`)
-- [ ] Tests independent?
-- [ ] Domain language correct?
-- [ ] No business logic in components?
-```
+**Decision**: Use `archivedAt` timestamp, not status field or hard delete.
+**Rationale**: Preserves history, enables audit trails.
 
 ---
 
@@ -1067,9 +844,10 @@ export { isCircleLead, isCircleMember, canCreateCircle } from './rules';
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 2.1 | 2025-12-07 | Added appendices A-H, error codes file, auth helpers, proposal state machine, semantic ID convention. AI-native refinements. |
-| 2.0 | 2025-12-06 | Consolidated from 3 docs. Domain cohesion model. AI-native optimization. |
-| 1.x | 2025-12 | Original drafts (superseded) |
+| 3.0 | 2025-12-12 | Complete rewrite. Single source of truth. Consolidated from architecture.md + synergyos-core-architecture.md. Added: explicit file patterns (tables.ts vs schema.ts), legacy migration status, soft delete pattern, identity helpers table, users vs people clarification. |
+| 2.3 | 2025-12-11 | Added FROZEN/STABLE classification, Identity Chain section, Core Invariants reference. |
+| 2.2 | 2025-12-09 | Documented Convex public auth pattern, target ID whitelist. |
+| 2.0 | 2025-12-06 | Domain cohesion model. AI-native optimization. |
 
 ---
 

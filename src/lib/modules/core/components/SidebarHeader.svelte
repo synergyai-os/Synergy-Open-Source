@@ -131,7 +131,7 @@
 			<button
 				type="button"
 				onclick={() => onSearch?.()}
-				class="rounded-button p-1.5 text-secondary transition-all duration-200 hover:bg-subtle hover:text-primary"
+				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
 				aria-label="Search"
 			>
 				<svg
@@ -152,7 +152,7 @@
 			<button
 				type="button"
 				onclick={() => onEdit?.()}
-				class="rounded-button p-1.5 text-secondary transition-all duration-200 hover:bg-subtle hover:text-primary"
+				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
 				aria-label="Edit"
 			>
 				<svg

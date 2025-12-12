@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from '../_generated/server';
+import { mutation, query } from '../../_generated/server';
 import type { Ctx, FeatureFlagDoc, UserContext } from './types';
 import { requireAdmin, getUserContext } from './access';
 import { buildDebugInfo, buildMissingFlagDebug } from './debug';
@@ -119,8 +119,11 @@ export const findFlagsForUser = query({
 });
 
 export const findFlag = query({
-	args: { flag: v.string() },
-	handler: async (ctx, { flag }) => findFlagByName(ctx, flag)
+	args: { flag: v.string(), sessionId: v.string() },
+	handler: async (ctx, { flag, sessionId }) => {
+		await requireAdmin(ctx, sessionId);
+		return findFlagByName(ctx, flag);
+	}
 });
 
 export const getFlagDebugInfo = query({

@@ -95,7 +95,7 @@ npm run tokens:validate-semantic || {
 # Check for deprecated token usage (SYOS-538)
 echo ""
 echo "🔍 Checking for deprecated token usage..."
-node scripts/validate-tokens.js --fail-on-deprecated || {
+npx tsx scripts/validate-tokens.ts --fail-on-deprecated || {
 	echo ""
 	echo "❌ Deprecated tokens detected in codebase!"
 	echo "Migrate to replacement tokens before committing."
@@ -103,25 +103,47 @@ node scripts/validate-tokens.js --fail-on-deprecated || {
 	exit 1
 }
 
-# Check if generated CSS files were manually edited (still have unstaged changes after staging)
+# Check for direct modifications to auto-generated files
 echo ""
-echo "🔍 Checking for manual edits to generated files..."
+echo "🔍 Checking for direct modifications to auto-generated files..."
 validation_error=0
 
-# Check if any generated files have unstaged changes (indicates manual edit)
-for file in $GENERATED_FILES; do
-	if [ -f "$file" ]; then
-		# Check if file has unstaged changes after build
-		if ! git diff --quiet "$file"; then
-			echo ""
-			echo "❌ Generated file manually edited: $file"
-			echo "   Generated CSS files must not be edited manually."
-			echo "   Edit design-system.json instead, then run: npm run tokens:build"
-			echo ""
-			validation_error=1
-		fi
+# Check if any protected files are being committed
+PROTECTED_CHANGED=0
+if git diff --cached --name-only | grep -q "^src/styles/tokens/"; then
+	PROTECTED_CHANGED=1
+fi
+if git diff --cached --name-only | grep -q "^src/styles/utilities/"; then
+	PROTECTED_CHANGED=1
+fi
+
+# If protected files changed, check if source files also changed
+if [ "$PROTECTED_CHANGED" -eq 1 ]; then
+	SOURCE_CHANGED=0
+	if git diff --cached --name-only | grep -q "^design-tokens-base.json"; then
+		SOURCE_CHANGED=1
 	fi
-done
+	if git diff --cached --name-only | grep -q "^design-tokens-semantic.json"; then
+		SOURCE_CHANGED=1
+	fi
+
+	# If protected files changed but source files didn't, that's suspicious
+	if [ "$SOURCE_CHANGED" -eq 0 ]; then
+		echo ""
+		echo "❌ ERROR: Attempting to commit changes to auto-generated files"
+		echo ""
+		echo "The following files are auto-generated and should not be modified directly:"
+		git diff --cached --name-only | grep -E "^src/styles/(tokens|utilities)/"
+		echo ""
+		echo "To modify these files:"
+		echo "  1. Edit design-tokens-base.json or design-tokens-semantic.json"
+		echo "  2. Run: npm run tokens:build"
+		echo "  3. The files will be regenerated"
+		echo ""
+		echo "See: dev-docs/master-docs/design-system.md Section 1.5 (AI Development Guardrails)"
+		validation_error=1
+	fi
+fi
 
 # Exit with error code if validation failed
 if [ "$validation_error" -eq 1 ]; then

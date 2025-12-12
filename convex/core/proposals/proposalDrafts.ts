@@ -1,11 +1,11 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { ensureWorkspaceMembership } from './proposalAccess';
 import type { ProposalStatus } from './proposalTypes';
+import { getPersonForSessionAndWorkspace } from '../people/queries';
 
 export const create = mutation({
 	args: {
@@ -79,9 +79,8 @@ async function createProposalMutation(
 		description: string;
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
 	if (args.entityType === 'circle') {
 		const circle = await ctx.db.get(args.entityId as Id<'circles'>);
@@ -106,7 +105,7 @@ async function createProposalMutation(
 		title: args.title,
 		description: args.description,
 		status: 'draft',
-		createdBy: userId,
+		createdByPersonId: person._id,
 		createdAt: now,
 		updatedAt: now
 	});
@@ -126,11 +125,14 @@ async function addProposalEvolutionMutation(
 		changeType: 'add' | 'update' | 'remove';
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db.get(args.proposalId);
 	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
-	if (proposal.createdBy !== userId) {
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	if (proposal.createdByPersonId !== person._id) {
 		throw createError(
 			ErrorCodes.PROPOSAL_ACCESS_DENIED,
 			'Only the proposal creator can add evolutions'
@@ -166,14 +168,17 @@ async function removeProposalEvolutionMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; evolutionId: Id<'proposalEvolutions'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const evolution = await ctx.db.get(args.evolutionId);
 	if (!evolution) throw createError(ErrorCodes.GENERIC_ERROR, 'Evolution not found');
 
 	const proposal = await ctx.db.get(evolution.proposalId);
 	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
-	if (proposal.createdBy !== userId) {
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	if (proposal.createdByPersonId !== person._id) {
 		throw createError(
 			ErrorCodes.PROPOSAL_ACCESS_DENIED,
 			'Only the proposal creator can remove evolutions'
@@ -193,11 +198,14 @@ async function withdrawProposalMutation(
 	ctx: MutationCtx,
 	args: { sessionId: string; proposalId: Id<'circleProposals'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const proposal = await ctx.db.get(args.proposalId);
 	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
-	if (proposal.createdBy !== userId) {
+	const { person } = await getPersonForSessionAndWorkspace(
+		ctx,
+		args.sessionId,
+		proposal.workspaceId
+	);
+	if (proposal.createdByPersonId !== person._id) {
 		throw createError(ErrorCodes.PROPOSAL_ACCESS_DENIED, 'Only the proposal creator can withdraw');
 	}
 
@@ -235,8 +243,8 @@ async function createProposalFromDiffMutation(
 		};
 	}
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
 	const entity =
 		args.entityType === 'circle'
@@ -264,7 +272,7 @@ async function createProposalFromDiffMutation(
 		title: args.title.trim(),
 		description: args.description.trim(),
 		status: 'submitted',
-		createdBy: userId,
+		createdByPersonId: person._id,
 		createdAt: now,
 		updatedAt: now
 	});

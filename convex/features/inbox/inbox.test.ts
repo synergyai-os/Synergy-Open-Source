@@ -19,6 +19,9 @@ import {
 	findSyncProgressForSession
 } from './queries';
 import { createError } from '../../infrastructure/errors/codes';
+import { USER_ID_FIELD } from '../../core/people/constants';
+
+const actor = { personId: 'p1' as any, workspaceId: 'w1' as any, linkedUser: 'u1' as any };
 
 describe('inbox helpers', () => {
 	afterEach(() => {
@@ -26,10 +29,10 @@ describe('inbox helpers', () => {
 	});
 
 	test('ensureInboxOwnership returns item when owned', async () => {
-		const get = vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u1' });
+		const get = vi.fn().mockResolvedValue({ _id: 'i1', personId: actor.personId });
 		const ctx = { db: { get } } as unknown as MutationCtx;
 
-		const result = await assignments.ensureInboxOwnership(ctx, 'i1' as any, 'u1');
+		const result = await assignments.ensureInboxOwnership(ctx, 'i1' as any, actor.personId);
 
 		expect(result?._id).toBe('i1');
 		expect(get).toHaveBeenCalledWith('i1');
@@ -37,18 +40,18 @@ describe('inbox helpers', () => {
 
 	test('ensureInboxOwnership throws with error code when not owned', async () => {
 		const ctx = {
-			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', userId: 'other' }) }
+			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', personId: 'other' }) }
 		} as unknown as MutationCtx;
 
-		await expect(assignments.ensureInboxOwnership(ctx, 'i1' as any, 'u1')).rejects.toThrow(
-			`${ErrorCodes.INBOX_ITEM_NOT_FOUND}: Inbox item not found or access denied`
-		);
+		await expect(
+			assignments.ensureInboxOwnership(ctx, 'i1' as any, actor.personId)
+		).rejects.toThrow(`${ErrorCodes.INBOX_ITEM_NOT_FOUND}: Inbox item not found or access denied`);
 	});
 
 	test('updateInboxItemProcessedForSession patches and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const patch = vi.fn();
-		const get = vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u1' });
+		const get = vi.fn().mockResolvedValue({ _id: 'i1', personId: actor.personId });
 		const notify = vi.spyOn(notifications, 'notifyInboxItemProcessed').mockResolvedValue();
 		const ctx = { db: { get, patch } } as unknown as MutationCtx;
 
@@ -56,13 +59,13 @@ describe('inbox helpers', () => {
 
 		expect(result).toBe('i1');
 		expect(patch).toHaveBeenCalledWith('i1', expect.objectContaining({ processed: true }));
-		expect(notify).toHaveBeenCalledWith(ctx, 'i1', 'u1');
+		expect(notify).toHaveBeenCalledWith(ctx, 'i1', actor.personId);
 	});
 
 	test('updateInboxItemProcessedForSession rejects when ownership fails', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const ctx = {
-			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u2' }) }
+			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', personId: 'other' }) }
 		} as unknown as MutationCtx;
 
 		await expect(updateInboxItemProcessedForSession(ctx, 'sess', 'i1' as any)).rejects.toThrow(
@@ -71,9 +74,9 @@ describe('inbox helpers', () => {
 	});
 
 	test('archiveInboxItemForSession patches and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const patch = vi.fn();
-		const get = vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u1' });
+		const get = vi.fn().mockResolvedValue({ _id: 'i1', personId: actor.personId });
 		const notify = vi.spyOn(notifications, 'notifyInboxItemArchived').mockResolvedValue();
 		const ctx = { db: { get, patch } } as unknown as MutationCtx;
 
@@ -84,13 +87,13 @@ describe('inbox helpers', () => {
 			'i1',
 			expect.objectContaining({ processed: true, processedAt: expect.any(Number) })
 		);
-		expect(notify).toHaveBeenCalledWith(ctx, 'i1', 'u1');
+		expect(notify).toHaveBeenCalledWith(ctx, 'i1', actor.personId);
 	});
 
 	test('archiveInboxItemForSession rejects when ownership fails', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const ctx = {
-			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u2' }) }
+			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', personId: 'other' }) }
 		} as unknown as MutationCtx;
 
 		await expect(archiveInboxItemForSession(ctx, 'sess', 'i1' as any)).rejects.toThrow(
@@ -99,9 +102,9 @@ describe('inbox helpers', () => {
 	});
 
 	test('restoreInboxItemForSession patches and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const patch = vi.fn();
-		const get = vi.fn().mockResolvedValue({ _id: 'i1', userId: 'u1' });
+		const get = vi.fn().mockResolvedValue({ _id: 'i1', personId: actor.personId });
 		const notify = vi.spyOn(notifications, 'notifyInboxItemRestored').mockResolvedValue();
 		const ctx = { db: { get, patch } } as unknown as MutationCtx;
 
@@ -112,11 +115,11 @@ describe('inbox helpers', () => {
 			'i1',
 			expect.objectContaining({ processed: false, processedAt: undefined })
 		);
-		expect(notify).toHaveBeenCalledWith(ctx, 'i1', 'u1');
+		expect(notify).toHaveBeenCalledWith(ctx, 'i1', actor.personId);
 	});
 
 	test('createNoteInInboxForSession creates item and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const insert = vi.fn().mockResolvedValueOnce('inbox-1');
 		vi.spyOn(assignments, 'ensureInboxAssignmentRecorded').mockResolvedValue();
 		const notify = vi.spyOn(notifications, 'notifyInboxItemCreated').mockResolvedValue();
@@ -127,14 +130,22 @@ describe('inbox helpers', () => {
 		expect(result).toEqual({ inboxItemId: 'inbox-1' });
 		expect(insert).toHaveBeenCalledWith(
 			'inboxItems',
-			expect.objectContaining({ userId: 'u1', text: 'note body' })
+			expect.objectContaining({
+				personId: actor.personId,
+				text: 'note body',
+				workspaceId: actor.workspaceId
+			})
 		);
-		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
-		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
+		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(
+			ctx,
+			'inbox-1',
+			actor.personId
+		);
+		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', actor.personId);
 	});
 
 	test('createFlashcardInInboxForSession creates flashcard, inbox item, tags, and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		vi.spyOn(assignments, 'ensureInboxAssignmentRecorded').mockResolvedValue();
 		const insert = vi
 			.fn()
@@ -153,12 +164,17 @@ describe('inbox helpers', () => {
 		expect(insert).toHaveBeenNthCalledWith(
 			1,
 			'flashcards',
-			expect.objectContaining({ userId: 'u1', question: 'q', answer: 'a' })
+			expect.objectContaining({ [USER_ID_FIELD]: actor.linkedUser, question: 'q', answer: 'a' })
 		);
 		expect(insert).toHaveBeenNthCalledWith(
 			2,
 			'inboxItems',
-			expect.objectContaining({ userId: 'u1', type: 'manual_text', bookTitle: 'Flashcard' })
+			expect.objectContaining({
+				personId: actor.personId,
+				type: 'manual_text',
+				bookTitle: 'Flashcard',
+				workspaceId: actor.workspaceId
+			})
 		);
 		expect(insert).toHaveBeenNthCalledWith(3, 'flashcardTags', {
 			flashcardId: 'flash-1',
@@ -168,12 +184,16 @@ describe('inbox helpers', () => {
 			flashcardId: 'flash-1',
 			tagId: 'tag-2'
 		});
-		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
-		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
+		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(
+			ctx,
+			'inbox-1',
+			actor.personId
+		);
+		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', actor.personId);
 	});
 
 	test('createFlashcardInInboxForSession propagates auth failure', async () => {
-		vi.spyOn(access, 'getUserId').mockRejectedValue(
+		vi.spyOn(access, 'getInboxActor').mockRejectedValue(
 			createError(ErrorCodes.AUTH_REQUIRED, 'auth required')
 		);
 		const ctx = { db: { insert: vi.fn() } } as unknown as MutationCtx;
@@ -184,11 +204,11 @@ describe('inbox helpers', () => {
 	});
 
 	test('createHighlightInInboxForSession creates highlight, inbox item, tags, and notifies', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		vi.spyOn(assignments, 'ensureInboxAssignmentRecorded').mockResolvedValue();
 		const existingSource = {
 			_id: 'source-1',
-			userId: 'u1',
+			[USER_ID_FIELD]: actor.linkedUser,
 			authorId: 'author-1',
 			title: 'Manual Entry'
 		} as any;
@@ -228,27 +248,37 @@ describe('inbox helpers', () => {
 		expect(insert).toHaveBeenNthCalledWith(
 			1,
 			'highlights',
-			expect.objectContaining({ userId: 'u1', sourceId: 'source-1', text: 'body', note: 'Note' })
+			expect.objectContaining({
+				[USER_ID_FIELD]: actor.linkedUser,
+				sourceId: 'source-1',
+				text: 'body',
+				note: 'Note'
+			})
 		);
 		expect(insert).toHaveBeenNthCalledWith(
 			2,
 			'inboxItems',
 			expect.objectContaining({
-				userId: 'u1',
+				personId: actor.personId,
 				type: 'readwise_highlight',
-				highlightId: 'highlight-1'
+				highlightId: 'highlight-1',
+				workspaceId: actor.workspaceId
 			})
 		);
 		expect(insert).toHaveBeenNthCalledWith(3, 'highlightTags', {
 			highlightId: 'highlight-1',
 			tagId: 'tag-1'
 		});
-		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
-		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', 'u1');
+		expect(assignments.ensureInboxAssignmentRecorded).toHaveBeenCalledWith(
+			ctx,
+			'inbox-1',
+			actor.personId
+		);
+		expect(notify).toHaveBeenCalledWith(ctx, 'inbox-1', actor.personId);
 	});
 
 	test('createHighlightInInboxForSession propagates auth failure', async () => {
-		vi.spyOn(access, 'getUserId').mockRejectedValue(
+		vi.spyOn(access, 'getInboxActor').mockRejectedValue(
 			createError(ErrorCodes.AUTH_REQUIRED, 'auth required')
 		);
 		const ctx = {
@@ -267,9 +297,9 @@ describe('inbox helpers', () => {
 		).rejects.toThrow(`${ErrorCodes.AUTH_REQUIRED}: auth required`);
 	});
 
-	test('findInboxItemForSession returns null when user is not found', async () => {
-		vi.spyOn(access, 'findUserId').mockResolvedValue(null);
-		const ctx = {} as unknown as QueryCtx;
+	test('findInboxItemForSession returns null when actor is not found', async () => {
+		vi.spyOn(access, 'findInboxActor').mockResolvedValue(null);
+		const ctx = { db: { get: vi.fn().mockResolvedValue(null) } } as unknown as QueryCtx;
 
 		const result = await findInboxItemForSession(ctx, {
 			sessionId: 'sess',
@@ -280,9 +310,11 @@ describe('inbox helpers', () => {
 	});
 
 	test('findInboxItemWithDetailsForSession returns null when not owned', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'getInboxActor').mockResolvedValue(actor);
 		const ctx = {
-			db: { get: vi.fn().mockResolvedValue({ _id: 'i1', userId: 'other', type: 'manual_text' }) }
+			db: {
+				get: vi.fn().mockResolvedValue({ _id: 'i1', personId: 'other', type: 'manual_text' })
+			}
 		} as unknown as QueryCtx;
 
 		const result = await findInboxItemWithDetailsForSession(ctx, {
@@ -294,9 +326,15 @@ describe('inbox helpers', () => {
 	});
 
 	test('findSyncProgressForSession maps progress fields', async () => {
-		vi.spyOn(access, 'getUserId').mockResolvedValue('u1');
+		vi.spyOn(access, 'findInboxActor').mockResolvedValue(actor);
 		const ctx = {
 			db: {
+				get: vi.fn().mockResolvedValue({
+					_id: actor.personId,
+					status: 'active',
+					workspaceId: actor.workspaceId,
+					[USER_ID_FIELD]: actor.linkedUser
+				}),
 				query: vi.fn().mockReturnValue({
 					withIndex: vi.fn().mockReturnValue({
 						first: vi.fn().mockResolvedValue({

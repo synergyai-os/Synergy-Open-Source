@@ -1,19 +1,12 @@
 import { describe, expect, test, vi } from 'vitest';
 
-import { ensureOwnershipContext, ensureWorkspaceMembership } from './access';
+import { ensureTagAccess, ensureWorkspaceMembership } from './access';
 
-const makeCtx = (opts: { workspaceMembers?: any[]; circleMembers?: any[]; circle?: any }) =>
+const makeCtx = (opts: { person?: any; circleMembers?: any[] }) =>
 	({
 		db: {
+			get: vi.fn().mockResolvedValue(opts.person ?? null),
 			query: vi.fn((table: string) => {
-				if (table === 'workspaceMembers') {
-					return {
-						withIndex: vi.fn(() => ({
-							first: vi.fn().mockResolvedValue(opts.workspaceMembers?.[0] ?? null),
-							collect: vi.fn().mockResolvedValue(opts.workspaceMembers ?? [])
-						}))
-					};
-				}
 				if (table === 'circleMembers') {
 					return {
 						withIndex: vi.fn(() => ({
@@ -22,33 +15,43 @@ const makeCtx = (opts: { workspaceMembers?: any[]; circleMembers?: any[]; circle
 					};
 				}
 				return { withIndex: vi.fn(() => ({ first: vi.fn().mockResolvedValue(null) })) };
-			}),
-			get: vi.fn().mockResolvedValue(opts.circle ?? null)
+			})
 		}
 	}) as any;
 
 describe('tags/access', () => {
-	test('ensureWorkspaceMembership throws when user is not a member', async () => {
-		const ctx = makeCtx({ workspaceMembers: [] });
+	test('ensureWorkspaceMembership throws when person is not in workspace', async () => {
+		const ctx = makeCtx({ person: { _id: 'p1', workspaceId: 'ws2', status: 'active' } });
 
-		await expect(ensureWorkspaceMembership(ctx, 'user1', 'ws1')).rejects.toThrow(
+		await expect(ensureWorkspaceMembership(ctx, 'ws1', 'p1' as any)).rejects.toThrow(
 			/WORKSPACE_ACCESS_DENIED/
 		);
 	});
 
-	test('ensureOwnershipContext requires circle membership for circle ownership', async () => {
-		const ctx = makeCtx({ circleMembers: [], circle: { workspaceId: 'ws1' } });
+	test('ensureTagAccess allows workspace tags for workspace member', async () => {
+		const ctx = makeCtx({ person: { _id: 'p1', workspaceId: 'ws1', status: 'active' } });
+		const actor = { personId: 'p1', workspaceId: 'ws1', user: 'u1' } as any;
+		const tag = {
+			_id: 't1',
+			personId: 'p2',
+			workspaceId: 'ws1',
+			ownershipType: 'workspace'
+		} as any;
 
-		await expect(
-			ensureOwnershipContext(ctx, 'user1', 'circle', undefined, 'circle1')
-		).rejects.toThrow(/AUTHZ_NOT_CIRCLE_MEMBER/);
+		await expect(ensureTagAccess(ctx, actor, tag)).resolves.not.toThrow();
 	});
 
-	test('ensureOwnershipContext resolves workspace ownership with membership', async () => {
-		const ctx = makeCtx({ workspaceMembers: [{ workspaceId: 'ws1', userId: 'user1' }] });
+	test('ensureTagAccess requires circle membership for circle tags', async () => {
+		const ctx = makeCtx({ person: { _id: 'p1', workspaceId: 'ws1', status: 'active' } });
+		const actor = { personId: 'p1', workspaceId: 'ws1', user: 'u1' } as any;
+		const tag = {
+			_id: 't1',
+			personId: 'p2',
+			workspaceId: 'ws1',
+			circleId: 'c1',
+			ownershipType: 'circle'
+		} as any;
 
-		const result = await ensureOwnershipContext(ctx, 'user1', 'workspace', 'ws1');
-
-		expect(result).toEqual({ ownership: 'workspace', workspaceId: 'ws1' });
+		await expect(ensureTagAccess(ctx, actor, tag)).rejects.toThrow(/AUTHZ_NOT_CIRCLE_MEMBER/);
 	});
 });

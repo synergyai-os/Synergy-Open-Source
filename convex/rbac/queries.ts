@@ -6,14 +6,16 @@
 
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../sessionValidation';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 import type { Id } from '../_generated/dataModel';
 
 /**
  * Get all roles
  */
 export const getRoles = query({
-	handler: async (ctx) => {
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		return ctx.db.query('roles').collect();
 	}
 });
@@ -22,7 +24,9 @@ export const getRoles = query({
  * Get all permissions
  */
 export const getPermissions = query({
-	handler: async (ctx) => {
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		return ctx.db.query('permissions').collect();
 	}
 });
@@ -31,8 +35,9 @@ export const getPermissions = query({
  * Get permissions for a specific role
  */
 export const getPermissionsForRole = query({
-	args: { roleSlug: v.string() },
-	handler: async (ctx, { roleSlug }) => {
+	args: { sessionId: v.string(), roleSlug: v.string() },
+	handler: async (ctx, { sessionId, roleSlug }) => {
+		await validateSessionAndGetUserId(ctx, sessionId);
 		// Get role
 		const role = await ctx.db
 			.query('roles')

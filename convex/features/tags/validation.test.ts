@@ -1,10 +1,14 @@
 import { describe, expect, test, vi } from 'vitest';
+import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 
-vi.mock('../../permissions', () => ({
-	canAccessContent: vi.fn()
+const accessMocks = vi.hoisted(() => ({
+	ensureTagAccess: vi.fn()
 }));
 
-import { canAccessContent } from '../../permissions';
+vi.mock('./access', () => accessMocks);
+
+const { ensureTagAccess } = accessMocks;
+
 import { ensureParentChainValid, validateTagName } from './validation';
 
 const makeCtx = (opts: { parents?: Record<string, any> }) =>
@@ -20,11 +24,12 @@ describe('tags/validation', () => {
 	});
 
 	test('ensureParentChainValid rejects workspace mismatch', async () => {
+		ensureTagAccess.mockResolvedValue(undefined);
 		const ctx = makeCtx({
 			parents: {
 				parent1: {
 					_id: 'parent1',
-					userId: 'owner',
+					personId: 'owner',
 					workspaceId: 'ws-other',
 					circleId: undefined,
 					parentId: undefined
@@ -32,18 +37,24 @@ describe('tags/validation', () => {
 			}
 		});
 
-		await expect(ensureParentChainValid(ctx, 'parent1', 'owner', 'ws1', undefined)).rejects.toThrow(
-			/TAG_PARENT_WORKSPACE_MISMATCH/
-		);
+		await expect(
+			ensureParentChainValid(
+				ctx,
+				'parent1',
+				{ personId: 'owner', workspaceId: 'ws1' } as any,
+				'ws1',
+				undefined
+			)
+		).rejects.toThrow(/TAG_PARENT_WORKSPACE_MISMATCH/);
 	});
 
-	test('ensureParentChainValid rejects access denied when user differs', async () => {
-		(canAccessContent as any).mockResolvedValue(false);
+	test('ensureParentChainValid rejects access denied when person differs', async () => {
+		ensureTagAccess.mockRejectedValue(createError(ErrorCodes.TAG_ACCESS_DENIED, 'denied'));
 		const ctx = makeCtx({
 			parents: {
 				parent1: {
 					_id: 'parent1',
-					userId: 'other',
+					personId: 'other',
 					workspaceId: 'ws1',
 					circleId: undefined,
 					parentId: undefined
@@ -51,8 +62,14 @@ describe('tags/validation', () => {
 			}
 		});
 
-		await expect(ensureParentChainValid(ctx, 'parent1', 'owner', 'ws1', undefined)).rejects.toThrow(
-			/TAG_PARENT_ACCESS_DENIED/
-		);
+		await expect(
+			ensureParentChainValid(
+				ctx,
+				'parent1',
+				{ personId: 'owner', workspaceId: 'ws1' } as any,
+				'ws1',
+				undefined
+			)
+		).rejects.toThrow(/TAG_ACCESS_DENIED/);
 	});
 });

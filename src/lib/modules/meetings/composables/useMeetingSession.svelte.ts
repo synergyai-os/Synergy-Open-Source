@@ -19,11 +19,11 @@ import { invariant } from '$lib/utils/invariant';
 interface UseMeetingSessionOptions {
 	meetingId: () => Id<'meetings'> | undefined;
 	sessionId: () => string | undefined;
-	userId: () => Id<'users'> | undefined;
+	personId?: () => Id<'people'> | undefined;
 }
 
 export function useMeetingSession(options: UseMeetingSessionOptions) {
-	const { meetingId, sessionId, userId } = options;
+	const { meetingId, sessionId, personId } = options;
 
 	// Real-time queries
 	const meetingQuery =
@@ -115,7 +115,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		});
 	}
 
-	async function setRecorder(recorderId: Id<'users'>) {
+	async function setRecorder(recorderPersonId: Id<'people'>) {
 		const id = meetingId();
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
@@ -123,7 +123,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		await convexClient?.mutation(api.modules.meetings.meetings.setRecorder, {
 			meetingId: id,
 			sessionId: session,
-			recorderId
+			recorderPersonId
 		});
 	}
 
@@ -168,12 +168,13 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		get currentStep() {
 			return meetingQuery?.data?.currentStep ?? 'check-in';
 		},
-		get recorderId() {
-			return meetingQuery?.data?.recorderId;
+		get recorderPersonId() {
+			return meetingQuery?.data?.recorderPersonId;
 		},
 		get isRecorder() {
-			const currentUserId = userId();
-			return currentUserId ? meetingQuery?.data?.recorderId === currentUserId : false;
+			const currentPersonId = personId ? personId() : meetingQuery?.data?.viewerPersonId;
+			const recorderPersonId = meetingQuery?.data?.recorderPersonId;
+			return currentPersonId && recorderPersonId ? recorderPersonId === currentPersonId : false;
 		},
 		get activeAgendaItemId() {
 			return meetingQuery?.data?.activeAgendaItemId;

@@ -17,7 +17,7 @@
 
 <Story name="Ratio16x9" args={{ ratio: 16 / 9 }}>
 	{#snippet template(args)}
-		<AspectRatio.Root {...args} class="max-w-[800px] overflow-hidden rounded-card bg-elevated">
+		<AspectRatio.Root {...args} class="rounded-card bg-elevated max-w-[800px] overflow-hidden">
 			<img
 				src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=450&fit=crop"
 				alt="Example"
@@ -29,7 +29,7 @@
 
 <Story name="Ratio4x3" args={{ ratio: 4 / 3 }}>
 	{#snippet template(args)}
-		<AspectRatio.Root {...args} class="max-w-[800px] overflow-hidden rounded-card bg-elevated">
+		<AspectRatio.Root {...args} class="rounded-card bg-elevated max-w-[800px] overflow-hidden">
 			<img
 				src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=800&h=600&fit=crop"
 				alt="Example"
@@ -41,7 +41,7 @@
 
 <Story name="Ratio1x1" args={{ ratio: 1 }}>
 	{#snippet template(args)}
-		<AspectRatio.Root {...args} class="max-w-[600px] overflow-hidden rounded-card bg-elevated">
+		<AspectRatio.Root {...args} class="rounded-card bg-elevated max-w-[600px] overflow-hidden">
 			<img
 				src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=600&h=600&fit=crop"
 				alt="Example"
@@ -53,7 +53,7 @@
 
 <Story name="Ratio21x9" args={{ ratio: 21 / 9 }}>
 	{#snippet template(args)}
-		<AspectRatio.Root {...args} class="max-w-[800px] overflow-hidden rounded-card bg-elevated">
+		<AspectRatio.Root {...args} class="rounded-card bg-elevated max-w-[800px] overflow-hidden">
 			<img
 				src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?w=840&h=360&fit=crop"
 				alt="Example"

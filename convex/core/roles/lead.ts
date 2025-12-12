@@ -6,8 +6,9 @@
 
 import { isLeadTemplate, type RoleTemplate } from './detection';
 import type { Id } from '../../_generated/dataModel';
+import type { CircleType } from '../circles';
 
-export type RoleCircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+export type RoleCircleType = CircleType;
 
 export type LeadRequirementMap = Partial<Record<RoleCircleType, boolean>>;
 

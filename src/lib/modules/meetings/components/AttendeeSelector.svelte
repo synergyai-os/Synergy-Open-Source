@@ -68,14 +68,14 @@
 	const selectedValues = $derived(selectedAttendees.map((a) => `${a.type}:${a.id}`));
 </script>
 
-<div class="flex flex-col gap-fieldGroup">
+<div class="gap-fieldGroup flex flex-col">
 	<Text variant="body" size="sm" color="default" as="div" class="font-medium"
 		>Attendees (optional)</Text
 	>
 
 	<!-- Selected attendees chips -->
 	{#if selectedAttendees.length > 0}
-		<div class="flex flex-wrap items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex flex-wrap items-center">
 			{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 				<AttendeeChip
 					{attendee}
@@ -211,7 +211,7 @@
 									>
 										Selected
 									</Text>
-									<div class="flex flex-col gap-fieldGroup">
+									<div class="gap-fieldGroup flex flex-col">
 										{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 											{@const attendeeValue = `${attendee.type}:${attendee.id}`}
 											<Combobox.Item
@@ -232,7 +232,7 @@
 									</div>
 								</div>
 								{#if attendeeSelection.filteredAttendees.some((a) => !attendeeSelection.isSelected(a))}
-									<div class="my-stack-divider h-px bg-base"></div>
+									<div class="my-stack-divider bg-base h-px"></div>
 								{/if}
 							{/if}
 
@@ -250,7 +250,7 @@
 									>
 										Available
 									</Text>
-									<div class="flex flex-col gap-fieldGroup">
+									<div class="gap-fieldGroup flex flex-col">
 										{#each unselectedAttendees as attendee (attendee.type + attendee.id)}
 											{@const attendeeValue = `${attendee.type}:${attendee.id}`}
 											<Combobox.Item

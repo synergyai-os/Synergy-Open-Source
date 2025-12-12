@@ -1,3 +1,4 @@
+import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import { mutation, query } from '../../_generated/server';
 import {
@@ -46,102 +47,162 @@ import {
 } from './helpers/meetingQueries';
 
 export const list = query({
-	args: getMeetingsListArgs,
+	args: {
+		sessionId: v.string(),
+		...getMeetingsListArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => listMeetings(ctx, args)
 });
 
 export const get = query({
-	args: getMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...getMeetingArgs
+	},
 	handler: (ctx, args) => getMeeting(ctx, args)
 });
 
 export const listByCircle = query({
-	args: listMeetingsByCircleArgs,
+	args: {
+		sessionId: v.string(),
+		...listMeetingsByCircleArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => listMeetingsByCircle(ctx, args)
 });
 
 export const listByTemplate = query({
-	args: listMeetingsByTemplateArgs,
+	args: {
+		sessionId: v.string(),
+		...listMeetingsByTemplateArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => listMeetingsByTemplate(ctx, args)
 });
 
 export const getInvitedUsers = query({
-	args: getInvitedUsersArgs,
+	args: {
+		sessionId: v.string(),
+		...getInvitedUsersArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => getInvitedUsersQuery(ctx, args)
 });
 
 export const listForUser = query({
-	args: listMeetingsForUserArgs,
+	args: {
+		sessionId: v.string(),
+		...listMeetingsForUserArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => listMeetingsForUser(ctx, args)
 });
 
 export const create = mutation({
-	args: createMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...createMeetingArgs
+	},
 	handler: (ctx, args): Promise<{ meetingId: Id<'meetings'> }> => createMeeting(ctx, args)
 });
 
 export const update = mutation({
-	args: updateMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...updateMeetingArgs
+	},
 	handler: (ctx, args) => updateMeeting(ctx, args)
 });
 
 export const archiveMeeting = mutation({
-	args: archiveMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...archiveMeetingArgs
+	},
 	handler: (ctx, args) => archiveMeetingMutation(ctx, args)
 });
 
 export const addAttendee = mutation({
-	args: addAttendeeArgs,
+	args: {
+		sessionId: v.string(),
+		...addAttendeeArgs
+	},
 	handler: (ctx, args) => addAttendeeToMeeting(ctx, args)
 });
 
 export const removeAttendee = mutation({
-	args: removeAttendeeArgs,
+	args: {
+		sessionId: v.string(),
+		...removeAttendeeArgs
+	},
 	handler: (ctx, args) => removeAttendeeFromMeeting(ctx, args)
 });
 
 export const startMeeting = mutation({
-	args: startMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...startMeetingArgs
+	},
 	handler: (ctx, args) => startMeetingSession(ctx, args)
 });
 
 export const advanceStep = mutation({
-	args: advanceMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...advanceMeetingArgs
+	},
 	handler: (ctx, args) => advanceMeetingStep(ctx, args)
 });
 
 export const closeMeeting = mutation({
-	args: closeMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...closeMeetingArgs
+	},
 	handler: (ctx, args) => closeMeetingSession(ctx, args)
 });
 
 export const setRecorder = mutation({
-	args: setRecorderArgs,
+	args: {
+		sessionId: v.string(),
+		...setRecorderArgs
+	},
 	handler: (ctx, args) => setMeetingRecorder(ctx, args)
 });
 
 export const setActiveAgendaItem = mutation({
-	args: setActiveAgendaItemArgs,
+	args: {
+		sessionId: v.string(),
+		...setActiveAgendaItemArgs
+	},
 	handler: (ctx, args) => setActiveAgendaItemMutation(ctx, args)
 });
 
 export const updateCancellation = mutation({
-	args: updateMeetingCancelArgs,
+	args: {
+		sessionId: v.string(),
+		...updateMeetingCancelArgs
+	},
 	handler: (ctx, args) => updateMeetingCancel(ctx, args)
 });
 
 export const restore = mutation({
-	args: restoreMeetingArgs,
+	args: {
+		sessionId: v.string(),
+		...restoreMeetingArgs
+	},
 	handler: (ctx, args) => restoreMeeting(ctx, args)
 });
 
 export const createAgendaItem = mutation({
-	args: createAgendaItemArgs,
+	args: {
+		sessionId: v.string(),
+		...createAgendaItemArgs
+	},
 	handler: (ctx, args): Promise<{ itemId: Id<'meetingAgendaItems'> }> =>
 		createAgendaItemMutation(ctx, args)
 });
 
 export const getAgendaItems = query({
-	args: getAgendaItemsArgs,
+	args: {
+		sessionId: v.string(),
+		...getAgendaItemsArgs
+	},
 	handler: (ctx, args): Promise<unknown[]> => getAgendaItemsQuery(ctx, args)
 });

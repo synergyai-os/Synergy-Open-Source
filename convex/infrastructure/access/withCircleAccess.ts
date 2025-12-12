@@ -1,6 +1,6 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
+import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { createError, ErrorCodes } from '../errors/codes';
 
 type WithCircleAccessInput = {

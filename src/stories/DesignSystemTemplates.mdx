@@ -162,11 +162,11 @@ Templates are the **fourth level** of atomic design:
 	let { children } = $props();
 </script>
 
-<div class="min-h-screen bg-base">
+<div class="bg-base min-h-screen">
 	<Header />
 	<div class="flex">
 		<Sidebar />
-		<main class="flex-1 px-page-x py-page-y">
+		<main class="px-page-x py-page-y flex-1">
 			{@render children()}
 		</main>
 	</div>

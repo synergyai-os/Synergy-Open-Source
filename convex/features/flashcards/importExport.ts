@@ -1,21 +1,33 @@
 import { internal } from '../../_generated/api';
-import type { ActionCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { loadPrompt } from '../../promptUtils';
+import { loadPrompt } from '../../prompts/utils';
 
 type GeneratedFlashcard = { question: string; answer: string };
+type FlashcardActionCtx = {
+	runQuery: (fn: unknown, args: Record<string, unknown>) => Promise<unknown>;
+	runAction: (fn: unknown, args: Record<string, unknown>) => Promise<unknown>;
+};
 
-async function requireUserIdFromSession(ctx: ActionCtx['handler'], sessionId: string) {
-	const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, { sessionId });
-	if (!userId) {
-		throw createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated');
-	}
+async function requireUserIdFromSession(
+	ctx: FlashcardActionCtx,
+	sessionId: string
+): Promise<string> {
+	const validateSession = (internal as any).infrastructure.sessionValidation
+		.validateSessionAndGetUserIdInternal;
+	const { userId } = (await ctx.runQuery(validateSession, { sessionId })) as { userId: string };
 	return userId;
 }
 
-async function fetchKeys(ctx: ActionCtx['handler'], userId: string) {
-	const keys: { claudeApiKey: string | null; readwiseApiKey: string | null } | null =
-		await ctx.runQuery(internal.settings.getEncryptedKeysInternal, { userId });
+async function fetchKeys(ctx: FlashcardActionCtx, userId: string) {
+	const getEncryptedKeysInternal = (
+		internal as unknown as {
+			settings: { getEncryptedKeysInternal: unknown };
+		}
+	).settings.getEncryptedKeysInternal;
+	const keys = (await ctx.runQuery(getEncryptedKeysInternal, { userId })) as {
+		claudeApiKey: string | null;
+		readwiseApiKey: string | null;
+	} | null;
 	if (!keys?.claudeApiKey) {
 		throw createError(
 			ErrorCodes.EXTERNAL_API_KEY_MISSING,
@@ -25,10 +37,11 @@ async function fetchKeys(ctx: ActionCtx['handler'], userId: string) {
 	return keys.claudeApiKey;
 }
 
-async function decryptApiKey(ctx: ActionCtx['handler'], encryptedApiKey: string) {
-	return ctx.runAction(internal.cryptoActions.decryptApiKey, {
+async function decryptApiKey(ctx: FlashcardActionCtx, encryptedApiKey: string) {
+	const decryptApiKeyInternal = (internal as any).infrastructure.crypto.decryptApiKey;
+	return ctx.runAction(decryptApiKeyInternal, {
 		encryptedApiKey
-	});
+	}) as Promise<string>;
 }
 
 export async function callClaude(apiKey: string, prompt: string) {
@@ -94,7 +107,7 @@ export function parseFlashcards(raw: string): GeneratedFlashcard[] {
 }
 
 export async function fetchFlashcardsFromSourceHelper(
-	ctx: ActionCtx['handler'],
+	ctx: FlashcardActionCtx,
 	args: {
 		sessionId: string;
 		text: string;

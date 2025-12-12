@@ -25,7 +25,7 @@
 	const workspaceSlug = $derived((data.workspaceSlug as string | undefined) ?? '');
 </script>
 
-<div class="flex h-screen overflow-hidden bg-base">
+<div class="bg-base flex h-screen overflow-hidden">
 	<!-- Settings Sidebar - Fixed, no collapse/resize -->
 	{#if workspaceSlug}
 		<WorkspaceSettingsSidebar {workspaceSlug} {isMobile} />

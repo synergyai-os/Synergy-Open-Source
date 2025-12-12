@@ -12,7 +12,7 @@
 
 import { v } from 'convex/values';
 import { mutation, query } from '../../_generated/server';
-import type { Doc, Id } from '../../_generated/dataModel';
+import type { Doc } from '../../_generated/dataModel';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import {
 	getTaskWithAccess,
@@ -66,14 +66,14 @@ export const listByAgendaItem = query({
 export const listByAssignee = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.optional(v.id('users')),
+		assigneeUserId: v.optional(v.id('users')),
 		status: v.optional(taskStatusSchema)
 	},
 	handler: async (ctx, args): Promise<Doc<'tasks'>[]> => {
 		const { userId: currentUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 		const tasks = await listTasksByAssignee(ctx, {
 			currentUserId,
-			targetUserId: args.userId,
+			targetUserId: args.assigneeUserId,
 			status: args.status
 		});
 		return tasks ?? [];
@@ -106,9 +106,10 @@ export const create = mutation({
 		dueDate: v.optional(v.number()),
 		status: v.optional(taskStatusSchema)
 	},
-	handler: async (ctx, args): Promise<Id<'tasks'>> => {
+	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		return createTask(ctx, { ...args, userId });
+		const { actionItemId } = await createTask(ctx, { ...args, userId });
+		return { actionItemId };
 	}
 });
 

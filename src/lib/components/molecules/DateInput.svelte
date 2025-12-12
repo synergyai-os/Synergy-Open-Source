@@ -101,7 +101,7 @@
 		<!-- Calendar icon button to open DatePicker - positioned inside input on the right -->
 		<!-- Layout primitives: top-1/2 and -translate-y-1/2 for vertical centering (allowed positioning utilities) -->
 		<DatePicker.Trigger
-			class="absolute top-1/2 flex flex-shrink-0 -translate-y-1/2 items-center justify-center rounded-button px-button py-button text-secondary transition-all duration-200 hover:text-primary focus:text-primary focus:outline-none"
+			class="rounded-button px-button py-button text-secondary hover:text-primary focus:text-primary absolute top-1/2 flex flex-shrink-0 -translate-y-1/2 items-center justify-center transition-all duration-200 focus:outline-none"
 			style="inset-inline-end: var(--spacing-px);"
 			{disabled}
 			aria-label="Open calendar"

@@ -20,7 +20,7 @@
 	// Query org chart settings
 	const orgSettingsQuery =
 		browser && data.sessionId && data.workspaceId
-			? useQuery(api.workspaceSettings.getOrgSettings, () => ({
+			? useQuery(api.core.workspaces.workspaceSettings.getOrgSettings, () => ({
 					sessionId: data.sessionId,
 					workspaceId: data.workspaceId as Id<'workspaces'>
 				}))
@@ -62,7 +62,7 @@
 		isSaving = true;
 
 		try {
-			await convexClient.mutation(api.workspaceSettings.updateOrgSettings, {
+			await convexClient.mutation(api.core.workspaces.workspaceSettings.updateOrgSettings, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
 				allowQuickChanges: newValue
@@ -95,7 +95,7 @@
 		isSaving = true;
 
 		try {
-			await convexClient.mutation(api.workspaceSettings.updateOrgSettings, {
+			await convexClient.mutation(api.core.workspaces.workspaceSettings.updateOrgSettings, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
 				leadRequirementByCircleType: updatedRequirement
@@ -115,7 +115,7 @@
 	}
 </script>
 
-<div class="max-w-readable mx-auto px-card-padding py-card-padding">
+<div class="max-w-readable px-card-padding py-card-padding mx-auto">
 	<Heading level={1} color="primary" class="mb-section">Org Chart Settings</Heading>
 
 	{#if isLoading}
@@ -123,18 +123,18 @@
 			<Text variant="body" size="md" color="secondary">Loading settings...</Text>
 		</div>
 	{:else if !isAdmin}
-		<div class="rounded-card border border-default bg-surface p-card-padding">
+		<div class="rounded-card border-default bg-surface p-card-padding border">
 			<Text variant="body" size="md" color="secondary">
 				Only workspace admins can update org chart settings.
 			</Text>
 		</div>
 	{:else if orgSettings}
-		<div class="flex flex-col gap-section">
+		<div class="gap-section flex flex-col">
 			<!-- Allow Quick Changes Toggle -->
-			<div class="rounded-card border border-default bg-surface p-card-padding">
-				<div class="flex items-start justify-between gap-button">
+			<div class="rounded-card border-default bg-surface p-card-padding border">
+				<div class="gap-button flex items-start justify-between">
 					<div class="flex-1">
-						<div class="mb-fieldGroup flex items-center gap-fieldGroup">
+						<div class="mb-fieldGroup gap-fieldGroup flex items-center">
 							<Switch.Root
 								class={switchRootRecipe({ checked: allowQuickChanges, disabled: isSaving })}
 								checked={allowQuickChanges}
@@ -143,7 +143,7 @@
 							>
 								<Switch.Thumb class={switchThumbRecipe()} />
 							</Switch.Root>
-							<label for="allow-quick-changes" class="text-button font-medium text-primary">
+							<label for="allow-quick-changes" class="text-button text-primary font-medium">
 								Allow Quick Changes
 							</label>
 						</div>
@@ -162,7 +162,7 @@
 			</div>
 
 			<!-- Lead Requirement by Circle Type -->
-			<div class="rounded-card border border-default bg-surface p-card-padding">
+			<div class="rounded-card border-default bg-surface p-card-padding border">
 				<Heading level={2} color="primary" class="mb-header">
 					Lead Requirement by Circle Type
 				</Heading>
@@ -170,13 +170,13 @@
 					Configure whether a Lead role is automatically created when creating circles of each type.
 					Empowered teams and guilds can operate without a Lead by default.
 				</Text>
-				<div class="flex flex-col gap-form">
+				<div class="gap-form flex flex-col">
 					{#each Object.values(CIRCLE_TYPES) as circleType (circleType)}
 						{@const circleTypeLabel = DEFAULT_CIRCLE_TYPE_LABELS[circleType]}
 						{@const isRequired = leadRequirementByCircleType[circleType]}
-						<div class="flex items-start justify-between gap-button">
+						<div class="gap-button flex items-start justify-between">
 							<div class="flex-1">
-								<div class="mb-fieldGroup flex items-center gap-fieldGroup">
+								<div class="mb-fieldGroup gap-fieldGroup flex items-center">
 									<Switch.Root
 										class={switchRootRecipe({
 											checked: isRequired,
@@ -190,7 +190,7 @@
 									</Switch.Root>
 									<label
 										for="lead-requirement-{circleType}"
-										class="text-button font-medium text-primary"
+										class="text-button text-primary font-medium"
 									>
 										{circleTypeLabel}
 									</label>

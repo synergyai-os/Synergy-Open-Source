@@ -91,33 +91,53 @@ jobs:
       - name: Semantic Token Validation
         run: npm run tokens:validate-semantic
 
-      - name: Check Generated Files
+      - name: Check for Direct Modifications to Auto-Generated Files
         run: |
-          # Check if generated CSS files were manually edited
-          GENERATED_FILES="src/styles/tokens/*.css src/styles/utilities/*.css"
-          MANUAL_EDIT_DETECTED=0
+          # Check for direct modifications to auto-generated files
+          # Protected paths (auto-generated files)
+          PROTECTED_PATTERNS="src/styles/tokens/|src/styles/utilities/"
 
-          for file in $GENERATED_FILES; do
-            if [ -f "$file" ]; then
-              # Check if file has unstaged changes after build (indicates manual edit)
-              if ! git diff --quiet "$file"; then
-                echo "❌ Generated file manually edited: $file"
-                echo "   Generated CSS files must not be edited manually."
-                echo "   Edit design-system.json instead, then run: npm run tokens:build"
-                MANUAL_EDIT_DETECTED=1
-              fi
-            fi
-          done
+          # Source files (if these change, regenerated files are expected to change)
+          SOURCE_FILES="design-tokens-base.json|design-tokens-semantic.json"
 
-          if [ "$MANUAL_EDIT_DETECTED" -eq 1 ]; then
-            echo ""
-            echo "❌ Manual edits detected in generated CSS files!"
-            echo "   Generated files must be auto-generated from design-system.json."
-            echo "   See: dev-docs/2-areas/patterns/ci-cd.md#L2550"
-            exit 1
+          # Get list of changed files in this PR
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # For PRs, compare against base branch
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+            CHANGED_FILES=$(git diff --name-only $BASE_SHA...$HEAD_SHA)
+          else
+            # For pushes, compare against previous commit
+            CHANGED_FILES=$(git diff --name-only HEAD~1...HEAD)
           fi
 
-          echo "✅ No manual edits detected in generated files"
+          # Check for protected files
+          PROTECTED_CHANGES=$(echo "$CHANGED_FILES" | grep -E "$PROTECTED_PATTERNS" || true)
+
+          if [ -n "$PROTECTED_CHANGES" ]; then
+            # Check if source files also changed
+            SOURCE_CHANGES=$(echo "$CHANGED_FILES" | grep -E "$SOURCE_FILES" || true)
+            
+            # If protected files changed but source files didn't, that's suspicious
+            if [ -z "$SOURCE_CHANGES" ]; then
+              echo "❌ ERROR: Direct modifications to auto-generated files detected"
+              echo ""
+              echo "These files are auto-generated and should not be modified directly:"
+              echo "$PROTECTED_CHANGES"
+              echo ""
+              echo "To modify these files:"
+              echo "  1. Edit design-tokens-base.json or design-tokens-semantic.json"
+              echo "  2. Run: npm run tokens:build"
+              echo "  3. Commit the regenerated files"
+              echo ""
+              echo "See: dev-docs/master-docs/design-system.md Section 1.5 (AI Development Guardrails)"
+              exit 1
+            else
+              echo "✅ Auto-generated files changed alongside source files (legitimate regeneration)"
+            fi
+          else
+            echo "✅ No direct modifications to auto-generated files"
+          fi
 
       - name: Token Validation
         run: npm run tokens:validate

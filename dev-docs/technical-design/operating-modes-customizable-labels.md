@@ -40,7 +40,7 @@ Operating mode values (`hierarchy`, `empowered_team`, `guild`, `hybrid`, `manage
 
 **Rationale**: Operating modes are part of the core organizational model infrastructure, not a module feature. They're:
 - Part of the circle entity (like `name`, `purpose`) - defined in schema
-- Used in backend permission logic (`convex/orgChartPermissions.ts`)
+ - Used in backend permission logic (`convex/rbac/orgChart.ts`)
 - Used in infrastructure types (`CircleSummary` includes `circleType` and `decisionModel`)
 - Org-chart module is just one consumer (visualization UI)
 

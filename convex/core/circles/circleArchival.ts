@@ -1,16 +1,13 @@
-import { captureArchive, captureRestore } from '../../orgVersionHistory';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { ensureWorkspaceMembership } from './circleAccess';
+import { recordArchiveHistory, recordRestoreHistory } from '../history';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 
 export async function archiveCircle(
 	ctx: MutationCtx,
 	args: { sessionId: string; circleId: Id<'circles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) {
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
@@ -20,20 +17,25 @@ export async function archiveCircle(
 		throw createError(ErrorCodes.CIRCLE_INVALID_PARENT, 'Root circle cannot be archived');
 	}
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actorPersonId);
 
 	const now = Date.now();
 
 	await ctx.db.patch(args.circleId, {
 		archivedAt: now,
-		archivedBy: userId,
+		archivedByPersonId: actorPersonId,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	const archivedCircle = await ctx.db.get(args.circleId);
 	if (archivedCircle) {
-		await captureArchive(ctx, 'circle', circle, archivedCircle);
+		await recordArchiveHistory(ctx, 'circle', circle, archivedCircle);
 	}
 
 	const roles = await ctx.db
@@ -46,9 +48,9 @@ export async function archiveCircle(
 	for (const role of roles) {
 		await ctx.db.patch(role._id, {
 			archivedAt: now,
-			archivedBy: userId,
+			archivedByPersonId: actorPersonId,
 			updatedAt: now,
-			updatedBy: userId
+			updatedByPersonId: actorPersonId
 		});
 
 		const assignments = await ctx.db
@@ -61,9 +63,9 @@ export async function archiveCircle(
 		for (const assignment of assignments) {
 			await ctx.db.patch(assignment._id, {
 				archivedAt: now,
-				archivedBy: userId,
+				archivedByPersonId: actorPersonId,
 				updatedAt: now,
-				updatedBy: userId
+				updatedByPersonId: actorPersonId
 			});
 		}
 	}
@@ -75,8 +77,6 @@ export async function restoreCircle(
 	ctx: MutationCtx,
 	args: { sessionId: string; circleId: Id<'circles'> }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const circle = await ctx.db.get(args.circleId);
 	if (!circle) {
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
@@ -86,7 +86,12 @@ export async function restoreCircle(
 		throw createError(ErrorCodes.CIRCLE_ARCHIVED, 'Circle is not archived');
 	}
 
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
+	const actorPersonId = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		circle.workspaceId
+	);
+	await ensureWorkspaceMembership(ctx, circle.workspaceId, actorPersonId);
 
 	if (circle.parentCircleId) {
 		const parent = await ctx.db.get(circle.parentCircleId);
@@ -106,14 +111,14 @@ export async function restoreCircle(
 
 	await ctx.db.patch(args.circleId, {
 		archivedAt: undefined,
-		archivedBy: undefined,
+		archivedByPersonId: undefined,
 		updatedAt: now,
-		updatedBy: userId
+		updatedByPersonId: actorPersonId
 	});
 
 	const restoredCircle = await ctx.db.get(args.circleId);
 	if (restoredCircle) {
-		await captureRestore(ctx, 'circle', oldCircle, restoredCircle);
+		await recordRestoreHistory(ctx, 'circle', oldCircle, restoredCircle);
 	}
 
 	return { success: true };

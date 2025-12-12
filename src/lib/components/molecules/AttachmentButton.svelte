@@ -17,7 +17,7 @@
 
 <button
 	type="button"
-	class="gap-2-wide hover:bg-hover-solid inline-flex items-center rounded-button px-2 py-1 text-tertiary transition-colors"
+	class="gap-2-wide hover:bg-hover-solid rounded-button text-tertiary inline-flex items-center px-2 py-1 transition-colors"
 	{disabled}
 	onclick={() => !disabled && onClick?.()}
 	aria-label="Attach files"

@@ -94,9 +94,9 @@
 			- Animation classes are Bits UI data attributes (framework-specific, acceptable)
 		-->
 		<Dialog.Content
-			class="border-base shadow-card-hover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-modal border bg-elevated card-padding"
+			class="border-base shadow-card-hover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-modal bg-elevated card-padding fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto border"
 		>
-			<div class="flex flex-col gap-form">
+			<div class="gap-form flex flex-col">
 				<!-- Header -->
 				<div class="flex items-center justify-between">
 					<Dialog.Title>
@@ -118,11 +118,11 @@
 				<!-- Form -->
 				<form
 					onsubmit={(e) => (e.preventDefault(), form.handleSubmit())}
-					class="flex flex-col gap-form"
+					class="gap-form flex flex-col"
 				>
 					<!-- Step 1: Attendees & Meeting Type -->
 					{#if form.currentStep === 0}
-						<div class="flex flex-col gap-form">
+						<div class="gap-form flex flex-col">
 							<!-- Meeting Type (Required) -->
 							<div>
 								<Combobox
@@ -197,8 +197,8 @@
 											Privacy
 										</Text>
 									</legend>
-									<div class="flex flex-col gap-fieldGroup">
-										<label class="flex items-start gap-fieldGroup">
+									<div class="gap-fieldGroup flex flex-col">
+										<label class="gap-fieldGroup flex items-start">
 											<input
 												type="radio"
 												bind:group={form.visibility}
@@ -214,7 +214,7 @@
 												</Text>
 											</div>
 										</label>
-										<label class="flex items-start gap-fieldGroup">
+										<label class="gap-fieldGroup flex items-start">
 											<input
 												type="radio"
 												bind:group={form.visibility}
@@ -238,7 +238,7 @@
 
 					<!-- Step 2: Date, Time & Recurrence -->
 					{#if form.currentStep === 1}
-						<div class="flex flex-col gap-form">
+						<div class="gap-form flex flex-col">
 							<!-- Start Date/Time with natural language format -->
 							<DateTimeField
 								id="meeting-datetime"
@@ -283,7 +283,7 @@
 
 					<!-- Step 3: Finalize -->
 					{#if form.currentStep === 2}
-						<div class="flex flex-col gap-form">
+						<div class="gap-form flex flex-col">
 							<!-- Title -->
 							<div>
 								<FormInput
@@ -302,7 +302,7 @@
 							</div>
 
 							<!-- Summary Preview -->
-							<div class="border-base rounded-card border bg-surface inset-md">
+							<div class="border-base rounded-card bg-surface inset-md border">
 								<Text
 									variant="body"
 									size="sm"
@@ -312,7 +312,7 @@
 								>
 									Summary
 								</Text>
-								<div class="flex flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-col">
 									<div>
 										<Text variant="label" color="secondary" as="span">Type:</Text>
 										<Text variant="body" size="sm" color="default" as="span">
@@ -373,7 +373,7 @@
 
 					<!-- Actions -->
 					<div
-						class="border-border-base flex justify-between gap-fieldGroup border-t"
+						class="border-border-base gap-fieldGroup flex justify-between border-t"
 						style="padding-top: var(--spacing-form-sectionGap);"
 					>
 						<div>
@@ -381,7 +381,7 @@
 								<Button variant="outline" type="button" onclick={form.previousStep}>Back</Button>
 							{/if}
 						</div>
-						<div class="flex gap-fieldGroup">
+						<div class="gap-fieldGroup flex">
 							<Button variant="outline" type="button" onclick={onClose}>Close</Button>
 							{#if form.currentStep < 2}
 								<Button variant="primary" type="button" onclick={form.nextStep}>Next</Button>

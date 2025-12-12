@@ -54,7 +54,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 			state.isSaving = true;
 			state.error = null;
 
-			const noteId = await convexClient.mutation(api.notes.createNote, {
+			const noteId = await convexClient.mutation(api.features.notes.index.createNote, {
 				sessionId,
 				title,
 				content: content || JSON.stringify({ type: 'doc', content: [] }),
@@ -107,7 +107,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 			state.isSaving = true;
 			state.error = null;
 
-			await convexClient.mutation(api.notes.updateNote, {
+			await convexClient.mutation(api.features.notes.index.updateNote, {
 				sessionId,
 				noteId: state.noteId as Id<'inboxItems'>,
 				title: state.title,
@@ -139,7 +139,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 			state.isSaving = true;
 			state.error = null;
 
-			await convexClient.mutation(api.notes.updateNoteAIFlag, {
+			await convexClient.mutation(api.features.notes.index.updateNoteAIFlag, {
 				sessionId,
 				noteId: state.noteId as Id<'inboxItems'>
 			});
@@ -168,7 +168,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 			state.isSaving = true;
 			state.error = null;
 
-			await convexClient.mutation(api.notes.updateNoteExport, {
+			await convexClient.mutation(api.features.notes.index.updateNoteExport, {
 				sessionId,
 				noteId: state.noteId as Id<'inboxItems'>,
 				slug

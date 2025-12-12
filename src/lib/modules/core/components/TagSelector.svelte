@@ -379,7 +379,7 @@
 <div class="space-y-2">
 	<!-- Section Header -->
 	{#if showLabel}
-		<p class="mb-2 text-label font-medium tracking-wider text-secondary uppercase">Tags</p>
+		<p class="text-label text-secondary mb-2 font-medium tracking-wider uppercase">Tags</p>
 	{/if}
 
 	<!-- Tag Pills Display (shown when tags exist) -->
@@ -388,7 +388,7 @@
 			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
-					class="bg-tag px-badge py-badge text-tag inline-flex items-center gap-2 rounded text-label transition-opacity hover:opacity-80"
+					class="bg-tag px-badge py-badge text-tag text-label inline-flex items-center gap-2 rounded transition-opacity hover:opacity-80"
 					onclick={() => handleTagToggle(tag._id)}
 					aria-label={`Remove tag ${tag.displayName}`}
 				>
@@ -403,7 +403,7 @@
 			<!-- Add button inline (only + icon when tags exist) -->
 			<button
 				type="button"
-				class="hover:bg-hover-solid flex h-6 w-6 items-center justify-center rounded-full text-secondary transition-colors hover:text-primary"
+				class="hover:bg-hover-solid text-secondary hover:text-primary flex h-6 w-6 items-center justify-center rounded-full transition-colors"
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -446,8 +446,8 @@
 					<button
 						type="button"
 						class={useInlineStyle
-							? 'hover:bg-hover-solid inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-secondary transition-colors'
-							: 'border-base px-menu-item py-menu-item hover:bg-hover-solid flex w-full items-center gap-2 rounded-md border bg-base text-left text-sm text-secondary transition-colors hover:text-primary'}
+							? 'hover:bg-hover-solid text-secondary inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm transition-colors'
+							: 'border-base px-menu-item py-menu-item hover:bg-hover-solid bg-base text-secondary hover:text-primary flex w-full items-center gap-2 rounded-md border text-left text-sm transition-colors'}
 						onclick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
@@ -477,7 +477,7 @@
 
 			<Combobox.Portal>
 				<Combobox.Content
-					class="border-base z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border bg-elevated py-1 shadow-lg"
+					class="border-base bg-elevated z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border py-1 shadow-lg"
 					side="bottom"
 					align="start"
 					sideOffset={4}
@@ -494,7 +494,7 @@
 							onkeydown={handleInputKeyDown}
 							onfocus={handleInputFocus}
 							placeholder="Add tags..."
-							class="border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-md border bg-base pr-8 text-sm text-primary focus:border-accent-primary focus:ring-2 focus:outline-none"
+							class="border-base px-menu-item py-menu-item focus:ring-accent-primary bg-base text-primary focus:border-accent-primary w-full rounded-md border pr-8 text-sm focus:ring-2 focus:outline-none"
 							aria-label="Tag selector input"
 						/>
 						<!-- Keyboard shortcut indicator -->
@@ -503,7 +503,7 @@
 							aria-label="Keyboard shortcut: T"
 						>
 							<span
-								class="border-base rounded border bg-elevated px-1 py-0.5 text-label text-tertiary"
+								class="border-base bg-elevated text-label text-tertiary rounded border px-1 py-0.5"
 								>T</span
 							>
 						</div>
@@ -512,19 +512,19 @@
 					{@const isCreatingNewTag = canCreateTag() && searchValue.trim().length > 0}
 					{#if selectedTags().length > 0 && !isCreatingNewTag}
 						<div class="px-menu-item py-menu-item">
-							<p class="mb-1 text-label font-medium tracking-wider text-tertiary uppercase">
+							<p class="text-label text-tertiary mb-1 font-medium tracking-wider uppercase">
 								Selected
 							</p>
 							<div class="space-y-0.5">
 								{#each selectedTags() as tag (tag._id)}
 									<button
 										type="button"
-										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
+										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid text-primary flex w-full cursor-pointer items-center gap-2 text-left text-sm outline-none"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Toggle tag ${tag.displayName}`}
 									>
 										<svg
-											class="h-4 w-4 flex-shrink-0 text-accent-primary"
+											class="text-accent-primary h-4 w-4 flex-shrink-0"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -546,7 +546,7 @@
 							</div>
 						</div>
 						{#if selectedTags().length > 0 && (groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0)}
-							<div class="my-1 h-px bg-base"></div>
+							<div class="bg-base my-1 h-px"></div>
 						{/if}
 					{/if}
 
@@ -558,14 +558,14 @@
 					{@const shouldShowAvailableSection = hasUnselectedTags || searchValue.trim().length > 0}
 					{#if shouldShowAvailableSection}
 						<div class="px-menu-item py-menu-item">
-							<p class="mb-1 text-label font-medium tracking-wider text-tertiary uppercase">
+							<p class="text-label text-tertiary mb-1 font-medium tracking-wider uppercase">
 								Available Tags
 							</p>
 							{#if hasFilteredTags}
 								{#each groupedTags().rootTags as tag (tag._id)}
 									<button
 										type="button"
-										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
+										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid text-primary flex w-full cursor-pointer items-center gap-2 text-left text-sm outline-none"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Select tag ${tag.displayName}`}
 									>
@@ -584,14 +584,14 @@
 									{#if parentTag}
 										<div class="mt-2">
 											<p
-												class="px-menu-item mb-1 text-label font-medium tracking-wider text-tertiary uppercase"
+												class="px-menu-item text-label text-tertiary mb-1 font-medium tracking-wider uppercase"
 											>
 												{parentTag.displayName}
 											</p>
 											{#each tags as tag (tag._id)}
 												<button
 													type="button"
-													class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
+													class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid text-primary flex w-full cursor-pointer items-center gap-2 text-left text-sm outline-none"
 													onclick={() => handleTagToggle(tag._id)}
 													aria-label={`Select tag ${tag.displayName}`}
 												>
@@ -608,7 +608,7 @@
 								{/each}
 							{:else if searchValue.trim().length > 0}
 								<!-- Show "No tags match" when search yields no results -->
-								<div class="px-menu-item py-menu-item text-center text-sm text-tertiary">
+								<div class="px-menu-item py-menu-item text-tertiary text-center text-sm">
 									No tags match "{searchValue}"
 								</div>
 							{/if}
@@ -618,11 +618,11 @@
 					<!-- Create New Tag Option -->
 					{#if canCreateTag() && onCreateTagWithColor && searchValue.trim().length > 0}
 						{#if shouldShowAvailableSection || selectedTags().length > 0}
-							<div class="my-1 h-px bg-base"></div>
+							<div class="bg-base my-1 h-px"></div>
 						{/if}
 						{#if showColorPicker && colorPickerOpen}
 							<div class="border-base mt-1 border-t pt-1">
-								<p class="px-menu-item py-menu-item mb-1 text-label font-medium text-secondary">
+								<p class="px-menu-item py-menu-item text-label text-secondary mb-1 font-medium">
 									Pick a color for label
 								</p>
 								<div
@@ -653,7 +653,7 @@
 									{#each TAG_COLORS as color, index (index)}
 										<button
 											type="button"
-											class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
+											class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid text-primary flex w-full cursor-pointer items-center gap-2 text-left text-sm outline-none"
 											class:bg-hover-solid={focusedColorIndex === index}
 											onclick={() => handleColorSelect(color.hex)}
 											onfocus={() => {
@@ -675,7 +675,7 @@
 							<div class="border-base mt-1 border-t pt-1">
 								<button
 									type="button"
-									class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
+									class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid text-primary flex w-full cursor-pointer items-center gap-2 text-left text-sm outline-none"
 									onclick={handleCreateTagClick}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === 'Return') {
@@ -686,7 +686,7 @@
 									aria-label={`Create new tag: ${searchValue.trim()}`}
 								>
 									<svg
-										class="h-4 w-4 flex-shrink-0 text-secondary"
+										class="text-secondary h-4 w-4 flex-shrink-0"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -708,7 +708,7 @@
 					{@const tags = availableTags()}
 					{#if !canCreateTag() && !shouldShowAvailableSection && selectedTags().length === 0}
 						{#if tags.length === 0}
-							<div class="px-menu-item py-menu-item text-center text-sm text-tertiary">
+							<div class="px-menu-item py-menu-item text-tertiary text-center text-sm">
 								No tags yet. Create your first tag!
 							</div>
 						{/if}

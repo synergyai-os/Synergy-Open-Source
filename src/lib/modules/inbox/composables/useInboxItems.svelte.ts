@@ -38,7 +38,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 	// This automatically subscribes to changes and updates when new items are added during sync
 	const inboxQuery =
 		browser && params?.sessionId
-			? useQuery(api.inbox.listInboxItems, () => {
+			? useQuery(api.features.inbox.index.listInboxItems, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
 					invariant(sessionId, 'sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 

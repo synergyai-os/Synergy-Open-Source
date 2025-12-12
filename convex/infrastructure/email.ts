@@ -5,6 +5,7 @@ import { internal } from '../_generated/api';
 import { v } from 'convex/values';
 import { Resend } from 'resend';
 import { createError, ErrorCodes } from './errors/codes';
+import { validateSessionAndGetUserId } from './sessionValidation';
 
 // Internal action: Test email function - sends to randy@synergyai.nl
 // Using internalAction instead of internalMutation because actions can make HTTP requests
@@ -66,15 +67,18 @@ export const sendTestEmailInternal = internalAction({
 // Public action that calls the internal action to send email
 // Actions can make HTTP requests, so we use an action for Resend API calls
 export const sendTestEmail = action({
+	args: { sessionId: v.string() },
 	handler: async (
-		ctx
+		ctx,
+		args
 	): Promise<{
 		success: boolean;
 		message: string;
 		details: { success: boolean; emailId?: string; message: string; result?: unknown };
 	}> => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		// Call the internal action to send the email
-		const result = await ctx.runAction(internal.email.sendTestEmailInternal);
+		const result = await ctx.runAction(internal.infrastructure.email.sendTestEmailInternal);
 		return { success: true, message: 'Test email sent to randy@synergyai.nl', details: result };
 	}
 });

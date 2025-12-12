@@ -23,7 +23,7 @@
 	import { toast } from 'svelte-sonner';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Tabs, Badge } from '$lib/components/atoms';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	interface Props {
 		sessionId: string;
@@ -39,7 +39,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query user's action items (defaults to current user)
 	const actionItemsQuery =
 		browser && sessionId
-			? useQuery(api.tasks.listByAssignee, () => {
+			? useQuery(api.features.tasks.index.listByAssignee, () => {
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };
 				})
@@ -73,7 +73,7 @@ import { invariant } from '$lib/utils/invariant';
 			else if (currentStatus === 'in-progress') newStatus = 'done';
 			else newStatus = 'todo';
 
-			await convexClient?.mutation(api.tasks.updateStatus, {
+			await convexClient?.mutation(api.features.tasks.index.updateStatus, {
 				sessionId,
 				actionItemId,
 				status: newStatus
@@ -125,25 +125,25 @@ import { invariant } from '$lib/utils/invariant';
 	>
 		<Tabs.Trigger
 			value="all"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			All <Badge>{allCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="todo"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			To Do <Badge>{todoCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="in-progress"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			In Progress <Badge>{inProgressCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="done"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			Done <Badge>{doneCount}</Badge>
 		</Tabs.Trigger>
@@ -158,7 +158,7 @@ import { invariant } from '$lib/utils/invariant';
 		{:else if filteredItems().length === 0}
 			<!-- Empty State -->
 			<div
-				class="border-border-base rounded-card border border-dashed bg-surface text-center"
+				class="border-border-base rounded-card bg-surface border border-dashed text-center"
 				style="padding-block: var(--spacing-8);"
 			>
 				<svg
@@ -191,7 +191,7 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else}
 			<!-- List of action items -->
-			<div class="divide-border-base border-border-base divide-y rounded-card border bg-surface">
+			<div class="divide-border-base border-border-base rounded-card bg-surface divide-y border">
 				{#each filteredItems() as item (item._id)}
 					<div
 						class="group p-inbox-card hover:bg-surface-hover gap-2-gap flex items-start transition-colors"
@@ -203,7 +203,7 @@ import { invariant } from '$lib/utils/invariant';
 							aria-label="Toggle status"
 						>
 							<div
-								class="flex h-5 w-5 items-center justify-center rounded-avatar {getStatusColor(
+								class="rounded-avatar flex h-5 w-5 items-center justify-center {getStatusColor(
 									item.status
 								)} transition-colors hover:scale-110"
 							>
@@ -225,11 +225,11 @@ import { invariant } from '$lib/utils/invariant';
 
 							<!-- Metadata -->
 							<div
-								class="mt-content-section gap-content-section text-text-tertiary flex flex-wrap items-center text-label"
+								class="mt-content-section gap-content-section text-text-tertiary text-label flex flex-wrap items-center"
 							>
 								<!-- Task Badge (tasks are always individual tasks, no type field) -->
 								<span
-									class="rounded-chip border-border-base px-badge py-badge inline-flex items-center border bg-surface"
+									class="rounded-chip border-border-base px-badge py-badge bg-surface inline-flex items-center border"
 									style="gap: var(--spacing-1);"
 								>
 									⚡ Task
@@ -253,7 +253,7 @@ import { invariant } from '$lib/utils/invariant';
 								<!-- Meeting Link -->
 								<button
 									onclick={() => handleNavigateToMeeting(item.meetingId)}
-									class="hover:text-accent-hover inline-flex items-center text-accent-primary transition-colors"
+									class="hover:text-accent-hover text-accent-primary inline-flex items-center transition-colors"
 									style="gap: var(--spacing-1);"
 								>
 									<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">

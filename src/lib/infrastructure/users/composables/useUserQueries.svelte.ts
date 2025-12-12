@@ -52,7 +52,7 @@ export function useUserQueries(options: UseUserQueriesOptions): UseUserQueriesRe
 	// Current user query
 	const currentUserQuery =
 		browser && getSessionId()
-			? useQuery(api.users.getCurrentUser, () => {
+			? useQuery(api.core.users.index.getCurrentUser, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };
@@ -62,7 +62,7 @@ export function useUserQueries(options: UseUserQueriesOptions): UseUserQueriesRe
 	// Linked accounts query
 	const linkedAccountsQuery =
 		browser && getSessionId()
-			? useQuery(api.users.listLinkedAccounts, () => {
+			? useQuery(api.core.users.index.listLinkedAccounts, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };

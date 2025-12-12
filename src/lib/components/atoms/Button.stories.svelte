@@ -72,7 +72,7 @@
 				size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
 			/>
 		{:else if args.iconType}
-			<span class="flex items-center gap-button">
+			<span class="gap-button flex items-center">
 				{#if args.iconPosition !== 'right'}
 					<Icon
 						type={args.iconType}

@@ -132,7 +132,8 @@ export function createMockOrganizationInvites(): WorkspaceInvite[] {
 export function createMockInboxItems(): Array<{
 	_id: string;
 	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
-	userId: string;
+	personId: string;
+	workspaceId?: string;
 	processed: boolean;
 	createdAt: number;
 	title: string;
@@ -143,7 +144,8 @@ export function createMockInboxItems(): Array<{
 		{
 			_id: 'item-1',
 			type: 'readwise_highlight',
-			userId: 'user-1',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
 			processed: false,
 			createdAt: Date.now() - 3600000,
 			title: 'Test Highlight 1',
@@ -153,7 +155,8 @@ export function createMockInboxItems(): Array<{
 		{
 			_id: 'item-2',
 			type: 'photo_note',
-			userId: 'user-1',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
 			processed: false,
 			createdAt: Date.now() - 7200000,
 			title: 'Test Photo Note',
@@ -163,7 +166,8 @@ export function createMockInboxItems(): Array<{
 		{
 			_id: 'item-3',
 			type: 'manual_text',
-			userId: 'user-1',
+			personId: 'person-1',
+			workspaceId: 'workspace-1',
 			processed: false,
 			createdAt: Date.now() - 10800000,
 			title: 'Test Manual Text',
@@ -180,7 +184,8 @@ export function createMockInboxItemWithDetails() {
 	return {
 		_id: 'item-1',
 		type: 'readwise_highlight' as const,
-		userId: 'user-1',
+		personId: 'person-1',
+		workspaceId: 'workspace-1',
 		processed: false,
 		createdAt: Date.now() - 3600000,
 		title: 'Test Highlight 1',
@@ -218,7 +223,7 @@ export function createMockInboxItemWithDetails() {
 		tags: [
 			{
 				_id: 'tag-1',
-				userId: 'user-1',
+				personId: 'person-1',
 				name: 'test',
 				createdAt: Date.now() - 3600000
 			}

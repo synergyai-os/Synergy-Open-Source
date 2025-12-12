@@ -1,8 +1,8 @@
 export {
 	listInvitationsByMeeting,
 	listInvitationsByMeetingArgs,
-	isUserInvitedArgs,
-	checkUserInvited
+	isPersonInvitedArgs,
+	checkPersonInvited
 } from './queries';
 export {
 	createInvitation,

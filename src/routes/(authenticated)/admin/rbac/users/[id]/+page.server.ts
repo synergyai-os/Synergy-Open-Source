@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		const [userDetailsResult, allRolesResult] = await Promise.all([
 			client.query(api.admin.users.getUserById, {
 				sessionId,
-				userId: params.id as Id<'users'>
+				targetUserId: params.id as Id<'users'>
 			}),
 			client.query(api.admin.rbac.listRoles, { sessionId })
 		]);

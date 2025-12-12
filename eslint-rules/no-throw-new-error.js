@@ -30,7 +30,8 @@ export default {
 	meta: {
 		type: 'problem',
 		docs: {
-			description: 'Disallow raw throw new Error in runtime code; use invariant or structured errors.',
+			description:
+				'Disallow raw throw new Error in runtime code; use invariant or structured errors.',
 			category: 'Best Practices',
 			recommended: false
 		},
@@ -63,4 +64,3 @@ export default {
 		};
 	}
 };
-

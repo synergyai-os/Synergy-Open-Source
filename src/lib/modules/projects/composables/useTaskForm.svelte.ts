@@ -28,7 +28,7 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 		// Form state
 		description: '',
 		assigneeType: 'user' as 'user' | 'role',
-		assigneeUserId: null as Id<'users'> | null,
+		assigneePersonId: null as Id<'people'> | null,
 		assigneeRoleId: null as Id<'circleRoles'> | null,
 		dueDate: null as number | null
 	});
@@ -37,7 +37,7 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 	function resetForm() {
 		state.description = '';
 		state.assigneeType = 'user';
-		state.assigneeUserId = null;
+		state.assigneePersonId = null;
 		state.assigneeRoleId = null;
 		state.dueDate = null;
 		state.isAdding = false;
@@ -57,8 +57,8 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 		}
 
 		// Validate assignee
-		if (state.assigneeType === 'user' && !state.assigneeUserId) {
-			toast.error('Please select a user');
+		if (state.assigneeType === 'user' && !state.assigneePersonId) {
+			toast.error('Please select a person');
 			return;
 		}
 
@@ -68,14 +68,25 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 		}
 
 		try {
-			await convexClient?.mutation(api.tasks.create, {
+			const members = params.members();
+			const assigneeUserId =
+				state.assigneeType === 'user' && state.assigneePersonId
+					? members.find((m) => m.personId === state.assigneePersonId)?.userId
+					: undefined;
+
+			if (state.assigneeType === 'user' && !assigneeUserId) {
+				toast.error('Selected person is missing a linked user');
+				return;
+			}
+
+			await convexClient?.mutation(api.features.tasks.index.create, {
 				sessionId: params.sessionId(),
 				workspaceId: params.workspaceId(),
 				meetingId: params.meetingId(),
 				agendaItemId: params.agendaItemId(),
 				circleId: params.circleId?.() ?? undefined,
 				assigneeType: state.assigneeType,
-				assigneeUserId: state.assigneeUserId ?? undefined,
+				assigneeUserId,
 				assigneeRoleId: state.assigneeRoleId ?? undefined,
 				description: state.description.trim(),
 				dueDate: state.dueDate ?? undefined
@@ -96,7 +107,7 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 	) {
 		try {
 			const newStatus = currentStatus === 'done' ? 'todo' : 'done';
-			await convexClient?.mutation(api.tasks.updateStatus, {
+			await convexClient?.mutation(api.features.tasks.index.updateStatus, {
 				sessionId: params.sessionId(),
 				actionItemId: taskId,
 				status: newStatus
@@ -112,7 +123,7 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 		if (!confirm('Delete this task?')) return;
 
 		try {
-			await convexClient?.mutation(api.tasks.remove, {
+			await convexClient?.mutation(api.features.tasks.index.remove, {
 				sessionId: params.sessionId(),
 				actionItemId: taskId
 			});
@@ -197,11 +208,11 @@ export function useTaskForm(params: UseTaskFormOptions): UseTaskFormReturn {
 		set assigneeType(value: 'user' | 'role') {
 			state.assigneeType = value;
 		},
-		get assigneeUserId() {
-			return state.assigneeUserId;
+		get assigneePersonId() {
+			return state.assigneePersonId;
 		},
-		set assigneeUserId(value: Id<'users'> | null) {
-			state.assigneeUserId = value;
+		set assigneePersonId(value: Id<'people'> | null) {
+			state.assigneePersonId = value;
 		},
 		get assigneeRoleId() {
 			return state.assigneeRoleId;

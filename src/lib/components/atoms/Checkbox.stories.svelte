@@ -23,7 +23,7 @@
 		<Checkbox.Root {...args}>
 			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
-					class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
+					class="border-base bg-input rounded-input flex h-4 w-4 items-center justify-center border-2 transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
 						: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 				>
@@ -36,7 +36,7 @@
 							stroke-width="3"
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							class="h-3 w-3 text-primary"
+							class="text-primary h-3 w-3"
 						>
 							<polyline points="20 6 9 17 4 12"></polyline>
 						</svg>
@@ -52,7 +52,7 @@
 		<Checkbox.Root {...args}>
 			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
-					class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
+					class="border-base bg-input rounded-input flex h-4 w-4 items-center justify-center border-2 transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
 						: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 				>
@@ -65,7 +65,7 @@
 							stroke-width="3"
 							stroke-linecap="round"
 							stroke-linejoin="round"
-							class="h-3 w-3 text-primary"
+							class="text-primary h-3 w-3"
 						>
 							<polyline points="20 6 9 17 4 12"></polyline>
 						</svg>
@@ -82,7 +82,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
+						class="border-base bg-input rounded-input flex h-4 w-4 items-center justify-center border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
@@ -95,7 +95,7 @@
 								stroke-width="3"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								class="h-3 w-3 text-primary"
+								class="text-primary h-3 w-3"
 							>
 								<polyline points="20 6 9 17 4 12"></polyline>
 							</svg>
@@ -114,7 +114,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
+						class="border-base bg-input rounded-input flex h-4 w-4 items-center justify-center border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
@@ -127,7 +127,7 @@
 								stroke-width="3"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								class="h-3 w-3 text-primary"
+								class="text-primary h-3 w-3"
 							>
 								<polyline points="20 6 9 17 4 12"></polyline>
 							</svg>
@@ -146,7 +146,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
+						class="border-base bg-input rounded-input flex h-4 w-4 items-center justify-center border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
@@ -159,7 +159,7 @@
 								stroke-width="3"
 								stroke-linecap="round"
 								stroke-linejoin="round"
-								class="h-3 w-3 text-primary"
+								class="text-primary h-3 w-3"
 							>
 								<polyline points="20 6 9 17 4 12"></polyline>
 							</svg>

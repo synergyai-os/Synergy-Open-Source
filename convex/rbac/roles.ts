@@ -6,7 +6,7 @@
 
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import { validateSessionAndGetUserId } from '../sessionValidation';
+import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 import { requirePermission } from './permissions';
 
@@ -17,7 +17,7 @@ import { requirePermission } from './permissions';
 export const assignRole = mutation({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users'),
+		assigneeUserId: v.id('users'),
 		roleSlug: v.string(),
 		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
@@ -47,7 +47,7 @@ export const assignRole = mutation({
 		// Check if user already has this role
 		const existingRole = await ctx.db
 			.query('userRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', args.userId).eq('roleId', role._id))
+			.withIndex('by_user_role', (q) => q.eq('userId', args.assigneeUserId).eq('roleId', role._id))
 			.filter((q) => {
 				let filter = q.eq(q.field('revokedAt'), undefined);
 
@@ -69,7 +69,7 @@ export const assignRole = mutation({
 
 		// Assign role
 		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.userId,
+			userId: args.assigneeUserId,
 			roleId: role._id,
 			workspaceId: args.workspaceId,
 			circleId: args.circleId,

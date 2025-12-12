@@ -103,7 +103,7 @@
 				- See missing-styles.md for documentation
 			-->
 			<Select.Content
-				class="border-base z-[100] min-w-[var(--bits-select-anchor-width)] rounded-modal border bg-elevated py-1 shadow-card"
+				class="border-base rounded-modal bg-elevated shadow-card z-[100] min-w-[var(--bits-select-anchor-width)] border py-1"
 				sideOffset={4}
 			>
 				<!--
@@ -122,7 +122,7 @@
 							value={option.value}
 							label={option.label}
 							disabled={option.disabled}
-							class="text-body-sm flex cursor-pointer items-center gap-fieldGroup rounded-button px-button py-button text-primary transition-colors outline-none hover:bg-subtle focus:bg-subtle data-disabled:pointer-events-none data-disabled:opacity-50"
+							class="text-body-sm gap-fieldGroup rounded-button px-button py-button text-primary hover:bg-subtle focus:bg-subtle flex cursor-pointer items-center transition-colors outline-none data-disabled:pointer-events-none data-disabled:opacity-50"
 						>
 							{#snippet children({ selected })}
 								{option.label}

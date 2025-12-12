@@ -14,8 +14,10 @@
  * See: https://docs.convex.dev/auth/authkit
  */
 
+import { internalQuery } from '../_generated/server';
 import type { QueryCtx, MutationCtx } from '../_generated/server';
 import type { Doc, Id } from '../_generated/dataModel';
+import { v } from 'convex/values';
 import { createError, ErrorCodes } from './errors/codes';
 
 /**
@@ -57,42 +59,6 @@ export async function validateSession(ctx: QueryCtx | MutationCtx, userId: Id<'u
 	}
 
 	return session;
-}
-
-/**
- * Get userId from session validation (for queries that don't pass userId)
- *
- * @param ctx Query or Mutation context
- * @param sessionId Session ID from authenticated SvelteKit session
- * @returns userId if session is valid, null otherwise
- */
-export async function getUserIdFromSession(
-	ctx: QueryCtx | MutationCtx,
-	sessionId: string
-): Promise<Id<'users'> | null> {
-	const now = Date.now();
-
-	const session = await ctx.db
-		.query('authSessions')
-		.filter((q) =>
-			q.and(
-				q.eq(q.field('sessionId'), sessionId),
-				q.eq(q.field('isValid'), true),
-				q.gt(q.field('expiresAt'), now)
-			)
-		)
-		.first();
-
-	if (!session) {
-		return null;
-	}
-
-	// Check if session has been revoked
-	if (session.revokedAt && session.revokedAt <= now) {
-		return null;
-	}
-
-	return session.convexUserId;
 }
 
 /**
@@ -160,3 +126,16 @@ export async function validateSessionAndGetUserId(
 		session
 	};
 }
+
+/**
+ * Internal query wrapper so actions can validate a sessionId using
+ * validateSessionAndGetUserId without duplicating logic.
+ */
+export const validateSessionAndGetUserIdInternal = internalQuery({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return validateSessionAndGetUserId(ctx, args.sessionId);
+	}
+});

@@ -75,12 +75,12 @@
 	<!-- Selected Tags (Badges) -->
 	{#if selectedTags().length > 0}
 		<div class="flex flex-wrap items-center gap-2">
-			<span class="text-label tracking-wider text-secondary uppercase">Filtered by:</span>
+			<span class="text-label text-secondary tracking-wider uppercase">Filtered by:</span>
 			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
 					onclick={() => toggleTag(tag._id)}
-					class="px-badge py-badge inline-flex items-center gap-2 rounded-md text-label font-medium transition-colors hover:opacity-80"
+					class="px-badge py-badge text-label inline-flex items-center gap-2 rounded-md font-medium transition-colors hover:opacity-80"
 					style="background-color: {tag.color}20; color: {tag.color}; border: 1px solid {tag.color}40;"
 					title="Click to remove filter"
 				>
@@ -104,7 +104,7 @@
 			<button
 				type="button"
 				onclick={clearAll}
-				class="text-label text-secondary transition-colors hover:text-primary"
+				class="text-label text-secondary hover:text-primary transition-colors"
 			>
 				Clear all
 			</button>
@@ -113,9 +113,9 @@
 
 	<!-- Available Tags (Hierarchical List) -->
 	{#if (selectedTags().length === 0 || groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0) && (groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0)}
-		<div class="flex flex-col gap-section">
+		<div class="gap-section flex flex-col">
 			{#if selectedTags().length === 0}
-				<span class="text-label tracking-wider text-secondary uppercase">Filter by tag:</span>
+				<span class="text-label text-secondary tracking-wider uppercase">Filter by tag:</span>
 			{/if}
 
 			<!-- Root Tags -->
@@ -125,7 +125,7 @@
 						<button
 							type="button"
 							onclick={() => toggleTag(tag._id)}
-							class="border-base px-badge py-badge inline-flex items-center rounded-md border text-label font-medium transition-colors hover:opacity-80"
+							class="border-base px-badge py-badge text-label inline-flex items-center rounded-md border font-medium transition-colors hover:opacity-80"
 							style="background-color: {tag.color}20; color: {tag.color};"
 							title="Click to filter by this tag"
 						>
@@ -139,14 +139,14 @@
 			{#each Array.from(groupedTags().groups.entries()) as [parentId, children] (parentId)}
 				{@const parent = parentId !== 'root' ? groupedTags().tagMap.get(parentId) : undefined}
 				{#if parent}
-					<div class="pl-indent flex flex-col gap-section">
+					<div class="pl-indent gap-section flex flex-col">
 						<span class="text-label text-secondary">{parent.displayName}:</span>
 						<div class="flex flex-wrap gap-2">
 							{#each children as tag (tag._id)}
 								<button
 									type="button"
 									onclick={() => toggleTag(tag._id)}
-									class="border-base px-badge py-badge inline-flex items-center rounded-md border text-label font-medium transition-colors hover:opacity-80"
+									class="border-base px-badge py-badge text-label inline-flex items-center rounded-md border font-medium transition-colors hover:opacity-80"
 									style="background-color: {tag.color}20; color: {tag.color};"
 									title="Click to filter by this tag"
 								>

@@ -10,7 +10,7 @@
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { FlashcardsModuleAPI } from '$lib/modules/flashcards/api';
 	import type { Id } from '$lib/convex';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	const getSessionId = () => $page.data.sessionId;
 
@@ -30,7 +30,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query all tags for filtering (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
@@ -109,17 +109,17 @@ import { invariant } from '$lib/utils/invariant';
 	);
 </script>
 
-<div class="h-full overflow-y-auto bg-base">
+<div class="bg-base h-full overflow-y-auto">
 	<!-- Header -->
 	<div
-		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface px-page"
+		class="h-system-header border-base py-system-header bg-surface px-page sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 	>
-		<h2 class="text-sm font-normal text-secondary">Study Session</h2>
+		<h2 class="text-secondary text-sm font-normal">Study Session</h2>
 		<div class="flex items-center gap-2">
 			{#if study.sessionStartTime}
 				<Button.Root
 					onclick={() => study.resetSession()}
-					class="py-nav-item hover:bg-hover-solid rounded-md px-2 text-sm text-secondary transition-colors hover:text-primary"
+					class="py-nav-item hover:bg-hover-solid text-secondary hover:text-primary rounded-md px-2 text-sm transition-colors"
 				>
 					Reset
 				</Button.Root>
@@ -146,28 +146,28 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else if study.error}
 			<div class="text-center" style="padding-block: var(--spacing-8);">
-				<p class="mb-2 font-medium text-primary">Error</p>
+				<p class="text-primary mb-2 font-medium">Error</p>
 				<p class="text-secondary">{study.error}</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed === 0}
 			<!-- Empty State -->
 			<div class="max-w-readable mx-auto text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">📚</div>
-				<p class="mb-2 text-lg font-semibold text-primary">No cards due for review</p>
+				<p class="text-primary mb-2 text-lg font-semibold">No cards due for review</p>
 				<p class="text-secondary">All caught up! Check back later for more cards to study.</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed > 0}
 			<!-- Session Complete -->
 			<div class="max-w-readable mx-auto text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">✅</div>
-				<p class="mb-2 text-lg font-semibold text-primary">Session Complete!</p>
-				<p class="mb-4 text-secondary">
+				<p class="text-primary mb-2 text-lg font-semibold">Session Complete!</p>
+				<p class="text-secondary mb-4">
 					You reviewed {study.cardsReviewed} card{study.cardsReviewed !== 1 ? 's' : ''} in
 					{Math.floor(sessionDuration / 60)}:{String(sessionDuration % 60).padStart(2, '0')}
 				</p>
 				<Button.Root
 					onclick={() => study.startSession()}
-					class="px-menu-item py-menu-item rounded-md bg-accent-primary text-sm font-medium text-white transition-opacity hover:opacity-90"
+					class="px-menu-item py-menu-item bg-accent-primary rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90"
 				>
 					Start New Session
 				</Button.Root>
@@ -177,15 +177,15 @@ import { invariant } from '$lib/utils/invariant';
 			<div class="mx-auto w-full max-w-4xl">
 				<!-- Progress Bar -->
 				<div class="mb-6">
-					<div class="mb-2 flex items-center justify-between text-sm text-secondary">
+					<div class="text-secondary mb-2 flex items-center justify-between text-sm">
 						<span>
 							Card {study.cardsReviewed + 1} of {totalCards}
 						</span>
 						<span>{Math.round(progressPercent)}%</span>
 					</div>
-					<div class="border-base h-2 w-full overflow-hidden rounded-full border bg-base">
+					<div class="border-base bg-base h-2 w-full overflow-hidden rounded-full border">
 						<div
-							class="h-2 rounded-full bg-accent-primary transition-all duration-300"
+							class="bg-accent-primary h-2 rounded-full transition-all duration-300"
 							style="width: {progressPercent}%"
 						></div>
 					</div>
@@ -214,7 +214,7 @@ import { invariant } from '$lib/utils/invariant';
 
 				<!-- Instructions -->
 				<div class="mt-6 text-center">
-					<p class="text-sm text-secondary">
+					<p class="text-secondary text-sm">
 						{study.isFlipped ? 'Press 1-4 to rate, ↑/↓ to flip back' : '↑/↓ to flip card'}
 					</p>
 				</div>

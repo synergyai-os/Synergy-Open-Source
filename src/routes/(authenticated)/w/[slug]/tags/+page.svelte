@@ -9,7 +9,7 @@
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
 	import type { Id } from '$lib/convex';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const convexClient = useConvexClient();
@@ -33,7 +33,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Fetch user's tags filtered by active workspace
 	const tagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listUserTags, () => {
+			? useQuery(api.features.tags.index.listUserTags, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
@@ -70,7 +70,7 @@ import { invariant } from '$lib/utils/invariant';
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID is required');
 
-			const result = await convexClient.mutation(api.tags.createTagShare, {
+			const result = await convexClient.mutation(api.features.tags.index.createTagShare, {
 				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
@@ -131,10 +131,10 @@ import { invariant } from '$lib/utils/invariant';
 
 <!-- Page Header -->
 <div
-	class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-base px-page"
+	class="h-system-header border-base py-system-header bg-base px-page sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 >
 	<div class="flex items-center gap-2">
-		<svg class="h-5 w-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="text-accent-primary h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -142,13 +142,13 @@ import { invariant } from '$lib/utils/invariant';
 				d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 			/>
 		</svg>
-		<h2 class="text-sm font-normal text-secondary">Tags & Collections</h2>
+		<h2 class="text-secondary text-sm font-normal">Tags & Collections</h2>
 	</div>
 </div>
 
 <!-- Page Content -->
 <div class="flex-1 overflow-auto">
-	<div class="mx-auto max-w-4xl px-page py-8">
+	<div class="px-page mx-auto max-w-4xl py-8">
 		{#if isLoading}
 			<div class="flex items-center justify-center py-12">
 				<p class="text-secondary">Loading tags...</p>
@@ -156,7 +156,7 @@ import { invariant } from '$lib/utils/invariant';
 		{:else if userTagsList().length === 0 && organizationTags().length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
 				<svg
-					class="mb-4 h-16 w-16 text-tertiary"
+					class="text-tertiary mb-4 h-16 w-16"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -168,8 +168,8 @@ import { invariant } from '$lib/utils/invariant';
 						d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 					/>
 				</svg>
-				<h3 class="mb-2 text-lg font-semibold text-primary">No tags yet</h3>
-				<p class="max-w-md text-sm text-secondary">
+				<h3 class="text-primary mb-2 text-lg font-semibold">No tags yet</h3>
+				<p class="text-secondary max-w-md text-sm">
 					Tags help you organize your highlights and flashcards. Create your first tag from the
 					inbox or study pages.
 				</p>
@@ -178,14 +178,14 @@ import { invariant } from '$lib/utils/invariant';
 			<!-- User Tags Section -->
 			{#if userTagsList().length > 0}
 				<div class="mb-8">
-					<h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
+					<h3 class="text-primary mb-4 flex items-center gap-2 text-sm font-semibold">
 						<span>Your Tags</span>
-						<span class="text-xs font-normal text-tertiary">({userTagsList().length})</span>
+						<span class="text-tertiary text-xs font-normal">({userTagsList().length})</span>
 					</h3>
 					<div class="space-y-2">
 						{#each userTagsList() as tag (tag._id)}
 							<div
-								class="border-base p-inbox-container hover:border-accent-primary/50 rounded-lg border bg-elevated transition-colors"
+								class="border-base p-inbox-container hover:border-accent-primary/50 bg-elevated rounded-lg border transition-colors"
 							>
 								<div class="flex items-center justify-between">
 									<div class="gap-2-wide flex min-w-0 flex-1 items-center">
@@ -194,7 +194,7 @@ import { invariant } from '$lib/utils/invariant';
 											style="background-color: {tag.color}"
 										></div>
 										<div class="flex min-w-0 flex-col">
-											<span class="truncate text-sm font-medium text-primary"
+											<span class="text-primary truncate text-sm font-medium"
 												>{tag.displayName}</span
 											>
 										</div>
@@ -203,7 +203,7 @@ import { invariant } from '$lib/utils/invariant';
 										<button
 											type="button"
 											onclick={() => openShareModal(tag)}
-											class="hover:bg-accent-primary/10 flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-accent-primary transition-colors"
+											class="hover:bg-accent-primary/10 text-accent-primary flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
 										>
 											Share...
 										</button>
@@ -218,13 +218,13 @@ import { invariant } from '$lib/utils/invariant';
 			<!-- Organization Tags Section -->
 			{#if organizationTags().length > 0}
 				<div>
-					<h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
+					<h3 class="text-primary mb-4 flex items-center gap-2 text-sm font-semibold">
 						<span>Organization Tags</span>
-						<span class="text-xs font-normal text-tertiary">({organizationTags().length})</span>
+						<span class="text-tertiary text-xs font-normal">({organizationTags().length})</span>
 					</h3>
 					<div class="space-y-2">
 						{#each organizationTags() as tag (tag._id)}
-							<div class="border-base p-inbox-container rounded-lg border bg-elevated">
+							<div class="border-base p-inbox-container bg-elevated rounded-lg border">
 								<div class="flex items-center justify-between">
 									<div class="gap-2-wide flex min-w-0 flex-1 items-center">
 										<div
@@ -232,7 +232,7 @@ import { invariant } from '$lib/utils/invariant';
 											style="background-color: {tag.color}"
 										></div>
 										<div class="flex min-w-0 flex-col">
-											<span class="truncate text-sm font-medium text-primary"
+											<span class="text-primary truncate text-sm font-medium"
 												>{tag.displayName}</span
 											>
 											<span class="text-label text-tertiary">
@@ -244,7 +244,7 @@ import { invariant } from '$lib/utils/invariant';
 											</span>
 										</div>
 									</div>
-									<span class="flex flex-shrink-0 items-center gap-1 text-xs text-tertiary">
+									<span class="text-tertiary flex flex-shrink-0 items-center gap-1 text-xs">
 										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"

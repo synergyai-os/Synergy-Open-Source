@@ -39,12 +39,12 @@
 	}
 </script>
 
-<div class="flex h-screen items-center justify-center bg-base">
-	<div class="border-base w-full max-w-md rounded-lg border bg-surface px-page py-page">
+<div class="bg-base flex h-screen items-center justify-center">
+	<div class="border-base bg-surface px-page py-page w-full max-w-md rounded-lg border">
 		<div class="space-y-6">
 			<div>
-				<h1 class="text-xl font-semibold text-primary">Create Your Organization</h1>
-				<p class="mt-2 text-sm text-secondary">
+				<h1 class="text-primary text-xl font-semibold">Create Your Organization</h1>
+				<p class="text-secondary mt-2 text-sm">
 					Get started by creating your workspace. This will be your workspace for team
 					collaboration.
 				</p>
@@ -58,9 +58,9 @@
 				}}
 			>
 				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Organization name</span>
+					<span class="text-primary text-sm font-medium">Organization name</span>
 					<input
-						class="border-base py-nav-item w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full rounded-md border px-2 text-sm focus:outline-none"
 						placeholder="e.g. SynergyOS Labs"
 						bind:value={orgName}
 						required
@@ -81,7 +81,7 @@
 					<button
 						type="submit"
 						disabled={isCreating || !orgName.trim()}
-						class="text-on-solid rounded-md bg-accent-primary px-button-x py-button-y text-sm font-medium disabled:opacity-50"
+						class="text-on-solid bg-accent-primary px-button-x py-button-y rounded-md text-sm font-medium disabled:opacity-50"
 					>
 						{isCreating ? 'Creating...' : 'Create'}
 					</button>

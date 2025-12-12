@@ -28,7 +28,7 @@
 	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
@@ -55,7 +55,7 @@ import { invariant } from '$lib/utils/invariant';
 					InboxItemWithDetails | null
 				>,
 				fetchReadwiseHighlights: makeFunctionReference(
-					'syncReadwise:fetchReadwiseHighlights'
+					'features/readwise/sync:fetchReadwiseHighlights'
 				) as FunctionReference<
 					'action',
 					'public',
@@ -153,7 +153,8 @@ import { invariant } from '$lib/utils/invariant';
 		inboxApi,
 		getSessionId, // Required for session validation
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
-		() => clearSelection()
+		() => clearSelection(),
+		activeWorkspaceId
 	);
 
 	// Create local $derived values to ensure proper dependency tracking
@@ -303,12 +304,15 @@ import { invariant } from '$lib/utils/invariant';
 			invariant(sessionId, 'Session ID is required');
 
 			// Call AI generation with source context
-			const result = await convexClient.action(api.flashcards.fetchFlashcardsFromSource, {
-				sessionId,
-				text: text.trim(),
-				sourceTitle: metadata.title,
-				sourceAuthor: metadata.author
-			});
+			const result = await convexClient.action(
+				api.features.flashcards.index.fetchFlashcardsFromSource,
+				{
+					sessionId,
+					text: text.trim(),
+					sourceTitle: metadata.title,
+					sourceAuthor: metadata.author
+				}
+			);
 
 			if (!result.success || !result.flashcards || result.flashcards.length === 0) {
 				invariant(false, 'No flashcards generated');
@@ -332,19 +336,22 @@ import { invariant } from '$lib/utils/invariant';
 			invariant(sessionId, 'Session ID is required');
 
 			// Save all flashcards to database
-			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-				sessionId,
-				flashcards: generatedFlashcards,
-				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
-				sourceType: selected.selectedItem?.type
-			});
+			const _flashcardIds = await convexClient.mutation(
+				api.features.flashcards.index.createFlashcards,
+				{
+					sessionId,
+					flashcards: generatedFlashcards,
+					sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
+					sourceType: selected.selectedItem?.type
+				}
+			);
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				const sessionId = getSessionId();
 				invariant(sessionId, 'Session ID is required');
 
-				await convexClient.mutation(api.inbox.updateProcessed, {
+				await convexClient.mutation(api.features.inbox.index.updateProcessed, {
 					sessionId,
 					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});
@@ -366,19 +373,22 @@ import { invariant } from '$lib/utils/invariant';
 			invariant(sessionId, 'Session ID is required');
 
 			// Save selected flashcards to database (with any edits applied)
-			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-				sessionId,
-				flashcards: cards,
-				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
-				sourceType: selected.selectedItem?.type
-			});
+			const _flashcardIds = await convexClient.mutation(
+				api.features.flashcards.index.createFlashcards,
+				{
+					sessionId,
+					flashcards: cards,
+					sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
+					sourceType: selected.selectedItem?.type
+				}
+			);
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				const sessionId = getSessionId();
 				invariant(sessionId, 'Session ID is required');
 
-				await convexClient.mutation(api.inbox.updateProcessed, {
+				await convexClient.mutation(api.features.inbox.index.updateProcessed, {
 					sessionId,
 					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});
@@ -410,11 +420,11 @@ import { invariant } from '$lib/utils/invariant';
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
 		<div
-			class="top-content-section right-content-section fixed z-50 flex items-center gap-2 rounded-card border border-accent-primary bg-elevated px-button-x shadow-card"
+			class="top-content-section right-content-section rounded-card border-accent-primary bg-elevated px-button-x shadow-card fixed z-50 flex items-center gap-2 border"
 			style="padding-block: var(--spacing-3);"
 		>
 			<svg
-				class="icon-md flex-shrink-0 text-accent-primary"
+				class="icon-md text-accent-primary flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -426,7 +436,7 @@ import { invariant } from '$lib/utils/invariant';
 					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span class="text-small font-medium text-primary"
+			<span class="text-small text-primary font-medium"
 				>Account linked successfully! You can now switch between your accounts.</span
 			>
 			<button
@@ -435,7 +445,7 @@ import { invariant } from '$lib/utils/invariant';
 					url.searchParams.delete('linked');
 					replaceState(url.pathname + url.search, {});
 				}}
-				class="ml-icon text-secondary transition-colors hover:text-primary"
+				class="ml-icon text-secondary hover:text-primary transition-colors"
 				aria-label="Dismiss"
 			>
 				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,7 +470,7 @@ import { invariant } from '$lib/utils/invariant';
 			onWidthChange={layout.handleInboxWidthChange}
 			onClose={layout.handleClose}
 		>
-			<div class="flex h-full flex-col overflow-hidden border-r border-subtle bg-surface">
+			<div class="border-subtle bg-surface flex h-full flex-col overflow-hidden border-r">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
@@ -493,7 +503,7 @@ import { invariant } from '$lib/utils/invariant';
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary hover:bg-accent-hover transition-colors"
 								>
 									Reload Page
 								</button>
@@ -506,7 +516,7 @@ import { invariant } from '$lib/utils/invariant';
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary hover:bg-accent-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
@@ -537,7 +547,7 @@ import { invariant } from '$lib/utils/invariant';
 		</ResizableSplitter>
 
 		<!-- Right Panel - Detail View -->
-		<div class="relative flex-1 overflow-y-auto bg-elevated">
+		<div class="bg-elevated relative flex-1 overflow-y-auto">
 			{#if hasSelectedItem && selectedItem}
 				<!-- Dynamic detail view based on type -->
 				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
@@ -566,7 +576,7 @@ import { invariant } from '$lib/utils/invariant';
 					<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 					{#if generationError}
 						<div
-							class="bottom-content-padding bg-error px-menu-item py-menu-item text-small absolute left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button text-center text-primary shadow-card"
+							class="bottom-content-padding bg-error px-menu-item py-menu-item text-small rounded-button text-primary shadow-card absolute left-1/2 z-50 max-w-md -translate-x-1/2 text-center"
 						>
 							{generationError}
 						</div>
@@ -599,7 +609,7 @@ import { invariant } from '$lib/utils/invariant';
 		<!-- Mobile: List OR Detail (not both) -->
 		{#if selectedItemId}
 			<!-- Mobile Detail View - Full Screen -->
-			<div class="relative h-full w-full flex-1 overflow-y-auto bg-elevated">
+			<div class="bg-elevated relative h-full w-full flex-1 overflow-y-auto">
 				{#if selectedItem}
 					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
 					{#key selectedItem._id}
@@ -619,7 +629,7 @@ import { invariant } from '$lib/utils/invariant';
 						<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 						{#if generationError}
 							<div
-								class="bottom-content-padding bg-error px-menu-item py-menu-item text-small absolute left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button text-center text-primary shadow-card"
+								class="bottom-content-padding bg-error px-menu-item py-menu-item text-small rounded-button text-primary shadow-card absolute left-1/2 z-50 max-w-md -translate-x-1/2 text-center"
 							>
 								{generationError}
 							</div>
@@ -629,7 +639,7 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else}
 			<!-- Mobile List View - Full Screen -->
-			<div class="flex h-full flex-1 flex-col overflow-hidden bg-surface">
+			<div class="bg-surface flex h-full flex-1 flex-col overflow-hidden">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
@@ -662,7 +672,7 @@ import { invariant } from '$lib/utils/invariant';
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary hover:bg-accent-hover transition-colors"
 								>
 									Reload Page
 								</button>
@@ -675,7 +685,7 @@ import { invariant } from '$lib/utils/invariant';
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary hover:bg-accent-hover transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>

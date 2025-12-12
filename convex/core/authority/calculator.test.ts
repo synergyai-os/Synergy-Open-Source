@@ -12,9 +12,9 @@ import {
 	calculateAuthorityLevel,
 	hasDirectApprovalAuthority,
 	requiresConsentProcess,
-	hasConveningAuthority,
-	type CircleType
+	hasConveningAuthority
 } from './calculator';
+import type { CircleType } from './types';
 
 describe('calculateAuthorityLevel', () => {
 	test('maps hierarchy to authority', () => {

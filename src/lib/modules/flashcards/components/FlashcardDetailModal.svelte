@@ -9,7 +9,7 @@
 	import type { Id } from '$lib/convex';
 	import { getContext } from 'svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -187,7 +187,7 @@ import { invariant } from '$lib/utils/invariant';
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.updateFlashcard, {
+			await convexClient.mutation(api.features.flashcards.index.updateFlashcard, {
 				sessionId,
 				flashcardId: currentCard._id,
 				question: questionValue,
@@ -221,7 +221,7 @@ import { invariant } from '$lib/utils/invariant';
 			const sessionId = getSessionId();
 			invariant(sessionId, 'Session ID is required');
 
-			await convexClient.mutation(api.flashcards.archiveFlashcard, {
+			await convexClient.mutation(api.features.flashcards.index.archiveFlashcard, {
 				sessionId,
 				flashcardId: currentCard._id
 			});
@@ -266,13 +266,13 @@ import { invariant } from '$lib/utils/invariant';
 >
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
-		<Dialog.Content class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base">
+		<Dialog.Content class="bg-base fixed inset-0 z-50 flex flex-col overflow-hidden">
 			<!-- Header -->
 			<div
 				class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-b"
 			>
 				<div class="min-w-0 flex-1">
-					<h2 class="text-h3 font-semibold text-primary">
+					<h2 class="text-h3 text-primary font-semibold">
 						{collectionName || 'Flashcards'}
 					</h2>
 					<p class="text-small text-secondary">{progressText}</p>
@@ -290,17 +290,17 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 
 			<!-- Content Area -->
-			<div class="flex min-h-0 flex-1 overflow-hidden bg-base">
+			<div class="bg-base flex min-h-0 flex-1 overflow-hidden">
 				<!-- Left: Card View -->
 				<div
-					class="px-inbox-container py-inbox-container flex flex-1 items-center justify-center overflow-auto bg-base"
+					class="px-inbox-container py-inbox-container bg-base flex flex-1 items-center justify-center overflow-auto"
 				>
 					{#if currentCard}
 						<div class="flashcard-modal-container relative transition-all duration-400">
 							{#if isEditing}
 								<!-- Edit Mode -->
 								<div
-									class="shadow-card-hover flex h-full w-full flex-col overflow-hidden rounded-card border-2 border-accent-primary bg-elevated"
+									class="shadow-card-hover rounded-card border-accent-primary bg-elevated flex h-full w-full flex-col overflow-hidden border-2"
 								>
 									<div
 										class="px-inbox-container py-inbox-container flex flex-1 flex-col overflow-auto"
@@ -308,12 +308,12 @@ import { invariant } from '$lib/utils/invariant';
 										<div class="mb-form-section">
 											<label
 												for="flashcard-question"
-												class="text-small block font-medium text-secondary">Question</label
+												class="text-small text-secondary block font-medium">Question</label
 											>
 											<textarea
 												id="flashcard-question"
 												bind:value={questionValue}
-												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary w-full resize-none rounded-button border bg-base text-primary focus:ring-2 focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary rounded-button bg-base text-primary w-full resize-none border focus:ring-2 focus:outline-none"
 												rows="4"
 												placeholder="Question..."
 											></textarea>
@@ -321,12 +321,12 @@ import { invariant } from '$lib/utils/invariant';
 										<div>
 											<label
 												for="flashcard-answer"
-												class="text-small block font-medium text-secondary">Answer</label
+												class="text-small text-secondary block font-medium">Answer</label
 											>
 											<textarea
 												id="flashcard-answer"
 												bind:value={answerValue}
-												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary w-full resize-none rounded-button border bg-base text-primary focus:ring-2 focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary rounded-button bg-base text-primary w-full resize-none border focus:ring-2 focus:outline-none"
 												rows="6"
 												placeholder="Answer..."
 											></textarea>
@@ -338,14 +338,14 @@ import { invariant } from '$lib/utils/invariant';
 										<Button.Root
 											onclick={handleCancel}
 											disabled={isSaving}
-											class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button border bg-base px-2 font-medium transition-colors disabled:opacity-50"
+											class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-base border px-2 font-medium transition-colors disabled:opacity-50"
 										>
 											Cancel
 										</Button.Root>
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="py-nav-item text-small rounded-button bg-accent-primary px-2 font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+											class="py-nav-item text-small rounded-button bg-accent-primary text-primary px-2 font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>
@@ -378,7 +378,7 @@ import { invariant } from '$lib/utils/invariant';
 				<!-- Right: Metadata Sidebar -->
 				{#if currentCard}
 					<div
-						class="w-sidebar-detail border-base px-inbox-container py-inbox-container flex-shrink-0 overflow-y-auto border-l bg-surface"
+						class="w-sidebar-detail border-base px-inbox-container py-inbox-container bg-surface flex-shrink-0 overflow-y-auto border-l"
 					>
 						<FlashcardMetadata
 							flashcard={currentCard}
@@ -394,12 +394,12 @@ import { invariant } from '$lib/utils/invariant';
 			<!-- Footer: Navigation -->
 			{#if currentCard && !isEditing}
 				<div
-					class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-t bg-surface"
+					class="h-system-header border-base px-inbox-container py-system-header bg-surface flex flex-shrink-0 items-center justify-between gap-2 border-t"
 				>
 					<Button.Root
 						onclick={previousCard}
 						disabled={currentIndex === 0}
-						class="border-base py-nav-item text-small hover:bg-hover-solid flex items-center gap-2 rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-secondary disabled:text-tertiary disabled:hover:bg-elevated flex items-center gap-2 border px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -412,14 +412,14 @@ import { invariant } from '$lib/utils/invariant';
 						Previous
 					</Button.Root>
 
-					<div class="text-small flex items-center gap-2 text-secondary">
+					<div class="text-small text-secondary flex items-center gap-2">
 						<span class="text-label">Press ↑/↓ or Space to flip</span>
 					</div>
 
 					<Button.Root
 						onclick={nextCard}
 						disabled={currentIndex === flashcards.length - 1}
-						class="border-base py-nav-item text-small hover:bg-hover-solid flex items-center gap-2 rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button bg-elevated text-secondary disabled:text-tertiary disabled:hover:bg-elevated flex items-center gap-2 border px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
 					>
 						Next
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

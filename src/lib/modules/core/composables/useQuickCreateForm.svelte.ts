@@ -145,7 +145,7 @@ export function useQuickCreateForm(
 
 			if (selectedType === 'note') {
 				// Use the new notes API for rich text notes
-				await convexClient.mutation(api.notes.createNote, {
+				await convexClient.mutation(api.features.notes.index.createNote, {
 					sessionId, // Session validation in Convex
 					title: state.noteTitle || undefined,
 					content:
@@ -160,14 +160,14 @@ export function useQuickCreateForm(
 				// If there are tags, we need to link them after creation
 				// TODO: Update notes.createNote to accept tagIds parameter
 			} else if (selectedType === 'flashcard') {
-				await convexClient.mutation(api.inbox.createFlashcardInInbox, {
+				await convexClient.mutation(api.features.inbox.index.createFlashcardInInbox, {
 					sessionId,
 					question: state.question,
 					answer: state.answer,
 					tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
 				});
 			} else if (selectedType === 'highlight') {
-				await convexClient.mutation(api.inbox.createHighlightInInbox, {
+				await convexClient.mutation(api.features.inbox.index.createHighlightInInbox, {
 					sessionId,
 					text: state.content,
 					sourceTitle: state.sourceTitle || undefined,

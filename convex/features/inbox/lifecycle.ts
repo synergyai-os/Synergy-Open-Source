@@ -1,7 +1,8 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { getUserId } from './access';
+import { getInboxActor } from './access';
 import { ensureInboxOwnership, ensureInboxAssignmentRecorded } from './assignments';
+import { USER_ID_FIELD } from '../../core/people/constants';
 import {
 	notifyInboxItemArchived,
 	notifyInboxItemCreated,
@@ -18,15 +19,16 @@ export async function updateInboxItemProcessedForSession(
 	sessionId: string,
 	inboxItemId: Id<'inboxItems'>
 ): Promise<Id<'inboxItems'>> {
-	const userId = await getUserId(ctx, sessionId);
-	await ensureInboxOwnership(ctx, inboxItemId, userId);
+	const existing = await ctx.db.get(inboxItemId);
+	const actor = await getInboxActor(ctx, sessionId, existing?.workspaceId ?? null);
+	await ensureInboxOwnership(ctx, inboxItemId, actor.personId);
 
 	await ctx.db.patch(inboxItemId, {
 		processed: true,
 		processedAt: Date.now()
 	});
 
-	await notifyInboxItemProcessed(ctx, inboxItemId, userId);
+	await notifyInboxItemProcessed(ctx, inboxItemId, actor.personId);
 
 	return inboxItemId;
 }
@@ -37,18 +39,19 @@ export async function createNoteInInboxForSession(
 	text: string,
 	title?: string
 ): Promise<NoteIds> {
-	const userId = await getUserId(ctx, sessionId);
+	const actor = await getInboxActor(ctx, sessionId);
 	const inboxItemId = await ctx.db.insert('inboxItems', {
 		type: 'manual_text',
-		userId,
+		personId: actor.personId,
 		processed: false,
 		createdAt: Date.now(),
 		text,
-		bookTitle: title
+		bookTitle: title,
+		workspaceId: actor.workspaceId
 	});
 
-	await ensureInboxAssignmentRecorded(ctx, inboxItemId, userId);
-	await notifyInboxItemCreated(ctx, inboxItemId, userId);
+	await ensureInboxAssignmentRecorded(ctx, inboxItemId, actor.personId);
+	await notifyInboxItemCreated(ctx, inboxItemId, actor.personId);
 
 	return { inboxItemId };
 }
@@ -60,10 +63,10 @@ export async function createFlashcardInInboxForSession(
 	answer: string,
 	tagIds?: Id<'tags'>[]
 ): Promise<FlashcardIds> {
-	const userId = await getUserId(ctx, sessionId);
+	const actor = await getInboxActor(ctx, sessionId);
 
 	const flashcardId = await ctx.db.insert('flashcards', {
-		userId,
+		[USER_ID_FIELD]: actor.linkedUser,
 		question,
 		answer,
 		algorithm: 'fsrs',
@@ -74,11 +77,12 @@ export async function createFlashcardInInboxForSession(
 
 	const inboxItemId = await ctx.db.insert('inboxItems', {
 		type: 'manual_text',
-		userId,
+		personId: actor.personId,
 		processed: false,
 		createdAt: Date.now(),
 		text: `Q: ${question}\n\nA: ${answer}`,
-		bookTitle: 'Flashcard'
+		bookTitle: 'Flashcard',
+		workspaceId: actor.workspaceId
 	});
 
 	if (tagIds) {
@@ -87,8 +91,8 @@ export async function createFlashcardInInboxForSession(
 		}
 	}
 
-	await ensureInboxAssignmentRecorded(ctx, inboxItemId, userId);
-	await notifyInboxItemCreated(ctx, inboxItemId, userId);
+	await ensureInboxAssignmentRecorded(ctx, inboxItemId, actor.personId);
+	await notifyInboxItemCreated(ctx, inboxItemId, actor.personId);
 
 	return { flashcardId, inboxItemId };
 }
@@ -101,11 +105,11 @@ export async function createHighlightInInboxForSession(
 	note?: string,
 	tagIds?: Id<'tags'>[]
 ): Promise<HighlightIds> {
-	const userId = await getUserId(ctx, sessionId);
-	const source = await getOrCreateManualSource(ctx, userId, sourceTitle);
+	const actor = await getInboxActor(ctx, sessionId);
+	const source = await getOrCreateManualSource(ctx, actor, sourceTitle);
 
 	const highlightId = await ctx.db.insert('highlights', {
-		userId,
+		[USER_ID_FIELD]: actor.linkedUser,
 		sourceId: source._id,
 		text,
 		note,
@@ -117,10 +121,11 @@ export async function createHighlightInInboxForSession(
 
 	const inboxItemId = await ctx.db.insert('inboxItems', {
 		type: 'readwise_highlight',
-		userId,
+		personId: actor.personId,
 		processed: false,
 		createdAt: Date.now(),
-		highlightId
+		highlightId,
+		workspaceId: actor.workspaceId
 	});
 
 	if (tagIds) {
@@ -129,8 +134,8 @@ export async function createHighlightInInboxForSession(
 		}
 	}
 
-	await ensureInboxAssignmentRecorded(ctx, inboxItemId, userId);
-	await notifyInboxItemCreated(ctx, inboxItemId, userId);
+	await ensureInboxAssignmentRecorded(ctx, inboxItemId, actor.personId);
+	await notifyInboxItemCreated(ctx, inboxItemId, actor.personId);
 
 	return { highlightId, inboxItemId };
 }
@@ -140,15 +145,16 @@ export async function archiveInboxItemForSession(
 	sessionId: string,
 	inboxItemId: Id<'inboxItems'>
 ) {
-	const userId = await getUserId(ctx, sessionId);
-	await ensureInboxOwnership(ctx, inboxItemId, userId);
+	const existing = await ctx.db.get(inboxItemId);
+	const actor = await getInboxActor(ctx, sessionId, existing?.workspaceId ?? null);
+	await ensureInboxOwnership(ctx, inboxItemId, actor.personId);
 
 	await ctx.db.patch(inboxItemId, {
 		processed: true,
 		processedAt: Date.now()
 	});
 
-	await notifyInboxItemArchived(ctx, inboxItemId, userId);
+	await notifyInboxItemArchived(ctx, inboxItemId, actor.personId);
 
 	return inboxItemId;
 }
@@ -158,35 +164,40 @@ export async function restoreInboxItemForSession(
 	sessionId: string,
 	inboxItemId: Id<'inboxItems'>
 ) {
-	const userId = await getUserId(ctx, sessionId);
-	await ensureInboxOwnership(ctx, inboxItemId, userId);
+	const existing = await ctx.db.get(inboxItemId);
+	const actor = await getInboxActor(ctx, sessionId, existing?.workspaceId ?? null);
+	await ensureInboxOwnership(ctx, inboxItemId, actor.personId);
 
 	await ctx.db.patch(inboxItemId, {
 		processed: false,
 		processedAt: undefined
 	});
 
-	await notifyInboxItemRestored(ctx, inboxItemId, userId);
+	await notifyInboxItemRestored(ctx, inboxItemId, actor.personId);
 
 	return inboxItemId;
 }
 
-async function getOrCreateManualSource(ctx: MutationCtx, userId: string, sourceTitle?: string) {
+async function getOrCreateManualSource(
+	ctx: MutationCtx,
+	actor: { linkedUser: Id<'users'>; workspaceId: Id<'workspaces'> },
+	sourceTitle?: string
+) {
 	const manualSourceTitle = sourceTitle || 'Manual Entry';
 	const existing = await ctx.db
 		.query('sources')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_user', (q) => q.eq(USER_ID_FIELD, actor.linkedUser))
 		.filter((q) => q.eq(q.field('title'), manualSourceTitle))
 		.first();
 	if (existing) return existing as Doc<'sources'>;
 
 	let manualAuthor = await ctx.db
 		.query('authors')
-		.withIndex('by_user_name', (q) => q.eq('userId', userId).eq('name', 'manual'))
+		.withIndex('by_user_name', (q) => q.eq(USER_ID_FIELD, actor.linkedUser).eq('name', 'manual'))
 		.first();
 	if (!manualAuthor) {
 		const authorId = await ctx.db.insert('authors', {
-			userId,
+			[USER_ID_FIELD]: actor.linkedUser,
 			name: 'manual',
 			displayName: 'Manual Entry',
 			createdAt: Date.now()
@@ -195,13 +206,14 @@ async function getOrCreateManualSource(ctx: MutationCtx, userId: string, sourceT
 	}
 
 	const sourceId = await ctx.db.insert('sources', {
-		userId,
+		[USER_ID_FIELD]: actor.linkedUser,
 		authorId: manualAuthor!._id,
 		title: manualSourceTitle,
 		category: 'manual',
 		sourceType: 'manual',
 		externalId: `manual_${Date.now()}`,
 		numHighlights: 1,
+		workspaceId: actor.workspaceId,
 		updatedAt: Date.now(),
 		createdAt: Date.now()
 	});

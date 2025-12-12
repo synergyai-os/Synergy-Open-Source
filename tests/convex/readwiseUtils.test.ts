@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseAuthorString } from '../../convex/readwiseUtils';
+import { parseAuthorString } from '../../convex/features/readwise/utils';
 
 describe('parseAuthorString', () => {
 	it('handles single author', () => {

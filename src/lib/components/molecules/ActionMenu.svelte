@@ -34,7 +34,7 @@
 <DropdownMenu.Root bind:open={menuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-primary transition-colors hover:text-primary {className}"
+		class="hover:bg-hover-solid size-icon-xl rounded-button text-primary hover:text-primary flex items-center justify-center transition-colors {className}"
 		aria-label="More options"
 	>
 		{#if trigger}
@@ -54,7 +54,7 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="border-base z-[100] min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
+			class="border-base rounded-button bg-elevated shadow-card z-[100] min-w-[180px] border py-1"
 			side="bottom"
 			align="end"
 			sideOffset={4}

@@ -107,7 +107,7 @@
 	<!-- WORKAROUND: Card row vertical padding - see missing-styles.md -->
 	<div class="flex-1" style="padding-block: var(--spacing-card-padding);">
 		<!-- Title + Privacy Icon + Recurrence -->
-		<div class="flex items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex items-center">
 			{#if isPrivate}
 				<Icon type="lock" size="sm" color="tertiary" />
 			{/if}
@@ -119,7 +119,7 @@
 		</div>
 
 		<!-- Template Badge + Time -->
-		<div class="flex items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex items-center">
 			{#if templateName}
 				<Badge variant="default" size="sm">
 					{templateName}
@@ -132,7 +132,7 @@
 
 		<!-- Circle Badge (if exists) -->
 		{#if circleName}
-			<div class="flex items-center gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-center">
 				<Icon type="circles" size="sm" color="tertiary" />
 				<Text variant="body" size="sm" color="secondary" as="span">{circleName}</Text>
 			</div>
@@ -140,7 +140,7 @@
 
 		<!-- Attendee Avatars -->
 		{#if attendeeAvatars.length > 0}
-			<div class="flex items-center gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-center">
 				{#each attendeeAvatars.slice(0, 6) as attendee (attendee.name)}
 					<Avatar
 						initials={getInitials(attendee.name)}
@@ -164,7 +164,7 @@
 	<!-- Actions (Right) -->
 	<!-- WORKAROUND: Card row vertical padding - see missing-styles.md -->
 	<div
-		class="flex items-center gap-fieldGroup"
+		class="gap-fieldGroup flex items-center"
 		style="padding-block: var(--spacing-card-padding); padding-inline-end: var(--spacing-header-gap);"
 	>
 		{#if isClosed}
@@ -200,7 +200,7 @@
 		<!-- More options menu (always visible) -->
 		<button
 			type="button"
-			class="flex cursor-pointer items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover hover:text-primary"
+			class="rounded-button text-secondary hover:bg-hover hover:text-primary flex cursor-pointer items-center justify-center transition-colors"
 			style="padding-block: var(--spacing-1);"
 			aria-label="More options"
 		>

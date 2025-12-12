@@ -75,13 +75,13 @@
 	const badgeLabel = $derived(status === 'hiring' ? 'Hiring' : 'Draft');
 </script>
 
-<div class={[className, 'overflow-hidden rounded-card border border-default']}>
+<div class={[className, 'rounded-card border-default overflow-hidden border']}>
 	<button type="button" class={[buttonClasses, 'w-full']} onclick={handleHeaderClick}>
 		{#if isCircle}
 			<Icon type="circle" size="md" color="secondary" />
 		{/if}
 		<div class="min-w-0 flex-1 text-left">
-			<div class="flex items-center gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-center">
 				{#if canEdit && onNameChange && !isCircle && roleId}
 					<InlineEditText
 						value={name}
@@ -92,10 +92,10 @@
 					/>
 				{:else if editReason && !isCircle}
 					<EditPermissionTooltip reason={editReason}>
-						<p class="text-button truncate font-medium text-primary">{name}</p>
+						<p class="text-button text-primary truncate font-medium">{name}</p>
 					</EditPermissionTooltip>
 				{:else}
-					<p class="text-button truncate font-medium text-primary">{name}</p>
+					<p class="text-button text-primary truncate font-medium">{name}</p>
 				{/if}
 				{#if status}
 					<Badge variant={badgeVariant} size="md">
@@ -123,7 +123,7 @@
 				{/if}
 			{/if}
 		</div>
-		<div class="flex items-center gap-fieldGroup" role="group">
+		<div class="gap-fieldGroup flex items-center" role="group">
 			{#if onAddMember}
 				<Button
 					variant="ghost"
@@ -153,19 +153,15 @@
 				</Button>
 			{/if}
 			{#if menuItems.length > 0}
-				<div
-					onmousedown={(e) => e.stopPropagation()}
-					onkeydown={(e) => e.stopPropagation()}
-					role="group"
-				>
-					<ActionMenu items={menuItems} class="flex-shrink-0" />
+				<div class="flex-shrink-0" role="group">
+					<ActionMenu items={menuItems} />
 				</div>
 			{/if}
 		</div>
 	</button>
 	{#if showMembers}
-		<div class="w-full shrink-0 border-t border-subtle"></div>
-		<div class="flex flex-col gap-fieldGroup">
+		<div class="border-subtle w-full shrink-0 border-t"></div>
+		<div class="gap-fieldGroup flex flex-col">
 			{#each members as member (member.userId)}
 				<RoleMemberItem
 					userId={member.userId}

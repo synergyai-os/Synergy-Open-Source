@@ -21,6 +21,7 @@ import { invariant } from '$lib/utils/invariant';
 export type Task = Doc<'tasks'>;
 
 export interface Member {
+	personId?: Id<'people'>;
 	userId: Id<'users'>;
 	email: string;
 	name: string;
@@ -41,7 +42,7 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 	// Query tasks for this agenda item
 	const tasksQuery =
 		browser && params.sessionId()
-			? useQuery(api.tasks.listByAgendaItem, () => {
+			? useQuery(api.features.tasks.index.listByAgendaItem, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId, agendaItemId: params.agendaItemId() };
@@ -51,7 +52,7 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 	// Query workspace members (for user dropdown)
 	const membersQuery =
 		browser && params.sessionId()
-			? useQuery(api.workspaces.listMembers, () => {
+			? useQuery(api.core.workspaces.index.listMembers, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId, workspaceId: params.workspaceId() };
@@ -61,7 +62,7 @@ export function useTasks(params: UseTasksOptions): UseTasksReturn {
 	// Query circle roles (for role dropdown) - only if circle exists
 	const rolesQuery =
 		browser && params.sessionId() && params.circleId?.()
-			? useQuery(api.circleRoles.listByCircle, () => {
+			? useQuery(api.core.roles.index.listByCircle, () => {
 					const sessionId = params.sessionId();
 					const circleId = params.circleId?.();
 					invariant(sessionId, 'sessionId required');

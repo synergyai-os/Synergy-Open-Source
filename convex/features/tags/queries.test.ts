@@ -1,14 +1,18 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn()
+const accessMocks = vi.hoisted(() => ({
+	getActorFromSession: vi.fn(),
+	ensureWorkspaceMembership: vi.fn(),
+	ensureCircleMembership: vi.fn(),
+	ensureTagAccess: vi.fn()
 }));
 
+vi.mock('./access', () => accessMocks);
+
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { getTagItemCountHandler, listTagsForEntity } from './queries';
 
-const makeCtx = () =>
+const makeCtx = (highlight?: any) =>
 	({
 		db: {
 			query: vi.fn(() => ({
@@ -16,16 +20,16 @@ const makeCtx = () =>
 					collect: vi.fn().mockResolvedValue([])
 				}))
 			})),
-			get: vi.fn().mockResolvedValue(null)
+			get: vi.fn().mockResolvedValue(highlight ?? null)
 		}
 	}) as any;
 
 describe('tags/queries', () => {
 	test('listTagsForHighlight throws when session invalid', async () => {
-		(validateSessionAndGetUserId as any).mockRejectedValue(
+		accessMocks.getActorFromSession.mockRejectedValue(
 			createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated')
 		);
-		const ctx = makeCtx();
+		const ctx = makeCtx({ _id: 'h1', workspaceId: 'ws1' });
 
 		await expect(listTagsForEntity(ctx as any, 'highlights', 'h1', 's')).rejects.toThrowError(
 			/AUTH_REQUIRED/
@@ -33,7 +37,7 @@ describe('tags/queries', () => {
 	});
 
 	test('getTagItemCount throws when unauthenticated', async () => {
-		(validateSessionAndGetUserId as any).mockRejectedValue(
+		accessMocks.getActorFromSession.mockRejectedValue(
 			createError(ErrorCodes.AUTH_REQUIRED, 'Not authenticated')
 		);
 		const ctx = makeCtx();

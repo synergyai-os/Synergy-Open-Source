@@ -29,11 +29,14 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 		// Verify the code
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
-		const verificationResult = await convex.mutation(api.verification.verifyCode, {
-			email,
-			code,
-			type: 'registration'
-		});
+		const verificationResult = await convex.mutation(
+			api.infrastructure.auth.verification.verifyCode,
+			{
+				email,
+				code,
+				type: 'registration'
+			}
+		);
 
 		if (!verificationResult.success) {
 			console.error('❌ Verification failed:', verificationResult.error);
@@ -88,7 +91,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		// Sync user to Convex
 		console.log('🔍 Syncing user to Convex...');
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -140,7 +144,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 			try {
 				// Get invite details (workspace invites only)
-				const inviteDetails = await convex.query(api.workspaces.findInviteByCode, {
+				const inviteDetails = await convex.query(api.core.workspaces.index.findInviteByCode, {
+					sessionId,
 					code: inviteCode
 				});
 
@@ -149,10 +154,13 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 					redirectTo = '/auth/redirect';
 				} else if (inviteDetails.type === 'workspace') {
 					// Accept workspace invite
-					const acceptResult = await convex.mutation(api.workspaces.acceptOrganizationInvite, {
-						sessionId,
-						code: inviteCode
-					});
+					const acceptResult = await convex.mutation(
+						api.core.workspaces.index.acceptOrganizationInvite,
+						{
+							sessionId,
+							code: inviteCode
+						}
+					);
 
 					console.log(
 						'✅ Organization invite accepted, redirecting to workspace:',

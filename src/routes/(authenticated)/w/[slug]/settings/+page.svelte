@@ -33,14 +33,16 @@
 	const settingsApiFunctions = browser
 		? {
 				// User settings
-				getUserSettings: makeFunctionReference('settings:getUserSettings') as FunctionReference<
+				getUserSettings: makeFunctionReference(
+					'core/workspaces/settings:getUserSettings'
+				) as FunctionReference<
 					'query',
 					'public',
 					{ sessionId: string },
 					{ hasClaudeKey: boolean; hasReadwiseKey: boolean; theme: string } | null
 				>,
 				updateClaudeApiKey: makeFunctionReference(
-					'settings:updateClaudeApiKey'
+					'core/workspaces/settings:updateClaudeApiKey'
 				) as FunctionReference<
 					'action',
 					'public',
@@ -48,24 +50,26 @@
 					Id<'users'>
 				>,
 				updateReadwiseApiKey: makeFunctionReference(
-					'settings:updateReadwiseApiKey'
+					'core/workspaces/settings:updateReadwiseApiKey'
 				) as FunctionReference<
 					'action',
 					'public',
 					{ sessionId: string; apiKey: string },
 					Id<'users'>
 				>,
-				updateTheme: makeFunctionReference('settings:updateTheme') as FunctionReference<
+				updateTheme: makeFunctionReference(
+					'core/workspaces/settings:updateTheme'
+				) as FunctionReference<
 					'mutation',
 					'public',
 					{ sessionId: string; theme: string },
 					Id<'userSettings'>
 				>,
 				deleteClaudeApiKey: makeFunctionReference(
-					'settings:deleteClaudeApiKey'
+					'core/workspaces/settings:deleteClaudeApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				deleteReadwiseApiKey: makeFunctionReference(
-					'settings:deleteReadwiseApiKey'
+					'core/workspaces/settings:deleteReadwiseApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>
 			}
 		: null;
@@ -318,16 +322,16 @@
 	}
 </script>
 
-<div class="h-full overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl px-page py-page">
+<div class="bg-base h-full overflow-y-auto">
+	<div class="px-page py-page mx-auto max-w-4xl">
 		<!-- Page Title -->
 		<Heading level={1} class="mb-section">Settings</Heading>
 
 		<!-- Workspace Context Banner -->
 		<div
-			class="border-accent-primary/20 bg-accent-primary/10 rounded-card border card-padding mb-header"
+			class="border-accent-primary/20 bg-accent-primary/10 rounded-card card-padding mb-header border"
 		>
-			<div class="flex items-start gap-fieldGroup">
+			<div class="gap-fieldGroup flex items-start">
 				<Icon type="info" size="md" color="accent-primary" class="flex-shrink-0" />
 				<div class="min-w-0 flex-1">
 					<Text variant="body" size="sm" color="accent-primary" class="mb-fieldGroup font-medium">
@@ -341,16 +345,16 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-section">
+		<div class="gap-section flex flex-col">
 			<!-- General Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">General</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Theme Preference -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="theme-toggle" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -368,7 +372,7 @@
 										Theme preferences are personal and apply across all workspaces.
 									</Text>
 								</div>
-								<div class="flex items-center gap-fieldGroup" role="presentation">
+								<div class="gap-fieldGroup flex items-center" role="presentation">
 									<Text variant="body" size="sm" color="secondary">
 										{isDark ? 'Dark mode' : 'Light mode'}
 									</Text>
@@ -396,14 +400,14 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">AI</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Claude API Key -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="claude-key" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -422,7 +426,7 @@
 										workspace).
 									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -433,14 +437,14 @@
 											disabled={claudeValidationState === 'validating'}
 											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
 											style="width: 16rem;"
-											class="text-small border bg-base px-input py-input pr-input-iconRight {claudeValidationState ===
+											class="text-small bg-base px-input py-input pr-input-iconRight border {claudeValidationState ===
 											'valid'
 												? 'border-success'
 												: claudeValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-disabled'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
@@ -450,7 +454,7 @@
 												style="right: var(--spacing-fieldGroup-gap);"
 											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -486,7 +490,7 @@
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
-												class="absolute top-1/2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>
@@ -567,14 +571,14 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="border-base rounded-card border bg-elevated">
+			<section class="border-base rounded-card bg-elevated border">
 				<div class="card-padding">
 					<Heading level={2} class="mb-header">Sources</Heading>
 
-					<div class="flex flex-col gap-form">
+					<div class="gap-form flex flex-col">
 						<!-- Readwise API Key -->
-						<div class="border-base border-b card-padding last:border-b-0">
-							<div class="flex items-start justify-between gap-form">
+						<div class="border-base card-padding border-b last:border-b-0">
+							<div class="gap-form flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label for="readwise-key" class="mb-fieldGroup block">
 										<Text variant="body" size="sm" color="primary" as="span" class="font-medium">
@@ -595,7 +599,7 @@
 										💡 Tip: Use the same key across workspaces to sync content everywhere
 									</Text>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-fieldGroup">
+								<div class="gap-fieldGroup flex flex-shrink-0 flex-col">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"
@@ -606,14 +610,14 @@
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
 											style="width: 16rem;"
-											class="text-small border bg-base px-input py-input pr-input-iconRight {readwiseValidationState ===
+											class="text-small bg-base px-input py-input pr-input-iconRight border {readwiseValidationState ===
 											'valid'
 												? 'border-success'
 												: readwiseValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary placeholder:text-tertiary transition-all focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
 											'validating'
-												? 'cursor-not-allowed opacity-disabled'
+												? 'opacity-disabled cursor-not-allowed'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
@@ -623,7 +627,7 @@
 												style="right: var(--spacing-fieldGroup-gap);"
 											>
 												<svg
-													class="icon-sm animate-spin text-tertiary"
+													class="icon-sm text-tertiary animate-spin"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -659,7 +663,7 @@
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
-												class="absolute top-1/2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
+												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
 											>

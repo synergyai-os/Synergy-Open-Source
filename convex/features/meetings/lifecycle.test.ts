@@ -1,7 +1,17 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+vi.mock('./helpers/access', () => ({
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' }),
+	ensureWorkspaceMembership: vi.fn(),
+	requireMeeting: vi.fn(async (ctx, id) => {
+		const meeting = await (ctx as MutationCtx).db.get(id);
+
+		if (!meeting) {
+			throw new Error('Meeting not found');
+		}
+
+		return meeting;
+	})
 }));
 
 import type { MutationCtx } from '../../_generated/server';
@@ -13,16 +23,7 @@ const makeCtx = (meeting: any) =>
 		db: {
 			get: vi.fn().mockResolvedValue(meeting),
 			patch: vi.fn().mockResolvedValue(undefined),
-			query: vi.fn((table: string) => {
-				if (table === 'workspaceMembers') {
-					return {
-						withIndex: () => ({
-							first: vi.fn().mockResolvedValue({ _id: 'wm1' })
-						})
-					};
-				}
-				return { withIndex: () => ({ first: vi.fn() }) };
-			})
+			query: vi.fn(() => ({ withIndex: () => ({ first: vi.fn() }) }))
 		}
 	}) as unknown as MutationCtx;
 

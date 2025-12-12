@@ -2,29 +2,28 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
-import { ensureWorkspaceMembership } from './roleAccess';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './roleAccess';
 
 async function listUserRoles(
 	ctx: QueryCtx,
 	args: {
 		sessionId: string;
-		userId: Id<'users'>;
+		targetPersonId: Id<'people'>;
 		circleId?: Id<'circles'>;
 		includeArchived?: boolean;
 	}
 ) {
-	const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
+	// Cache actor person per workspace to avoid repeated lookups
+	const actorByWorkspace = new Map<Id<'workspaces'>, Id<'people'>>();
 	const assignments = args.includeArchived
 		? await ctx.db
 				.query('userCircleRoles')
-				.withIndex('by_user', (q) => q.eq('userId', args.userId))
+				.withIndex('by_person', (q) => q.eq('personId', args.targetPersonId))
 				.collect()
 		: await ctx.db
 				.query('userCircleRoles')
-				.withIndex('by_user_archived', (q) =>
-					q.eq('userId', args.userId).eq('archivedAt', undefined)
+				.withIndex('by_person_archived', (q) =>
+					q.eq('personId', args.targetPersonId).eq('archivedAt', undefined)
 				)
 				.collect();
 
@@ -41,7 +40,16 @@ async function listUserRoles(
 			if (!circle) return null;
 
 			try {
-				await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
+				let actorPersonId = actorByWorkspace.get(circle.workspaceId);
+				if (!actorPersonId) {
+					actorPersonId = await requireWorkspacePersonFromSession(
+						ctx,
+						args.sessionId,
+						circle.workspaceId
+					);
+					actorByWorkspace.set(circle.workspaceId, actorPersonId);
+				}
+				await ensureWorkspaceMembership(ctx, circle.workspaceId, actorPersonId);
 			} catch {
 				return null;
 			}
@@ -64,7 +72,7 @@ async function listUserRoles(
 export const getUserRoles = query({
 	args: {
 		sessionId: v.string(),
-		userId: v.id('users'),
+		targetPersonId: v.id('people'),
 		circleId: v.optional(v.id('circles')),
 		includeArchived: v.optional(v.boolean())
 	},

@@ -1,11 +1,11 @@
 /**
  * Migration Script: Set Default Recorders for Started Meetings
  *
- * Sets recorderId = createdBy for all meetings that have been started
+ * Sets recorderPersonId = createdByPersonId for all meetings that have been started
  * but don't yet have a recorder assigned.
  *
  * Migration logic:
- * - If meeting has startedAt AND recorderId is null → set recorderId = createdBy
+ * - If meeting has startedAt AND recorderPersonId is null → set recorderPersonId = createdByPersonId
  * - If meeting not started → leave recorderId as null
  * - If meeting already has recorderId → skip
  *
@@ -27,7 +27,7 @@ export default internalMutation(async ({ db }) => {
 
 	for (const meeting of allMeetings) {
 		// Skip if already has recorder
-		if ('recorderId' in meeting && meeting.recorderId) {
+		if ('recorderPersonId' in meeting && meeting.recorderPersonId) {
 			skippedCount++;
 			continue;
 		}
@@ -40,7 +40,7 @@ export default internalMutation(async ({ db }) => {
 
 		// Set recorder to creator
 		await db.patch(meeting._id, {
-			recorderId: meeting.createdBy
+			recorderPersonId: meeting.createdByPersonId
 		});
 
 		migratedCount++;

@@ -21,7 +21,7 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	// Query notes to find one with matching slug
-	const notes = await client.query(api.notes.listNotes, {
+	const notes = await client.query(api.features.notes.index.listNotes, {
 		sessionId,
 		processed: false,
 		blogOnly: false

@@ -59,7 +59,7 @@ describe('tasks access helpers', () => {
 		const ctx = { db: { query: makeWorkspaceQuery(null) } } as unknown as AnyCtx;
 
 		await expect(ensureWorkspaceMembership(ctx, 'w1' as any, 'u1' as any)).rejects.toThrow(
-			`${ErrorCodes.WORKSPACE_ACCESS_DENIED}: User is not a member of this workspace`
+			`${ErrorCodes.WORKSPACE_ACCESS_DENIED}: Workspace membership required`
 		);
 	});
 

@@ -1,11 +1,10 @@
 import { env } from '$env/dynamic/private';
 import crypto from 'node:crypto';
+import { invariant } from '$lib/utils/invariant';
 
 const SESSION_SECRET = env.SYOS_SESSION_SECRET;
 
-if (!SESSION_SECRET) {
-	throw new Error('SYOS_SESSION_SECRET is required to use headless WorkOS auth.');
-}
+invariant(SESSION_SECRET, 'SYOS_SESSION_SECRET is required to use headless WorkOS auth.');
 
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(`${SESSION_SECRET}:encryption`).digest();
 const HMAC_KEY = crypto.createHash('sha512').update(`${SESSION_SECRET}:hmac`).digest();

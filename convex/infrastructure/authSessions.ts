@@ -1,20 +1,27 @@
 import { v } from 'convex/values';
 import { mutation, query } from '../_generated/server';
+import { validateSessionAndGetUserId } from './sessionValidation';
 
+// AUTH EXEMPT: Pre-auth login flow bootstrap (no session exists yet).
 export const createLoginState = mutation({
 	args: {
+		sessionId: v.optional(v.string()),
 		stateHash: v.string(),
 		codeVerifierCiphertext: v.string(),
 		redirectTo: v.optional(v.string()),
 		flowMode: v.optional(v.string()),
 		linkAccount: v.optional(v.boolean()),
-		primaryUserId: v.optional(v.id('users')),
+		ownerUserId: v.optional(v.id('users')),
 		ipAddress: v.optional(v.string()),
 		userAgent: v.optional(v.string()),
 		createdAt: v.number(),
 		expiresAt: v.number()
 	},
 	handler: async (ctx, args) => {
+		if (args.sessionId) {
+			await validateSessionAndGetUserId(ctx, args.sessionId);
+		}
+
 		// Clean up any existing state for the same hash before inserting
 		const existing = await ctx.db
 			.query('authLoginState')
@@ -31,7 +38,7 @@ export const createLoginState = mutation({
 			redirectTo: args.redirectTo,
 			flowMode: args.flowMode,
 			linkAccount: args.linkAccount,
-			primaryUserId: args.primaryUserId,
+			primaryUserId: args.ownerUserId,
 			ipAddress: args.ipAddress,
 			userAgent: args.userAgent,
 			createdAt: args.createdAt,
@@ -42,12 +49,18 @@ export const createLoginState = mutation({
 	}
 });
 
+// AUTH EXEMPT: Pre-auth login flow bootstrap (no session exists yet).
 export const consumeLoginState = mutation({
 	args: {
+		sessionId: v.optional(v.string()),
 		stateHash: v.string(),
 		now: v.number()
 	},
 	handler: async (ctx, args) => {
+		if (args.sessionId) {
+			await validateSessionAndGetUserId(ctx, args.sessionId);
+		}
+
 		const record = await ctx.db
 			.query('authLoginState')
 			.withIndex('by_state', (q) => q.eq('stateHash', args.stateHash))
@@ -78,12 +91,14 @@ export const consumeLoginState = mutation({
 
 export const getActiveSessionForUser = query({
 	args: {
-		userId: v.id('users')
+		sessionId: v.string(),
+		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
 		const sessions = await ctx.db
 			.query('authSessions')
-			.withIndex('by_convex_user', (q) => q.eq('convexUserId', args.userId))
+			.withIndex('by_convex_user', (q) => q.eq('convexUserId', args.targetUserId))
 			.collect();
 
 		const now = Date.now();
@@ -111,8 +126,8 @@ export const getActiveSessionForUser = query({
 export const createSession = mutation({
 	args: {
 		sessionId: v.string(),
-		convexUserId: v.id('users'),
-		workosUserId: v.string(),
+		ownerUserId: v.id('users'),
+		workosUserIdentifier: v.string(),
 		workosSessionId: v.string(),
 		accessTokenCiphertext: v.string(),
 		refreshTokenCiphertext: v.string(),
@@ -150,8 +165,8 @@ export const createSession = mutation({
 
 		await ctx.db.insert('authSessions', {
 			sessionId: args.sessionId,
-			convexUserId: args.convexUserId,
-			workosUserId: args.workosUserId,
+			convexUserId: args.ownerUserId,
+			workosUserId: args.workosUserIdentifier,
 			workosSessionId: args.workosSessionId,
 			accessTokenCiphertext: args.accessTokenCiphertext,
 			refreshTokenCiphertext: args.refreshTokenCiphertext,

@@ -62,13 +62,13 @@
 	);
 </script>
 
-<div class="flex h-full flex-col bg-base">
+<div class="bg-base flex h-full flex-col">
 	<!-- Header -->
 	<header
-		class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b bg-surface px-page"
+		class="h-system-header border-base py-system-header bg-surface px-page flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<div>
-			<h1 class="text-button font-normal text-secondary">Import Org Structure</h1>
+			<h1 class="text-button text-secondary font-normal">Import Org Structure</h1>
 			<p class="text-label text-tertiary">Create circles and roles from text markup</p>
 		</div>
 	</header>

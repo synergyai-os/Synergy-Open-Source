@@ -28,7 +28,7 @@ async function resolveWorkspace(
 	sessionId: string
 ): Promise<{ workspace: WorkspaceSummary; redirect: boolean; to?: string } | { workspace: null }> {
 	// 1. Try as current slug
-	let workspace = (await client.query(api.workspaces.findBySlug, {
+	let workspace = (await client.query(api.core.workspaces.index.findBySlug, {
 		slug: slugOrId,
 		sessionId
 	})) as WorkspaceSummary | null;
@@ -42,7 +42,7 @@ async function resolveWorkspace(
 	if (slugOrId.length > 10 && /^[a-z0-9]+$/.test(slugOrId)) {
 		try {
 			const workspaceId = slugOrId as Id<'workspaces'>;
-			workspace = (await client.query(api.workspaces.findById, {
+			workspace = (await client.query(api.core.workspaces.index.findById, {
 				workspaceId,
 				sessionId
 			})) as WorkspaceSummary | null;
@@ -56,14 +56,14 @@ async function resolveWorkspace(
 	}
 
 	// 3. Try as alias (old slug)
-	const alias = await client.query(api.workspaceAliases.getBySlug, {
+	const alias = await client.query(api.core.workspaces.aliases.getBySlug, {
 		slug: slugOrId,
 		sessionId
 	});
 
 	if (alias) {
 		// Get workspace by ID from alias
-		workspace = (await client.query(api.workspaces.findById, {
+		workspace = (await client.query(api.core.workspaces.index.findById, {
 			workspaceId: alias.workspaceId,
 			sessionId
 		})) as WorkspaceSummary | null;

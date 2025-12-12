@@ -9,7 +9,7 @@ export function calculateTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 	for (const tag of tags) {
 		const tagWithHierarchy: TagWithHierarchy = {
 			_id: tag._id,
-			userId: tag.userId,
+			personId: tag.personId,
 			name: tag.name,
 			displayName: tag.displayName,
 			color: tag.color,
@@ -52,25 +52,25 @@ export function calculateTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 async function listTagChildren(
 	ctx: QueryCtx | MutationCtx,
 	tagId: Id<'tags'>,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ): Promise<Doc<'tags'>[]> {
 	return ctx.db
 		.query('tags')
-		.withIndex('by_user_parent', (q) => q.eq('userId', userId).eq('parentId', tagId))
+		.withIndex('by_person_parent', (q) => q.eq('personId', personId).eq('parentId', tagId))
 		.collect();
 }
 
 export async function getTagDescendants(
 	ctx: QueryCtx | MutationCtx,
 	tagId: Id<'tags'>,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ): Promise<Id<'tags'>[]> {
 	const descendants: Id<'tags'>[] = [tagId];
 	const queue: Id<'tags'>[] = [tagId];
 
 	while (queue.length > 0) {
 		const currentTagId = queue.shift()!;
-		const children = await listTagChildren(ctx, currentTagId, userId);
+		const children = await listTagChildren(ctx, currentTagId, personId);
 		for (const child of children) {
 			descendants.push(child._id);
 			queue.push(child._id);
@@ -83,13 +83,13 @@ export async function getTagDescendants(
 export async function getTagDescendantsForTags(
 	ctx: QueryCtx | MutationCtx,
 	tagIds: Id<'tags'>[],
-	userId: Id<'users'>
+	personId: Id<'people'>
 ): Promise<Id<'tags'>[]> {
 	if (tagIds.length === 0) return [];
 	const allDescendants = new Set<Id<'tags'>>();
 
 	for (const tagId of tagIds) {
-		const descendants = await getTagDescendants(ctx, tagId, userId);
+		const descendants = await getTagDescendants(ctx, tagId, personId);
 		for (const descId of descendants) {
 			allDescendants.add(descId);
 		}

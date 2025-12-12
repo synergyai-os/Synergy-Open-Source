@@ -8,7 +8,7 @@ const ACTIVE_STATUS = 'active';
 export const checkAUTH01 = internalQuery({
 	args: {},
 	handler: async (ctx): Promise<InvariantResult> => {
-		const [circles, roles, templates, assignments, people] = await Promise.all([
+		const [circles, roles, templates, assignments, workspaces] = await Promise.all([
 			ctx.db.query('circles').collect(),
 			ctx.db.query('circleRoles').collect(),
 			ctx.db.query('roleTemplates').collect(),
@@ -16,11 +16,11 @@ export const checkAUTH01 = internalQuery({
 				.query('assignments')
 				.filter((q) => q.eq(q.field('status'), ACTIVE_STATUS))
 				.collect(),
-			ctx.db.query('people').collect()
+			ctx.db.query('workspaces').collect()
 		]);
 
-		// Abandoned workspaces excluded per SYOS-806
-		const operationalWorkspaces = findOperationalWorkspaces(people);
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 
 		const activeCircles = circles.filter(
 			(circle) =>
@@ -70,7 +70,7 @@ export const checkAUTH01 = internalQuery({
 export const checkAUTH02 = internalQuery({
 	args: {},
 	handler: async (ctx): Promise<InvariantResult> => {
-		const [circles, roles, templates, assignments, workspaces, people] = await Promise.all([
+		const [circles, roles, templates, assignments, workspaces] = await Promise.all([
 			ctx.db.query('circles').collect(),
 			ctx.db.query('circleRoles').collect(),
 			ctx.db.query('roleTemplates').collect(),
@@ -78,12 +78,11 @@ export const checkAUTH02 = internalQuery({
 				.query('assignments')
 				.filter((q) => q.eq(q.field('status'), ACTIVE_STATUS))
 				.collect(),
-			ctx.db.query('workspaces').collect(),
-			ctx.db.query('people').collect()
+			ctx.db.query('workspaces').collect()
 		]);
 
-		// Abandoned workspaces excluded per SYOS-806
-		const operationalWorkspaces = findOperationalWorkspaces(people);
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
 
 		const templateLookup = new Map(
 			templates.map((template) => [template._id.toString(), template])
@@ -114,7 +113,7 @@ export const checkAUTH02 = internalQuery({
 
 		const violations = workspaces
 			.filter((workspace) => {
-				// Skip abandoned workspaces (no active people)
+				// Skip archived workspaces
 				if (!operationalWorkspaces.has(workspace._id.toString())) return false;
 				const rootCircleId = rootCircleByWorkspace.get(workspace._id.toString());
 				if (!rootCircleId) return true;
@@ -187,9 +186,6 @@ export const checkAUTH04 = internalQuery({
 
 		const templateLookup = new Map(
 			templates.map((template) => [template._id.toString(), template])
-		);
-		const circleTypeMap = new Map(
-			circles.map((circle) => [circle._id.toString(), circle.circleType ?? 'hierarchy'])
 		);
 		const roleMeta = new Map<
 			string,

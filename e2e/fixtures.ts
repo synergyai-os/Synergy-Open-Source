@@ -206,7 +206,9 @@ export const test = baseTest.extend<object, { workerStorageState: string }>({
 					while (!session && attempts < maxAttempts) {
 						attempts++;
 						try {
-							session = await convex.query(api.authSessions.getSessionById, { sessionId });
+							session = await convex.query(api.infrastructure.authSessions.getSessionById, {
+								sessionId
+							});
 
 							if (session) {
 								console.log(

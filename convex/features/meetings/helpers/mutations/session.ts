@@ -2,13 +2,20 @@ import { v } from 'convex/values';
 import type { Id } from '../../../../_generated/dataModel';
 import type { MutationCtx } from '../../../../_generated/server';
 import { createError, ErrorCodes } from '../../../../infrastructure/errors/codes';
-import { validateSessionAndGetUserId } from '../../../../infrastructure/sessionValidation';
-import { ensureWorkspaceMembership, requireMeeting } from '../access';
+import {
+	ensureWorkspaceMembership,
+	requireMeeting,
+	requireWorkspacePersonFromSession
+} from '../access';
 
 type StartMeetingArgs = { sessionId: string; meetingId: Id<'meetings'> };
 type AdvanceStepArgs = { sessionId: string; meetingId: Id<'meetings'>; newStep: string };
 type CloseMeetingArgs = { sessionId: string; meetingId: Id<'meetings'> };
-type SetRecorderArgs = { sessionId: string; meetingId: Id<'meetings'>; recorderId: Id<'users'> };
+type SetRecorderArgs = {
+	sessionId: string;
+	meetingId: Id<'meetings'>;
+	recorderPersonId: Id<'people'>;
+};
 type SetActiveAgendaItemArgs = {
 	sessionId: string;
 	meetingId: Id<'meetings'>;
@@ -24,10 +31,18 @@ export async function startMeetingSession(
 	ctx: MutationCtx,
 	args: StartMeetingArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -39,7 +54,7 @@ export async function startMeetingSession(
 	await ctx.db.patch(args.meetingId, {
 		startedAt: Date.now(),
 		currentStep: 'check-in',
-		recorderId: userId,
+		recorderPersonId: personId,
 		updatedAt: Date.now()
 	});
 
@@ -56,15 +71,23 @@ export async function advanceMeetingStep(
 	ctx: MutationCtx,
 	args: AdvanceStepArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
 
-	if (meeting.recorderId !== userId) {
+	if (meeting.recorderPersonId !== personId) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only the recorder can advance steps');
 	}
 
@@ -90,15 +113,23 @@ export async function closeMeetingSession(
 	ctx: MutationCtx,
 	args: CloseMeetingArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
 
-	if (meeting.recorderId !== userId) {
+	if (meeting.recorderPersonId !== personId) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only the recorder can close the meeting');
 	}
 
@@ -113,17 +144,25 @@ export async function closeMeetingSession(
 export const setRecorderArgs = {
 	sessionId: v.string(),
 	meetingId: v.id('meetings'),
-	recorderId: v.id('users')
+	recorderPersonId: v.id('people')
 };
 
 export async function setMeetingRecorder(
 	ctx: MutationCtx,
 	args: SetRecorderArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
@@ -134,8 +173,8 @@ export async function setMeetingRecorder(
 
 	const recorderAttendee = await ctx.db
 		.query('meetingAttendees')
-		.withIndex('by_meeting_user', (q) =>
-			q.eq('meetingId', args.meetingId).eq('userId', args.recorderId)
+		.withIndex('by_meeting_person', (q) =>
+			q.eq('meetingId', args.meetingId).eq('personId', args.recorderPersonId)
 		)
 		.first();
 
@@ -144,7 +183,7 @@ export async function setMeetingRecorder(
 	}
 
 	await ctx.db.patch(args.meetingId, {
-		recorderId: args.recorderId,
+		recorderPersonId: args.recorderPersonId,
 		updatedAt: Date.now()
 	});
 
@@ -161,15 +200,23 @@ export async function setActiveAgendaItemMutation(
 	ctx: MutationCtx,
 	args: SetActiveAgendaItemArgs
 ): Promise<{ success: true }> {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 	const meeting = await requireMeeting(ctx, args.meetingId, ErrorCodes.GENERIC_ERROR);
+	const { personId } = await requireWorkspacePersonFromSession(
+		ctx,
+		args.sessionId,
+		meeting.workspaceId,
+		{
+			errorCode: ErrorCodes.GENERIC_ERROR,
+			message: 'Workspace membership required'
+		}
+	);
 
-	await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId, {
+	await ensureWorkspaceMembership(ctx, meeting.workspaceId, personId, {
 		errorCode: ErrorCodes.GENERIC_ERROR,
 		message: 'Workspace membership required'
 	});
 
-	if (meeting.recorderId !== userId) {
+	if (meeting.recorderPersonId !== personId) {
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Only the recorder can set the active agenda item');
 	}
 

@@ -2,10 +2,10 @@
 	import type { Id } from '$convex/_generated/dataModel';
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
-import { api } from '$lib/convex';
+	import { api } from '$lib/convex';
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	type Tag = {
 		_id: Id<'tags'>;
@@ -35,7 +35,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Fetch item counts for this tag
 	const itemCountsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.getTagItemCount, () => {
+			? useQuery(api.features.tags.index.getTagItemCount, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
@@ -83,14 +83,14 @@ import { invariant } from '$lib/utils/invariant';
 >
 	<!-- Modal Content -->
 	<div
-		class="border-base w-full max-w-md rounded-card border bg-elevated shadow-card"
+		class="border-base rounded-card bg-elevated shadow-card w-full max-w-md border"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="modal-title"
 	>
 		<!-- Modal Header -->
 		<div class="border-base px-card py-card border-b">
-			<h2 id="modal-title" class="text-h3 flex items-center gap-2 font-semibold text-primary">
+			<h2 id="modal-title" class="text-h3 text-primary flex items-center gap-2 font-semibold">
 				<div class="icon-xs flex-shrink-0 rounded-full" style="background-color: {tag.color}"></div>
 				Transfer "{tag.displayName}"
 			</h2>
@@ -108,14 +108,14 @@ import { invariant } from '$lib/utils/invariant';
 				<div>
 					<label
 						for="workspace-select"
-						class="mb-form-field-gap text-small block font-medium text-primary"
+						class="mb-form-field-gap text-small text-primary block font-medium"
 					>
 						Transfer to workspace
 					</label>
 					<select
 						id="workspace-select"
 						bind:value={selectedOrganization}
-						class="border-base text-small focus:ring-accent-primary w-full rounded-input border bg-base px-input-x py-input-y text-primary focus:border-transparent focus:ring-2 focus:outline-none"
+						class="border-base text-small focus:ring-accent-primary rounded-input bg-base px-input-x py-input-y text-primary w-full border focus:border-transparent focus:ring-2 focus:outline-none"
 						disabled={isSharing}
 					>
 						{#each workspaces as org (org.workspaceId)}
@@ -126,8 +126,8 @@ import { invariant } from '$lib/utils/invariant';
 
 				<!-- Items to Transfer -->
 				{#if itemCounts.total > 0}
-					<div class="border-base px-card py-card rounded-card border bg-base">
-						<p class="mb-form-field-gap text-small font-medium text-primary">This will transfer:</p>
+					<div class="border-base px-card py-card rounded-card bg-base border">
+						<p class="mb-form-field-gap text-small text-primary font-medium">This will transfer:</p>
 						<ul class="space-y-form-field-gap text-small text-secondary">
 							<li>• The collection itself</li>
 							{#if itemCounts.highlights > 0}
@@ -146,7 +146,7 @@ import { invariant } from '$lib/utils/invariant';
 				>
 					<div class="flex gap-2">
 						<svg
-							class="mt-form-field-gap size-icon-md flex-shrink-0 text-accent-primary"
+							class="mt-form-field-gap size-icon-md text-accent-primary flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -159,7 +159,7 @@ import { invariant } from '$lib/utils/invariant';
 							/>
 						</svg>
 						<div class="text-small">
-							<p class="mb-form-field-gap font-medium text-accent-primary">After transferring:</p>
+							<p class="mb-form-field-gap text-accent-primary font-medium">After transferring:</p>
 							<ul class="space-y-form-field-gap text-label text-tertiary">
 								<li>• Organization will own this collection</li>
 								<li>• All members can view and contribute</li>
@@ -180,7 +180,7 @@ import { invariant } from '$lib/utils/invariant';
 				type="button"
 				onclick={onClose}
 				disabled={isSharing}
-				class="text-small px-button-x py-button-y font-medium text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+				class="text-small px-button-x py-button-y text-secondary hover:text-primary font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Cancel
 			</button>
@@ -189,7 +189,7 @@ import { invariant } from '$lib/utils/invariant';
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="text-small hover:bg-accent-primary/90 flex items-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-small hover:bg-accent-primary/90 rounded-button bg-accent-primary px-button-x py-button-y text-primary flex items-center gap-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
 						<svg class="icon-sm animate-spin" fill="none" viewBox="0 0 24 24">

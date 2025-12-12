@@ -3,7 +3,8 @@ import type { QueryCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import { listProposalsQuery } from './proposalQueries';
 
-const mockUserId = 'u1' as Id<'users'>;
+const mockConvexUser = 'u1' as Id<'users'>;
+const mockPersonId = 'p1' as Id<'people'>;
 const mockWorkspaceId = 'w1' as Id<'workspaces'>;
 const mockCircleId = 'c1' as Id<'circles'>;
 
@@ -14,6 +15,7 @@ function createMockDb() {
 			workspaceId: mockWorkspaceId,
 			status: 'draft',
 			circleId: mockCircleId,
+			createdByPersonId: mockPersonId,
 			createdAt: 3
 		},
 		{
@@ -21,13 +23,20 @@ function createMockDb() {
 			workspaceId: mockWorkspaceId,
 			status: 'submitted',
 			circleId: mockCircleId,
+			createdByPersonId: mockPersonId,
 			createdAt: 2
 		},
-		{ _id: 'p3', workspaceId: 'other', status: 'draft', circleId: mockCircleId, createdAt: 1 }
+		{
+			_id: 'p3',
+			workspaceId: 'other',
+			status: 'draft',
+			circleId: mockCircleId,
+			createdByPersonId: mockPersonId,
+			createdAt: 1
+		}
 	];
 
 	const collections: Record<string, any[]> = {
-		workspaceMembers: [{ workspaceId: mockWorkspaceId, userId: mockUserId }],
 		circleProposals: proposals
 	};
 
@@ -44,8 +53,8 @@ function createMockDb() {
 				result = result.filter((p) => p.workspaceId === mockWorkspaceId);
 			} else if (name === 'by_circle') {
 				result = result.filter((p) => p.circleId === mockCircleId);
-			} else if (name === 'by_creator') {
-				result = result.filter((p) => p.createdBy === mockUserId);
+			} else if (name === 'by_creatorPerson') {
+				result = result.filter((p) => p.createdByPersonId === mockPersonId);
 			}
 
 			return {
@@ -56,12 +65,25 @@ function createMockDb() {
 	});
 
 	return {
-		query
+		query,
+		get: async () => null
 	};
 }
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: async () => ({ userId: mockUserId })
+vi.mock('./proposalAccess', () => ({
+	ensureWorkspaceMembership: vi.fn(async () => undefined)
+}));
+
+vi.mock('../people/queries', () => ({
+	getPersonForSessionAndWorkspace: vi.fn(async () => ({
+		person: {
+			_id: mockPersonId,
+			workspaceId: mockWorkspaceId,
+			status: 'active'
+		},
+		workspaceId: mockWorkspaceId,
+		linkedUser: mockConvexUser
+	}))
 }));
 
 describe('listProposalsQuery helper', () => {
@@ -80,6 +102,7 @@ describe('listProposalsQuery helper', () => {
 				workspaceId: mockWorkspaceId,
 				status: 'submitted',
 				circleId: mockCircleId,
+				createdByPersonId: mockPersonId,
 				createdAt: 2
 			}
 		]);
@@ -100,6 +123,7 @@ describe('listProposalsQuery helper', () => {
 				workspaceId: mockWorkspaceId,
 				status: 'draft',
 				circleId: mockCircleId,
+				createdByPersonId: mockPersonId,
 				createdAt: 3
 			}
 		]);

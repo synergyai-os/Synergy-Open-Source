@@ -2,13 +2,10 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { assignUser } from './roleAssignments';
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u-acting' })
-}));
-
 vi.mock('./roleAccess', () => ({
 	ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
-	ensureWorkspaceMembership: vi.fn()
+	ensureWorkspaceMembership: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p-acting')
 }));
 
 vi.mock('./roleRbac', () => ({
@@ -39,7 +36,7 @@ describe('roleAssignments.assignUser', () => {
 			handler(ctx as any, {
 				sessionId: 's1',
 				circleRoleId: 'r1' as any,
-				userId: 'u-target' as any
+				assigneePersonId: 'p-target' as any
 			})
 		).rejects.toThrow(/ASSIGNMENT_ALREADY_EXISTS/);
 	});

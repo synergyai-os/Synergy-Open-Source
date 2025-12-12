@@ -135,7 +135,7 @@ export async function checkFeatureFlag(
 
 	try {
 		// Use Convex feature flag query to check if flag is enabled
-		const result = await client.query(api.featureFlags.isFlagEnabled, {
+		const result = await client.query(api.infrastructure.featureFlags.isFlagEnabled, {
 			flag,
 			sessionId
 		});

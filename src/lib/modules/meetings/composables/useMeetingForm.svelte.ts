@@ -26,8 +26,8 @@ import {
 import { invariant } from '$lib/utils/invariant';
 
 type Attendee = {
-	type: 'user' | 'circle';
-	id: Id<'users'> | Id<'circles'>;
+	type: 'user' | 'circle'; // 'user' means person invite
+	id: Id<'people'> | Id<'circles'>;
 	name: string;
 	email?: string;
 };
@@ -550,7 +550,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 							sessionId: params.sessionId()!,
 							meetingId: meetingId as Id<'meetings'>,
 							invitationType: attendee.type,
-							userId: attendee.type === 'user' ? (attendee.id as Id<'users'>) : undefined,
+							personId: attendee.type === 'user' ? (attendee.id as Id<'people'>) : undefined,
 							circleId: attendee.type === 'circle' ? (attendee.id as Id<'circles'>) : undefined
 						});
 					} catch (error) {

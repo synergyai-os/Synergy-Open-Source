@@ -211,10 +211,10 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 
 <div class="flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-sidebar py-system-content border-b px-page">
+	<header class="border-sidebar py-system-content px-page border-b">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-h2 font-bold text-primary">Documentation 404 Tracking</h1>
+				<h1 class="text-h2 text-primary font-bold">Documentation 404 Tracking</h1>
 				<p class="mt-form-field-gap text-small text-secondary">
 					Track and resolve broken links in documentation
 				</p>
@@ -227,33 +227,33 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 
 	<!-- Stats -->
 	{#if stats}
-		<div class="border-sidebar py-system-content border-b px-page">
+		<div class="border-sidebar py-system-content px-page border-b">
 			<div class="gap-content-section grid grid-cols-1 md:grid-cols-5">
-				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
+				<div class="border-sidebar px-card py-card rounded-card bg-surface border">
 					<p class="text-label text-tertiary">Total Errors</p>
-					<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+					<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 						{stats.total || 0}
 					</p>
 				</div>
-				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
+				<div class="border-sidebar px-card py-card rounded-card bg-surface border">
 					<p class="text-label text-tertiary">Unresolved</p>
 					<p class="mt-form-field-gap text-h2 text-error-text font-semibold">
 						{stats.unresolved || 0}
 					</p>
 				</div>
-				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
+				<div class="border-sidebar px-card py-card rounded-card bg-surface border">
 					<p class="text-label text-tertiary">Resolved</p>
-					<p class="mt-form-field-gap text-h2 font-semibold text-success">
+					<p class="mt-form-field-gap text-h2 text-success font-semibold">
 						{stats.resolved || 0}
 					</p>
 				</div>
-				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
+				<div class="border-sidebar px-card py-card rounded-card bg-surface border">
 					<p class="text-label text-tertiary">Total Hits</p>
-					<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+					<p class="mt-form-field-gap text-h2 text-primary font-semibold">
 						{stats.totalHits || 0}
 					</p>
 				</div>
-				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
+				<div class="border-sidebar px-card py-card rounded-card bg-surface border">
 					<p class="text-label text-tertiary">Unresolved Hits</p>
 					<p class="mt-form-field-gap text-h2 text-error-text font-semibold">
 						{stats.unresolvedHits || 0}
@@ -265,12 +265,12 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 
 	<!-- Patterns Section -->
 	{#if errorPatterns().length > 0}
-		<div class="border-sidebar py-system-content border-b px-page">
-			<h2 class="mb-content-section text-h3 font-semibold text-primary">Error Patterns</h2>
+		<div class="border-sidebar py-system-content px-page border-b">
+			<h2 class="mb-content-section text-h3 text-primary font-semibold">Error Patterns</h2>
 			<div class="space-y-form-field-gap">
 				{#each errorPatterns().slice(0, 5) as pattern (pattern.pattern)}
 					<div
-						class="border-sidebar px-card py-card flex items-center justify-between rounded-card border bg-surface"
+						class="border-sidebar px-card py-card rounded-card bg-surface flex items-center justify-between border"
 					>
 						<div>
 							<code class="text-small text-primary">{pattern.pattern}</code>
@@ -280,7 +280,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 							</p>
 						</div>
 						<span
-							class="bg-error/10 px-badge py-badge inline-flex items-center rounded border border-error text-label font-medium text-error"
+							class="bg-error/10 px-badge py-badge border-error text-label text-error inline-flex items-center rounded border font-medium"
 						>
 							{pattern.count} hits
 						</span>
@@ -291,14 +291,14 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	{/if}
 
 	<!-- Filters -->
-	<div class="border-sidebar py-system-content border-b px-page">
+	<div class="border-sidebar py-system-content px-page border-b">
 		<div class="gap-content-section flex items-center">
 			<div class="flex-1">
 				<input
 					type="text"
 					placeholder="Search URLs or referrers..."
 					bind:value={searchQuery}
-					class="border-sidebar text-small w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+					class="border-sidebar text-small rounded-input bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary w-full border focus:outline-none"
 				/>
 			</div>
 			<div class="flex gap-2">
@@ -334,7 +334,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	</div>
 
 	<!-- Errors List -->
-	<main class="py-system-content flex-1 overflow-y-auto px-page">
+	<main class="py-system-content px-page flex-1 overflow-y-auto">
 		{#if !browser || unresolvedQuery?.isLoading}
 			<div class="flex items-center justify-center" style="padding-block: var(--spacing-12);">
 				<p class="text-secondary">Loading...</p>
@@ -357,21 +357,21 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 			<div class="space-y-form-field-gap">
 				{#each filteredErrors() as error (error._id)}
 					<div
-						class="border-sidebar px-card py-card hover:bg-hover-solid rounded-card border bg-surface transition-colors"
+						class="border-sidebar px-card py-card hover:bg-hover-solid rounded-card bg-surface border transition-colors"
 					>
 						<div class="flex items-start justify-between">
 							<div class="flex-1">
 								<div class="flex items-center gap-2">
-									<code class="text-small font-medium text-primary">{error.url}</code>
+									<code class="text-small text-primary font-medium">{error.url}</code>
 									{#if !error.resolved}
 										<span
-											class="bg-error/10 px-badge py-badge inline-flex items-center rounded border border-error text-label font-medium text-error"
+											class="bg-error/10 px-badge py-badge border-error text-label text-error inline-flex items-center rounded border font-medium"
 										>
 											Unresolved
 										</span>
 									{:else}
 										<span
-											class="bg-success/10 px-badge py-badge inline-flex items-center rounded border border-success text-label font-medium text-success"
+											class="bg-success/10 px-badge py-badge border-success text-label text-success inline-flex items-center rounded border font-medium"
 										>
 											Resolved
 										</span>
@@ -386,7 +386,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 								{/if}
 
 								<div
-									class="mt-form-field-gap gap-content-section flex items-center text-label text-tertiary"
+									class="mt-form-field-gap gap-content-section text-label text-tertiary flex items-center"
 								>
 									<span>First: {formatRelativeTime(error.firstSeenAt)}</span>
 									<span>Last: {formatRelativeTime(error.lastSeenAt)}</span>
@@ -437,7 +437,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 		}}
 	>
 		<div
-			class="border-sidebar px-card py-card w-full max-w-md rounded-card border bg-surface"
+			class="border-sidebar px-card py-card rounded-card bg-surface w-full max-w-md border"
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="resolve-error-title"
@@ -445,20 +445,20 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<h2 id="resolve-error-title" class="text-h3 font-semibold text-primary">Resolve Error</h2>
+			<h2 id="resolve-error-title" class="text-h3 text-primary font-semibold">Resolve Error</h2>
 			<p class="mt-form-field-gap text-small text-secondary">
 				<code>{selectedError.url}</code>
 			</p>
 
 			<div class="mt-content-section">
-				<label for="resolve-note" class="text-small block font-medium text-primary"
+				<label for="resolve-note" class="text-small text-primary block font-medium"
 					>Resolution Note</label
 				>
 				<textarea
 					id="resolve-note"
 					bind:value={resolveNote}
 					placeholder="How was this fixed? (optional)"
-					class="mt-form-field-gap border-sidebar text-small w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+					class="mt-form-field-gap border-sidebar text-small rounded-input bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary w-full border focus:outline-none"
 					rows="3"
 				></textarea>
 			</div>
@@ -472,7 +472,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 						}
 					}}
 					disabled={resolving || !selectedError}
-					class="text-small inline-flex items-center justify-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y font-semibold text-primary transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-small rounded-button bg-accent-primary px-button-x py-button-y text-primary hover:bg-accent-hover inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{resolving ? 'Resolving...' : 'Mark as Resolved'}
 				</button>

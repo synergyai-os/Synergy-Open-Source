@@ -14,7 +14,7 @@ import type { Id } from '$lib/convex';
 // Import TagWithHierarchy type from Convex (matches convex/tags.ts)
 export type TagWithHierarchy = {
 	_id: Id<'tags'>;
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 	name: string;
 	displayName: string;
 	color: string;

@@ -117,7 +117,7 @@ export function useEditRole(options: UseEditRoleOptions): UseEditRoleReturn {
 		state.error = null;
 
 		try {
-			const role = await convexClient.query(api.circleRoles.get, {
+			const role = await convexClient.query(api.core.roles.index.get, {
 				sessionId,
 				roleId
 			});
@@ -168,7 +168,7 @@ export function useEditRole(options: UseEditRoleOptions): UseEditRoleReturn {
 		state.error = null;
 
 		try {
-			await convexClient.mutation(api.circleRoles.updateInline, {
+			await convexClient.mutation(api.core.roles.index.updateInline, {
 				sessionId,
 				circleRoleId: roleId,
 				updates: {
@@ -209,7 +209,7 @@ export function useEditRole(options: UseEditRoleOptions): UseEditRoleReturn {
 		state.error = null;
 
 		try {
-			const result = await convexClient.mutation(api.proposals.createFromDiff, {
+			const result = await convexClient.mutation(api.core.proposals.index.createFromDiff, {
 				sessionId,
 				workspaceId,
 				entityType: 'role',

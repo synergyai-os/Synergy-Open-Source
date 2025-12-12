@@ -141,7 +141,7 @@
 <DropdownMenu.Root bind:open={mainMenuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class={`flex items-center ${showLabels ? 'gap-button px-2 py-[0.375rem]' : 'p-2'} group hover:bg-component-sidebar-itemHover w-full cursor-pointer rounded-button text-left transition-colors duration-200`}
+		class={`flex items-center ${showLabels ? 'gap-button px-2 py-[0.375rem]' : 'p-2'} group hover:bg-component-sidebar-itemHover rounded-button w-full cursor-pointer text-left transition-colors duration-200`}
 	>
 		<WorkspaceSelector
 			initials={triggerInitials}
@@ -154,7 +154,7 @@
 
 	<DropdownMenu.Portal to="body">
 		<DropdownMenu.Content
-			class="border-base workspace-switcher-menu relative min-w-[180px] overflow-hidden rounded-modal border bg-surface shadow-md"
+			class="border-base workspace-switcher-menu rounded-modal bg-surface relative min-w-[180px] overflow-hidden border shadow-md"
 			side="bottom"
 			align="start"
 			sideOffset={4}
@@ -173,7 +173,7 @@
 			<ScrollArea.Root type="auto" scrollHideDelay={400}>
 				<ScrollArea.Viewport
 					bind:ref={viewportRef}
-					class="relative py-inset-xs"
+					class="py-inset-xs relative"
 					style="max-height: 70vh;"
 				>
 					<!-- Account Info Section -->
@@ -186,7 +186,7 @@
 					<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 
 					<!-- Current Account Section Header -->
-					<div class="flex items-center justify-between px-input py-stack-header">
+					<div class="px-input py-stack-header flex items-center justify-between">
 						<Text
 							variant="label"
 							size="sm"
@@ -220,7 +220,7 @@
 
 					<!-- Add account -->
 					<DropdownMenu.Item
-						class="mx-1 cursor-pointer rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
+						class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none"
 						textValue="Add account"
 						onSelect={() => {
 							onAddAccount?.();
@@ -257,7 +257,7 @@
 					style="width: 0.5rem;"
 				>
 					<ScrollArea.Thumb
-						class="bg-tertiary relative flex-1 rounded-avatar"
+						class="bg-tertiary rounded-avatar relative flex-1"
 						style="opacity: var(--opacity-50);"
 					/>
 				</ScrollArea.Scrollbar>

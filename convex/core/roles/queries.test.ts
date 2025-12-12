@@ -3,23 +3,35 @@ import type { QueryCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import { listMembersWithoutRoles } from './queries';
 
-const mockUserId = 'u1' as Id<'users'>;
-const mockWorkspaceId = 'w1' as Id<'workspaces'>;
-const mockCircleId = 'c1' as Id<'circles'>;
+const { mockPersonId, mockWorkspaceId, mockCircleId } = vi.hoisted(() => ({
+	mockPersonId: 'p1' as Id<'people'>,
+	mockWorkspaceId: 'w1' as Id<'workspaces'>,
+	mockCircleId: 'c1' as Id<'circles'>
+}));
 
 function createMockDb() {
 	const data: Record<string, any[]> = {
-		workspaceMembers: [{ workspaceId: mockWorkspaceId, userId: mockUserId }],
+		people: [
+			{
+				_id: mockPersonId,
+				workspaceId: mockWorkspaceId,
+				status: 'active',
+				email: '',
+				displayName: ''
+			},
+			{ _id: 'p2', workspaceId: mockWorkspaceId, status: 'active', email: '', displayName: '' }
+		],
 		circles: [{ _id: mockCircleId, workspaceId: mockWorkspaceId }],
 		circleRoles: [],
 		circleMembers: [
-			{ circleId: mockCircleId, userId: mockUserId, joinedAt: 100 },
-			{ circleId: mockCircleId, userId: 'u2', joinedAt: 200 }
+			{ circleId: mockCircleId, personId: mockPersonId, joinedAt: 100 },
+			{ circleId: mockCircleId, personId: 'p2', joinedAt: 200 }
 		],
 		userCircleRoles: []
 	};
 
-	const get = async (id: any) => data.circles.find((c) => c._id === id);
+	const get = async (id: any) =>
+		[...data.circles, ...data.people].find((c) => c._id === id) ?? null;
 
 	const query = (table: string) => ({
 		withIndex: (_name: string, _cb: (q: any) => any) => ({
@@ -31,8 +43,9 @@ function createMockDb() {
 	return { get, query };
 }
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: async () => ({ userId: mockUserId })
+vi.mock('./roleAccess', () => ({
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(mockPersonId),
+	ensureWorkspaceMembership: vi.fn()
 }));
 
 describe('listMembersWithoutRoles helper', () => {
@@ -46,15 +59,15 @@ describe('listMembersWithoutRoles helper', () => {
 
 		expect(result).toEqual([
 			{
-				userId: mockUserId,
+				personId: mockPersonId,
 				email: '',
-				name: '',
+				displayName: '',
 				joinedAt: 100
 			},
 			{
-				userId: 'u2',
+				personId: 'p2',
 				email: '',
-				name: '',
+				displayName: '',
 				joinedAt: 200
 			}
 		]);

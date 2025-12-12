@@ -89,15 +89,15 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base">
+<div class="bg-base min-h-screen">
 	<div
 		class="py-system-content mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="border-base p-content-padding w-full max-w-md rounded-modal border bg-elevated shadow-sm"
+			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-sm"
 		>
 			<header class="gap-form-section flex flex-col text-center">
-				<h1 class="text-h2 font-semibold tracking-tight text-primary">Set new password</h1>
+				<h1 class="text-h2 text-primary font-semibold tracking-tight">Set new password</h1>
 				<p class="text-small text-secondary">Enter your new password below.</p>
 			</header>
 
@@ -107,16 +107,16 @@
 				</div>
 			{:else if successMessage}
 				<div
-					class="mt-content-section rounded-input border border-accent-primary bg-surface px-input-x py-input-y"
+					class="mt-content-section rounded-input border-accent-primary bg-surface px-input-x py-input-y border"
 				>
-					<p class="text-small font-medium text-primary">{successMessage}</p>
+					<p class="text-small text-primary font-medium">{successMessage}</p>
 				</div>
 				<div class="mt-content-section text-center">
 					<p class="text-small text-secondary">Redirecting to login...</p>
 				</div>
 			{:else if errorMessage}
 				<div
-					class="mt-content-section bg-error rounded-input border border-error px-input-x py-input-y"
+					class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border"
 				>
 					<p class="text-small text-error-secondary font-medium">{errorMessage}</p>
 				</div>

@@ -54,7 +54,7 @@
 	const getWorkspaceId = () => workspaceId();
 	const flagQuery =
 		browser && getSessionId()
-			? useQuery(api.featureFlags.isFlagEnabled, () => {
+			? useQuery(api.infrastructure.featureFlags.isFlagEnabled, () => {
 					const session = getSessionId();
 					invariant(session, 'sessionId required');
 					return {
@@ -69,7 +69,7 @@
 	// Fetch circles for create modal
 	const circlesQuery =
 		browser && getWorkspaceId() && getSessionId()
-			? useQuery(api.circles.list, () => {
+			? useQuery(api.core.circles.index.list, () => {
 					const orgId = getWorkspaceId();
 					const session = getSessionId();
 					invariant(orgId && session, 'workspaceId and sessionId required');
@@ -204,7 +204,7 @@
 
 {#if !featureEnabled && !flagQuery?.isLoading}
 	<!-- Feature not enabled -->
-	<div class="flex min-h-screen items-center justify-center bg-surface">
+	<div class="bg-surface flex min-h-screen items-center justify-center">
 		<div class="text-center">
 			<Heading level="h1" size="h1" class="font-semibold">Meetings Module</Heading>
 			<Text variant="body" color="secondary" class="mt-text-gap">
@@ -214,7 +214,7 @@
 	</div>
 {:else if flagQuery?.isLoading}
 	<!-- Loading -->
-	<div class="flex min-h-screen items-center justify-center bg-surface">
+	<div class="bg-surface flex min-h-screen items-center justify-center">
 		<Text variant="body" color="secondary">Loading...</Text>
 	</div>
 {:else}
@@ -225,7 +225,7 @@
 				<!-- Page Header -->
 				<PageHeader>
 					{#snippet titleSlot()}
-						<div class="flex items-center gap-header">
+						<div class="gap-header flex items-center">
 							<!-- Group 1: Title -->
 							<Text variant="label" size="sm" color="secondary" weight="normal">Meetings</Text>
 
@@ -233,7 +233,7 @@
 							<div class="w-px shrink-0 self-stretch bg-[var(--color-border-default)]"></div>
 
 							<!-- Group 3: Buttons -->
-							<div class="flex items-center gap-button">
+							<div class="gap-button flex items-center">
 								<Button
 									variant={state.activeTab === 'my-meetings' ? 'primary' : 'ghost'}
 									size="sm"
@@ -254,7 +254,7 @@
 
 					{#snippet right()}
 						<Button variant="outline" size="sm" onclick={() => (state.showCreateModal = true)}>
-							<div class="flex items-center gap-button">
+							<div class="gap-button flex items-center">
 								<Icon type="add" size="sm" />
 								<span>Add meeting</span>
 							</div>
@@ -263,7 +263,7 @@
 				</PageHeader>
 
 				<!-- Meeting List -->
-				<div class="max-w-container mx-auto px-page py-page">
+				<div class="max-w-container px-page py-page mx-auto">
 					{#if meetings.isLoading}
 						<div class="py-content-section text-center">
 							<Text variant="body" color="secondary">Loading meetings...</Text>
@@ -278,14 +278,14 @@
 						<!-- My Meetings Tab -->
 						<!-- Today Section -->
 						<div class="mb-section">
-							<div class="flex items-center gap-fieldGroup mb-header">
+							<div class="gap-fieldGroup mb-header flex items-center">
 								<Heading level={5} color="secondary">Today</Heading>
 								<Icon type="info" size="md" color="tertiary" />
 							</div>
 
 							{#if meetings.todayMeetings.length === 0}
 								<div
-									class="border-border-base rounded-card border border-dashed bg-surface text-center"
+									class="border-border-base rounded-card bg-surface border border-dashed text-center"
 									style="padding-block: var(--spacing-8);"
 								>
 									<Text variant="body" color="tertiary">No meetings scheduled for today</Text>
@@ -293,7 +293,7 @@
 							{:else}
 								<!-- Horizontal scroll container on desktop, vertical on mobile -->
 								<div
-									class="md:pb-section flex flex-col gap-section md:flex-row md:gap-section md:overflow-x-auto"
+									class="md:pb-section gap-section md:gap-section flex flex-col md:flex-row md:overflow-x-auto"
 									style="scrollbar-width: thin;"
 								>
 									{#each meetings.todayMeetings as meeting (meeting._id)}
@@ -322,14 +322,14 @@
 
 							{#if meetings.thisWeekMeetings.length === 0}
 								<div
-									class="border-border-base rounded-card border border-dashed bg-surface text-center"
+									class="border-border-base rounded-card bg-surface border border-dashed text-center"
 									style="padding-block: var(--spacing-8);"
 								>
 									<Text variant="body" color="tertiary">No meetings scheduled this week</Text>
 								</div>
 							{:else}
 								<div
-									class="divide-border-base border-border-base divide-y rounded-card border bg-surface"
+									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
 								>
 									{#each meetings.thisWeekMeetings as meeting (meeting._id)}
 										<MeetingCard
@@ -352,14 +352,14 @@
 
 							{#if meetings.futureMeetings.length === 0}
 								<div
-									class="border-border-base rounded-card border border-dashed bg-surface text-center"
+									class="border-border-base rounded-card bg-surface border border-dashed text-center"
 									style="padding-block: var(--spacing-8);"
 								>
 									<Text variant="body" color="tertiary">No upcoming meetings scheduled</Text>
 								</div>
 							{:else}
 								<div
-									class="divide-border-base border-border-base divide-y rounded-card border bg-surface"
+									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
 								>
 									{#each meetings.futureMeetings as meeting (meeting._id)}
 										<MeetingCard
@@ -382,7 +382,7 @@
 
 							{#if meetings.closedMeetings.length === 0}
 								<div
-									class="border-border-base text-text-tertiary rounded-card border border-dashed bg-surface text-center"
+									class="border-border-base text-text-tertiary rounded-card bg-surface border border-dashed text-center"
 									style="padding-block: var(--spacing-8);"
 								>
 									<div class="mx-auto">
@@ -397,7 +397,7 @@
 								</div>
 							{:else}
 								<div
-									class="divide-border-base border-border-base divide-y rounded-card border bg-surface"
+									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
 								>
 									{#each meetings.closedMeetings as meeting (meeting._id)}
 										<MeetingCard

@@ -41,7 +41,7 @@
 </script>
 
 <div
-	class="border-base max-w-[400px] min-w-[320px] overflow-hidden rounded-md border bg-elevated shadow-lg"
+	class="border-base bg-elevated max-w-[400px] min-w-[320px] overflow-hidden rounded-md border shadow-lg"
 >
 	<!-- Header -->
 	<div
@@ -52,7 +52,7 @@
 				<span class="flex-shrink-0 text-base">{activity.icon}</span>
 			{:else if activity.status === 'running'}
 				<svg
-					class="h-4 w-4 flex-shrink-0 animate-spin text-primary"
+					class="text-primary h-4 w-4 flex-shrink-0 animate-spin"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -66,7 +66,7 @@
 				</svg>
 			{:else if activity.status === 'completed'}
 				<svg
-					class="h-4 w-4 flex-shrink-0 text-accent-primary"
+					class="text-accent-primary h-4 w-4 flex-shrink-0"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -80,7 +80,7 @@
 				</svg>
 			{:else if activity.status === 'error'}
 				<svg
-					class="h-4 w-4 flex-shrink-0 text-error"
+					class="text-error h-4 w-4 flex-shrink-0"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -95,7 +95,7 @@
 			{/if}
 
 			<div class="min-w-0 flex-1">
-				<h4 class="truncate text-sm font-medium text-primary">
+				<h4 class="text-primary truncate text-sm font-medium">
 					{activity.type === 'sync'
 						? 'Syncing'
 						: activity.type === 'generation'
@@ -108,7 +108,7 @@
 										? 'Processing'
 										: 'Activity'}
 					{#if activity.metadata?.source}
-						<span class="font-normal text-tertiary"> {activity.metadata.source}</span>
+						<span class="text-tertiary font-normal"> {activity.metadata.source}</span>
 					{/if}
 				</h4>
 			</div>
@@ -118,7 +118,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="hover:bg-hover-solid flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-tertiary transition-colors hover:text-secondary"
+				class="hover:bg-hover-solid text-tertiary hover:text-secondary flex h-5 w-5 flex-shrink-0 items-center justify-center rounded transition-colors"
 				aria-label="Dismiss"
 			>
 				<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,9 +138,9 @@
 		<div class="border-base px-menu-item py-menu-item border-b">
 			{#if activity.progress?.step}
 				<div class="mb-2 flex items-center justify-between text-xs">
-					<span class="flex-1 truncate font-medium text-secondary">{activity.progress.step}</span>
+					<span class="text-secondary flex-1 truncate font-medium">{activity.progress.step}</span>
 					{#if activity.progress.current !== undefined && activity.progress.total !== undefined}
-						<span class="ml-2 flex-shrink-0 text-tertiary">
+						<span class="text-tertiary ml-2 flex-shrink-0">
 							{activity.progress.current} / {activity.progress.total}
 						</span>
 					{/if}
@@ -148,20 +148,20 @@
 			{/if}
 
 			{#if !activity.progress?.indeterminate && progressPercentage() > 0}
-				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
+				<div class="bg-base h-2 w-full overflow-hidden rounded-full">
 					<div
-						class="h-full bg-interactive-primary transition-all duration-300 ease-out"
+						class="bg-interactive-primary h-full transition-all duration-300 ease-out"
 						style="width: {progressPercentage()}%"
 					></div>
 				</div>
 			{:else if activity.progress?.indeterminate}
-				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
-					<div class="h-full animate-pulse bg-interactive-primary" style="width: 60%"></div>
+				<div class="bg-base h-2 w-full overflow-hidden rounded-full">
+					<div class="bg-interactive-primary h-full animate-pulse" style="width: 60%"></div>
 				</div>
 			{/if}
 
 			{#if activity.progress?.message}
-				<p class="mt-2 text-xs text-tertiary">{activity.progress.message}</p>
+				<p class="text-tertiary mt-2 text-xs">{activity.progress.message}</p>
 			{/if}
 		</div>
 	{/if}
@@ -172,7 +172,7 @@
 			{#each activity.quickActions as action, index (action.label || index)}
 				<Button.Root
 					onclick={() => handleQuickAction(action.action)}
-					class="px-menu-item py-menu-item hover:bg-hover-solid flex items-center gap-2 rounded-md text-xs text-primary transition-colors"
+					class="px-menu-item py-menu-item hover:bg-hover-solid text-primary flex items-center gap-2 rounded-md text-xs transition-colors"
 				>
 					{#if action.icon}
 						<span>{action.icon}</span>
@@ -188,7 +188,7 @@
 		{#if activity.status === 'running' && onCancel}
 			<Button.Root
 				onclick={onCancel}
-				class="px-menu-item py-menu-item hover:bg-hover-solid rounded-md text-xs text-tertiary transition-colors hover:text-secondary"
+				class="px-menu-item py-menu-item hover:bg-hover-solid text-tertiary hover:text-secondary rounded-md text-xs transition-colors"
 			>
 				Cancel
 			</Button.Root>

@@ -305,7 +305,7 @@ describe('RBAC Permission System', () => {
 				const { requirePermission } = await import('./permissions');
 				await requirePermission(ctx, userId, 'circles.create');
 			});
-		}).rejects.toThrow('Permission denied');
+		}).rejects.toThrow(/AUTHZ_INSUFFICIENT_RBAC/);
 	});
 
 	test('Permission checks are logged to audit log', async () => {

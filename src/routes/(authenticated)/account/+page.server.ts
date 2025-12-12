@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	let linkedAccounts: unknown[] = [];
 	try {
-		linkedAccounts = (await client.query(api.users.listLinkedAccounts, {
+		linkedAccounts = (await client.query(api.core.users.index.listLinkedAccounts, {
 			sessionId
 		})) as unknown[];
 	} catch (error) {

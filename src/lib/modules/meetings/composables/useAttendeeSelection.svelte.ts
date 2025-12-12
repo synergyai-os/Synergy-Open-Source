@@ -17,8 +17,8 @@ import { api, type Id } from '$lib/convex';
 import { invariant } from '$lib/utils/invariant';
 
 export type Attendee = {
-	type: 'user' | 'circle';
-	id: Id<'users'> | Id<'circles'>;
+	type: 'user' | 'circle'; // user → person invite
+	id: Id<'people'> | Id<'circles'>;
 	name: string;
 	email?: string; // For users
 };
@@ -58,7 +58,7 @@ export function useAttendeeSelection(
 	// Query users
 	const usersQuery =
 		browser && params.sessionId()
-			? useQuery(api.workspaces.listMembers, () => {
+			? useQuery(api.core.workspaces.index.listMembers, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required');
 					return { workspaceId: params.workspaceId(), sessionId };
@@ -68,7 +68,7 @@ export function useAttendeeSelection(
 	// Query circles
 	const circlesQuery =
 		browser && params.sessionId()
-			? useQuery(api.circles.list, () => {
+			? useQuery(api.core.circles.index.list, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required');
 					return { workspaceId: params.workspaceId(), sessionId };
@@ -79,12 +79,12 @@ export function useAttendeeSelection(
 	const availableAttendees = $derived.by(() => {
 		const attendees: Attendee[] = [];
 
-		// Add users
+		// Add people (workspace members)
 		const users = usersQuery?.data ?? [];
 		for (const user of users) {
 			attendees.push({
 				type: 'user',
-				id: user.userId as Id<'users'>,
+				id: user.personId as Id<'people'>,
 				name: user.name || user.email || 'Unknown',
 				email: user.email
 			});

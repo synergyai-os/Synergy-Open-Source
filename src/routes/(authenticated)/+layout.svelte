@@ -65,7 +65,7 @@
 	// This prevents CSS loss when switching workspaces
 	const allOrgBrandingQuery =
 		browser && getSessionId()
-			? useQuery(api.workspaces.getAllOrgBranding, () => {
+			? useQuery(api.core.workspaces.index.getAllOrgBranding, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };
@@ -211,7 +211,6 @@
 	// Apply org class on client (idempotent - same as SSR, reactive to workspace switches)
 	$effect(() => {
 		if (browser && workspaceId) {
-			const currentOrgId = workspaceId;
 			// Remove ALL org-* classes to ensure clean state (handles SSR issues and workspace switches)
 			const htmlElement = document.documentElement;
 			const classesToRemove: string[] = [];
@@ -223,10 +222,7 @@
 			classesToRemove.forEach((cls) => htmlElement.classList.remove(cls));
 
 			// Add new org class
-			htmlElement.classList.add(`org-${currentOrgId}`);
-
-			// Track for next switch
-			previousOrgId = currentOrgId;
+			htmlElement.classList.add(`org-${workspaceId}`);
 		}
 	});
 
@@ -740,7 +736,7 @@
 		- Outer shell: base background (darkest) with subtle brand gradient
 		- Inner content: floating elevated card with rounded corners, border, shadow
 	-->
-	<div class="relative flex h-screen overflow-hidden bg-base">
+	<div class="bg-base relative flex h-screen overflow-hidden">
 		<!--
 			Shell Background Gradient
 			- Uses brand hue (195) at 3% opacity for subtle depth
@@ -794,7 +790,7 @@
 					- Elevated background (lighter than sidebar for contrast)
 				-->
 				<div
-					class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-elevated shadow-sm"
+					class="border-subtle bg-elevated flex flex-1 flex-col overflow-hidden rounded-xl border shadow-sm"
 				>
 					<!-- Top Bar with matching rounded corners -->
 					<!-- <div class="rounded-t-xl bg-surface">
@@ -856,7 +852,7 @@
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
-	<div class="flex h-screen items-center justify-center bg-base">
+	<div class="bg-base flex h-screen items-center justify-center">
 		<div class="text-center">
 			<p class="mb-content-section text-primary">Please log in to continue</p>
 			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>

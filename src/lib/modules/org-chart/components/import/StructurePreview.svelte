@@ -55,19 +55,19 @@
 	});
 </script>
 
-<div class="flex h-full flex-col gap-form">
+<div class="gap-form flex h-full flex-col">
 	<!-- Header -->
 	<Text variant="h3">Preview</Text>
 
 	{#if result?.root}
 		<!-- Tree Preview -->
-		<div class="border-base flex-1 overflow-y-auto rounded-card border bg-surface inset-md">
+		<div class="border-base rounded-card bg-surface inset-md flex-1 overflow-y-auto border">
 			<PreviewTree node={result.root} {coreTemplates} />
 		</div>
 
 		<!-- Stats -->
 		{#if stats()}
-			<div class="border-base rounded-card border bg-elevated inset-md">
+			<div class="border-base rounded-card bg-elevated inset-md border">
 				<Text variant="body" size="sm" color="secondary">
 					Will create: <strong>{stats().circleCount} circles</strong>,
 					<strong>{stats().roleCount} roles</strong>
@@ -76,21 +76,21 @@
 					{/if}
 				</Text>
 
-				<div class="flex items-center gap-fieldGroup mt-fieldGroup">
-					<span class="bg-warning-subtle rounded-full px-2 py-1 text-xs text-warning">
+				<div class="gap-fieldGroup mt-fieldGroup flex items-center">
+					<span class="bg-warning-subtle text-warning rounded-full px-2 py-1 text-xs">
 						📝 Draft
 					</span>
 					<Text variant="body" size="sm" color="secondary">All items will start as drafts</Text>
 				</div>
 
 				{#if result.coreRoleWarnings.length > 0}
-					<div class="bg-warning-subtle rounded-card border border-warning inset-md mt-fieldGroup">
+					<div class="bg-warning-subtle rounded-card border-warning inset-md mt-fieldGroup border">
 						<Text variant="body" size="sm" color="warning" class="mb-fieldGroup font-medium">
 							⚠️ Core Role Warning{result.coreRoleWarnings.length > 1 ? 's' : ''}
 						</Text>
 						<ul class="list-inside list-disc space-y-1">
 							{#each result.coreRoleWarnings as warning (warning.lineNumber)}
-								<li class="text-sm text-warning">
+								<li class="text-warning text-sm">
 									Line {warning.lineNumber}: {warning.message}
 								</li>
 							{/each}
@@ -116,14 +116,14 @@
 		{/if}
 	{:else}
 		<div
-			class="border-base flex flex-1 items-center justify-center rounded-card border border-dashed"
+			class="border-base rounded-card flex flex-1 items-center justify-center border border-dashed"
 		>
 			<Text variant="body" color="secondary">Enter structure on the left to see preview</Text>
 		</div>
 	{/if}
 
 	<!-- Actions -->
-	<div class="flex justify-end gap-button">
+	<div class="gap-button flex justify-end">
 		<Button variant="secondary" onclick={() => history.back()}>Cancel</Button>
 		<Button variant="primary" disabled={!canImport || importing} onclick={onImport}>
 			{importing ? 'Importing...' : 'Import Structure'}

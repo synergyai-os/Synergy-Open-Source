@@ -12,6 +12,7 @@ import {
 } from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 import { resolveWorkspaceRedirect } from '$lib/infrastructure/auth/server/workspaceRedirect';
+import { invariant } from '$lib/utils/invariant';
 import { logger } from '$lib/utils/logger';
 
 /**
@@ -54,7 +55,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		console.log('🔍 Syncing user to Convex...');
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		const convexUserId = await convex.mutation(api.core.users.index.syncUserFromWorkOS, {
+			sessionId: event.locals.auth?.sessionId,
 			workosId: authResponse.user.id,
 			email: authResponse.user.email,
 			firstName: authResponse.user.first_name,
@@ -74,8 +76,16 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 			// Get primary user from current session
 			const primaryUserId = event.locals.auth?.user?.userId as Id<'users'> | undefined;
+			const primarySessionId = event.locals.auth?.sessionId as string | undefined;
 			if (!primaryUserId) {
 				console.error('❌ No primary user in session for linking');
+				return json(
+					{ error: 'Session expired. Please log in again to link accounts.' },
+					{ status: 401 }
+				);
+			}
+			if (!primarySessionId) {
+				console.error('❌ No sessionId in session for linking');
 				return json(
 					{ error: 'Session expired. Please log in again to link accounts.' },
 					{ status: 401 }
@@ -86,9 +96,9 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				console.log('🔗 Linking accounts:', { primaryUserId, linkedUserId: convexUserId });
 
 				// Link the accounts in Convex
-				await convex.mutation(api.users.linkAccounts, {
-					primaryUserId: primaryUserId as Id<'users'>,
-					linkedUserId: convexUserId
+				await convex.mutation(api.core.users.index.linkAccounts, {
+					sessionId: primarySessionId,
+					targetUserId: convexUserId
 				});
 
 				console.log('✅ Accounts linked successfully');
@@ -100,7 +110,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 				const refreshTokenCiphertext = encryptSecret(authResponse.refresh_token);
 				const csrfTokenHash = hashValue(linkedCsrfToken);
 
-				await convex.mutation(api.authSessions.createSession, {
+				await convex.mutation(api.infrastructure.authSessions.createSession, {
 					sessionId: linkedSessionId,
 					convexUserId,
 					workosUserId: authResponse.user.id,
@@ -276,10 +286,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		}
 
 		const finalRedirect =
-			redirectTo ??
-			(() => {
-				throw new Error('Failed to resolve post-login redirect');
-			})();
+			redirectTo ?? (() => invariant(false, 'Failed to resolve post-login redirect'))();
 
 		return json({
 			success: true,

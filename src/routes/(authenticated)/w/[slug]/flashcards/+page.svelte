@@ -11,7 +11,7 @@
 	import type { Doc, Id } from '$convex/_generated/dataModel';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-import { invariant } from '$lib/utils/invariant';
+	import { invariant } from '$lib/utils/invariant';
 
 	const convexClient = browser ? useConvexClient() : null;
 
@@ -34,7 +34,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query all tags for filtering (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
+			? useQuery(api.features.tags.index.listAllTags, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					const orgId = activeWorkspaceId();
@@ -49,7 +49,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query collections
 	const collectionsQuery =
 		browser && getSessionId()
-			? useQuery(api.flashcards.listFlashcardsByCollection, () => {
+			? useQuery(api.features.flashcards.index.listFlashcardsByCollection, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return { sessionId };
@@ -60,7 +60,7 @@ import { invariant } from '$lib/utils/invariant';
 	// Query all flashcards (for "All Cards" collection)
 	const allFlashcardsQuery =
 		browser && getSessionId()
-			? useQuery(api.flashcards.getUserFlashcards, () => {
+			? useQuery(api.features.flashcards.index.getUserFlashcards, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 					return {
@@ -141,7 +141,7 @@ import { invariant } from '$lib/utils/invariant';
 				const sessionId = getSessionId();
 				invariant(sessionId, 'Session ID is required');
 
-				const result = await convexClient.query(api.flashcards.getUserFlashcards, {
+				const result = await convexClient.query(api.features.flashcards.index.getUserFlashcards, {
 					sessionId,
 					tagIds: [collection.tagId as Id<'tags'>]
 				});
@@ -170,14 +170,14 @@ import { invariant } from '$lib/utils/invariant';
 </script>
 
 <!-- Main Content -->
-<div class="h-full overflow-y-auto bg-base">
+<div class="bg-base h-full overflow-y-auto">
 	<!-- Header -->
 	<div
-		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-base px-page"
+		class="h-system-header border-base py-system-header bg-base px-page sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<div class="flex items-center gap-2">
 			<svg
-				class="size-icon-md flex-shrink-0 text-accent-primary"
+				class="size-icon-md text-accent-primary flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -191,7 +191,7 @@ import { invariant } from '$lib/utils/invariant';
 				/>
 			</svg>
 			<div class="flex items-center gap-2">
-				<h2 class="text-small font-normal text-secondary">Flashcards</h2>
+				<h2 class="text-small text-secondary font-normal">Flashcards</h2>
 				{#if allFlashcards.length > 0}
 					<span class="text-small text-secondary">
 						({allFlashcards.length} card{allFlashcards.length !== 1 ? 's' : ''}
@@ -205,7 +205,7 @@ import { invariant } from '$lib/utils/invariant';
 		{#if allFlashcards.length > 0}
 			<Button.Root
 				href={resolveRoute('/study')}
-				class="py-nav-item text-small flex items-center gap-2 rounded-button bg-accent-primary px-2 font-medium text-primary transition-opacity hover:opacity-90"
+				class="py-nav-item text-small rounded-button bg-accent-primary text-primary flex items-center gap-2 px-2 font-medium transition-opacity hover:opacity-90"
 			>
 				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -234,7 +234,7 @@ import { invariant } from '$lib/utils/invariant';
 			</div>
 		{:else if error}
 			<div class="text-center" style="padding-block: var(--spacing-8);">
-				<p class="mb-form-section font-medium text-primary">Error</p>
+				<p class="mb-form-section text-primary font-medium">Error</p>
 				<p class="text-secondary">{error}</p>
 			</div>
 		{:else if displayCollections.length === 0}

@@ -483,6 +483,66 @@
 			}
 		},
 
+		"syntax": {
+			"$description": "Syntax highlighting colors - theme-aware mapping for code blocks",
+			"keyword": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.keyword.light}",
+					"dark": "{color.syntax.keyword.dark}"
+				},
+				"$description": "Language keywords (const, function, if, return)"
+			},
+			"string": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.string.light}",
+					"dark": "{color.syntax.string.dark}"
+				},
+				"$description": "String literals (\"hello\", 'world')"
+			},
+			"comment": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.comment.light}",
+					"dark": "{color.syntax.comment.dark}"
+				},
+				"$description": "Comments (// comment, /* block */)"
+			},
+			"function": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.function.light}",
+					"dark": "{color.syntax.function.dark}"
+				},
+				"$description": "Function names (myFunction())"
+			},
+			"variable": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.variable.light}",
+					"dark": "{color.syntax.variable.dark}"
+				},
+				"$description": "Variable names (myVar, props)"
+			},
+			"operator": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.operator.light}",
+					"dark": "{color.syntax.operator.dark}"
+				},
+				"$description": "Operators (=, +, =>, &&)"
+			},
+			"number": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.syntax.number.light}",
+					"dark": "{color.syntax.number.dark}"
+				},
+				"$description": "Numeric literals (42, 3.14, 0xff)"
+			}
+		},
+
 		"component": {
 			"$description": "Component-specific semantic colors",
 

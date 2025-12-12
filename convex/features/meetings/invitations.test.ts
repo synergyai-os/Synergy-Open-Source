@@ -1,7 +1,9 @@
 import { describe, expect, test, vi } from 'vitest';
 
-vi.mock('../../infrastructure/sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'user1' })
+vi.mock('./helpers/access', () => ({
+	ensureWorkspaceMembership: vi.fn(),
+	requireMeeting: vi.fn(async (_ctx, meetingId) => ({ _id: meetingId, workspaceId: 'w1' })),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue({ personId: 'person1' })
 }));
 
 import type { MutationCtx } from '../../_generated/server';
@@ -21,15 +23,6 @@ const makeCtx = (opts: {
 				.mockResolvedValueOnce(opts.invitation)
 				.mockResolvedValueOnce(opts.meeting ?? { _id: 'm1', workspaceId: 'w1' }),
 			query: vi.fn((table: string) => {
-				if (table === 'workspaceMembers') {
-					return {
-						withIndex: () => ({
-							first: vi
-								.fn()
-								.mockResolvedValue(opts.workspaceMember === false ? null : { _id: 'wm1' })
-						})
-					};
-				}
 				if (table === 'meetingAttendees') {
 					return {
 						withIndex: () => ({
@@ -59,7 +52,7 @@ describe('meetings/invitations helpers', () => {
 				_id: 'inv1',
 				meetingId: 'm1',
 				invitationType: 'user',
-				userId: 'user1',
+				personId: 'person1',
 				status: 'pending'
 			}
 		});
@@ -70,7 +63,7 @@ describe('meetings/invitations helpers', () => {
 
 		expect((ctx.db as any).insert).toHaveBeenCalledWith('meetingAttendees', {
 			meetingId: 'm1',
-			userId: 'user1',
+			personId: 'person1',
 			joinedAt: expect.any(Number)
 		});
 		expect((ctx.db as any).patch).toHaveBeenCalledWith('inv1', {

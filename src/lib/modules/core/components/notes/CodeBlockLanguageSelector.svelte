@@ -89,7 +89,7 @@
 
 {#if showSelector && position}
 	<div
-		class="code-language-selector border-base fixed z-50 max-h-[300px] min-w-[200px] overflow-y-auto rounded-button border bg-elevated shadow-card"
+		class="code-language-selector border-base rounded-button bg-elevated shadow-card fixed z-50 max-h-[300px] min-w-[200px] overflow-y-auto border"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
 		<div class="border-base px-content-section py-content-section border-b">
@@ -98,20 +98,20 @@
 				bind:value={searchQuery}
 				bind:this={searchInput}
 				placeholder="Search languages..."
-				class="border-base text-small focus:ring-accent-primary w-full rounded-input border bg-base px-input-x py-input-y text-primary placeholder:text-tertiary focus:ring-1 focus:outline-none"
+				class="border-base text-small focus:ring-accent-primary rounded-input bg-base px-input-x py-input-y text-primary placeholder:text-tertiary w-full border focus:ring-1 focus:outline-none"
 			/>
 		</div>
 		<div class="py-badge">
 			{#each filteredLanguages as lang (lang.value)}
 				<button
 					type="button"
-					class="text-small hover:bg-hover-solid flex w-full items-center gap-2 px-input-x py-input-y text-left transition-colors {lang.value ===
+					class="text-small hover:bg-hover-solid px-input-x py-input-y flex w-full items-center gap-2 text-left transition-colors {lang.value ===
 					currentLanguage
 						? 'bg-hover-solid'
 						: ''}"
 					onclick={() => selectLanguage(lang.value)}
 				>
-					<span class="flex-1 text-primary">{lang.label}</span>
+					<span class="text-primary flex-1">{lang.label}</span>
 					{#if lang.value === currentLanguage}
 						<span class="text-accent-primary">✓</span>
 					{/if}

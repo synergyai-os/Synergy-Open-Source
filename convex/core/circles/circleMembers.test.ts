@@ -2,10 +2,6 @@ import { describe, expect, test, vi } from 'vitest';
 import type { MutationCtx } from '../../_generated/server';
 import { addCircleMember } from './circleMembers';
 
-vi.mock('../../sessionValidation', () => ({
-	validateSessionAndGetUserId: vi.fn().mockResolvedValue({ userId: 'u-acting' })
-}));
-
 vi.mock('./rules', () => ({
 	requireCircle: vi.fn().mockResolvedValue({
 		workspaceId: 'w1'
@@ -13,7 +9,8 @@ vi.mock('./rules', () => ({
 }));
 
 vi.mock('./circleAccess', () => ({
-	ensureWorkspaceMembership: vi.fn()
+	ensureWorkspaceMembership: vi.fn(),
+	requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p-acting')
 }));
 
 describe('circleMembers.addCircleMember', () => {
@@ -25,9 +22,9 @@ describe('circleMembers.addCircleMember', () => {
 					withIndex: vi.fn().mockReturnValue({
 						first: async () => {
 							queryCall += 1;
-							// First call: ensure acting user is a member
+							// First call: ensure acting person is a member
 							if (queryCall === 1) return { _id: 'membership-acting' };
-							// Second call: existing membership for target user
+							// Second call: existing membership for target person
 							if (queryCall === 2) return { _id: 'membership-existing' };
 							return null;
 						}
@@ -42,7 +39,7 @@ describe('circleMembers.addCircleMember', () => {
 			addCircleMember(ctx, {
 				sessionId: 's1',
 				circleId: 'c1' as any,
-				targetUserId: 'u-target' as any
+				memberPersonId: 'p-target' as any
 			})
 		).rejects.toThrow(/CIRCLE_MEMBER_EXISTS/);
 	});

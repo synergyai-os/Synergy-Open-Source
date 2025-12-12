@@ -2,23 +2,26 @@ import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { ensureCircleExists, ensureWorkspaceMembership } from './roleAccess';
+import {
+	ensureCircleExists,
+	ensureWorkspaceMembership,
+	requireWorkspacePersonFromSession
+} from './roleAccess';
+import { getPersonById } from '../people/queries';
 
 async function listRoleFillers(
 	ctx: QueryCtx,
 	args: { sessionId: string; circleRoleId: Id<'circleRoles'>; includeArchived?: boolean }
 ) {
-	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
 	const role = await ctx.db.get(args.circleRoleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
-	await ensureWorkspaceMembership(ctx, workspaceId, userId);
+	const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+	await ensureWorkspaceMembership(ctx, workspaceId, personId);
 
 	const assignments = args.includeArchived
 		? await ctx.db
@@ -34,28 +37,23 @@ async function listRoleFillers(
 
 	const fillers = await Promise.all(
 		assignments.map(async (assignment) => {
-			const user = await ctx.db.get(assignment.userId);
-
-			const assignedByUser = await ctx.db.get(assignment.assignedBy);
+			const person = await getPersonById(ctx, assignment.personId);
+			const assignedByPerson = assignment.assignedByPersonId
+				? await ctx.db.get(assignment.assignedByPersonId)
+				: null;
 
 			return {
-				userId: assignment.userId,
-				email:
-					(user && typeof user === 'object' && 'email' in user
-						? (user as { email?: string }).email
-						: '') ?? '',
-				name:
-					(user && typeof user === 'object' && 'name' in user
-						? (user as { name?: string }).name
-						: '') ?? '',
+				personId: assignment.personId,
+				email: person.email ?? '',
+				displayName: person.displayName,
 				assignedAt: assignment.assignedAt,
-				assignedBy: assignment.assignedBy,
-				assignedByName:
-					(assignedByUser &&
-						typeof assignedByUser === 'object' &&
-						'name' in assignedByUser &&
-						(assignedByUser as { name?: string }).name) ??
-					'Unknown'
+				assignedByPersonId: assignment.assignedByPersonId,
+				assignedByDisplayName:
+					(assignedByPerson &&
+						typeof assignedByPerson === 'object' &&
+						'displayName' in assignedByPerson &&
+						(assignedByPerson as { displayName?: string }).displayName) ||
+					undefined
 			};
 		})
 	);

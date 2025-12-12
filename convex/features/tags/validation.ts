@@ -1,8 +1,8 @@
-import { normalizeTagName } from '../../readwiseUtils';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import { normalizeTagName } from '../readwise/utils';
+import { ensureCircleMembership, ensureTagAccess, type ActorContext } from './access';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { canAccessContent } from '../../permissions';
 
 type WorkspaceId = Id<'workspaces'>;
 type CircleId = Id<'circles'>;
@@ -33,8 +33,15 @@ export async function ensureUniqueTagName(
 	circleId: CircleId | undefined,
 	normalizedName: string
 ): Promise<void> {
+	if (!workspaceId) {
+		throw createError(
+			ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
+			'Workspace is required when creating tags'
+		);
+	}
+
 	let existing: Doc<'tags'> | null = null;
-	if (ownership === 'user' && workspaceId) {
+	if (ownership === 'user') {
 		existing = await ctx.db
 			.query('tags')
 			.withIndex('by_workspace_name', (q) =>
@@ -42,14 +49,14 @@ export async function ensureUniqueTagName(
 			)
 			.filter((q) => q.eq(q.field('ownershipType'), 'user'))
 			.first();
-	} else if (ownership === 'workspace' && workspaceId) {
+	} else if (ownership === 'workspace') {
 		existing = await ctx.db
 			.query('tags')
 			.withIndex('by_workspace_name', (q) =>
 				q.eq('workspaceId', workspaceId).eq('name', normalizedName)
 			)
 			.first();
-	} else if (ownership === 'circle' && circleId && workspaceId) {
+	} else if (ownership === 'circle' && circleId) {
 		existing = await ctx.db
 			.query('tags')
 			.withIndex('by_circle_name', (q) => q.eq('circleId', circleId).eq('name', normalizedName))
@@ -64,8 +71,8 @@ export async function ensureUniqueTagName(
 export async function ensureParentChainValid(
 	ctx: MutationCtx,
 	parentId: Id<'tags'> | undefined,
-	userId: Id<'users'>,
-	workspaceId: WorkspaceId | undefined,
+	actor: ActorContext,
+	workspaceId: WorkspaceId,
 	circleId: CircleId | undefined
 ): Promise<void> {
 	if (!parentId) return;
@@ -86,30 +93,21 @@ export async function ensureParentChainValid(
 		if (!parentTag) {
 			throw createError(ErrorCodes.TAG_PARENT_NOT_FOUND, 'Parent tag not found');
 		}
-		if (parentTag.userId !== userId) {
-			const hasAccess = await canAccessContent(ctx, userId, {
-				userId: parentTag.userId,
-				workspaceId: parentTag.workspaceId ?? undefined,
-				circleId: parentTag.circleId ?? undefined
-			});
-			if (!hasAccess) {
-				throw createError(
-					ErrorCodes.TAG_PARENT_ACCESS_DENIED,
-					'Parent tag does not belong to current user scope'
-				);
-			}
-		}
+		await ensureTagAccess(ctx, actor, parentTag);
 		if (parentTag.workspaceId !== workspaceId) {
 			throw createError(
 				ErrorCodes.TAG_PARENT_WORKSPACE_MISMATCH,
 				'Parent tag must belong to the same workspace'
 			);
 		}
-		if (parentTag.circleId !== circleId) {
+		if ((parentTag.circleId ?? undefined) !== (circleId ?? undefined)) {
 			throw createError(
 				ErrorCodes.TAG_PARENT_CIRCLE_MISMATCH,
 				'Parent tag must belong to the same circle'
 			);
+		}
+		if (parentTag.circleId) {
+			await ensureCircleMembership(ctx, parentTag.circleId, actor.personId);
 		}
 		currentParentId = parentTag.parentId;
 	}

@@ -1,6 +1,6 @@
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../sessionValidation';
+import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { listActiveUserRoles } from './lifecycle';
 import { logPermissionCheck } from './logging';

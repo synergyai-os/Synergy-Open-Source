@@ -8,10 +8,10 @@
  *   npx convex run rbac/seedRBAC:seedRBAC
  */
 
-import { mutation } from '../_generated/server';
+import { internalMutation } from '../_generated/server';
 import type { Id } from '../_generated/dataModel';
 
-export const seedRBAC = mutation({
+export const seedRBAC = internalMutation({
 	args: {},
 	handler: async (ctx) => {
 		const now = Date.now();

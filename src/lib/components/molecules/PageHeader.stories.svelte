@@ -68,10 +68,10 @@
 	{#snippet template(args)}
 		<PageHeader {...args}>
 			{#snippet titleSlot()}
-				<span class="flex items-center gap-header">
-					<span class="text-sm font-medium text-secondary">Inbox</span>
+				<span class="gap-header flex items-center">
+					<span class="text-secondary text-sm font-medium">Inbox</span>
 					<span
-						class="min-w-badge rounded-chip px-badge py-badge flex items-center justify-center bg-accent-primary text-center text-label leading-none font-medium text-primary"
+						class="min-w-badge rounded-chip px-badge py-badge bg-accent-primary text-label text-primary flex items-center justify-center text-center leading-none font-medium"
 					>
 						8
 					</span>

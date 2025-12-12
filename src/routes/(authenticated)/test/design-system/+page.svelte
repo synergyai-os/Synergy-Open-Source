@@ -45,14 +45,14 @@
 	];
 </script>
 
-<div class="flex flex-col gap-section px-page py-page">
+<div class="gap-section px-page py-page flex flex-col">
 	<Heading level="1">Design System Test Page</Heading>
 	<Text>All components from CreateMeetingModal displayed vertically with 'md' size</Text>
 
 	<Heading level="2">Approved</Heading>
 
 	<!-- Heading -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Heading</Text>
 		<Heading level="3">Add meeting</Heading>
 	</div>
@@ -60,13 +60,13 @@
 	<Heading level="2" color="secondary">Not Approved</Heading>
 
 	<!-- Stepper -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Stepper</Text>
 		<Stepper {steps} currentStep={1} onStepChange={() => {}} canNavigateToStep={() => true} />
 	</div>
 
 	<!-- Combobox -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Combobox</Text>
 		<Combobox
 			id="test-combobox"
@@ -80,7 +80,7 @@
 	</div>
 
 	<!-- FormInput -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">FormInput</Text>
 		<FormInput
 			id="test-input"
@@ -93,7 +93,7 @@
 	</div>
 
 	<!-- DateTimeField -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">DateTimeField</Text>
 		<DateTimeField
 			id="test-datetime"
@@ -105,7 +105,7 @@
 	</div>
 
 	<!-- FormSelect -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">FormSelect</Text>
 		<FormSelect
 			id="test-select"
@@ -117,16 +117,16 @@
 	</div>
 
 	<!-- ToggleSwitch -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">ToggleSwitch</Text>
-		<div class="flex items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex items-center">
 			<ToggleSwitch checked={toggleSwitchValue} onChange={(val) => (toggleSwitchValue = val)} />
 			<Text variant="body" size="sm" color="default">Repeat this meeting</Text>
 		</div>
 	</div>
 
 	<!-- ToggleGroup -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">ToggleGroup</Text>
 		<ToggleGroup.Root type="multiple" bind:value={toggleGroupValue} class={toggleGroupRootRecipe()}>
 			<ToggleGroup.Item value="0" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
@@ -138,9 +138,9 @@
 	</div>
 
 	<!-- Buttons -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Buttons</Text>
-		<div class="flex flex-wrap items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex flex-wrap items-center">
 			<Button variant="primary" size="md">Primary</Button>
 			<Button variant="outline" size="md">Outline</Button>
 			<Button variant="ghost" size="md">Ghost</Button>
@@ -151,18 +151,18 @@
 	</div>
 
 	<!-- Badge -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Badge</Text>
-		<div class="flex flex-wrap items-center gap-fieldGroup">
+		<div class="gap-fieldGroup flex flex-wrap items-center">
 			<Badge variant="primary" size="md">Primary</Badge>
 			<Badge variant="neutral" size="md">Neutral</Badge>
 		</div>
 	</div>
 
 	<!-- Text Variants -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Text Variants</Text>
-		<div class="flex flex-col gap-fieldGroup">
+		<div class="gap-fieldGroup flex flex-col">
 			<Text variant="body" size="base" color="default">Body text (base)</Text>
 			<Text variant="body" size="sm" color="default">Body text (sm)</Text>
 			<Text variant="label" color="default">Label text</Text>
@@ -174,14 +174,14 @@
 	</div>
 
 	<!-- Radio Buttons (Privacy section) -->
-	<div class="flex flex-col gap-fieldGroup">
+	<div class="gap-fieldGroup flex flex-col">
 		<Text variant="label" color="tertiary">Radio Buttons</Text>
 		<fieldset>
 			<legend>
 				<Text variant="body" size="sm" color="default">Privacy</Text>
 			</legend>
-			<div class="flex flex-col gap-fieldGroup">
-				<label class="flex items-start gap-fieldGroup">
+			<div class="gap-fieldGroup flex flex-col">
+				<label class="gap-fieldGroup flex items-start">
 					<input type="radio" name="privacy" value="public" class="mt-fieldGroup" />
 					<div>
 						<Text variant="body" size="sm" color="default">Public</Text>
@@ -190,7 +190,7 @@
 						</Text>
 					</div>
 				</label>
-				<label class="flex items-start gap-fieldGroup">
+				<label class="gap-fieldGroup flex items-start">
 					<input type="radio" name="privacy" value="private" class="mt-fieldGroup" />
 					<div>
 						<Text variant="body" size="sm" color="default">Private</Text>

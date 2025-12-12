@@ -18,7 +18,7 @@
 		</Tooltip.Trigger>
 		<Tooltip.Portal>
 			<Tooltip.Content class={tooltipContentRecipe()}>
-				<p class="text-sm text-primary">{reason}</p>
+				<p class="text-primary text-sm">{reason}</p>
 			</Tooltip.Content>
 		</Tooltip.Portal>
 	</Tooltip.Root>

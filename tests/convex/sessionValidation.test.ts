@@ -12,9 +12,8 @@ import type { QueryCtx } from '$convex/_generated/server';
 import type { Id } from '$convex/_generated/dataModel';
 import {
 	validateSessionAndGetUserId,
-	getUserIdFromSession,
 	validateSession
-} from '../../convex/sessionValidation';
+} from '../../convex/infrastructure/sessionValidation';
 
 // Mock database context
 function createMockCtx(sessions: any[] = []): QueryCtx {
@@ -118,64 +117,6 @@ describe('validateSessionAndGetUserId', () => {
 		await expect(validateSessionAndGetUserId(ctx, 'nonexistent_session')).rejects.toThrow(
 			'Session not found or expired'
 		);
-	});
-});
-
-describe('getUserIdFromSession', () => {
-	const validSessionId = 'session_valid456';
-	const validUserId = 'user_xyz789' as Id<'users'>;
-	const now = Date.now();
-
-	it('should return userId for valid session', async () => {
-		const mockSession = {
-			sessionId: validSessionId,
-			convexUserId: validUserId,
-			isValid: true,
-			expiresAt: now + 3600000,
-			revokedAt: undefined
-		};
-
-		const ctx = createMockCtx([mockSession]);
-		const result = await getUserIdFromSession(ctx, validSessionId);
-
-		expect(result).toBe(validUserId);
-	});
-
-	it('should return null for expired session', async () => {
-		const mockSession = {
-			sessionId: validSessionId,
-			convexUserId: validUserId,
-			isValid: true,
-			expiresAt: now - 1000,
-			revokedAt: undefined
-		};
-
-		const ctx = createMockCtx([mockSession]);
-		const result = await getUserIdFromSession(ctx, validSessionId);
-
-		expect(result).toBeNull();
-	});
-
-	it('should return null for revoked session', async () => {
-		const mockSession = {
-			sessionId: validSessionId,
-			convexUserId: validUserId,
-			isValid: true,
-			expiresAt: now + 3600000,
-			revokedAt: now - 1000
-		};
-
-		const ctx = createMockCtx([mockSession]);
-		const result = await getUserIdFromSession(ctx, validSessionId);
-
-		expect(result).toBeNull();
-	});
-
-	it('should return null for non-existent session', async () => {
-		const ctx = createMockCtx([]);
-		const result = await getUserIdFromSession(ctx, 'nonexistent');
-
-		expect(result).toBeNull();
 	});
 });
 

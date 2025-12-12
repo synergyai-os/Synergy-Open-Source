@@ -80,7 +80,7 @@ export function useCircles(options: {
 	// Query circles list
 	const circlesQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.circles.list, () => {
+			? useQuery(api.core.circles.index.list, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
 					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
@@ -91,7 +91,7 @@ export function useCircles(options: {
 	// Query single circle
 	const circleQuery =
 		browser && getSessionId() && getCircleId && getCircleId()
-			? useQuery(api.circles.get, () => {
+			? useQuery(api.core.circles.index.get, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
 					invariant(sessionId && circleId, 'sessionId and circleId required');
@@ -102,7 +102,7 @@ export function useCircles(options: {
 	// Query circle members
 	const membersQuery =
 		browser && getSessionId() && getCircleId && getCircleId()
-			? useQuery(api.circles.getMembers, () => {
+			? useQuery(api.core.circles.index.getMembers, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
 					invariant(sessionId && circleId, 'sessionId and circleId required');
@@ -113,7 +113,7 @@ export function useCircles(options: {
 	// Query circle roles
 	const rolesQuery =
 		browser && getSessionId() && getCircleId && getCircleId()
-			? useQuery(api.circleRoles.listByCircle, () => {
+			? useQuery(api.core.roles.index.listByCircle, () => {
 					const sessionId = getSessionId();
 					const circleId = getCircleId?.();
 					invariant(sessionId && circleId, 'sessionId and circleId required');
@@ -159,7 +159,7 @@ export function useCircles(options: {
 
 			state.loading.createCircle = true;
 			try {
-				const result = await convexClient.mutation(api.circles.create, {
+				const result = await convexClient.mutation(api.core.circles.index.create, {
 					sessionId,
 					workspaceId: workspaceId as Id<'workspaces'>,
 					name: args.name,
@@ -191,7 +191,7 @@ export function useCircles(options: {
 
 			state.loading.updateCircle = true;
 			try {
-				await convexClient.mutation(api.circles.update, {
+				await convexClient.mutation(api.core.circles.index.update, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
 					name: args.name,
@@ -209,17 +209,17 @@ export function useCircles(options: {
 			}
 		},
 
-		addMember: async (args: { circleId: string; userId: string }) => {
+		addMember: async (args: { circleId: string; memberUserId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
 			state.loading.addMember = true;
 			try {
-				await convexClient.mutation(api.circles.addMember, {
+				await convexClient.mutation(api.core.circles.index.addMember, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
-					userId: args.userId as Id<'users'>
+					memberUserId: args.memberUserId as Id<'users'>
 				});
 
 				toast.success('Member added');
@@ -232,17 +232,17 @@ export function useCircles(options: {
 			}
 		},
 
-		removeMember: async (args: { circleId: string; userId: string }) => {
+		removeMember: async (args: { circleId: string; memberUserId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
 			state.loading.removeMember = true;
 			try {
-				await convexClient.mutation(api.circles.removeMember, {
+				await convexClient.mutation(api.core.circles.index.removeMember, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
-					userId: args.userId as Id<'users'>
+					memberUserId: args.memberUserId as Id<'users'>
 				});
 
 				toast.success('Member removed');
@@ -262,7 +262,7 @@ export function useCircles(options: {
 
 			state.loading.createRole = true;
 			try {
-				const result = await convexClient.mutation(api.circleRoles.create, {
+				const result = await convexClient.mutation(api.core.roles.index.create, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
 					name: args.name,
@@ -288,7 +288,7 @@ export function useCircles(options: {
 
 			state.loading.updateRole = true;
 			try {
-				await convexClient.mutation(api.circleRoles.update, {
+				await convexClient.mutation(api.core.roles.index.update, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
 					name: args.name,
@@ -312,7 +312,7 @@ export function useCircles(options: {
 
 			state.loading.archiveRole = true;
 			try {
-				await convexClient.mutation(api.circleRoles.archiveRole, {
+				await convexClient.mutation(api.core.roles.index.archiveRole, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>
 				});
@@ -334,7 +334,7 @@ export function useCircles(options: {
 
 			state.loading.assignUser = true;
 			try {
-				await convexClient.mutation(api.circleRoles.assignUser, {
+				await convexClient.mutation(api.core.roles.index.assignUser, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
 					userId: args.userId as Id<'users'>
@@ -357,7 +357,7 @@ export function useCircles(options: {
 
 			state.loading.removeUser = true;
 			try {
-				await convexClient.mutation(api.circleRoles.removeUser, {
+				await convexClient.mutation(api.core.roles.index.removeUser, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
 					userId: args.userId as Id<'users'>

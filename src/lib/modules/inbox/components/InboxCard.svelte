@@ -66,14 +66,14 @@
 >
 	<!-- WORKAROUND: Compact card padding - see missing-styles.md -->
 	<div style="padding-inline: var(--spacing-3); padding-block: var(--spacing-2);">
-		<div class="flex items-start gap-fieldGroup">
+		<div class="gap-fieldGroup flex items-start">
 			<!-- Icon (emoji) - from item.icon prop or type-based fallback -->
-			<div class="flex-shrink-0 text-body leading-none">{icon}</div>
+			<div class="text-body flex-shrink-0 leading-none">{icon}</div>
 
 			<!-- Content - flex-1 to take available space -->
 			<div class="min-w-0 flex-1">
 				<!-- Title and Date Row -->
-				<div class="flex items-center justify-between gap-fieldGroup">
+				<div class="gap-fieldGroup flex items-center justify-between">
 					<Text
 						variant="body"
 						size="sm"

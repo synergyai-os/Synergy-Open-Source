@@ -32,7 +32,7 @@ describe('Users Integration Tests', () => {
 	it('should sync user from WorkOS - create new user', async () => {
 		const t = convexTest(schema, modules);
 
-		const userId = await t.mutation(api.users.syncUserFromWorkOS, {
+		const userId = await t.mutation(api.core.users.index.syncUserFromWorkOS, {
 			workosId: 'workos_test_123',
 			email: 'newuser@example.com',
 			firstName: 'Test',
@@ -57,7 +57,7 @@ describe('Users Integration Tests', () => {
 		const t = convexTest(schema, modules);
 
 		// Create initial user
-		const userId = await t.mutation(api.users.syncUserFromWorkOS, {
+		const userId = await t.mutation(api.core.users.index.syncUserFromWorkOS, {
 			workosId: 'workos_test_456',
 			email: 'existing@example.com',
 			firstName: 'Old',
@@ -67,7 +67,7 @@ describe('Users Integration Tests', () => {
 		cleanupQueue.push(userId);
 
 		// Update user with new data
-		const updatedUserId = await t.mutation(api.users.syncUserFromWorkOS, {
+		const updatedUserId = await t.mutation(api.core.users.index.syncUserFromWorkOS, {
 			workosId: 'workos_test_456',
 			email: 'updated@example.com',
 			firstName: 'New',
@@ -90,7 +90,7 @@ describe('Users Integration Tests', () => {
 		cleanupQueue.push(userId);
 
 		// This would fail if userId is an object (destructuring bug)
-		const user = await t.query(api.users.getUserById, { sessionId });
+		const user = await t.query(api.core.users.index.getUserById, { sessionId });
 
 		expect(user).toBeDefined();
 		expect(user?._id).toBe(userId);
@@ -101,7 +101,7 @@ describe('Users Integration Tests', () => {
 		const { sessionId, userId } = await createTestSession(t);
 		cleanupQueue.push(userId);
 
-		const user = await t.query(api.users.getCurrentUser, { sessionId });
+		const user = await t.query(api.core.users.index.getCurrentUser, { sessionId });
 
 		expect(user).toBeDefined();
 		expect(user?._id).toBe(userId);
@@ -124,7 +124,7 @@ describe('Users Integration Tests', () => {
 		cleanupQueue.push(userId);
 
 		// User should be able to update their own profile
-		const result = await t.mutation(api.users.updateUserProfile, {
+		const result = await t.mutation(api.core.users.index.updateUserProfile, {
 			sessionId,
 			targetUserId: userId,
 			firstName: 'Updated',
@@ -149,48 +149,48 @@ describe('Users Integration Tests', () => {
 
 		cleanupQueue.push(user1, user2);
 
-		const result = await t.mutation(api.users.linkAccounts, {
-			primaryUserId: user1,
-			linkedUserId: user2,
+		const result = await t.mutation(api.core.users.index.linkAccounts, {
+			sessionId: session1,
+			targetUserId: user2,
 			linkType: 'test-link'
 		});
 
 		expect(result.success).toBe(true);
 
 		// Verify bidirectional links
-		const links1 = await t.query(api.users.listLinkedAccounts, { sessionId: session1 });
+		const links1 = await t.query(api.core.users.index.listLinkedAccounts, { sessionId: session1 });
 		expect(links1.length).toBe(1);
 		expect(links1[0].userId).toBe(user2);
 
-		const links2 = await t.query(api.users.listLinkedAccounts, { sessionId: session2 });
+		const links2 = await t.query(api.core.users.index.listLinkedAccounts, { sessionId: session2 });
 		expect(links2.length).toBe(1);
 		expect(links2[0].userId).toBe(user1);
 	});
 
 	it('should validate account links transitively', async () => {
 		const t = convexTest(schema, modules);
-		const { userId: userA } = await createTestSession(t);
-		const { userId: userB } = await createTestSession(t);
-		const { userId: userC } = await createTestSession(t);
+		const { sessionId: sessionA, userId: userA } = await createTestSession(t);
+		const { sessionId: sessionB, userId: userB } = await createTestSession(t);
+		const { sessionId: sessionC, userId: userC } = await createTestSession(t);
 
 		cleanupQueue.push(userA, userB, userC);
 
 		// Link A → B
-		await t.mutation(api.users.linkAccounts, {
-			primaryUserId: userA,
-			linkedUserId: userB
+		await t.mutation(api.core.users.index.linkAccounts, {
+			sessionId: sessionA,
+			targetUserId: userB
 		});
 
 		// Link B → C
-		await t.mutation(api.users.linkAccounts, {
-			primaryUserId: userB,
-			linkedUserId: userC
+		await t.mutation(api.core.users.index.linkAccounts, {
+			sessionId: sessionB,
+			targetUserId: userC
 		});
 
 		// A should be able to see C transitively
-		const validation = await t.query(api.users.validateAccountLink, {
-			primaryUserId: userA,
-			linkedUserId: userC
+		const validation = await t.query(api.core.users.index.validateAccountLink, {
+			sessionId: sessionA,
+			targetUserId: userC
 		});
 
 		expect(validation.linked).toBe(true);
@@ -199,28 +199,28 @@ describe('Users Integration Tests', () => {
 	// TODO: Backend implementation needs to be fixed to properly enforce depth limits
 	it.skip('should enforce account link depth limits', async () => {
 		const t = convexTest(schema, modules);
-		const users: any[] = [];
+		const users: Array<{ sessionId: string; userId: string }> = [];
 
 		// Create 11 users (exceeds MAX_TOTAL_ACCOUNTS=10)
 		for (let i = 0; i < 11; i++) {
-			const { userId } = await createTestSession(t);
-			users.push(userId);
+			const { sessionId, userId } = await createTestSession(t);
+			users.push({ sessionId, userId });
 			cleanupQueue.push(userId);
 		}
 
 		// Link 10 users together in a chain
 		for (let i = 0; i < 9; i++) {
-			await t.mutation(api.users.linkAccounts, {
-				primaryUserId: users[i],
-				linkedUserId: users[i + 1]
+			await t.mutation(api.core.users.index.linkAccounts, {
+				sessionId: users[i].sessionId,
+				targetUserId: users[i + 1].userId
 			});
 		}
 
 		// Try to link the 11th user (would exceed MAX_TOTAL_ACCOUNTS=10, should fail)
 		await expect(
-			t.mutation(api.users.linkAccounts, {
-				primaryUserId: users[9],
-				linkedUserId: users[10]
+			t.mutation(api.core.users.index.linkAccounts, {
+				sessionId: users[9].sessionId,
+				targetUserId: users[10].userId
 			})
 		).rejects.toThrow();
 	});
@@ -229,7 +229,7 @@ describe('Users Integration Tests', () => {
 		const t = convexTest(schema, modules);
 
 		await expect(
-			t.query(api.users.getCurrentUser, {
+			t.query(api.core.users.index.getCurrentUser, {
 				sessionId: 'invalid_session_id'
 			})
 		).rejects.toThrow('Session not found');

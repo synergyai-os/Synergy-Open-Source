@@ -40,13 +40,14 @@ describe('Organizations Integration Tests', () => {
 
 	it('should list user workspaces with sessionId validation', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId } = await createTestSession(t);
+		const { sessionId, userId, workspaceId: defaultWorkspaceId } = await createTestSession(t);
+		await cleanupTestOrganization(t, defaultWorkspaceId);
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, userId, 'owner');
 		cleanupQueue.push({ userId, orgId });
 
 		// This would fail if userId is an object (destructuring bug)
-		const orgs = await t.query(api.workspaces.listWorkspaces, { sessionId });
+		const orgs = await t.query(api.core.workspaces.index.listWorkspaces, { sessionId });
 
 		expect(orgs).toBeDefined();
 		expect(Array.isArray(orgs)).toBe(true);
@@ -57,20 +58,21 @@ describe('Organizations Integration Tests', () => {
 
 	it('should create workspace with auto-generated slug', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId, userId } = await createTestSession(t);
+		const { sessionId, userId, workspaceId: defaultWorkspaceId } = await createTestSession(t);
+		await cleanupTestOrganization(t, defaultWorkspaceId);
 		cleanupQueue.push({ userId });
 
-		const result = await t.mutation(api.workspaces.createWorkspace, {
+		const result = await t.mutation(api.core.workspaces.index.createWorkspace, {
 			sessionId,
 			name: 'My New Organization'
 		});
 
 		expect(result).toBeDefined();
 		expect(result.workspaceId).toBeDefined();
-		expect(result.slug).toMatch(/^my-new-workspace/);
+		expect(result.slug).toMatch(/^my-new-organization/);
 
 		// Verify membership was created
-		const orgs = await t.query(api.workspaces.listWorkspaces, { sessionId });
+		const orgs = await t.query(api.core.workspaces.index.listWorkspaces, { sessionId });
 		expect(orgs.length).toBe(1);
 		expect(orgs[0].role).toBe('owner');
 
@@ -92,7 +94,7 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Admin should be able to create invite
-		const result = await t.mutation(api.workspaces.createWorkspaceInvite, {
+		const result = await t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
 			sessionId: adminSessionId,
 			workspaceId: orgId,
 			email: 'newuser@example.com',
@@ -211,10 +213,10 @@ describe('Organizations Integration Tests', () => {
 
 		// Remove member
 		const { sessionId: adminSessionId } = await createTestSession(t);
-		const result = await t.mutation(api.workspaces.removeOrganizationMember, {
+		const result = await t.mutation(api.core.workspaces.index.removeOrganizationMember, {
 			sessionId: adminSessionId,
 			workspaceId: orgId,
-			userId: memberUserId
+			memberUserId
 		});
 
 		expect(result.success).toBe(true);
@@ -234,8 +236,19 @@ describe('Organizations Integration Tests', () => {
 
 	it('should enforce user isolation - users cannot see other orgs', async () => {
 		const t = convexTest(schema, modules);
-		const { sessionId: session1, userId: user1 } = await createTestSession(t);
-		const { sessionId: session2, userId: user2 } = await createTestSession(t);
+		const {
+			sessionId: session1,
+			userId: user1,
+			workspaceId: defaultWorkspace1
+		} = await createTestSession(t);
+		const {
+			sessionId: session2,
+			userId: user2,
+			workspaceId: defaultWorkspace2
+		} = await createTestSession(t);
+
+		await cleanupTestOrganization(t, defaultWorkspace1);
+		await cleanupTestOrganization(t, defaultWorkspace2);
 
 		const org1 = await createTestOrganization(t, 'User 1 Org');
 		await createTestOrganizationMember(t, org1, user1, 'owner');
@@ -247,14 +260,14 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: user2, orgId: org2 });
 
 		// User 1 should only see their org
-		const user1Orgs = await t.query(api.workspaces.listWorkspaces, {
+		const user1Orgs = await t.query(api.core.workspaces.index.listWorkspaces, {
 			sessionId: session1
 		});
 		expect(user1Orgs.length).toBe(1);
 		expect(user1Orgs[0].name).toBe('User 1 Org');
 
 		// User 2 should only see their org
-		const user2Orgs = await t.query(api.workspaces.listWorkspaces, {
+		const user2Orgs = await t.query(api.core.workspaces.index.listWorkspaces, {
 			sessionId: session2
 		});
 		expect(user2Orgs.length).toBe(1);
@@ -265,7 +278,7 @@ describe('Organizations Integration Tests', () => {
 		const t = convexTest(schema, modules);
 
 		await expect(
-			t.query(api.workspaces.listWorkspaces, {
+			t.query(api.core.workspaces.index.listWorkspaces, {
 				sessionId: 'invalid_session_id'
 			})
 		).rejects.toThrow('Session not found');
@@ -287,7 +300,7 @@ describe('Organizations Integration Tests', () => {
 			];
 
 			for (const email of validEmails) {
-				const result = await t.mutation(api.workspaces.createWorkspaceInvite, {
+				const result = await t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
 					sessionId,
 					workspaceId: orgId,
 					email,
@@ -320,7 +333,7 @@ describe('Organizations Integration Tests', () => {
 
 			for (const email of invalidEmails) {
 				await expect(
-					t.mutation(api.workspaces.createWorkspaceInvite, {
+					t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
 						sessionId,
 						workspaceId: orgId,
 						email,

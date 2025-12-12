@@ -24,7 +24,7 @@ export function useCircleRoles(options: {
 	const fillersQuery = $derived.by(() => {
 		if (!browser || !getSessionId() || !getExpandedRoleId()) return null;
 
-		return useQuery(api.circleRoles.getRoleFillers, () => {
+		return useQuery(api.core.roles.index.getRoleFillers, () => {
 			const sessionId = getSessionId();
 			const roleId = getExpandedRoleId();
 			invariant(sessionId && roleId, 'sessionId and roleId required');
