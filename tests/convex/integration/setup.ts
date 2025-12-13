@@ -143,14 +143,14 @@ export async function createTestOrganization(
 }
 
 /**
- * Create an workspace membership
+ * Create an workspace membership (via people table - workspaceMembers has been removed)
  */
 export async function createTestOrganizationMember(
 	t: TestConvex<any>,
 	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>,
 	role: 'owner' | 'admin' | 'member' = 'member'
-): Promise<Id<'workspaceMembers'>> {
+): Promise<Id<'people'>> {
 	return await t.run(async (ctx) => {
 		const now = Date.now();
 
@@ -159,29 +159,23 @@ export async function createTestOrganizationMember(
 			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 			.first();
 
-		let personId = existingPerson?._id;
-		if (!personId) {
-			const user = await ctx.db.get(userId);
-			personId = await ctx.db.insert('people', {
-				workspaceId,
-				userId,
-				email: (user as any)?.email ?? `user-${userId}@example.com`,
-				displayName: (user as any)?.name ?? 'Test User',
-				workspaceRole: role,
-				status: 'active',
-				invitedAt: now,
-				invitedBy: undefined,
-				joinedAt: now,
-				archivedAt: undefined,
-				archivedBy: undefined
-			});
+		if (existingPerson) {
+			return existingPerson._id;
 		}
 
-		return await ctx.db.insert('workspaceMembers', {
+		const user = await ctx.db.get(userId);
+		return await ctx.db.insert('people', {
 			workspaceId,
 			userId,
-			role,
-			joinedAt: Date.now()
+			email: (user as any)?.email ?? `user-${userId}@example.com`,
+			displayName: (user as any)?.name ?? 'Test User',
+			workspaceRole: role,
+			status: 'active',
+			invitedAt: now,
+			invitedBy: undefined,
+			joinedAt: now,
+			archivedAt: undefined,
+			archivedBy: undefined
 		});
 	});
 }
@@ -365,14 +359,7 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(userRole._id);
 		}
 
-		// Clean up workspace memberships
-		const orgMembers = await ctx.db
-			.query('workspaceMembers')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
-		for (const member of orgMembers) {
-			await ctx.db.delete(member._id);
-		}
+		// Note: workspaceMembers table removed - membership now tracked via people table
 
 		// Clean up workspace invites sent by user
 		const invites = await ctx.db
@@ -517,14 +504,7 @@ export async function cleanupTestOrganization(
 			await ctx.db.delete(circle._id);
 		}
 
-		// Clean up workspace members
-		const members = await ctx.db
-			.query('workspaceMembers')
-			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
-			.collect();
-		for (const member of members) {
-			await ctx.db.delete(member._id);
-		}
+		// Note: workspaceMembers table removed - membership now tracked via people table (cleaned above)
 
 		// Clean up workspace invites
 		const invites = await ctx.db

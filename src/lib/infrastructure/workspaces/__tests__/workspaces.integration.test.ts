@@ -133,11 +133,21 @@ describe('Organizations Integration Tests', () => {
 
 			if (!invite) throw new Error('Invite not found');
 
-			await ctx.db.insert('workspaceMembers', {
+			// Create membership via people table (workspaceMembers has been migrated)
+			const now = Date.now();
+			const inviteeUser = await ctx.db.get(inviteeUserId);
+			await ctx.db.insert('people', {
 				workspaceId: invite.workspaceId,
 				userId: inviteeUserId,
-				role: invite.role,
-				joinedAt: Date.now()
+				email: inviteeUser?.email ?? `user-${inviteeUserId}@example.com`,
+				displayName: inviteeUser?.name ?? 'Test User',
+				workspaceRole: invite.role,
+				status: 'active',
+				invitedAt: now,
+				invitedBy: undefined,
+				joinedAt: now,
+				archivedAt: undefined,
+				archivedBy: undefined
 			});
 
 			await ctx.db.delete(invite._id);
@@ -147,10 +157,10 @@ describe('Organizations Integration Tests', () => {
 
 		expect(result.workspaceId).toBe(orgId);
 
-		// Verify membership exists
+		// Verify membership exists via people table (workspaceMembers has been migrated)
 		const membership = await t.run(async (ctx) => {
 			return await ctx.db
-				.query('workspaceMembers')
+				.query('people')
 				.withIndex('by_workspace_user', (q) =>
 					q.eq('workspaceId', orgId).eq('userId', inviteeUserId)
 				)
@@ -158,7 +168,7 @@ describe('Organizations Integration Tests', () => {
 		});
 
 		expect(membership).toBeDefined();
-		expect(membership?.role).toBe('member');
+		expect(membership?.workspaceRole).toBe('member');
 	});
 
 	it('should decline workspace invite without creating membership', async () => {
@@ -180,10 +190,10 @@ describe('Organizations Integration Tests', () => {
 			await ctx.db.delete(inviteId);
 		});
 
-		// Verify no membership created
+		// Verify no membership created via people table (workspaceMembers has been migrated)
 		const membership = await t.run(async (ctx) => {
 			return await ctx.db
-				.query('workspaceMembers')
+				.query('people')
 				.withIndex('by_workspace_user', (q) =>
 					q.eq('workspaceId', orgId).eq('userId', inviteeUserId)
 				)
