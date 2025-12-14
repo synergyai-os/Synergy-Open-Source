@@ -75,16 +75,16 @@ async function archiveRoleHelper(
 	}
 
 	const assignments = await ctx.db
-		.query('userCircleRoles')
-		.withIndex('by_role_archived', (q) => q.eq('circleRoleId', roleId).eq('archivedAt', undefined))
+		.query('assignments')
+		.withIndex('by_role', (q) => q.eq('roleId', roleId))
+		.filter((q) => q.eq(q.field('status'), 'active'))
 		.collect();
 
 	for (const assignment of assignments) {
 		await ctx.db.patch(assignment._id, {
-			archivedAt: now,
-			archivedByPersonId: actorPersonId,
-			updatedAt: now,
-			updatedByPersonId: actorPersonId
+			status: 'ended',
+			endedAt: now,
+			endedByPersonId: actorPersonId
 		});
 
 		await handleUserCircleRoleRemoved(ctx, assignment._id);
@@ -166,18 +166,18 @@ async function restoreRoleMutation(
 
 async function restoreAssignmentMutation(
 	ctx: MutationCtx,
-	args: { sessionId: string; assignmentId: Id<'userCircleRoles'> }
+	args: { sessionId: string; assignmentId: Id<'assignments'> }
 ) {
 	const assignment = await ctx.db.get(args.assignmentId);
 	if (!assignment) {
 		throw createError(ErrorCodes.ASSIGNMENT_NOT_FOUND, 'Assignment not found');
 	}
 
-	if (!assignment.archivedAt) {
-		throw createError(ErrorCodes.GENERIC_ERROR, 'Assignment is not archived');
+	if (assignment.status !== 'ended') {
+		throw createError(ErrorCodes.GENERIC_ERROR, 'Assignment is not ended');
 	}
 
-	const role = await ctx.db.get(assignment.circleRoleId);
+	const role = await ctx.db.get(assignment.roleId);
 	if (!role) {
 		throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role no longer exists');
 	}
@@ -203,32 +203,31 @@ async function restoreAssignmentMutation(
 	await requireWorkspacePersonById(ctx, circle.workspaceId, assignment.personId);
 
 	const existingActive = await ctx.db
-		.query('userCircleRoles')
-		.withIndex('by_person_role', (q) =>
-			q.eq('personId', assignment.personId).eq('circleRoleId', assignment.circleRoleId)
+		.query('assignments')
+		.withIndex('by_role_person', (q) =>
+			q.eq('roleId', assignment.roleId).eq('personId', assignment.personId)
 		)
-		.filter((q) => q.eq(q.field('archivedAt'), undefined))
+		.filter((q) => q.eq(q.field('status'), 'active'))
 		.first();
 
 	if (existingActive) {
 		throw createError(ErrorCodes.ASSIGNMENT_ALREADY_EXISTS, 'User already has this role assigned');
 	}
 
-	const now = Date.now();
+	const _now = Date.now();
 	const oldAssignment = { ...assignment };
 
 	await ctx.db.patch(args.assignmentId, {
-		archivedAt: undefined,
-		archivedByPersonId: undefined,
-		updatedAt: now,
-		updatedByPersonId: actorPersonId
+		status: 'active',
+		endedAt: undefined,
+		endedByPersonId: undefined
 	});
 
 	await handleUserCircleRoleRestored(ctx, args.assignmentId);
 
 	const restoredAssignment = await ctx.db.get(args.assignmentId);
 	if (restoredAssignment) {
-		await captureRestore(ctx, 'userCircleRole', oldAssignment, restoredAssignment);
+		await recordRestoreHistory(ctx, 'assignment', oldAssignment, restoredAssignment);
 	}
 
 	return { success: true };
@@ -253,7 +252,7 @@ export const restoreRole = mutation({
 export const restoreAssignment = mutation({
 	args: {
 		sessionId: v.string(),
-		assignmentId: v.id('userCircleRoles')
+		assignmentId: v.id('assignments')
 	},
 	handler: async (ctx, args) => restoreAssignmentMutation(ctx, args)
 });
