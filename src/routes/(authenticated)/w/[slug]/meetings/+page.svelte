@@ -72,7 +72,7 @@
 	// Fetch meeting templates for template name lookup
 	const templatesQuery =
 		browser && getWorkspaceId() && getSessionId()
-			? useQuery(api.modules.meetings.templates.list, () => {
+			? useQuery(api.features.meetings.templates.list, () => {
 					const orgId = getWorkspaceId();
 					const session = getSessionId();
 					invariant(orgId && session, 'workspaceId and sessionId required');

@@ -19,14 +19,14 @@ import type { OrgChartModuleAPI } from './api';
 /**
  * Org Chart module manifest
  *
- * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities like useNavigationStack)
+ * **Dependencies**: ['core'] (depends on core module for shared utilities like useNavigationStack)
  * **Feature Flag**: null (always enabled - core functionality)
  * **API**: OrgChartModuleAPI (public interface for org chart functionality)
  */
 export const orgChartModule: ModuleManifest = {
 	name: 'org-chart',
 	version: '1.0.0',
-	dependencies: ['shared-ui'],
+	dependencies: ['core'],
 	featureFlag: null, // Always enabled - core functionality
 	api: undefined as OrgChartModuleAPI | undefined // Type reference for API contract
 };

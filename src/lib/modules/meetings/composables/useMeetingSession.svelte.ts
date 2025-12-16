@@ -28,7 +28,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 	// Real-time queries
 	const meetingQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.modules.meetings.meetings.get, () => {
+			? useQuery(api.features.meetings.meetings.get, () => {
 					const id = meetingId();
 					const session = sessionId();
 					invariant(id && session, 'meetingId and sessionId required');
@@ -38,7 +38,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 
 	const agendaItemsQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.modules.meetings.meetings.getAgendaItems, () => {
+			? useQuery(api.features.meetings.meetings.getAgendaItems, () => {
 					const id = meetingId();
 					const session = sessionId();
 					invariant(id && session, 'meetingId and sessionId required');
@@ -74,7 +74,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.startMeeting, {
+		await convexClient?.mutation(api.features.meetings.meetings.startMeeting, {
 			meetingId: id,
 			sessionId: session
 		});
@@ -85,7 +85,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.advanceStep, {
+		await convexClient?.mutation(api.features.meetings.meetings.advanceStep, {
 			meetingId: id,
 			sessionId: session,
 			newStep
@@ -97,7 +97,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.closeMeeting, {
+		await convexClient?.mutation(api.features.meetings.meetings.closeMeeting, {
 			meetingId: id,
 			sessionId: session
 		});
@@ -108,7 +108,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.createAgendaItem, {
+		await convexClient?.mutation(api.features.meetings.meetings.createAgendaItem, {
 			meetingId: id,
 			sessionId: session,
 			title
@@ -120,7 +120,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.setRecorder, {
+		await convexClient?.mutation(api.features.meetings.meetings.setRecorder, {
 			meetingId: id,
 			sessionId: session,
 			recorderPersonId
@@ -132,7 +132,7 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		const session = sessionId();
 		invariant(id && session, 'meetingId and sessionId required');
 
-		await convexClient?.mutation(api.modules.meetings.meetings.setActiveAgendaItem, {
+		await convexClient?.mutation(api.features.meetings.meetings.setActiveAgendaItem, {
 			meetingId: id,
 			sessionId: session,
 			agendaItemId: agendaItemId ?? undefined

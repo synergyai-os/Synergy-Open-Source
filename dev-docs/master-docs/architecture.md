@@ -2,8 +2,8 @@
 
 **Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-**Version**: 3.7  
-**Last Updated**: 2025-12-15  
+**Version**: 4.0  
+**Last Updated**: 2025-12-16  
 **Optimization Target**: AI-native development with domain cohesion
 
 ---
@@ -28,10 +28,11 @@
 | 9 | Mutations validate authorization BEFORE writing | Tests |
 | 10 | All business logic lives in Convex, not Svelte | Code review |
 | 11 | Zero classes anywhere — functions only | Linting |
-| **Svelte Patterns** |||
+| **Svelte Patterns** (see "Frontend Patterns" section for details) |||
 | 12 | Components are thin and presentational | Code review |
 | 13 | Components delegate to Convex for all logic | Code review |
 | 14 | Svelte 5 runes used correctly ($state, $derived, $effect) | Code review |
+| 14a | Use `.svelte.ts` for reactive state, `.ts` for pure functions | Code review |
 | **Domain Language** |||
 | 15 | Use practitioner terminology: circles, roles, tensions, proposals, consent | Code review |
 | 16 | Function and variable names match domain language | Code review |
@@ -132,6 +133,7 @@ When principles conflict, use these priorities:
 |------|------------|
 | Backend logic, domain code, structure | This document (architecture.md) |
 | UI component, styling, tokens | design-system.md |
+| Svelte 5 patterns, composables, `.svelte.ts` vs `.ts` | This document → "Frontend Patterns (Svelte 5)" section |
 | Governance models, circle types, role templates | dev-docs/master-docs/architecture/governance-design.md |
 | Permission/access control logic | convex/infrastructure/rbac/README.md |
 | Invariant definitions | convex/admin/invariants/INVARIANTS.md |
@@ -293,13 +295,7 @@ Frontend modules (`src/lib/modules/`) consume backend features (`convex/features
 
 ### Legacy Compatibility Layers
 
-| Directory | Status | Purpose | Migration |
-|-----------|--------|---------|-----------|
-| `convex/modules/` | **DEPRECATED** | Re-exports to `features/` for `api.modules.*` compatibility | Future ticket |
-
-**Note:** `convex/modules/meetings/` exists only to maintain the `api.modules.meetings.*` API surface used by 215+ frontend calls. All implementation lives in `convex/features/meetings/`.
-
-**New code:** Always use `convex/features/`. Never add to `convex/modules/`.
+_No legacy compatibility layers remain. All code uses `convex/features/` directly._
 
 ### Analytics vs. Domain Events
 
@@ -1037,6 +1033,270 @@ export const getUserRoles = query({
 
 ---
 
+## Frontend Patterns (Svelte 5)
+
+Svelte 5 with runes is our frontend framework. Components delegate to Convex for business logic, but frontend-specific reactive coordination requires understanding when to use `.svelte.ts` composables vs pure `.ts` utilities.
+
+### File Type Decision
+
+| Need | File Type | Location |
+|------|-----------|----------|
+| Shared reactive state across components | `.svelte.ts` | `composables/` |
+| Derived/computed values from reactive state | `.svelte.ts` | `composables/` |
+| Side effects that react to state changes | `.svelte.ts` | `composables/` |
+| Pure transformation `(input) → output` | `.ts` | `utils/` |
+| Business rules, validation, calculations | `.ts` | `utils/` |
+| Constants, types, interfaces | `.ts` | Domain root or `types/` |
+
+**Key insight:** `.svelte.ts` files can use runes (`$state`, `$derived`, `$effect`). Regular `.ts` files cannot.
+
+### The Three-File Pattern
+
+```
+src/lib/modules/{module}/
+├── composables/useFeature.svelte.ts  → Reactive coordination
+├── utils/featureCalculations.ts      → Pure functions
+└── components/Feature.svelte         → Thin wiring layer
+```
+
+### Composables Pattern (`.svelte.ts`)
+
+Composables encapsulate reactive state and expose it to components:
+
+```typescript
+// useOrgChart.svelte.ts
+export function useOrgChart(circles: Circle[]) {
+  // Reactive state
+  let selectedCircleId = $state<Id<'circles'> | null>(null);
+  let zoomLevel = $state(1.0);
+  
+  // Derived values (automatically update when dependencies change)
+  const selectedCircle = $derived(
+    circles.find(c => c._id === selectedCircleId)
+  );
+  const isZoomedIn = $derived(zoomLevel > 1.5);
+  
+  // Actions (mutate state)
+  function selectCircle(id: Id<'circles'>) {
+    selectedCircleId = id;
+  }
+  
+  return {
+    // Expose state via getters (read-only where possible)
+    get selectedCircleId() { return selectedCircleId; },
+    get selectedCircle() { return selectedCircle; },
+    get isZoomedIn() { return isZoomedIn; },
+    // Actions
+    selectCircle,
+  };
+}
+```
+
+### Global State (`src/lib/stores/`)
+
+App-wide reactive state lives in `src/lib/stores/`:
+- `theme.svelte.ts` - Theme preference
+- `activityTracker.svelte.ts` - User activity detection
+
+These are distinct from module composables (feature-scoped) and shared composables (reusable utilities).
+
+### Exporting State Across Modules
+
+State declared with `$state` cannot be directly exported if reassigned. Use one of these patterns:
+
+```typescript
+// ✅ Pattern 1: Export object with state properties
+export const counter = $state({ count: 0 });
+
+export function increment() {
+  counter.count += 1;
+}
+
+// ✅ Pattern 2: Export getter function
+let count = $state(0);
+
+export function getCount() {
+  return count;
+}
+
+export function increment() {
+  count += 1;
+}
+
+// ❌ Cannot do this — reassigned state can't be exported
+export let count = $state(0);
+export function increment() {
+  count += 1;  // Reassignment breaks cross-module reactivity
+}
+```
+
+### Why Pure Functions (`.ts`) Are Preferred
+
+Pure functions are preferred when reactivity isn't needed:
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Testable** | No Svelte runtime needed for unit tests |
+| **Portable** | Could move to server, worker, or different framework |
+| **Predictable** | Same input always produces same output |
+| **Debuggable** | No hidden reactive dependencies |
+
+```typescript
+// ✅ Pure function — use .ts
+function calculateBounds(nodes: Node[]): Bounds {
+  // Math, no reactive state
+  return { minX, minY, maxX, maxY };
+}
+
+// ✅ Reactive state — use .svelte.ts  
+let zoom = $state(1.0);
+const shouldShowLabels = $derived(zoom > 1.5);
+```
+
+### Component Wiring
+
+Components wire composables and utilities together:
+
+```svelte
+<script lang="ts">
+  // Composable for reactive state
+  import { useOrgChart } from '../composables/useOrgChart.svelte';
+  
+  // Pure utilities for calculations
+  import { calculateBounds } from '../utils/orgChartLayout';
+  import { shouldShowLabel } from '../utils/orgChartVisibility';
+  
+  let { circles } = $props();
+  
+  // Wire composable (reactive coordination)
+  const orgChart = useOrgChart(circles);
+  
+  // Use pure functions with reactive inputs via $derived
+  const bounds = $derived(calculateBounds(circles));
+</script>
+
+<div>
+  {#if orgChart.selectedCircle}
+    <CircleDetail circle={orgChart.selectedCircle} />
+  {/if}
+</div>
+```
+
+### `$derived` vs `$derived.by`
+
+Use `$derived(expression)` for simple, single-expression derivations:
+
+```typescript
+// ✅ Simple expression — use $derived
+const doubled = $derived(count * 2);
+const isSelected = $derived(selectedId === item._id);
+const fullName = $derived(`${firstName} ${lastName}`);
+```
+
+Use `$derived.by(() => { ... })` when you need multiple statements:
+
+```typescript
+// ✅ Complex logic — use $derived.by
+const total = $derived.by(() => {
+  let sum = 0;
+  for (const item of items) {
+    if (item.active) {
+      sum += item.value;
+    }
+  }
+  return sum;
+});
+
+const sortedItems = $derived.by(() => {
+  const filtered = items.filter(i => i.visible);
+  return filtered.toSorted((a, b) => a.name.localeCompare(b.name));
+});
+```
+
+**Key insight:** `$derived(expression)` is equivalent to `$derived.by(() => expression)`. Use the simpler form when possible.
+
+### `$derived` vs `$effect` — The Critical Distinction
+
+> `$effect` is best considered an escape hatch — useful for things like analytics and direct DOM manipulation — rather than a tool you should use frequently.
+> — Svelte 5 Documentation
+
+**Use `$derived` for computed values:**
+
+```svelte
+<script>
+  let count = $state(0);
+  
+  // ✅ CORRECT: Use $derived for computed values
+  let doubled = $derived(count * 2);
+  
+  // ❌ WRONG: Don't use $effect to sync state
+  let doubled = $state();
+  $effect(() => {
+    doubled = count * 2;  // Anti-pattern!
+  });
+</script>
+```
+
+**Use `$effect` only for side effects:**
+
+```typescript
+// ✅ Legitimate $effect uses:
+$effect(() => {
+  // Canvas drawing
+  context.fillRect(0, 0, size, size);
+});
+
+$effect(() => {
+  // Analytics tracking
+  trackEvent('page_view', { page: currentPage });
+});
+
+$effect(() => {
+  // Third-party library integration
+  chart.update(data);
+  return () => chart.destroy();  // Teardown function
+});
+```
+
+### Anti-Patterns
+
+| ❌ Don't | ✅ Do |
+|----------|-------|
+| `$state` for values that never change | `const` or plain variable |
+| `.svelte.ts` for pure calculations | `.ts` file in `utils/` |
+| `$effect` to derive state from other state | `$derived` or `$derived.by` |
+| Reactive logic embedded in components | Extract to composable |
+| Giant components with 50+ line functions | Extract to `utils/` |
+| Everything in one `.svelte.ts` file | Split reactive vs pure logic |
+
+### Deep Reactivity Notes
+
+`$state` creates deeply reactive proxies for objects and arrays:
+
+```typescript
+let todos = $state([
+  { done: false, text: 'add more todos' }
+]);
+
+// ✅ This triggers updates (proxy intercepts)
+todos[0].done = true;
+todos.push({ done: false, text: 'new' });
+
+// ⚠️ Destructuring breaks reactivity
+let { done, text } = todos[0];  // done/text are NOT reactive
+```
+
+For non-reactive objects (performance optimization), use `$state.raw`:
+
+```typescript
+let largeDataset = $state.raw(fetchedData);
+// Can only be replaced, not mutated
+largeDataset = newData;  // ✅ Works
+largeDataset[0].value = 1;  // ❌ No effect
+```
+
+---
+
 ## Soft Delete Pattern
 
 Entities use soft delete via `archivedAt` timestamp, not status change.
@@ -1305,7 +1565,6 @@ These failures exist in test/development workspaces and do not affect production
 | Test file updates | Some unit tests need `people` table mocking (after SYOS-814 migration) | Medium | — |
 | Projects/Tasks audit fields | Migrate `createdBy` to `createdByPersonId` in projects and tasks tables | Medium | TBD |
 | Workspaces domain restructure | Consolidate workspaces-related code | Low | SYOS-843 |
-| `convex/modules/` removal | Delete after frontend migrates to `api.features.*` | Low | Future ticket |
 | `policies` domain implementation | Scaffold exists, no tables.ts, not implemented | Low | Deferred until governance customization scoped |
 
 ### Current Validation Status (2025-12-13)
@@ -1380,6 +1639,7 @@ These failures exist in test/development workspaces and do not affect production
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 4.0 | 2025-12-16 | **Frontend Patterns section.** Added comprehensive Svelte 5 patterns documentation covering: `.svelte.ts` vs `.ts` file type decision matrix, composables pattern with code examples, state export patterns across modules, `$derived` vs `$derived.by` usage guidance, `$derived` vs `$effect` distinction (with official Svelte quote), deep reactivity notes, and anti-patterns table. Cross-referenced from Document Selection table. Addresses gap where backend (Convex) had extensive documentation but frontend (Svelte) had only three principles. |
 | 3.9 | 2025-01-XX | Error handling improvements. Updated: Error Codes section to document structured error format (`SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`), `createError()` function usage, auto-logging, and serialization-safe design. Follows Principle #11 (functions only, no classes). See `dev-docs/2-areas/patterns/error-handling-improvements.md` for details. |
 | 3.8 | 2025-12-15 | Constants pattern documentation. Added: `constants.ts` as OPTIONAL file in domain structure, tables.ts vs schema.ts vs constants.ts comparison, Frontend/Backend Constant Sync section. Updated: Domain File Structure to include constants.ts, schema.ts examples to show re-export pattern from constants.ts. Rationale: Separation of runtime constants (for iteration/validation) vs compile-time types. |
 | 3.7 | 2025-12-15 | Governance Foundation implementation. Added: Governance Foundation section (workspace lifecycle, role auto-creation, governance invariants GOV-01 through GOV-08, schema changes for circleRoles/roleTemplates/workspaces). Updated: Core Invariants summary (83 total, 62 critical), Document Selection table (added governance-design.md). Cross-referenced governance-design.md throughout. Implementation: SYOS-884, SYOS-885, SYOS-886, SYOS-887, SYOS-888, SYOS-895. |

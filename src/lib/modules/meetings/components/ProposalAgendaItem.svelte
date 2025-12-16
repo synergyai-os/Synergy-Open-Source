@@ -64,7 +64,7 @@
 			});
 
 			// Mark agenda item as processed
-			await convexClient.mutation(api.modules.meetings.agendaItems.markStatus, {
+			await convexClient.mutation(api.features.meetings.agendaItems.markStatus, {
 				sessionId,
 				agendaItemId,
 				status: 'processed'
@@ -89,7 +89,7 @@
 			});
 
 			// Mark agenda item as rejected
-			await convexClient.mutation(api.modules.meetings.agendaItems.markStatus, {
+			await convexClient.mutation(api.features.meetings.agendaItems.markStatus, {
 				sessionId,
 				agendaItemId,
 				status: 'rejected'

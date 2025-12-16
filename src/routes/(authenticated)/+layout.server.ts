@@ -287,7 +287,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 				try {
 					// TODO: Add meetings-specific data loading here when needed
 					// Example:
-					// return await client.query(api.modules.meetings.meetings.listUpcoming, {
+					// return await client.query(api.features.meetings.meetings.listUpcoming, {
 					//   sessionId,
 					//   workspaceId: activeOrgId as Id<'workspaces'>
 					// });

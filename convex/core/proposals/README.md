@@ -54,17 +54,14 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 
 ## Files
 
-| File                  | Purpose                                                |
-| --------------------- | ------------------------------------------------------ |
-| `tables.ts`           | Defines proposals, evolutions, attachments, objections |
-| `stateMachine.ts`     | Proposal status machine and guards                     |
-| `proposalService.ts`  | Core service orchestration helpers                     |
-| `proposalAccess.ts`   | Access control checks                                  |
-| `proposalDecision.ts` | Decision handling (approve/reject/integrate)           |
-| `proposalDrafts.ts`   | Draft creation and evolution handling                  |
-| `proposalMeetings.ts` | Meeting linkage for proposals                          |
-| `proposalQueries.ts`  | Complex query helpers                                  |
-| `mutations.ts`        | Entry points for proposal mutations                    |
-| `queries.ts`          | Proposal reads                                         |
-| `rules.ts`            | Shared business rules                                  |
-| `index.ts`            | Public exports                                         |
+| File              | Purpose                                                |
+| ----------------- | ------------------------------------------------------ |
+| `tables.ts`       | Table definitions for proposals, evolutions, attachments, objections |
+| `schema.ts`       | Types and aliases (re-exports from constants)          |
+| `constants.ts`    | Runtime constants (ProposalStatus enum, state machine constants) |
+| `queries.ts`      | Read operations (list, get, getByAgendaItem, etc.)   |
+| `mutations.ts`    | Write operations (create, submit, approve, reject, etc.) |
+| `rules.ts`        | Business rules (state machine, validation, access control) |
+| `index.ts`        | Public exports                                         |
+| `README.md`       | Domain documentation                                   |
+| `proposals.test.ts` | Co-located tests                                      |

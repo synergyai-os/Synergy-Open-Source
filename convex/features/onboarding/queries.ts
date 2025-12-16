@@ -10,6 +10,7 @@ import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { getPersonByUserAndWorkspace } from '../../core/people/queries';
+import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 
 /**
  * Find onboarding progress for a person in a workspace.
@@ -191,7 +192,7 @@ export const findNextOnboardingStep = query({
 		// Get workspace
 		const workspace = await ctx.db.get(args.workspaceId);
 		if (!workspace) {
-			throw new Error('Workspace not found');
+			throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
 		}
 
 		// If workspace setup is complete, onboarding is done

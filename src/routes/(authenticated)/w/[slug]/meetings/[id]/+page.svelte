@@ -47,7 +47,7 @@
 	// Wrap in $derived to make query creation reactive
 	const templateQuery = $derived(
 		browser && session.meeting?.templateId && sessionId()
-			? useQuery(api.modules.meetings.templates.get, () => {
+			? useQuery(api.features.meetings.templates.get, () => {
 					const meeting = session.meeting;
 					const sid = sessionId();
 					invariant(meeting?.templateId && sid, 'Meeting templateId and sessionId required');
@@ -179,7 +179,7 @@
 	) {
 		try {
 			// Call mutation
-			await convexClient.mutation(api.modules.meetings.agendaItems.markStatus, {
+			await convexClient.mutation(api.features.meetings.agendaItems.markStatus, {
 				agendaItemId: itemId,
 				sessionId: sessionId(),
 				status

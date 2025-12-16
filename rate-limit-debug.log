@@ -108406,3 +108406,3315 @@
     "resetAt": "2025-12-16T11:28:34.163Z"
   }
 }
+[2025-12-16T11:44:07.811Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:44:07.811Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:44:07.812Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:44:07.812Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:44:07.812Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T11:44:07.812Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T11:44:07.812Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T11:44:07.812Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T11:45:07.812Z"
+  }
+}
+[2025-12-16T11:44:08.633Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:44:08.634Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:44:08.634Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:44:08.634Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:44:08.634Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T11:44:08.634Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T11:44:08.634Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T11:44:08.634Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T11:45:07.812Z"
+  }
+}
+[2025-12-16T11:44:35.517Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:44:35.523Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:44:35.523Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:44:35.523Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:44:35.523Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T11:44:35.523Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T11:44:35.523Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T11:44:35.523Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T11:45:07.812Z"
+  }
+}
+[2025-12-16T11:44:36.081Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:44:36.081Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:44:36.081Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:44:36.081Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:44:36.081Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T11:44:36.081Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T11:44:36.081Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T11:44:36.081Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T11:45:07.812Z"
+  }
+}
+[2025-12-16T11:51:02.329Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:51:02.329Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:51:02.330Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:51:02.330Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:51:02.330Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T11:51:02.330Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T11:51:02.330Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T11:51:02.330Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T11:51:02.330Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T11:52:02.330Z"
+  }
+}
+[2025-12-16T11:51:03.156Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T11:51:03.156Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T11:51:03.156Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T11:51:03.156Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T11:51:03.156Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T11:51:03.156Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T11:51:03.156Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T11:51:03.156Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T11:52:02.330Z"
+  }
+}
+[2025-12-16T12:07:36.616Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:07:36.616Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:07:36.616Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:07:36.616Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:07:36.616Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T12:07:36.617Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T12:07:36.617Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T12:07:36.617Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:07:37.180Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:07:37.181Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:07:37.181Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:07:37.181Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:07:37.181Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T12:07:37.181Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T12:07:37.181Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T12:07:37.181Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:08:13.567Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:08:13.568Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:08:13.568Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:08:13.568Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:08:13.568Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T12:08:13.568Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T12:08:13.569Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T12:08:13.569Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:08:14.535Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:08:14.535Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:08:14.535Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:08:14.535Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:08:14.535Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T12:08:14.535Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T12:08:14.536Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T12:08:14.536Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:08:16.026Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:08:16.026Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:08:16.026Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:08:16.026Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:08:16.026Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T12:08:16.026Z] Current state
+{
+  "countAfterFilter": 4,
+  "maxRequests": 60
+}
+[2025-12-16T12:08:16.026Z] Request allowed
+{
+  "newCount": 5,
+  "remaining": 55
+}
+[2025-12-16T12:08:16.026Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 55,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:08:16.653Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:08:16.653Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:08:16.653Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:08:16.653Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:08:16.653Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 5
+}
+[2025-12-16T12:08:16.653Z] Current state
+{
+  "countAfterFilter": 5,
+  "maxRequests": 60
+}
+[2025-12-16T12:08:16.654Z] Request allowed
+{
+  "newCount": 6,
+  "remaining": 54
+}
+[2025-12-16T12:08:16.654Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 54,
+    "resetAt": "2025-12-16T12:08:36.616Z"
+  }
+}
+[2025-12-16T12:18:42.184Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:18:42.184Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:18:42.185Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:18:42.185Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:18:42.185Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 6
+}
+[2025-12-16T12:18:42.185Z] Filtered old timestamps
+{
+  "before": 6,
+  "after": 0,
+  "removed": 6
+}
+[2025-12-16T12:18:42.185Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T12:18:42.185Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T12:18:42.185Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T12:19:42.185Z"
+  }
+}
+[2025-12-16T12:18:43.169Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:18:43.170Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:18:43.170Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:18:43.170Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:18:43.170Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T12:18:43.170Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T12:18:43.170Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T12:18:43.170Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T12:19:42.185Z"
+  }
+}
+[2025-12-16T12:30:51.975Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:30:51.975Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:30:51.975Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:30:51.976Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:30:51.976Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T12:30:51.976Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T12:30:51.976Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T12:30:51.976Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T12:30:51.976Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T12:31:51.976Z"
+  }
+}
+[2025-12-16T12:30:52.617Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:30:52.617Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:30:52.617Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:30:52.617Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:30:52.617Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T12:30:52.618Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T12:30:52.618Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T12:30:52.618Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T12:31:51.976Z"
+  }
+}
+[2025-12-16T12:37:15.217Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:37:15.218Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:37:15.218Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:37:15.218Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:37:15.218Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T12:37:15.218Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T12:37:15.218Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T12:37:15.218Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T12:37:15.218Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T12:38:15.218Z"
+  }
+}
+[2025-12-16T12:37:15.908Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:37:15.909Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:37:15.909Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:37:15.909Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:37:15.909Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T12:37:15.909Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T12:37:15.909Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T12:37:15.909Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T12:38:15.218Z"
+  }
+}
+[2025-12-16T12:52:25.265Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:52:25.266Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:52:25.266Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:52:25.266Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:52:25.266Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T12:52:25.266Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T12:52:25.266Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T12:52:25.266Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T12:53:25.266Z"
+  }
+}
+[2025-12-16T12:52:26.097Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:52:26.097Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:52:26.097Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:52:26.098Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:52:26.098Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T12:52:26.098Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T12:52:26.098Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T12:52:26.098Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T12:53:25.266Z"
+  }
+}
+[2025-12-16T12:53:24.877Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:53:24.877Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:53:24.877Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:53:24.877Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:53:24.877Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T12:53:24.877Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T12:53:24.877Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T12:53:24.877Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T12:53:25.266Z"
+  }
+}
+[2025-12-16T12:53:25.937Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:53:25.937Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:53:25.937Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:53:25.937Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:53:25.937Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T12:53:25.937Z] Filtered old timestamps
+{
+  "before": 3,
+  "after": 2,
+  "removed": 1
+}
+[2025-12-16T12:53:25.937Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T12:53:25.937Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T12:53:25.938Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T12:53:26.098Z"
+  }
+}
+[2025-12-16T12:53:56.534Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:53:56.535Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:53:56.535Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:53:56.535Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:53:56.535Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T12:53:56.535Z] Filtered old timestamps
+{
+  "before": 3,
+  "after": 2,
+  "removed": 1
+}
+[2025-12-16T12:53:56.535Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T12:53:56.535Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T12:53:56.535Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T12:54:24.877Z"
+  }
+}
+[2025-12-16T12:53:57.363Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T12:53:57.363Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T12:53:57.364Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T12:53:57.364Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T12:53:57.364Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T12:53:57.364Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T12:53:57.364Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T12:53:57.364Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T12:54:24.877Z"
+  }
+}
+[2025-12-16T13:01:35.242Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:01:35.242Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:01:35.242Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:01:35.242Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:01:35.242Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T13:01:35.243Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T13:01:35.243Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T13:01:35.243Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T13:01:35.243Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T13:02:35.242Z"
+  }
+}
+[2025-12-16T13:01:36.061Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:01:36.061Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:01:36.061Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:01:36.061Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:01:36.061Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T13:01:36.061Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T13:01:36.062Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T13:01:36.062Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T13:02:35.242Z"
+  }
+}
+[2025-12-16T13:21:02.739Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:21:02.739Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:21:02.739Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:21:02.739Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:21:02.739Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T13:21:02.740Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T13:21:02.740Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T13:21:02.740Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T13:22:02.739Z"
+  }
+}
+[2025-12-16T13:21:03.317Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:21:03.317Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:21:03.317Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:21:03.317Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:21:03.317Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T13:21:03.317Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T13:21:03.317Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T13:21:03.317Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T13:22:02.739Z"
+  }
+}
+[2025-12-16T13:53:15.100Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:53:15.101Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:53:15.101Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:53:15.101Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:53:15.101Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T13:53:15.101Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T13:53:15.101Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T13:53:15.101Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T13:54:15.101Z"
+  }
+}
+[2025-12-16T13:53:15.948Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T13:53:15.948Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T13:53:15.949Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T13:53:15.949Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T13:53:15.949Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T13:53:15.949Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T13:53:15.949Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T13:53:15.949Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T13:54:15.101Z"
+  }
+}
+[2025-12-16T14:05:03.738Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:05:03.738Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:05:03.738Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:05:03.738Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:05:03.738Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:05:03.738Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T14:05:03.738Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:05:03.738Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:05:03.738Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:06:03.738Z"
+  }
+}
+[2025-12-16T14:05:04.312Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:05:04.312Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:05:04.312Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:05:04.313Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:05:04.313Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:05:04.313Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:05:04.313Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:05:04.313Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:06:03.738Z"
+  }
+}
+[2025-12-16T14:05:40.487Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:05:40.488Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:05:40.488Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:05:40.488Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:05:40.488Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:05:40.488Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T14:05:40.488Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T14:05:40.488Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T14:06:03.738Z"
+  }
+}
+[2025-12-16T14:05:41.596Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:05:41.597Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:05:41.597Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:05:41.597Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:05:41.597Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T14:05:41.597Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T14:05:41.597Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T14:05:41.598Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T14:06:03.738Z"
+  }
+}
+[2025-12-16T14:13:26.431Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:13:26.432Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:13:26.432Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:13:26.432Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:13:26.432Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T14:13:26.432Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T14:13:26.432Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:13:26.432Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:13:26.432Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:14:26.432Z"
+  }
+}
+[2025-12-16T14:13:27.296Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:13:27.297Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:13:27.297Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:13:27.297Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:13:27.298Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:13:27.298Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:13:27.298Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:13:27.298Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:14:26.432Z"
+  }
+}
+[2025-12-16T14:21:19.473Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:21:19.474Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:21:19.474Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:21:19.474Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:21:19.474Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:21:19.475Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T14:21:19.475Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:21:19.475Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:21:19.475Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:22:19.474Z"
+  }
+}
+[2025-12-16T14:21:20.301Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:21:20.301Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:21:20.301Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:21:20.301Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:21:20.302Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:21:20.302Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:21:20.302Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:21:20.302Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:22:19.474Z"
+  }
+}
+[2025-12-16T14:22:08.123Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:22:08.124Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:22:08.124Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:22:08.124Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:22:08.124Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:22:08.124Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T14:22:08.124Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T14:22:08.124Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T14:22:19.474Z"
+  }
+}
+[2025-12-16T14:22:08.954Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:22:08.955Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:22:08.955Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:22:08.956Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:22:08.956Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T14:22:08.956Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T14:22:08.956Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T14:22:08.956Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T14:22:19.474Z"
+  }
+}
+[2025-12-16T14:26:23.228Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:26:23.228Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:26:23.228Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:26:23.228Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:26:23.228Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T14:26:23.228Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T14:26:23.228Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:26:23.228Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:26:23.228Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:27:23.228Z"
+  }
+}
+[2025-12-16T14:26:24.061Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:26:24.061Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:26:24.061Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:26:24.061Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:26:24.061Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:26:24.061Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:26:24.061Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:26:24.061Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:27:23.228Z"
+  }
+}
+[2025-12-16T14:26:49.198Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:26:49.200Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:26:49.200Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:26:49.200Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:26:49.200Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:26:49.200Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T14:26:49.200Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T14:26:49.200Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T14:27:23.228Z"
+  }
+}
+[2025-12-16T14:26:50.032Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:26:50.032Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:26:50.032Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:26:50.032Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:26:50.032Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T14:26:50.032Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T14:26:50.032Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T14:26:50.032Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T14:27:23.228Z"
+  }
+}
+[2025-12-16T14:34:57.517Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:34:57.517Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:34:57.517Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:34:57.517Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:34:57.517Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T14:34:57.517Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T14:34:57.517Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:34:57.517Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:34:57.517Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:35:57.517Z"
+  }
+}
+[2025-12-16T14:34:58.337Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:34:58.337Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:34:58.337Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:34:58.337Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:34:58.337Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:34:58.337Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:34:58.337Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:34:58.337Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:35:57.517Z"
+  }
+}
+[2025-12-16T14:35:18.041Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:35:18.041Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:35:18.041Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:35:18.041Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:35:18.041Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T14:35:18.042Z] Current state
+{
+  "countAfterFilter": 2,
+  "maxRequests": 60
+}
+[2025-12-16T14:35:18.042Z] Request allowed
+{
+  "newCount": 3,
+  "remaining": 57
+}
+[2025-12-16T14:35:18.042Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 57,
+    "resetAt": "2025-12-16T14:35:57.517Z"
+  }
+}
+[2025-12-16T14:35:19.064Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:35:19.064Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:35:19.065Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:35:19.065Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:35:19.065Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 3
+}
+[2025-12-16T14:35:19.065Z] Current state
+{
+  "countAfterFilter": 3,
+  "maxRequests": 60
+}
+[2025-12-16T14:35:19.065Z] Request allowed
+{
+  "newCount": 4,
+  "remaining": 56
+}
+[2025-12-16T14:35:19.065Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 56,
+    "resetAt": "2025-12-16T14:35:57.517Z"
+  }
+}
+[2025-12-16T14:39:38.352Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:39:38.352Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:39:38.352Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:39:38.352Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:39:38.352Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 4
+}
+[2025-12-16T14:39:38.352Z] Filtered old timestamps
+{
+  "before": 4,
+  "after": 0,
+  "removed": 4
+}
+[2025-12-16T14:39:38.352Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T14:39:38.352Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T14:39:38.352Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T14:40:38.352Z"
+  }
+}
+[2025-12-16T14:39:39.185Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T14:39:39.185Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T14:39:39.185Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T14:39:39.185Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T14:39:39.186Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T14:39:39.186Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T14:39:39.186Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T14:39:39.186Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T14:40:38.352Z"
+  }
+}
+[2025-12-16T15:49:46.926Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T15:49:46.926Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T15:49:46.926Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T15:49:46.926Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T15:49:46.926Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T15:49:46.926Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T15:49:46.926Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T15:49:46.926Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T15:50:46.926Z"
+  }
+}
+[2025-12-16T15:49:48.073Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T15:49:48.074Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T15:49:48.074Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T15:49:48.074Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T15:49:48.074Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T15:49:48.074Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T15:49:48.074Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T15:49:48.074Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T15:50:46.926Z"
+  }
+}
+[2025-12-16T15:50:57.721Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T15:50:57.722Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T15:50:57.722Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T15:50:57.722Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T15:50:57.722Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T15:50:57.722Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T15:50:57.722Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T15:50:57.722Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T15:50:57.722Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T15:51:57.722Z"
+  }
+}
+[2025-12-16T15:50:58.340Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T15:50:58.340Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T15:50:58.341Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T15:50:58.341Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T15:50:58.341Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T15:50:58.341Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T15:50:58.341Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T15:50:58.341Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T15:51:57.722Z"
+  }
+}
+[2025-12-16T16:05:32.013Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:05:32.014Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:05:32.014Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:05:32.014Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:05:32.014Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T16:05:32.014Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T16:05:32.014Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T16:05:32.014Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T16:06:32.014Z"
+  }
+}
+[2025-12-16T16:05:32.596Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:05:32.596Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:05:32.596Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:05:32.596Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:05:32.596Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T16:05:32.596Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T16:05:32.596Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T16:05:32.596Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T16:06:32.014Z"
+  }
+}
+[2025-12-16T16:23:57.239Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:23:57.240Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:23:57.240Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:23:57.240Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:23:57.240Z] Creating new entry
+{
+  "key": "token:unknown"
+}
+[2025-12-16T16:23:57.240Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T16:23:57.240Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T16:23:57.240Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T16:24:57.240Z"
+  }
+}
+[2025-12-16T16:23:58.118Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:23:58.118Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:23:58.118Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:23:58.118Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:23:58.118Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T16:23:58.118Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T16:23:58.118Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T16:23:58.118Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T16:24:57.240Z"
+  }
+}
+[2025-12-16T16:31:35.387Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:31:35.387Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:31:35.388Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:31:35.388Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:31:35.388Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 2
+}
+[2025-12-16T16:31:35.388Z] Filtered old timestamps
+{
+  "before": 2,
+  "after": 0,
+  "removed": 2
+}
+[2025-12-16T16:31:35.388Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T16:31:35.388Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T16:31:35.388Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T16:32:35.388Z"
+  }
+}
+[2025-12-16T16:31:37.281Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:31:37.281Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:31:37.281Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:31:37.281Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:31:37.281Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T16:31:37.282Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T16:31:37.282Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T16:31:37.282Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T16:32:35.388Z"
+  }
+}
+[2025-12-16T16:45:16.317Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:45:16.317Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:45:16.317Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:45:16.317Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:45:16.317Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T16:45:16.317Z] Filtered old timestamps
+{
+  "before": 1,
+  "after": 0,
+  "removed": 1
+}
+[2025-12-16T16:45:16.317Z] Current state
+{
+  "countAfterFilter": 0,
+  "maxRequests": 60
+}
+[2025-12-16T16:45:16.317Z] Request allowed
+{
+  "newCount": 1,
+  "remaining": 59
+}
+[2025-12-16T16:45:16.317Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 59,
+    "resetAt": "2025-12-16T16:46:16.317Z"
+  }
+}
+[2025-12-16T16:45:17.192Z] withRateLimit called
+{
+  "endpoint": "token",
+  "requestUrl": "/auth/token"
+}
+[2025-12-16T16:45:17.192Z] getClientIdentifier START
+{
+  "e2eTestMode": {
+    "envVar": "true",
+    "final": "true"
+  },
+  "testIdHeader": null,
+  "willUseTestId": false
+}
+[2025-12-16T16:45:17.193Z] Using fallback identifier
+{
+  "identifier": "unknown"
+}
+[2025-12-16T16:45:17.193Z] checkRateLimit START
+{
+  "config": {
+    "keyPrefix": "token",
+    "maxRequests": 60,
+    "windowMs": 60000
+  },
+  "identifier": "unknown",
+  "key": "token:unknown"
+}
+[2025-12-16T16:45:17.193Z] Found existing entry
+{
+  "key": "token:unknown",
+  "timestampCount": 1
+}
+[2025-12-16T16:45:17.193Z] Current state
+{
+  "countAfterFilter": 1,
+  "maxRequests": 60
+}
+[2025-12-16T16:45:17.193Z] Request allowed
+{
+  "newCount": 2,
+  "remaining": 58
+}
+[2025-12-16T16:45:17.193Z] Rate limit check result
+{
+  "identifier": "unknown",
+  "result": {
+    "allowed": true,
+    "remaining": 58,
+    "resetAt": "2025-12-16T16:46:16.317Z"
+  }
+}

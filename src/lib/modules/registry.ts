@@ -17,7 +17,7 @@ import { invariant } from '$lib/utils/invariant';
  */
 export interface ModuleManifest {
 	/**
-	 * Unique module identifier (e.g., 'shared-ui', 'inbox', 'meetings')
+	 * Unique module identifier (e.g., 'core', 'inbox', 'meetings')
 	 */
 	name: string;
 
@@ -83,7 +83,7 @@ export function registerModule(manifest: ModuleManifest): void {
  *
  * @example
  * ```typescript
- * const sharedUiModule = getModule('shared-ui');
+ * const coreModule = getModule('core');
  * ```
  */
 export function getModule(name: string): ModuleManifest | undefined {
@@ -261,8 +261,8 @@ export async function isModuleEnabled(
  *
  * @example
  * ```typescript
- * const ordered = resolveDependencies(['meetings', 'inbox', 'shared-ui']);
- * // Returns: ['shared-ui', 'inbox', 'meetings']
+ * const ordered = resolveDependencies(['meetings', 'inbox', 'core']);
+ * // Returns: ['core', 'inbox', 'meetings']
  * ```
  */
 export function resolveDependencies(moduleNames: string[]): string[] {

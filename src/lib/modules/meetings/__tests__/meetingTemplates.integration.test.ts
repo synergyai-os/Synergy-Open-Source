@@ -46,7 +46,7 @@ describe('Meeting Templates Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.modules.meetings.templates.create, {
+		const result = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Product Sync Template',
@@ -57,7 +57,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(result.templateId).toBeDefined();
 
 		// Verify template was created
-		const template = await t.query(api.modules.meetings.templates.get, {
+		const template = await t.query(api.features.meetings.templates.get, {
 			sessionId,
 			templateId: result.templateId
 		});
@@ -77,20 +77,20 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create multiple templates
-		await t.mutation(api.modules.meetings.templates.create, {
+		await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Template 1'
 		});
 
-		await t.mutation(api.modules.meetings.templates.create, {
+		await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Template 2'
 		});
 
 		// List templates
-		const templates = await t.query(api.modules.meetings.templates.list, {
+		const templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -109,7 +109,7 @@ describe('Meeting Templates Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.modules.meetings.templates.create, {
+		const result = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Old Name',
@@ -117,7 +117,7 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// Update template
-		await t.mutation(api.modules.meetings.templates.update, {
+		await t.mutation(api.features.meetings.templates.update, {
 			sessionId,
 			templateId: result.templateId,
 			name: 'New Name',
@@ -125,7 +125,7 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// Verify update
-		const template = await t.query(api.modules.meetings.templates.get, {
+		const template = await t.query(api.features.meetings.templates.get, {
 			sessionId,
 			templateId: result.templateId
 		});
@@ -142,20 +142,20 @@ describe('Meeting Templates Integration Tests', () => {
 
 		cleanupQueue.push({ userId, orgId });
 
-		const result = await t.mutation(api.modules.meetings.templates.create, {
+		const result = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'To Delete'
 		});
 
 		// Archive template
-		await t.mutation(api.modules.meetings.templates.archiveTemplate, {
+		await t.mutation(api.features.meetings.templates.archiveTemplate, {
 			sessionId,
 			templateId: result.templateId
 		});
 
 		// Verify archive
-		const templates = await t.query(api.modules.meetings.templates.list, {
+		const templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -176,14 +176,14 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create template
-		const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+		const templateResult = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
 		// Add step
-		const stepResult = await t.mutation(api.modules.meetings.templates.addStep, {
+		const stepResult = await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'check-in',
@@ -196,7 +196,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(stepResult.stepId).toBeDefined();
 
 		// Verify step was added
-		const steps = await t.query(api.modules.meetings.templates.getSteps, {
+		const steps = await t.query(api.features.meetings.templates.getSteps, {
 			sessionId,
 			templateId: templateResult.templateId
 		});
@@ -218,13 +218,13 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create template and add step
-		const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+		const templateResult = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
-		const stepResult = await t.mutation(api.modules.meetings.templates.addStep, {
+		const stepResult = await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'check-in',
@@ -233,13 +233,13 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// Remove step
-		await t.mutation(api.modules.meetings.templates.removeStep, {
+		await t.mutation(api.features.meetings.templates.removeStep, {
 			sessionId,
 			stepId: stepResult.stepId
 		});
 
 		// Verify removal
-		const steps = await t.query(api.modules.meetings.templates.getSteps, {
+		const steps = await t.query(api.features.meetings.templates.getSteps, {
 			sessionId,
 			templateId: templateResult.templateId
 		});
@@ -256,14 +256,14 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create template
-		const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+		const templateResult = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
 		// Add three steps
-		const step1 = await t.mutation(api.modules.meetings.templates.addStep, {
+		const step1 = await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'check-in',
@@ -271,7 +271,7 @@ describe('Meeting Templates Integration Tests', () => {
 			orderIndex: 0
 		});
 
-		const step2 = await t.mutation(api.modules.meetings.templates.addStep, {
+		const step2 = await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'agenda',
@@ -279,7 +279,7 @@ describe('Meeting Templates Integration Tests', () => {
 			orderIndex: 1
 		});
 
-		const step3 = await t.mutation(api.modules.meetings.templates.addStep, {
+		const step3 = await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'closing',
@@ -288,14 +288,14 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// Reorder: 3, 1, 2
-		await t.mutation(api.modules.meetings.templates.reorderSteps, {
+		await t.mutation(api.features.meetings.templates.reorderSteps, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepIds: [step3.stepId, step1.stepId, step2.stepId]
 		});
 
 		// Verify new order
-		const steps = await t.query(api.modules.meetings.templates.getSteps, {
+		const steps = await t.query(api.features.meetings.templates.getSteps, {
 			sessionId,
 			templateId: templateResult.templateId
 		});
@@ -318,13 +318,13 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create template with steps
-		const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+		const templateResult = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
-		await t.mutation(api.modules.meetings.templates.addStep, {
+		await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'check-in',
@@ -332,7 +332,7 @@ describe('Meeting Templates Integration Tests', () => {
 			orderIndex: 0
 		});
 
-		await t.mutation(api.modules.meetings.templates.addStep, {
+		await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'closing',
@@ -341,13 +341,13 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// Archive template
-		await t.mutation(api.modules.meetings.templates.archiveTemplate, {
+		await t.mutation(api.features.meetings.templates.archiveTemplate, {
 			sessionId,
 			templateId: templateResult.templateId
 		});
 
 		// Verify template is archived
-		const templates = await t.query(api.modules.meetings.templates.list, {
+		const templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -371,7 +371,7 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Seed default templates
-		const result = await t.mutation(api.modules.meetings.templates.seedDefaultTemplates, {
+		const result = await t.mutation(api.features.meetings.templates.seedDefaultTemplates, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -380,7 +380,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(result.tacticalId).toBeDefined();
 
 		// Verify templates were created
-		const templates = await t.query(api.modules.meetings.templates.list, {
+		const templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: orgId
 		});
@@ -393,7 +393,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(governance?.description).toContain('governance');
 
 		// Verify Governance steps (Check-in, Agenda, Closing)
-		const govSteps = await t.query(api.modules.meetings.templates.getSteps, {
+		const govSteps = await t.query(api.features.meetings.templates.getSteps, {
 			sessionId,
 			templateId: governance!._id
 		});
@@ -409,7 +409,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(tactical?.description).toContain('tactical');
 
 		// Verify Weekly Tactical steps (Check-in, Checklists, Metrics, Projects, Agenda, Closing)
-		const tacticalSteps = await t.query(api.modules.meetings.templates.getSteps, {
+		const tacticalSteps = await t.query(api.features.meetings.templates.getSteps, {
 			sessionId,
 			templateId: tactical!._id
 		});
@@ -442,21 +442,21 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ orgId: org2 });
 
 		// Create template in org1
-		await t.mutation(api.modules.meetings.templates.create, {
+		await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: org1,
 			name: 'Org 1 Template'
 		});
 
 		// Create template in org2
-		await t.mutation(api.modules.meetings.templates.create, {
+		await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: org2,
 			name: 'Org 2 Template'
 		});
 
 		// List templates for org1
-		const org1Templates = await t.query(api.modules.meetings.templates.list, {
+		const org1Templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: org1
 		});
@@ -465,7 +465,7 @@ describe('Meeting Templates Integration Tests', () => {
 		expect(org1Templates[0].name).toBe('Org 1 Template');
 
 		// List templates for org2
-		const org2Templates = await t.query(api.modules.meetings.templates.list, {
+		const org2Templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: org2
 		});
@@ -483,14 +483,14 @@ describe('Meeting Templates Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create template
-		const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+		const templateResult = await t.mutation(api.features.meetings.templates.create, {
 			sessionId,
 			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
 		// Add 2 steps
-		await t.mutation(api.modules.meetings.templates.addStep, {
+		await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'check-in',
@@ -498,7 +498,7 @@ describe('Meeting Templates Integration Tests', () => {
 			orderIndex: 0
 		});
 
-		await t.mutation(api.modules.meetings.templates.addStep, {
+		await t.mutation(api.features.meetings.templates.addStep, {
 			sessionId,
 			templateId: templateResult.templateId,
 			stepType: 'closing',
@@ -507,7 +507,7 @@ describe('Meeting Templates Integration Tests', () => {
 		});
 
 		// List templates
-		const templates = await t.query(api.modules.meetings.templates.list, {
+		const templates = await t.query(api.features.meetings.templates.list, {
 			sessionId,
 			workspaceId: orgId
 		});

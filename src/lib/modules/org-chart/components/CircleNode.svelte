@@ -8,8 +8,8 @@
 	 *
 	 * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for color system docs
 	 */
-	import { getCircleColor, getCircleStrokeColor } from '$lib/utils/orgChartTransform';
-	import type { CircleHierarchyNode } from '$lib/utils/orgChartTransform';
+	import { getCircleColor, getCircleStrokeColor } from '../utils/orgChartTransform';
+	import type { CircleHierarchyNode } from '../utils/orgChartTransform';
 
 	let {
 		node,

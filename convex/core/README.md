@@ -10,10 +10,20 @@ Core domains are **foundational entities** that:
 
 ## Current Core Domains
 
-| Domain       | Purpose                                               |
-| ------------ | ----------------------------------------------------- |
-| `authority/` | Circle authority calculation                          |
-| `roles/`     | Pure role business logic (lead detection, validation) |
+The 10 foundational domains that form the organizational truth kernel:
+
+| Domain          | Status   | Purpose                                                      |
+| --------------- | -------- | ------------------------------------------------------------ |
+| `users/`        | FROZEN   | Global auth identity (`userId`)                               |
+| `people/`       | FROZEN   | Workspace-scoped org identity (`personId`)                    |
+| `circles/`      | FROZEN   | Organizational units with hierarchy                          |
+| `roles/`        | FROZEN   | Authority distribution units (`roleId`)                       |
+| `assignments/`  | FROZEN   | Person filling role in circle (`personId` + `roleId` + `circleId`) |
+| `authority/`    | FROZEN   | Permission calculation (computed from roles)                  |
+| `history/`      | FROZEN   | Immutable audit log (`changedByPersonId`)                     |
+| `workspaces/`  | STABLE   | Multi-tenant container (`workspaceId`)                        |
+| `proposals/`    | STABLE   | Change mechanism (`createdByPersonId`)                        |
+| `policies/`     | STABLE   | Circle-level rules (scaffolded, not yet implemented)          |
 
 ## Import Rules
 

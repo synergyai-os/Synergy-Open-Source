@@ -99,7 +99,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 	// Fetch templates
 	const templatesQuery =
 		browser && params.workspaceId() && params.sessionId()
-			? useQuery(api.modules.meetings.templates.list, () => {
+			? useQuery(api.features.meetings.templates.list, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required');
 					return {
@@ -529,7 +529,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 				return;
 			}
 
-			const result = await convexClient?.mutation(api.modules.meetings.meetings.create, {
+			const result = await convexClient?.mutation(api.features.meetings.meetings.create, {
 				sessionId: params.sessionId()!,
 				workspaceId: params.workspaceId() as Id<'workspaces'>,
 				circleId: state.circleId || undefined,
@@ -546,7 +546,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			if (meetingId && state.selectedAttendees.length > 0) {
 				for (const attendee of state.selectedAttendees) {
 					try {
-						await convexClient?.mutation(api.modules.meetings.invitations.createInvitation, {
+						await convexClient?.mutation(api.features.meetings.invitations.createInvitation, {
 							sessionId: params.sessionId()!,
 							meetingId: meetingId as Id<'meetings'>,
 							invitationType: attendee.type,

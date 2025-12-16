@@ -12,8 +12,8 @@
 		getRoleFillColor,
 		getRoleTextColor,
 		getRoleStrokeColor
-	} from '$lib/utils/orgChartTransform';
-	import type { RoleNode, CircleHierarchyNode } from '$lib/utils/orgChartTransform';
+	} from '../utils/orgChartTransform';
+	import type { RoleNode, CircleHierarchyNode } from '../utils/orgChartTransform';
 
 	let {
 		role,

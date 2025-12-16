@@ -1,7 +1,6 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
-import { isLeadTemplate } from './detection';
-import { countLeadRoles } from './lead';
+import { isLeadTemplate, countLeadRoles } from './rules';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { requireActivePerson } from '../people/rules';
 import { getMyPerson, getPersonById } from '../people/queries';

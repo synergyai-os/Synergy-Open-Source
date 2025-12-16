@@ -7,5 +7,6 @@
 	"[svelte]": {
 		"editor.defaultFormatter": "svelte.svelte-vscode"
 	},
-	"oklchPreview.additionalFilePatterns": ["**/design-tokens*.json", "**/*.tokens.json"]
+	"oklchPreview.additionalFilePatterns": ["**/design-tokens*.json", "**/*.tokens.json"],
+	"workbench.colorTheme": "Cursor Light"
 }

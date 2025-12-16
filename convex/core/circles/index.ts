@@ -1,8 +1,8 @@
 /**
  * Circles Core Module
  *
- * SYOS-707: Core domain scaffold with schema/queries/mutations/rules.
- * Queries/mutations currently delegate to existing implementations.
+ * Public API exports for the circles domain.
+ * All queries, mutations, and business rules are exported here.
  */
 
 export * from './constants';

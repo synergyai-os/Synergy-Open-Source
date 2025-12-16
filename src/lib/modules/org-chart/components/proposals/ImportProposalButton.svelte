@@ -26,7 +26,7 @@
 	// Query meeting first to check if it has a circleId
 	const meetingQuery = $derived(
 		browser && sessionId && meetingId
-			? useQuery(api.modules.meetings.meetings.get, () => ({
+			? useQuery(api.features.meetings.meetings.get, () => ({
 					sessionId,
 					meetingId
 				}))

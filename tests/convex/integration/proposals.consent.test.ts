@@ -135,14 +135,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId,
 				workspaceId: orgId,
 				circleId,
@@ -190,14 +190,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId,
 				workspaceId: orgId,
 				circleId,
@@ -241,14 +241,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId,
 				workspaceId: orgId,
 				circleId,
@@ -302,14 +302,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -342,7 +342,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});
@@ -402,14 +402,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -442,7 +442,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});
@@ -501,14 +501,14 @@ describe('Consent Process', () => {
 			});
 
 			// Create meeting template and meeting
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId,
 				workspaceId: orgId,
 				circleId,
@@ -571,14 +571,14 @@ describe('Consent Process', () => {
 				}
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -611,7 +611,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});
@@ -734,14 +734,14 @@ describe('Consent Process', () => {
 				changeType: 'update'
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -793,14 +793,14 @@ describe('Consent Process', () => {
 				}
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -831,7 +831,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});
@@ -876,14 +876,14 @@ describe('Consent Process', () => {
 				changeType: 'update'
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -940,14 +940,14 @@ describe('Consent Process', () => {
 				}
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -980,7 +980,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});
@@ -1044,14 +1044,14 @@ describe('Consent Process', () => {
 				}
 			});
 
-			const templateResult = await t.mutation(api.modules.meetings.templates.create, {
+			const templateResult = await t.mutation(api.features.meetings.templates.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				name: 'Test Template',
 				description: 'Test template'
 			});
 
-			const meetingResult = await t.mutation(api.modules.meetings.meetings.create, {
+			const meetingResult = await t.mutation(api.features.meetings.meetings.create, {
 				sessionId: creatorSessionId,
 				workspaceId: orgId,
 				circleId,
@@ -1084,7 +1084,7 @@ describe('Consent Process', () => {
 			});
 
 			// Start meeting (sets recorderId automatically)
-			await t.mutation(api.modules.meetings.meetings.startMeeting, {
+			await t.mutation(api.features.meetings.meetings.startMeeting, {
 				sessionId: recorderSessionId,
 				meetingId: meetingResult.meetingId
 			});

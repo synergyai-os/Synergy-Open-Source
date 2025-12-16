@@ -18,14 +18,14 @@ import type { InboxModuleAPI } from './api';
 /**
  * Inbox module manifest
  *
- * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities)
+ * **Dependencies**: ['core'] (depends on core module for shared utilities)
  * **Feature Flag**: null (always enabled)
  * **API**: InboxModuleAPI (currently minimal, ready for future expansion)
  */
 export const inboxModule: ModuleManifest = {
 	name: 'inbox',
 	version: '1.0.0',
-	dependencies: ['shared-ui'],
+	dependencies: ['core'],
 	featureFlag: null, // Always enabled
 	api: undefined as InboxModuleAPI | undefined // Type reference for API contract
 };

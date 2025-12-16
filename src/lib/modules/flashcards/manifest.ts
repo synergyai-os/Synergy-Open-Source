@@ -18,15 +18,15 @@ import type { FlashcardsModuleAPI } from './api';
 /**
  * Flashcards module manifest
  *
- * **Dependencies**: ['shared-ui']
- *   - 'shared-ui': Uses CoreModuleAPI for TagSelector component and tagging functionality via useTagging composable
+ * **Dependencies**: ['core']
+ *   - 'core': Uses CoreModuleAPI for TagSelector component and tagging functionality via useTagging composable
  * **Feature Flag**: null (always enabled)
  * **API**: FlashcardsModuleAPI (currently minimal, ready for future expansion)
  */
 export const flashcardsModule: ModuleManifest = {
 	name: 'flashcards',
 	version: '1.0.0',
-	dependencies: ['shared-ui'],
+	dependencies: ['core'],
 	featureFlag: null, // Always enabled
 	api: undefined as FlashcardsModuleAPI | undefined // Type reference for API contract
 };

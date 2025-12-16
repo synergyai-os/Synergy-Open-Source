@@ -54,15 +54,32 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 
 ## Files
 
-| File                 | Purpose                                             |
-| -------------------- | --------------------------------------------------- |
-| `tables.ts`          | Defines roleTemplates, circleRoles, userCircleRoles |
-| `queries.ts`         | Role reads (by circle, workspace, status)           |
-| `mutations.ts`       | Create/update/archive roles                         |
-| `roleLifecycle.ts`   | Lifecycle helpers (activate/archive/restore)        |
-| `roleAssignments.ts` | Assignment helpers (legacy)                         |
-| `roleAccess.ts`      | Access control for role operations                  |
-| `lead.ts`            | Lead detection and requirements                     |
-| `validation.ts`      | Name/duplicate validation                           |
-| `templates/`         | Template rules, queries, and mutations              |
-| `index.ts`           | Public exports                                      |
+### Core Domain Files (Architecture Pattern)
+
+| File            | Purpose                                    |
+| --------------- | ------------------------------------------ |
+| `tables.ts`     | Table definitions (roleTemplates, circleRoles) |
+| `schema.ts`     | Type aliases and exports                   |
+| `queries.ts`    | **All** role queries (consolidated)        |
+| `mutations.ts`  | **All** role mutations (consolidated)      |
+| `rules.ts`      | Business rules (validation, governance)    |
+| `index.ts`      | Public API exports                         |
+| `README.md`     | Domain documentation                       |
+| `roles.test.ts` | **All** tests (consolidated)               |
+
+### Helper Files
+
+| File            | Purpose                                    | Why Separate? |
+| --------------- | ------------------------------------------ | ------------- |
+| `roleAccess.ts` | Access control helpers (contextual, needs ctx) | Contextual functions used across queries/mutations |
+| `roleRbac.ts`   | RBAC integration handlers (infrastructure integration) | Infrastructure integration, not pure business logic |
+
+**Note**: Pure validation and business logic functions (`validation.ts`, `lead.ts`, `detection.ts`) were consolidated into `rules.ts` per architecture.md Principle #27: "Validation logic extracted to `rules.ts`".
+
+### Subdomain
+
+| Directory      | Purpose                                    |
+| -------------- | ------------------------------------------ |
+| `templates/`   | Role template subdomain (queries, mutations, rules) |
+
+**Note**: This domain follows the architecture.md 8-file domain structure. Queries and mutations were consolidated from fragmented files in January 2025.

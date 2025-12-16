@@ -2,7 +2,7 @@ import { browser } from '$app/environment';
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { SvelteMap } from 'svelte/reactivity';
-import type { CircleNode } from '$lib/utils/orgChartTransform';
+import type { CircleNode } from '../utils/orgChartTransform';
 import { getContext } from 'svelte';
 import { invariant } from '$lib/utils/invariant';
 import type {

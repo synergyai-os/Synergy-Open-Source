@@ -51,7 +51,7 @@ export function useMeetings(options: UseMeetingsOptions) {
 	// Fetch meetings for user (already filtered by permissions in backend)
 	const meetingsQuery =
 		browser && workspaceId() && sessionId()
-			? useQuery(api.modules.meetings.meetings.listForUser, () => {
+			? useQuery(api.features.meetings.meetings.listForUser, () => {
 					const orgId = workspaceId();
 					const session = sessionId();
 					// Throw if not ready yet (outer check ensures they exist)

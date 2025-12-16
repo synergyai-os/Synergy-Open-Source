@@ -37,13 +37,26 @@
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	const getWorkspaceId = () => workspaceId();
 
+	// DEBUG: Log workspace loading state
+	$effect(() => {
+		if (browser) {
+			console.log('📊 [CHART] Workspace state:', {
+				sessionId: getSessionId(),
+				workspaceId: getWorkspaceId(),
+				workspaces: workspaces?.workspaces?.length ?? 0,
+				activeWorkspaceId: workspaces?.activeWorkspaceId
+			});
+		}
+	});
+
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
-	// CRITICAL: Only create orgChart when sessionId is available to prevent hydration errors
+	// CRITICAL: Only create orgChart when sessionId AND workspaceId are available
+	// Pattern matches meetings module (check all required params in outer condition)
 	if (!orgChartAPI) {
 		invariant(false, 'OrgChartModuleAPI not available in context');
 	}
 	const orgChart =
-		browser && getSessionId()
+		browser && getSessionId() && getWorkspaceId()
 			? orgChartAPI.useOrgChart({
 					sessionId: getSessionId,
 					workspaceId: getWorkspaceId
@@ -97,7 +110,11 @@
 			</div>
 		{:else if orgChart}
 			<div class="p-inbox-container h-full">
-				<OrgChart {orgChart} workspaceId={workspaceId()} workspaceSlug={workspaceSlug()} />
+				<OrgChart
+					{orgChart}
+					workspaceId={workspaceId() as Id<'workspaces'> | undefined}
+					workspaceSlug={workspaceSlug()}
+				/>
 			</div>
 		{:else}
 			<div class="flex h-full items-center justify-center">

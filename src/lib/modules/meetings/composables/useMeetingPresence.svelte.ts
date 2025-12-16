@@ -58,7 +58,7 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	// Reference: dev-docs/2-areas/patterns/svelte-reactivity.md#L220
 	const activePresenceQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.modules.meetings.presence.getActivePresence, () => {
+			? useQuery(api.features.meetings.presence.getActivePresence, () => {
 					const mid = meetingId();
 					const sid = sessionId();
 					invariant(mid && sid, 'meetingId and sessionId required for presence tracking');
@@ -72,7 +72,7 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 	// Real-time subscription to combined attendance (expected + active + guests)
 	const combinedAttendanceQuery =
 		browser && meetingId() && sessionId()
-			? useQuery(api.modules.meetings.presence.getCombinedAttendance, () => {
+			? useQuery(api.features.meetings.presence.getCombinedAttendance, () => {
 					const mid = meetingId();
 					const sid = sessionId();
 					invariant(mid && sid, 'meetingId and sessionId required for attendance tracking');
@@ -145,7 +145,7 @@ export function useMeetingPresence(options: UseMeetingPresenceOptions) {
 		}
 
 		try {
-			await convexClient.mutation(api.modules.meetings.presence.recordHeartbeat, {
+			await convexClient.mutation(api.features.meetings.presence.recordHeartbeat, {
 				meetingId: mid,
 				sessionId: sid
 			});
