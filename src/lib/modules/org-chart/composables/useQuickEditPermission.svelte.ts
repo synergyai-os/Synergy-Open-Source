@@ -60,7 +60,7 @@ export function useQuickEditPermission(
 	// Only create query if quick edits are allowed at workspace level
 	const canEditQuery = $derived(
 		browser && !quickCheckDisabled && params.circle() && params.sessionId()
-			? useQuery(api.rbac.orgChart.getQuickEditStatusQuery, () => {
+			? useQuery(api.infrastructure.rbac.orgChart.getQuickEditStatusQuery, () => {
 					const circle = params.circle();
 					const sessionId = params.sessionId();
 					invariant(circle && sessionId, 'Circle and sessionId required');

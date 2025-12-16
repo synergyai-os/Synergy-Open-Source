@@ -22,7 +22,14 @@ export const peopleTable = defineTable({
 	invitedBy: v.optional(v.id('people')), // Who invited them (personId, not userId). Can be null for initial owner seeding.
 	joinedAt: v.optional(v.number()), // When they accepted/signed up
 	archivedAt: v.optional(v.number()), // When archived
-	archivedBy: v.optional(v.id('people')) // Who archived them
+	archivedBy: v.optional(v.id('people')), // Who archived them
+
+	// Onboarding: user onboarding completion (SYOS-891)
+	onboardingCompletedAt: v.optional(v.number()),
+
+	// Guest access
+	isGuest: v.optional(v.boolean()), // true = limited access guest
+	guestExpiry: v.optional(v.number()) // When guest access expires (timestamp)
 })
 	.index('by_workspace', ['workspaceId'])
 	.index('by_user', ['userId'])

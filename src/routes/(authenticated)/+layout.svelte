@@ -37,6 +37,11 @@
 	// Check if we're on a settings route - hide main sidebar for settings routes
 	const isSettingsRoute = $derived(browser ? $page.url.pathname.includes('/settings') : false);
 
+	// Check if we're on an onboarding route - hide main sidebar and use full-width layout
+	const isOnboardingRoute = $derived(
+		browser ? $page.url.pathname.startsWith('/onboarding') : false
+	);
+
 	// Initialize workspaces composable with sessionId and server-side preloaded data
 	// Returns WorkspacesModuleAPI interface (enables loose coupling - see SYOS-295)
 	const workspaces = useWorkspaces({
@@ -65,7 +70,7 @@
 	// This prevents CSS loss when switching workspaces
 	const allOrgBrandingQuery =
 		browser && getSessionId()
-			? useQuery(api.core.workspaces.index.getAllOrgBranding, () => {
+			? useQuery(api.features.workspaceBranding.getAllOrgBranding, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };
@@ -75,16 +80,34 @@
 	// Load RBAC details for dev console logging
 	const rbacDetailsQuery =
 		browser && import.meta.env.DEV && getSessionId()
-			? useQuery(api.rbac.queries.getUserRBACDetails, () => {
+			? useQuery(api.infrastructure.rbac.queries.getUserRBACDetails, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					const workspaceId = activeWorkspaceId();
 					return {
 						sessionId,
-						workspaceId: workspaceId as Id<'workspaces'> | undefined
+						workspaceId: workspaceId ?? undefined
 					};
 				})
 			: null;
+
+	// Load personId for dev console logging (workspace-scoped)
+	// Only create query when workspaceId is available (required parameter)
+	// Wrap in $derived to make conditional query creation reactive (see convex-integration.md#L250)
+	const personIdQuery = $derived(
+		browser && import.meta.env.DEV && getSessionId() && activeWorkspaceId() !== null
+			? useQuery(api.core.people.index.getPersonForWorkspace, () => {
+					const sessionId = getSessionId();
+					const workspaceId = activeWorkspaceId();
+					invariant(sessionId, 'sessionId required');
+					invariant(workspaceId, 'workspaceId required'); // Should not happen due to outer check
+					return {
+						sessionId,
+						workspaceId: workspaceId as Id<'workspaces'>
+					};
+				})
+			: null
+	);
 
 	// Log RBAC details when available (dev mode only) - adds to existing dev info
 	$effect(() => {
@@ -133,6 +156,7 @@
 		console.log('🔍 SynergyOS Dev Info', {
 			auth: {
 				userId: data.user?.userId ?? null,
+				personId: personIdQuery?.data?.personId ?? null,
 				email: data.user?.email ?? null,
 				name: accountName() ?? null,
 				workosId: data.user?.workosId ?? null,
@@ -252,10 +276,10 @@
 	const orgChartAPI = createOrgChartModuleAPI();
 	setContext('org-chart-api', orgChartAPI);
 
-	// Feature flags loaded server-side for instant rendering (no client-side query delay)
-	const circlesEnabled = $derived(data.circlesEnabled ?? false);
-	const meetingsEnabled = $derived(data.meetingsEnabled ?? false);
-	const dashboardEnabled = $derived(data.meetingsEnabled ?? false); // Dashboard uses meetings module flag
+	// Core features are always enabled (no feature flags)
+	const circlesEnabled = true;
+	const meetingsEnabled = true;
+	const dashboardEnabled = true;
 
 	const loadingOverlay = useLoadingOverlay();
 	setContext('loadingOverlay', loadingOverlay);
@@ -319,7 +343,10 @@
 	// CRITICAL: Do NOT include hasSwitchingAccountFlag here - it causes overlay to show BEFORE page reload
 	// After page reload, accountSwitchingState.isSwitching will be true (initialized from sessionStorage)
 	// This creates one continuous overlay that transitions from "Switching account" to "Loading workspace"
-	const shouldShowSwitchingOverlay = $derived(isAccountSwitching || isOrgSwitching);
+	// EXCEPTION: Don't show blur overlay during onboarding (workspace creation flow)
+	const shouldShowSwitchingOverlay = $derived(
+		!isOnboardingRoute && (isAccountSwitching || isOrgSwitching)
+	);
 
 	// Determine subtitle: "account" during account switch, "workspace" during org switch
 	// IMPORTANT: Only use 'account' when account switching is active (not the flag - prevents pre-reload overlay)
@@ -440,6 +467,7 @@
 			console.log('🔍 SynergyOS Dev Info', {
 				auth: {
 					userId: data.user?.userId ?? null,
+					personId: personIdQuery?.data?.personId ?? null,
 					email: data.user?.email ?? null,
 					name: accountName() ?? null,
 					workosId: data.user?.workosId ?? null,
@@ -747,8 +775,8 @@
 			aria-hidden="true"
 		></div>
 
-		<!-- Shared Sidebar Component - Hidden on settings routes -->
-		{#if !isSettingsRoute}
+		<!-- Shared Sidebar Component - Hidden on settings and onboarding routes -->
+		{#if !isSettingsRoute && !isOnboardingRoute}
 			<Sidebar
 				{inboxCount}
 				{isMobile}
@@ -770,9 +798,9 @@
 			/>
 		{/if}
 
-		<!-- Main Content Area - Floating Card (skip for settings routes) -->
-		{#if isSettingsRoute}
-			<!-- Settings routes use full-width layout (no shell pattern) -->
+		<!-- Main Content Area - Floating Card (skip for settings and onboarding routes) -->
+		{#if isSettingsRoute || isOnboardingRoute}
+			<!-- Settings and onboarding routes use full-width layout (no shell pattern) -->
 			<div class="flex flex-1 flex-col overflow-hidden">
 				{@render children()}
 			</div>

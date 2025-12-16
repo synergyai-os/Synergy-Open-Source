@@ -121,7 +121,7 @@ export const updateClaudeApiKey = action({
 		});
 
 		// Save encrypted key
-		return await ctx.runMutation(internal.settings.updateClaudeApiKeyInternal, {
+		return await ctx.runMutation(internal.core.workspaces.settings.updateClaudeApiKeyInternal, {
 			userId,
 			encryptedKey
 		});
@@ -166,7 +166,7 @@ export const updateReadwiseApiKey = action({
 		});
 
 		// Save encrypted key
-		return await ctx.runMutation(internal.settings.updateReadwiseApiKeyInternal, {
+		return await ctx.runMutation(internal.core.workspaces.settings.updateReadwiseApiKeyInternal, {
 			userId,
 			encryptedKey
 		});

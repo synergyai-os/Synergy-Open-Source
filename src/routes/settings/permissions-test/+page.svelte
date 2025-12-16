@@ -101,7 +101,7 @@
 			return;
 		}
 		try {
-			await convexClient.mutation(api.core.workspaces.index.createWorkspaceInvite, {
+			await convexClient.mutation(api.features.invites.mutations.createWorkspaceInvite, {
 				sessionId,
 				workspaceId: orgId as Id<'workspaces'>,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,

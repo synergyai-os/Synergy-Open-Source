@@ -2,8 +2,8 @@
 
 **Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-**Version**: 3.0  
-**Last Updated**: 2025-12-12  
+**Version**: 3.7  
+**Last Updated**: 2025-12-15  
 **Optimization Target**: AI-native development with domain cohesion
 
 ---
@@ -48,6 +48,36 @@
 | **Immutability** |||
 | 25 | Organizational history is immutable and auditable | Schema design |
 
+### Trade-off Guidance (Even-Over Statements)
+
+When principles conflict, use these priorities:
+
+| Prioritize This... | Even Over... | Rationale |
+|-------------------|--------------|-----------|
+| **Domain cohesion** (one folder = one domain) | File line limits | 400-line file in the right place beats 8 files scattered |
+| **Explicit boundaries** (index.ts exports) | DRY across domains | Duplication within a domain is fine; leaky abstractions aren't |
+| **Working code** (npm run check passes) | Perfect structure | Ship, then refactor. Don't block on architecture purity |
+| **Readability** (can a new reader follow?) | Clever abstractions | Boring code > clever code |
+| **8-file domain structure** | Arbitrary extraction | Split when you have a *reason*, not when you hit a number |
+
+### The 300-Line Guideline (Clarified)
+
+**Intent:** Files over 300 lines *may* indicate a need to split. It's a smell, not a rule.
+
+**When to split:**
+- File has multiple unrelated responsibilities
+- You're scrolling constantly to find things
+- Tests for the file are hard to organize
+
+**When NOT to split:**
+- Domain is cohesive and the file is 400 lines
+- Splitting would create circular imports
+- Splitting would scatter related logic across files
+
+**The test:** Can you name the new file something meaningful? If it would be `helpers2.ts` or `mutations-part2.ts`, don't split.
+
+**Anti-pattern:** Mechanical file splitting to meet a line count. This violates domain cohesion and creates navigation overhead.
+
 ### Code Hygiene
 
 | # | Principle | Enforcement |
@@ -58,7 +88,7 @@
 | 29 | No inline type casts (`as unknown as`) — use type helpers | Linting |
 | 30 | Auth/access via composed helpers (e.g., `withCircleAccess`) | Code review |
 | 31 | Archive queries via a helper (e.g., `queryActive`), not branching | Code review |
-| 32 | Domain files ≤ 300 lines; split if larger | CI gate |
+| 32 | Domain files ~300 lines guideline; split only with reason (see Trade-off Guidance) | Code review |
 | 33 | Error format consistent: `ERR_CODE: message` | Code review |
 
 ### AI Development Rules (No Judgment Calls)
@@ -102,8 +132,11 @@
 |------|------------|
 | Backend logic, domain code, structure | This document (architecture.md) |
 | UI component, styling, tokens | design-system.md |
-| Permission/access control logic | rbac/rbac-architecture.md |
+| Governance models, circle types, role templates | dev-docs/master-docs/architecture/governance-design.md |
+| Permission/access control logic | convex/infrastructure/rbac/README.md |
 | Invariant definitions | convex/admin/invariants/INVARIANTS.md |
+| Feature flags | convex/infrastructure/featureFlags/README.md |
+| Admin operations | convex/admin/README.md |
 
 ---
 
@@ -128,37 +161,40 @@ Governance structure is mutable through the system's own processes. You can chan
 ### Three-Layer Model
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  Application Layer (Svelte routes, UI)                      │
-│  /src/routes/, /src/lib/components/                         │
-└──────────────────────────┬──────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Application Layer (Svelte routes, UI)                          │
+│  /src/routes/, /src/lib/components/                             │
+└──────────────────────────┬──────────────────────────────────────┘
                            │ depends on
-┌──────────────────────────▼──────────────────────────────────┐
-│  Features Layer                                             │
-│  /convex/features/ (meetings, tensions, projects, inbox)    │
-└──────────────────────────┬──────────────────────────────────┘
+┌──────────────────────────▼──────────────────────────────────────┐
+│  Features Layer                                                 │
+│  /convex/features/ (meetings, tensions, projects, inbox,        │
+│                     customFields, tasks, flashcards, tags)      │
+└──────────────────────────┬──────────────────────────────────────┘
                            │ depends on
-┌──────────────────────────▼──────────────────────────────────┐
-│  Core Layer                                                 │
-│  /convex/core/ (circles, roles, authority, proposals...)    │
-└──────────────────────────┬──────────────────────────────────┘
+┌──────────────────────────▼──────────────────────────────────────┐
+│  Core Layer                                                     │
+│  /convex/core/ (circles, roles, authority, proposals...)        │
+└──────────────────────────┬──────────────────────────────────────┘
                            │ depends on
-┌──────────────────────────▼──────────────────────────────────┐
-│  Infrastructure Layer                                       │
-│  /convex/infrastructure/ (auth, events, rbac)               │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────▼──────────────────────────────────────┐
+│  Infrastructure Layer                                           │
+│  /convex/infrastructure/ (auth, rbac, access, featureFlags)     │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Dependency Rules
 
 | Layer | Can Import From | Cannot Import From |
 |-------|-----------------|-------------------|
-| Infrastructure | Nothing | Core, Features, Application |
-| Core | Infrastructure | Features, Application |
+| Infrastructure | Other infrastructure modules | Core, Features, Application |
+| Core | Infrastructure, **other Core domains** | Features, Application |
 | Features | Core, Infrastructure | Application, other Features* |
 | Application | Features, Core, Infrastructure | — |
 
 *Features should not depend on each other unless explicitly designed as dependencies.
+
+> **Note:** Infrastructure modules may import from each other (horizontal sharing). Core domains may import from other core domains (e.g., `authority` imports from `circles`). The prohibition is on *upward* dependencies — infrastructure must never import from core or features.
 
 ### Directory Structure
 
@@ -189,16 +225,19 @@ Governance structure is mutable through the system's own processes. You can chan
 │   ├── inbox/
 │   ├── projects/
 │   ├── tasks/
+│   ├── customFields/
 │   └── ...
 │
 ├── infrastructure/                 # Cross-cutting concerns
-│   ├── auth/
-│   ├── rbac/
-│   └── events/
+│   ├── auth/                       # Session management, identity
+│   ├── rbac/                       # Access control (system + workspace scopes)
+│   ├── access/                     # Composed access helpers
+│   └── featureFlags/               # Feature flag system
 │
 ├── admin/                          # Operational tooling
 │   ├── invariants/                 # Data integrity checks
-│   └── migrations/
+│   ├── migrations/                 # Schema migrations
+│   └── [utilities]                 # RBAC admin, user management, seeding
 │
 └── schema.ts                       # Main schema registration
 
@@ -208,7 +247,9 @@ Governance structure is mutable through the system's own processes. You can chan
 │   │   ├── atoms/                  # Single elements (Button, Badge)
 │   │   ├── molecules/              # Combined atoms (FormField)
 │   │   └── organisms/              # Complex sections (Dialog)
-│   ├── modules/[module]/
+│   ├── modules/[module]/           # Frontend feature modules
+│   │   ├── manifest.ts             # Registration, dependencies
+│   │   ├── api.ts                  # Type-safe public interface
 │   │   ├── components/             # Feature-specific components
 │   │   └── composables/            # Feature-specific logic
 │   └── composables/                # Shared UI logic (.svelte.ts)
@@ -219,6 +260,55 @@ Governance structure is mutable through the system's own processes. You can chan
 
 /e2e/                               # End-to-end tests
 ```
+
+### Frontend/Backend Relationship
+
+Frontend modules (`src/lib/modules/`) consume backend features (`convex/features/`) through Convex's generated API.
+
+| Aspect | Pattern |
+|--------|---------|
+| Coupling | Loose — via typed API contracts |
+| Cardinality | N:M — frontend modules can compose multiple backend features |
+| Discovery | Frontend: manifest registry. Backend: Convex automatic |
+
+**Example:** The `meetings` frontend module consumes:
+- `convex/features/meetings/` (primary)
+- `convex/core/circles/` (to show circle context)
+- `convex/core/proposals/` (for proposal agenda items)
+
+**Naming rationale:** Frontend uses "modules" (pluggable units with registry, manifests, contracts). Backend uses "features" (architecture layer naming convention).
+
+### Frontend/Backend Constant Sync
+
+**Types**: Frontend imports from `convex/_generated/dataModel` (automatic type sync)
+
+**Constants**: Frontend maintains its own copy in `src/lib/infrastructure/organizational-model/constants.ts` (manual sync required)
+
+**When modifying constants:**
+1. Update `convex/core/{domain}/constants.ts` (backend source of truth)
+2. Update `src/lib/infrastructure/organizational-model/constants.ts` (frontend copy)
+3. Both must match exactly — values, keys, and types
+
+**Rationale**: Pre-production phase doesn't justify build complexity for shared constants. Types sync automatically via Convex generation. Constants require manual sync until shared package infrastructure is justified.
+
+### Legacy Compatibility Layers
+
+| Directory | Status | Purpose | Migration |
+|-----------|--------|---------|-----------|
+| `convex/modules/` | **DEPRECATED** | Re-exports to `features/` for `api.modules.*` compatibility | Future ticket |
+
+**Note:** `convex/modules/meetings/` exists only to maintain the `api.modules.meetings.*` API surface used by 215+ frontend calls. All implementation lives in `convex/features/meetings/`.
+
+**New code:** Always use `convex/features/`. Never add to `convex/modules/`.
+
+### Analytics vs. Domain Events
+
+| System | Purpose | Status |
+|--------|---------|--------|
+| **PostHog** (`infrastructure/posthog.ts`) | Product analytics, telemetry | ✅ Implemented |
+| **Domain events** | Internal pub/sub for decoupling | ⏸️ Planned, not implemented |
+
+**Current approach:** Features call core domains directly. Domain events may be added when async workflows (notifications, webhooks) or feature decoupling becomes necessary.
 
 ---
 
@@ -246,7 +336,7 @@ These domains form the kernel — the minimum viable organizational truth.
 | **history** | FROZEN | Immutable audit log | `changedByPersonId` |
 | **workspaces** | STABLE | Multi-tenant container | `workspaceId` |
 | **proposals** | STABLE | Change mechanism | `createdByPersonId` |
-| **policies** | STABLE | Circle-level rules | `circleId` |
+| **policies** | STABLE | Circle-level rules (scaffolded, not yet implemented) | `circleId` |
 
 ### Why FROZEN vs STABLE?
 
@@ -260,13 +350,17 @@ These domains form the kernel — the minimum viable organizational truth.
 - **workspaces**: Infrastructure (tenant separation), needs room for billing, enterprise features
 - **proposals + policies**: Governance mechanism — *how* we implement may evolve
 
+> **Note:** The `policies` domain is currently scaffolded (placeholder files exist) but not implemented. We haven't defined the policies data model yet. Implementation will happen when we scope governance customization features.
+
 ### What's NOT Core
 
-| Current Location | Target | Tracking |
-|------------------|--------|----------|
-| `core/circleItems/` | `features/customFields/` | SYOS-790 |
+All migrations from CORE to Features are complete.
 
-**circleItems** is workspace-level customization (custom fields on entities), not organizational truth. Migration pending.
+| Previous Location | New Location | Status | Tracking |
+|-------------------|--------------|--------|----------|
+| `core/circleItems/` | `features/customFields/` | ✅ DONE | SYOS-790 |
+
+**circleItems** was workspace-level customization (custom fields on entities), not organizational truth. Successfully migrated to `features/customFields/` (December 2025).
 
 ---
 
@@ -277,21 +371,21 @@ These domains form the kernel — the minimum viable organizational truth.
 SynergyOS uses a deliberate three-layer identity model for security and workspace isolation:
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          IDENTITY CHAIN                              │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│   sessionId ──────► userId ──────► personId ──────► workspaceId     │
-│       │                │                │                │          │
+┌───────────────────────────────────────────────────────────────────────┐
+│                          IDENTITY CHAIN                               │
+├───────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│   sessionId ──────► userId ──────► personId ──────► workspaceId       │
+│       │                │                │                │            │
 │       │                │                │                └── "Which org?"
-│       │                │                │                            │
-│       │                │                └── "Who in THIS workspace?" │
-│       │                │                                             │
-│       │                └── "Which human logged in?"                  │
-│       │                                                              │
-│       └── "Which browser session?"                                   │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
+│       │                │                │                              │
+│       │                │                └── "Who in THIS workspace?"   │
+│       │                │                                               │
+│       │                └── "Which human logged in?"                    │
+│       │                                                                │
+│       └── "Which browser session?"                                     │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Identity Layer Definitions
@@ -329,7 +423,7 @@ These are **two distinct domains** with different tables and purposes. Do not co
 | **Data portability** | Workspaces can be exported without exposing global user data |
 | **Multi-workspace users** | Same human has separate `personId` per workspace — data stays isolated |
 
-**The invariant (XDOM-01):** No `userId` references in core domain tables (except `users`, `people`, `workspaceMembers`). All `createdBy`/`updatedBy` audit fields use `personId`.
+**The invariant (XDOM-01):** No `userId` references in core domain tables (except `users`, `people`). All `createdBy`/`updatedBy` audit fields use `personId`.
 
 ### Identity Resolution Flow
 
@@ -357,6 +451,53 @@ await ctx.db.patch(circleId, {
 | `findPersonByUserAndWorkspace(ctx, userId, workspaceId)` | Person \| null | Checking if person exists |
 | `getMyPerson(ctx, sessionId, workspaceId)` | Person (throws if not found) | Getting current user's person |
 | `validateSessionAndGetUserId(ctx, sessionId)` | `{ userId, session }` | Auth validation |
+
+### Guest Access Model
+
+Guests are external users with limited workspace access (e.g., consultants, advisors).
+
+#### Identity Model
+
+Guests are `people` records with `isGuest: true`:
+
+| Field | Purpose |
+|-------|---------|
+| `isGuest` | `true` = limited access guest |
+| `guestExpiry` | When guest access expires (timestamp) |
+
+**Key principle:** Guests ARE people — they can energize roles, participate in circles, and receive RBAC permissions through normal flows.
+
+#### Access Mechanisms
+
+| Access Type | Mechanism | Check |
+|-------------|-----------|-------|
+| **View specific resource** | `resourceGuests` entry | `hasResourceGuestAccess(personId, type, id)` |
+| **Role in circle** | `assignments` entry | Normal authority calculation |
+| **RBAC permission** | Role template → `workspaceRoles` | `hasWorkspaceRole(personId, role)` |
+
+#### Security Model
+
+Guests can ONLY access:
+1. Resources explicitly listed in `resourceGuests` for their `personId`
+2. Circles/roles they're assigned to via `assignments`
+3. Nothing else — workspace isolation via `personId`
+
+#### `resourceGuests` Table
+
+Grants view access to specific resources without role assignment:
+
+```typescript
+resourceGuests: {
+  personId: Id<'people'>,           // The guest (must have isGuest: true)
+  resourceType: string,              // 'circles' | 'proposals' | 'documents'
+  resourceId: string,                // Specific resource ID
+  grantedByPersonId: Id<'people'>,  // Who granted access
+  grantedAt: number,                 // When granted
+  expiresAt?: number,                // Optional expiry
+}
+```
+
+**Presence = access:** No permission levels — if record exists and not expired, guest can view.
 
 ---
 
@@ -445,14 +586,287 @@ The *workspace admin* (RBAC role) decides who can access system features, regard
 > RBAC defines *system capabilities* (what features you can use).
 > They are intentionally separate to maintain security boundaries.
 
-For RBAC implementation details, see `rbac/rbac-architecture.md`.
+### RBAC Scope Model
 
-### Authorization Check Flow
+RBAC operates at two scopes with different identity models:
 
-1. **Get authenticated user** — If missing → throw `AUTH_REQUIRED`
-2. **Check RBAC capability** (system-level) — If false → throw `AUTHZ_INSUFFICIENT_RBAC`
-3. **Check Authority** (domain-level) — If false → throw domain-specific error
-4. **Both must pass** — order matters for clarity
+| Scope | Table | Identifier | Use Case |
+|-------|-------|------------|----------|
+| **System** | `systemRoles` | `userId` | Platform operations: admin console, developer access, support tools |
+| **Workspace** | `workspaceRoles` | `personId` | Org operations: billing admin, workspace admin, member permissions |
+
+**Why two scopes?**
+- Same user can have different RBAC roles in different workspaces
+- Platform-level access (developer, support) is independent of any workspace
+- Workspace isolation: `personId` prevents accidental cross-workspace correlation
+
+**Table Definitions (infrastructure/rbac/tables.ts):**
+```typescript
+// System-level — uses userId (global identity)
+export const systemRolesTable = defineTable({
+  userId: v.id('users'),
+  role: v.string(),  // 'platform_admin' | 'platform_manager' | 'developer' | 'support'
+  grantedAt: v.number(),
+  grantedBy: v.optional(v.id('users')),
+}).index('by_user', ['userId']).index('by_role', ['role']);
+
+// Workspace-level — uses personId (workspace-scoped identity)
+export const workspaceRolesTable = defineTable({
+  personId: v.id('people'),
+  role: v.string(),  // 'billing_admin' | 'workspace_admin' | 'member'
+  grantedAt: v.number(),
+  grantedByPersonId: v.optional(v.id('people')),
+  sourceCircleRoleId: v.optional(v.id('assignments')),  // For auto-assignment cleanup
+}).index('by_person', ['personId']).index('by_role', ['role']).index('by_source_role', ['sourceCircleRoleId']);
+```
+
+### RBAC Permission Infrastructure
+
+In addition to role assignment, RBAC includes a permission definition system:
+
+| Table | Purpose | Status |
+|-------|---------|--------|
+| `rbacPermissions` | Defines capabilities (e.g., 'users.view', 'billing.manage') | ✅ Active |
+| `rbacRoles` | Named RBAC permission buckets | ✅ Active |
+| `rbacRolePermissions` | Links roles to permissions with scope (all/own/none) | ✅ Active |
+| `rbacAuditLog` | Audit logging for permission checks | ✅ Active |
+| `resourceGuests` | Guest view access to specific resources (uses `personId`) | ✅ Schema ready |
+
+### RBAC Helper Functions
+
+| Function | Scope | Identifier | Use When |
+|----------|-------|------------|----------|
+| `hasSystemRole(userId, role)` | System | `userId` | Check platform-wide role |
+| `hasWorkspaceRole(personId, role)` | Workspace | `personId` | Check workspace-scoped role |
+| `requireSystemRole(userId, role)` | System | `userId` | Throw if missing platform role |
+| `requireWorkspaceRole(personId, role)` | Workspace | `personId` | Throw if missing workspace role |
+
+> **Note:** Role helpers are implemented (SYOS-791). Permission helpers (`hasSystemPermission`, `hasWorkspacePermission`) are planned.
+
+**Design principle:** Two scopes = two functions. Always explicit, never ambiguous.
+
+For RBAC implementation details, see `convex/infrastructure/rbac/README.md`.
+
+### RoleTemplates → RBAC Bridge
+
+Organizational roles (circleRoles) can automatically grant workspace permissions:
+
+**How it works:**
+1. User fills a circleRole that has a template with `rbacPermissions`
+2. System auto-creates `workspaceRoles` record
+3. `sourceCircleRoleId` tracks which assignment granted the permission
+4. When user removed from circleRole, only that assignment's permissions are revoked
+
+**Current state:** Working, but uses deprecated `userRoles`. Migration to `workspaceRoles` pending.
+
+**Simplification:** Permissions are workspace-wide (not circle-scoped). Circle Lead in Engineering gets workspace-level permissions, not just Engineering-scoped.
+
+### Authorization Flow
+
+SynergyOS has a three-step authorization pattern:
+
+```
+1. Session → User (auth)
+   validateSessionAndGetUserId(ctx, sessionId) → userId
+
+2. User → Person (workspace context)  
+   getPersonByUserAndWorkspace(ctx, userId, workspaceId) → personId
+
+3. Access Check (RBAC + Authority)
+   - RBAC: hasWorkspaceRole(personId, role) — system capabilities
+   - Authority: calculateAuthority(personId, circleId) — organizational permissions
+```
+
+### Composed Access Helpers
+
+For common patterns, use composed helpers from `infrastructure/access/`:
+
+| Helper | What It Does | Use When |
+|--------|--------------|----------|
+| `withCircleAccess(handler)` | Session → Circle → Workspace membership check | Circle-scoped operations |
+| `getUserWorkspaceIds(userId)` | Get all workspaces user can access | Workspace listing |
+| `getUserCircleIds(userId)` | Get all circles user can access | Circle listing |
+
+**Example:**
+```typescript
+// Instead of manual checks:
+export const updateCircle = mutation({
+  args: { sessionId: v.string(), circleId: v.id('circles'), ... },
+  handler: withCircleAccess(async (ctx, args, { userId, circle }) => {
+    // userId and circle already validated
+    // Handler only runs if user has workspace membership
+  })
+});
+```
+
+---
+
+## Governance Foundation
+
+**Design Reference:** `dev-docs/master-docs/architecture/governance-design.md`
+
+SynergyOS implements a three-layer governance model that supports multiple decision-making modes while maintaining consistent organizational truth.
+
+### Design Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **Invariants Over Configuration** | Every circle has one lead role (invariant); what they call that role (configuration) |
+| **Decision Rights as First-Class** | Roles must define explicit decision rights — required, not optional (GOV-03) |
+| **Progressive Adoption** | Mixed governance models within same workspace (Engineering = hierarchy, Product = empowered_team) |
+| **Design Before Activation** | Workspaces start in `design` phase for free experimentation, activate when ready |
+
+### Workspace Lifecycle
+
+Workspaces have two phases that control governance enforcement:
+
+| Phase | History Tracked | Validation Enforced | Governance Required | Transition |
+|-------|-----------------|---------------------|---------------------|------------|
+| `design` | ❌ No | ❌ Minimal | ❌ No | Can activate (one-way) |
+| `active` | ✅ Yes | ✅ Yes | ✅ Per circle type | Cannot revert |
+
+**Design Phase:**
+- Workspace creator gets RBAC role `org_designer`
+- Free create/modify/delete of circles, roles, assignments
+- No proposal approval, no history logging
+- Schema-level invariants still enforced (referential integrity)
+
+**Activation Requirements:**
+- Workspace has exactly one root circle (ORG-01)
+- Root circle type ≠ guild (ORG-10)
+- Every circle has `roleType: 'circle_lead'` (GOV-01)
+- Every role has `purpose` and ≥1 `decisionRight` (GOV-02, GOV-03)
+
+**Activation is one-way:** `design` → `active` only. Once activated, audit trail must be continuous.
+
+### Role Auto-Creation
+
+Circles automatically create their lead role based on `circleType` (GOV-01):
+
+| Circle Type | Lead Role Name | Lead Authority | Auto-Created Structural Roles |
+|-------------|----------------|----------------|-------------------------------|
+| `hierarchy` | Circle Lead | Full (decides directly) | Secretary (optional) |
+| `empowered_team` | Team Lead | Facilitative (breaks ties) | Facilitator, Secretary |
+| `guild` | Steward | Convening (schedules only) | Secretary (optional) |
+| `hybrid` | Circle Lead | Full + Consent | Facilitator, Secretary |
+
+**Auto-creation triggers:**
+1. **Circle creation** → System creates lead role from `roleTemplates` matching `circleType`
+2. **Circle type change** → System transforms lead role (never deletes, GOV-04)
+
+**Example:**
+```typescript
+// Creating hierarchy circle auto-creates:
+{
+  name: 'Circle Lead',
+  roleType: 'circle_lead',
+  purpose: 'Lead this circle toward its purpose with full decision authority',
+  decisionRights: ['Decide all matters within circle scope', 'Assign roles within circle'],
+  templateId: <hierarchy Circle Lead template>
+}
+```
+
+### Role Templates System
+
+System-level templates (10 total) define blueprints for auto-created roles:
+
+**Template Structure:**
+```typescript
+{
+  workspaceId: undefined,              // System-level (not workspace-specific)
+  name: 'Circle Lead' | 'Team Lead' | 'Steward' | 'Facilitator' | 'Secretary',
+  roleType: 'circle_lead' | 'structural',
+  appliesTo: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
+  isCore: boolean,                     // true = required for governance, false = optional
+  defaultPurpose: string,
+  defaultDecisionRights: string[],
+  description: string,
+  createdByPersonId: undefined         // System template - no creator
+}
+```
+
+**Key insight (SYOS-895):** Each `circleType` gets its own lead template because authority models differ:
+- `hierarchy` → Circle Lead (full authority)
+- `empowered_team` → Team Lead (facilitative authority)
+- `guild` → Steward (convening authority only)
+- `hybrid` → Circle Lead (full + consent process)
+
+### Governance Invariants (GOV-*)
+
+| ID | Invariant | Severity |
+|----|-----------|----------|
+| GOV-01 | Every circle has exactly one role with `roleType: 'circle_lead'` | critical |
+| GOV-02 | Every role has a `purpose` (non-empty string) | critical |
+| GOV-03 | Every role has at least one `decisionRight` | critical |
+| GOV-04 | Circle lead role cannot be deleted while circle exists | critical |
+| GOV-05 | Role assignments are traceable (who assigned, when) | warning |
+| GOV-06 | Governance changes create history records (when phase = 'active') | warning |
+| GOV-07 | Person can fill 0-N roles; role can have 0-N people | critical |
+| GOV-08 | Circle type is explicit, never null for active circles | critical |
+
+For complete invariant definitions, see `convex/admin/invariants/INVARIANTS.md`.
+
+### Schema Changes for Governance
+
+**circleRoles table:**
+```typescript
+{
+  roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),  // required
+  purpose: v.string(),                   // now required (was optional)
+  decisionRights: v.array(v.string()),   // new field, min 1 validated in mutations
+  // ... other fields
+}
+// New index: by_circle_roleType ['circleId', 'roleType']
+```
+
+**roleTemplates table:**
+```typescript
+{
+  workspaceId: v.optional(v.id('workspaces')),  // undefined = system template
+  name: v.string(),
+  roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
+  appliesTo: v.union(v.literal('hierarchy'), v.literal('empowered_team'), v.literal('guild'), v.literal('hybrid')),
+  isCore: v.boolean(),                   // true = required for governance
+  defaultPurpose: v.string(),
+  defaultDecisionRights: v.array(v.string()),
+  description: v.optional(v.string()),
+  createdByPersonId: v.optional(v.id('people')),  // undefined for system templates
+  // ... audit fields
+}
+```
+
+**workspaces table:**
+```typescript
+{
+  phase: v.optional(v.union(v.literal('design'), v.literal('active'))),  // default 'design'
+  displayNames: v.optional(v.object({
+    circle: v.optional(v.string()),           // Default: "Circle"
+    circleLead: v.optional(v.string()),       // Default: "Circle Lead"
+    facilitator: v.optional(v.string()),      // Default: "Facilitator"
+    secretary: v.optional(v.string()),        // Default: "Secretary"
+    tension: v.optional(v.string()),          // Default: "Tension"
+    proposal: v.optional(v.string()),         // Default: "Proposal"
+  })),
+  // ... other fields
+}
+```
+
+**Display names** are cosmetic only — they change UI labels but not behavior. A workspace can call circles "Teams" and circle leads "Managers" without changing how the system works.
+
+---
+
+## Feature Flags
+
+SynergyOS uses feature flags for trunk-based development — all code ships to production, features are enabled via flags.
+
+| Location | Purpose |
+|----------|---------|
+| `infrastructure/featureFlags/` | Flag management, targeting, evaluation |
+| `featureFlags` table | Flag definitions and state |
+
+**Pattern:** Check flags before enabling features. Remove flags after full rollout.
+
+See `convex/infrastructure/featureFlags/README.md` for detailed usage.
 
 ---
 
@@ -466,6 +880,7 @@ Each core domain follows this structure:
 domain/
 ├── tables.ts       # REQUIRED - Table definitions for convex/schema.ts
 ├── schema.ts       # OPTIONAL - Types, aliases, re-exports
+├── constants.ts    # OPTIONAL - Runtime constants with derived types
 ├── queries.ts      # Read operations
 ├── mutations.ts    # Write operations
 ├── rules.ts        # Business rules (pure + contextual)
@@ -474,12 +889,18 @@ domain/
 └── domain.test.ts  # Co-located tests
 ```
 
-### tables.ts vs schema.ts
+### tables.ts vs schema.ts vs constants.ts
 
 | File | Purpose | Required | Contents |
 |------|---------|----------|----------|
 | `tables.ts` | Table definitions | **REQUIRED** | `defineTable()` calls, indexes |
-| `schema.ts` | Types and aliases | OPTIONAL | Type exports, re-exports from tables.ts |
+| `schema.ts` | Types and aliases | OPTIONAL | Type exports, re-exports from tables.ts or constants.ts |
+| `constants.ts` | Runtime constants | OPTIONAL | Const objects with derived types, enums |
+
+**When to use `constants.ts`:**
+- Domain has enum-like values used at runtime (iteration, validation, mapping)
+- Values need to be referenced by name (autocomplete, refactoring)
+- Multiple files in the domain reference the same string literals
 
 **Example tables.ts:**
 ```typescript
@@ -492,11 +913,24 @@ export const circlesTable = defineTable({
 }).index('by_workspace', ['workspaceId']);
 ```
 
+**Example constants.ts:**
+```typescript
+export const CIRCLE_TYPES = {
+  HIERARCHY: 'hierarchy',
+  EMPOWERED_TEAM: 'empowered_team',
+  GUILD: 'guild',
+  HYBRID: 'hybrid'
+} as const;
+
+export type CircleType = (typeof CIRCLE_TYPES)[keyof typeof CIRCLE_TYPES];
+```
+
 **Example schema.ts:**
 ```typescript
 import type { Doc } from '../../_generated/dataModel';
 export type CircleDoc = Doc<'circles'>;
-export type CircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+// Re-export types from constants.ts (single source of truth)
+export type { CircleType, DecisionModel } from './constants';
 ```
 
 ### Schema Registration
@@ -655,13 +1089,29 @@ const VALID_TRANSITIONS = {
 
 ## Legacy Migration Status
 
+### Completed Migrations
+
+| Legacy Table/Domain | Replacement | Status | Tracking |
+|---------------------|-------------|--------|----------|
+| `circleItems/circleItemCategories` | `customFieldDefinitions/customFieldValues` | ✅ DONE | SYOS-790 |
+| `workspaceMembers` | `people` | ✅ Complete (SYOS-814) | Table removed |
+
 ### Active Migrations
 
 | Legacy Table | Replacement | Status | Tracking |
 |--------------|-------------|--------|----------|
-| `userCircleRoles` | `assignments` | Migration in progress | SYOS-809 |
-| `workspaceMembers` | `people` | Still actively used | Needs evaluation |
+| `userCircleRoles` | `assignments` | Migration in progress | SYOS-809, SYOS-815 |
+| `userRoles` | `systemRoles` + `workspaceRoles` | ✅ Tables created, delete legacy | SYOS-791 |
 | `workspaceInvites` | TBD | Still actively used | Needs evaluation |
+
+### Tables to Delete (Pre-Production)
+
+Since we're wiping all data before production, these tables can be deleted from schema without migration:
+
+| Table | Reason | Blocked By |
+|-------|--------|------------|
+| `userRoles` | Replaced by `systemRoles` + `workspaceRoles` | Nothing — delete now |
+| `userCircleRoles` | Replaced by `assignments` | SYOS-815 completion |
 
 ### Code Markers
 
@@ -692,18 +1142,21 @@ Explicit, testable statements about what must be true for CORE to be sound. They
 
 | Domain | Invariants | Critical Count |
 |--------|------------|----------------|
-| Identity Chain (IDENT-*) | 9 | 7 |
-| Organizational Structure (ORG-*) | 9 | 8 |
+| Identity Chain (IDENT-*) | 11 | 9 |
+| Organizational Structure (ORG-*) | 10 | 9 |
 | Circle Membership (CMEM-*) | 4 | 3 |
 | Role Definitions (ROLE-*) | 6 | 4 |
 | Assignments (ASSIGN-*) | 6 | 5 |
 | Legacy Assignments (UCROLE-*) | 4 | 3 |
 | Authority (AUTH-*) | 4 | 4 |
+| Governance (GOV-*) | 8 | 6 |
 | Proposals (PROP-*) | 6 | 5 |
 | History (HIST-*) | 4 | 1 |
 | Workspaces (WS-*) | 5 | 4 |
+| Guest Access (GUEST-*) | 5 | 3 |
+| RBAC (RBAC-*) | 6 | 4 |
 | Cross-Domain (XDOM-*) | 5 | 3 |
-| **Total** | **62** | **47 critical** |
+| **Total** | **84** | **63 critical** |
 
 ### Running Invariant Checks
 
@@ -716,6 +1169,16 @@ npx convex run admin/invariants/identity:check
 npx convex run admin/invariants/organization:check
 npx convex run admin/invariants/authority:check
 ```
+
+### Schema-Level Validation
+
+Invariants XDOM-01 and XDOM-02 are additionally enforced at the **schema level** via ESLint:
+
+- **Rule**: `synergyos/no-userid-in-audit-fields`
+- **Location**: `eslint-rules/no-userid-in-audit-fields.js`
+- **Runs**: `npm run lint` (CI pipeline)
+- **Purpose**: Catches schema violations before they create bad data
+- **Details**: See `SYOS-842-VIOLATIONS.md` and `convex/admin/invariants/INVARIANTS.md`
 
 ### Severity Levels
 
@@ -730,7 +1193,26 @@ npx convex run admin/invariants/authority:check
 
 **Source of truth:** `convex/infrastructure/errors/codes.ts`
 
-**Format:** `ERR_CODE: message`
+**Error Creation:** Use `createError(code, userMessage, technicalDetails?)` function (follows Principle #11: functions only, no classes)
+
+**Structured Error Format:** `SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`
+
+**Legacy Format (still supported):** `ERR_CODE: message`
+
+**Key Features:**
+- **User-friendly messages**: Separate user-facing message from technical details
+- **Auto-logging**: Technical details automatically logged when error is created
+- **Serialization-safe**: Pipe-delimited format survives Convex boundary crossing
+- **No regex dependency**: Direct extraction of user message via `parseConvexError()`
+
+**Example:**
+```typescript
+throw createError(
+  ErrorCodes.WORKSPACE_SLUG_RESERVED,
+  "The name 'admin' is not available. Please choose a different workspace name.",
+  `Slug 'admin' is in reserved list. Attempted by user ${userId}`
+);
+```
 
 **Core codes:**
 - `AUTH_REQUIRED` — Authentication required
@@ -742,6 +1224,8 @@ npx convex run admin/invariants/authority:check
 - `PROPOSAL_NOT_FOUND` — Proposal not found
 - `VALIDATION_REQUIRED_FIELD` — Required field missing
 - `VALIDATION_INVALID_FORMAT` — Invalid format
+
+**See also:** `dev-docs/2-areas/patterns/error-handling-improvements.md` for detailed error handling patterns
 
 ---
 
@@ -796,6 +1280,46 @@ npx convex run admin/invariants/authority:check
 
 ---
 
+## Known Tech Debt
+
+**Last Updated**: 2025-12-13
+
+Documented issues that need resolution before production readiness.
+
+### Critical Invariant Failures (Pre-existing)
+
+| Invariant | Issue | Impact | Tracking |
+|-----------|-------|--------|----------|
+| AUTH-01 | 2 active circles missing Circle Lead assignment | Low (test data) | Known issue |
+| AUTH-02 | 2 workspaces missing Circle Lead on root circle | Low (test data) | Known issue |
+
+These failures exist in test/development workspaces and do not affect production-ready functionality.
+
+### Pending Cleanups
+
+| Item | Description | Priority | Tracking |
+|------|-------------|----------|----------|
+| `userCircleRoles` migration | Migrate remaining usage to `assignments` table | High | SYOS-809, SYOS-815 |
+| `userRoles` deletion | Delete deprecated table from schema | High | Post-SYOS-791 |
+| RoleTemplates bridge | Migrate from `userRoles` to `workspaceRoles` | Medium | New ticket needed |
+| Test file updates | Some unit tests need `people` table mocking (after SYOS-814 migration) | Medium | — |
+| Projects/Tasks audit fields | Migrate `createdBy` to `createdByPersonId` in projects and tasks tables | Medium | TBD |
+| Workspaces domain restructure | Consolidate workspaces-related code | Low | SYOS-843 |
+| `convex/modules/` removal | Delete after frontend migrates to `api.features.*` | Low | Future ticket |
+| `policies` domain implementation | Scaffold exists, no tables.ts, not implemented | Low | Deferred until governance customization scoped |
+
+### Current Validation Status (2025-12-13)
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| `npm run check` | ✅ Pass | 0 errors, 0 warnings |
+| `npm run lint` | ✅ Pass | 0 errors, 10 warnings (unused vars) |
+| `npm run invariants:critical` | ⚠️ 45/47 | AUTH-01, AUTH-02 pre-existing |
+| `npm run test:unit:server` | ⚠️ 451/461 | Test infrastructure issues (mocking) |
+| Integration tests | ✅ Pass | All core workflows verified |
+
+---
+
 ## Decision Records
 
 ### DR-001: Convex as Backend
@@ -838,12 +1362,33 @@ npx convex run admin/invariants/authority:check
 **Decision**: Use `archivedAt` timestamp, not status field or hard delete.
 **Rationale**: Preserves history, enables audit trails.
 
+### DR-009: Feature Code Naming Convention
+**Status**: Accepted  
+**Date**: 2025-12-13  
+**Decision**: Backend uses `convex/features/`, frontend uses `src/lib/modules/`.
+**Rationale**: Frontend "modules" reflects module system (registry, manifests). Backend "features" follows architecture layer naming. Different names for different systems is intentional.
+
+### DR-010: Two-Scope RBAC Model
+**Status**: Accepted  
+**Date**: 2025-12-13  
+**Decision**: RBAC split into `systemRoles` (userId) and `workspaceRoles` (personId).
+**Rationale**: Same user can have different workspace roles. Platform access is independent of workspace. Workspace isolation via personId.
+
 ---
 
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.9 | 2025-01-XX | Error handling improvements. Updated: Error Codes section to document structured error format (`SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`), `createError()` function usage, auto-logging, and serialization-safe design. Follows Principle #11 (functions only, no classes). See `dev-docs/2-areas/patterns/error-handling-improvements.md` for details. |
+| 3.8 | 2025-12-15 | Constants pattern documentation. Added: `constants.ts` as OPTIONAL file in domain structure, tables.ts vs schema.ts vs constants.ts comparison, Frontend/Backend Constant Sync section. Updated: Domain File Structure to include constants.ts, schema.ts examples to show re-export pattern from constants.ts. Rationale: Separation of runtime constants (for iteration/validation) vs compile-time types. |
+| 3.7 | 2025-12-15 | Governance Foundation implementation. Added: Governance Foundation section (workspace lifecycle, role auto-creation, governance invariants GOV-01 through GOV-08, schema changes for circleRoles/roleTemplates/workspaces). Updated: Core Invariants summary (83 total, 62 critical), Document Selection table (added governance-design.md). Cross-referenced governance-design.md throughout. Implementation: SYOS-884, SYOS-885, SYOS-886, SYOS-887, SYOS-888, SYOS-895. |
+| 3.6 | 2025-12-14 | Added Guest Access Model section documenting guest identity model, access mechanisms, security model, and `resourceGuests` table schema. Updated RBAC Permission Infrastructure table to mark `resourceGuests` as "Schema ready". Implementation: SYOS-868, SYOS-874, SYOS-875, SYOS-876. |
+| 3.5 | 2025-12-13 | Architecture gap resolution. Added: Frontend/Backend relationship section, Legacy Compatibility Layers, Analytics vs Domain Events, Feature Flags section, RBAC Permission Infrastructure, RoleTemplates→RBAC Bridge, Composed Access Helpers, DR-009 and DR-010. Updated: Dependency rules (infrastructure can import infrastructure), Directory structure (removed events/, added access/, featureFlags/), RBAC section (sourceCircleRoleId, permission helpers), Document Selection table, Known Tech Debt. |
+| 3.4 | 2025-12-13 | Fixed cross-references, added SYOS-791 to active migrations, added implementation note to RBAC helpers. |
+| 3.3 | 2025-12-13 | Added Trade-off Guidance (Even-Over Statements) section clarifying priority when principles conflict. Updated Principle #32 from hard rule to guideline with clarification. Added "The 300-Line Guideline (Clarified)" section with when to split/not split guidance and anti-pattern documentation. |
+| 3.2 | 2025-12-13 | Added RBAC Scope Model subsection documenting two-scope model (systemRoles vs workspaceRoles) with table definitions and helper function signatures. |
+| 3.1 | 2025-12-13 | Post-781 confidence check (SYOS-850). Marked circleItems→customFields migration DONE. Added Completed Migrations table. Added Known Tech Debt section with invariant status and validation results. Updated features list. |
 | 3.0 | 2025-12-12 | Complete rewrite. Single source of truth. Consolidated from architecture.md + synergyos-core-architecture.md. Added: explicit file patterns (tables.ts vs schema.ts), legacy migration status, soft delete pattern, identity helpers table, users vs people clarification. |
 | 2.3 | 2025-12-11 | Added FROZEN/STABLE classification, Identity Chain section, Core Invariants reference. |
 | 2.2 | 2025-12-09 | Documented Convex public auth pattern, target ID whitelist. |

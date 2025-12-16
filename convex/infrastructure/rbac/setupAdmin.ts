@@ -39,7 +39,7 @@ export const setupAdmin = mutation({
 
 		// 1. Find admin role
 		const adminRole = await ctx.db
-			.query('roles')
+			.query('rbacRoles')
 			.withIndex('by_slug', (q) => q.eq('slug', 'admin'))
 			.first();
 
@@ -177,7 +177,7 @@ export const verifyAdminSetup = query({
 		// Get user's roles
 		// SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
 		const roles: Array<{
-			roleId: Id<'roles'>;
+			roleId: Id<'rbacRoles'>;
 			slug: string;
 			name: string;
 			scope: string;
@@ -191,7 +191,7 @@ export const verifyAdminSetup = query({
 
 		for (const systemRole of systemRoles) {
 			const role = await ctx.db
-				.query('roles')
+				.query('rbacRoles')
 				.withIndex('by_slug', (q) => q.eq('slug', systemRole.role))
 				.first();
 
@@ -219,7 +219,7 @@ export const verifyAdminSetup = query({
 
 			for (const workspaceRole of workspaceRoles) {
 				const role = await ctx.db
-					.query('roles')
+					.query('rbacRoles')
 					.withIndex('by_slug', (q) => q.eq('slug', workspaceRole.role))
 					.first();
 
@@ -274,7 +274,7 @@ async function getUserPermissions(
 
 	for (const systemRole of systemRoles) {
 		const role = await ctx.db
-			.query('roles')
+			.query('rbacRoles')
 			.withIndex('by_slug', (q) => q.eq('slug', systemRole.role))
 			.first();
 
@@ -282,7 +282,7 @@ async function getUserPermissions(
 
 		// Get role-permission mappings
 		const rolePerms = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role', (q) => q.eq('roleId', role._id))
 			.collect();
 
@@ -312,7 +312,7 @@ async function getUserPermissions(
 
 		for (const workspaceRole of workspaceRoles) {
 			const role = await ctx.db
-				.query('roles')
+				.query('rbacRoles')
 				.withIndex('by_slug', (q) => q.eq('slug', workspaceRole.role))
 				.first();
 
@@ -320,7 +320,7 @@ async function getUserPermissions(
 
 			// Get role-permission mappings
 			const rolePerms = await ctx.db
-				.query('rolePermissions')
+				.query('rbacRolePermissions')
 				.withIndex('by_role', (q) => q.eq('roleId', role._id))
 				.collect();
 

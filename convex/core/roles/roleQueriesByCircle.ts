@@ -32,14 +32,13 @@ async function listRolesByCircle(
 		roles.map(async (role) => {
 			const assignments = args.includeArchived
 				? await ctx.db
-						.query('userCircleRoles')
-						.withIndex('by_role', (q) => q.eq('circleRoleId', role._id))
+						.query('assignments')
+						.withIndex('by_role', (q) => q.eq('roleId', role._id))
 						.collect()
 				: await ctx.db
-						.query('userCircleRoles')
-						.withIndex('by_role_archived', (q) =>
-							q.eq('circleRoleId', role._id).eq('archivedAt', undefined)
-						)
+						.query('assignments')
+						.withIndex('by_role', (q) => q.eq('roleId', role._id))
+						.filter((q) => q.eq(q.field('status'), 'active'))
 						.collect();
 
 			const scopes = assignments

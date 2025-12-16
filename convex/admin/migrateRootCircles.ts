@@ -18,13 +18,13 @@ async function getWorkspaceOwner(
 	ctx: MutationCtx,
 	workspaceId: Id<'workspaces'>
 ): Promise<Id<'users'> | null> {
-	const members = await ctx.db
-		.query('workspaceMembers')
+	const people = await ctx.db
+		.query('people')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 		.collect();
 
 	// Find first owner or admin
-	const owner = members.find((m) => m.role === 'owner' || m.role === 'admin');
+	const owner = people.find((p) => p.workspaceRole === 'owner' || p.workspaceRole === 'admin');
 	if (owner) {
 		return owner.userId;
 	}

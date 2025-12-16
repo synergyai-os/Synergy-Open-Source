@@ -27,10 +27,11 @@ async function assignUserToRole(
 	await ensureWorkspaceMembership(ctx, workspaceId, targetPersonId);
 
 	const existingAssignment = await ctx.db
-		.query('userCircleRoles')
-		.withIndex('by_person_role', (q) =>
-			q.eq('personId', targetPersonId).eq('circleRoleId', args.circleRoleId)
+		.query('assignments')
+		.withIndex('by_role_person', (q) =>
+			q.eq('roleId', args.circleRoleId).eq('personId', targetPersonId)
 		)
+		.filter((q) => q.eq(q.field('status'), 'active'))
 		.first();
 
 	if (existingAssignment) {
@@ -41,18 +42,19 @@ async function assignUserToRole(
 	}
 
 	const now = Date.now();
-	const userCircleRoleId = await ctx.db.insert('userCircleRoles', {
+	const assignmentId = await ctx.db.insert('assignments', {
+		circleId: role.circleId,
+		roleId: args.circleRoleId,
 		personId: targetPersonId,
-		circleRoleId: args.circleRoleId,
 		assignedAt: now,
 		assignedByPersonId: actorPersonId,
-		updatedAt: now
+		status: 'active'
 	});
 
 	await handleUserCircleRoleCreated(
 		ctx,
 		{
-			_id: userCircleRoleId,
+			_id: assignmentId,
 			personId: targetPersonId,
 			circleRoleId: args.circleRoleId,
 			assignedByPersonId: actorPersonId
@@ -93,11 +95,11 @@ export const removeUser = mutation({
 		await ensureWorkspaceMembership(ctx, workspaceId, actorPersonId);
 
 		const assignment = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_person_role', (q) =>
-				q.eq('personId', args.assigneePersonId).eq('circleRoleId', args.circleRoleId)
+			.query('assignments')
+			.withIndex('by_role_person', (q) =>
+				q.eq('roleId', args.circleRoleId).eq('personId', args.assigneePersonId)
 			)
-			.filter((q) => q.eq(q.field('archivedAt'), undefined))
+			.filter((q) => q.eq(q.field('status'), 'active'))
 			.first();
 
 		if (!assignment) {
@@ -106,10 +108,9 @@ export const removeUser = mutation({
 
 		const now = Date.now();
 		await ctx.db.patch(assignment._id, {
-			archivedAt: now,
-			archivedByPersonId: actorPersonId,
-			updatedAt: now,
-			updatedByPersonId: actorPersonId
+			status: 'ended',
+			endedAt: now,
+			endedByPersonId: actorPersonId
 		});
 
 		await handleUserCircleRoleRemoved(ctx, assignment._id);

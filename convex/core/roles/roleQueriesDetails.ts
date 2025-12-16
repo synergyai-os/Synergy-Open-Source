@@ -28,16 +28,15 @@ async function getRoleDetails(
 	}
 
 	const assignments = await ctx.db
-		.query('userCircleRoles')
-		.withIndex('by_role_archived', (q) =>
-			q.eq('circleRoleId', args.roleId).eq('archivedAt', undefined)
-		)
+		.query('assignments')
+		.withIndex('by_role', (q) => q.eq('roleId', args.roleId))
+		.filter((q) => q.eq(q.field('status'), 'active'))
 		.collect();
 
 	let isLeadRoleFlag = false;
 	if (role.templateId) {
 		const template = await ctx.db.get(role.templateId);
-		isLeadRoleFlag = template?.isRequired === true;
+		isLeadRoleFlag = template?.roleType === 'circle_lead';
 	}
 
 	return {

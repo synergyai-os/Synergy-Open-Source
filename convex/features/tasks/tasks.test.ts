@@ -7,35 +7,20 @@ import { updateTaskAssignee } from './assignments';
 import { createTask, updateTaskDetails, updateTaskRemoval, updateTaskStatus } from './lifecycle';
 import { listTasks } from './queries';
 
+// Mock getPersonByUserAndWorkspace
+vi.mock('../../core/people/queries', () => ({
+	getPersonByUserAndWorkspace: vi.fn().mockResolvedValue({ _id: 'person1' })
+}));
+
 type AnyCtx = MutationCtx | QueryCtx;
 
-const makeWorkspaceQuery = (membership: any | null) =>
+const makeWorkspaceQuery = (_membership: any | null) =>
 	vi.fn().mockImplementation((table: string) => {
-		if (table === 'workspaceMembers') {
-			return {
-				withIndex: vi.fn().mockImplementation((_indexName: string, cb?: any) => {
-					const builder = { eq: vi.fn().mockReturnThis() };
-					cb?.(builder);
-					return { first: vi.fn().mockResolvedValue(membership) };
-				})
-			};
-		}
-
 		throw new Error(`Unexpected table ${table}`);
 	});
 
 const makeWorkspaceAndTasksQuery = (membership: any | null, tasks: any[]) =>
 	vi.fn().mockImplementation((table: string) => {
-		if (table === 'workspaceMembers') {
-			return {
-				withIndex: vi.fn().mockImplementation((_indexName: string, cb?: any) => {
-					const builder = { eq: vi.fn().mockReturnThis() };
-					cb?.(builder);
-					return { first: vi.fn().mockResolvedValue(membership) };
-				})
-			};
-		}
-
 		if (table === 'tasks') {
 			return {
 				withIndex: vi.fn().mockImplementation((_indexName: string, cb?: any) => {
@@ -116,7 +101,9 @@ describe('tasks mutations', () => {
 			return Promise.resolve(null);
 		});
 
-		const ctx = { db: { insert, query, get } } as unknown as MutationCtx;
+		const ctx = {
+			db: { insert, query, get }
+		} as unknown as MutationCtx;
 
 		const result = await createTask(ctx, {
 			workspaceId: 'w1' as any,
@@ -147,7 +134,7 @@ describe('tasks mutations', () => {
 				dueDate: 123,
 				status: 'in-progress',
 				createdAt: Date.now(),
-				createdBy: 'u1'
+				createdByPersonId: expect.any(String)
 			})
 		);
 	});

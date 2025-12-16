@@ -13,7 +13,7 @@ import type { FeatureFlagKey } from '../index';
  *   import { useCurrentUser } from '$lib/composables/useCurrentUser';
  *
  *   const user = useCurrentUser();
- *   const showNewEditor = useFeatureFlag(FeatureFlags.NOTES_PROSEMIRROR_BETA, () => user()?._id);
+ *   // Note: All feature flags have been removed - core features are always enabled
  * </script>
  *
  * {#if $showNewEditor}

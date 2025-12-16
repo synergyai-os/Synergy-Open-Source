@@ -3,9 +3,10 @@ import { v } from 'convex/values';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { recordCreateHistory, recordUpdateHistory } from '../history';
-import { requireQuickEditPermissionForPerson } from '../../rbac/orgChart';
+import { requireQuickEditPermissionForPerson } from '../../infrastructure/rbac/orgChart';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { hasDuplicateRoleName } from './validation';
+import { validateRolePurpose, validateRoleDecisionRights } from './rules';
 import {
 	ensureCircleExists,
 	ensureWorkspaceMembership,
@@ -19,7 +20,11 @@ export const create = mutation({
 		sessionId: v.string(),
 		circleId: v.id('circles'),
 		name: v.string(),
-		purpose: v.optional(v.string())
+		purpose: v.string(),
+		decisionRights: v.array(v.string()),
+		roleType: v.optional(
+			v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom'))
+		)
 	},
 	handler: async (ctx, args) => {
 		const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
@@ -30,6 +35,12 @@ export const create = mutation({
 		if (!trimmedName) {
 			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Role name is required');
 		}
+
+		// GOV-02: Validate purpose is non-empty
+		validateRolePurpose(args.purpose);
+
+		// GOV-03: Validate at least one decision right
+		validateRoleDecisionRights(args.decisionRights);
 
 		const existingRoles = await ctx.db
 			.query('circleRoles')
@@ -43,12 +54,17 @@ export const create = mutation({
 			);
 		}
 
+		// Manually created roles default to 'custom' type
+		const roleType = args.roleType ?? 'custom';
+
 		const now = Date.now();
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId: args.circleId,
 			workspaceId,
 			name: trimmedName,
+			roleType,
 			purpose: args.purpose,
+			decisionRights: args.decisionRights,
 			status: 'active',
 			isHiring: false,
 			createdAt: now,
@@ -71,6 +87,7 @@ export const update = mutation({
 		circleRoleId: v.id('circleRoles'),
 		name: v.optional(v.string()),
 		purpose: v.optional(v.string()),
+		decisionRights: v.optional(v.array(v.string())),
 		representsToParent: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => updateCircleRole(ctx, args)
@@ -83,6 +100,7 @@ export const updateInline = mutation({
 		updates: v.object({
 			name: v.optional(v.string()),
 			purpose: v.optional(v.string()),
+			decisionRights: v.optional(v.array(v.string())),
 			representsToParent: v.optional(v.boolean())
 		})
 	},
@@ -96,6 +114,7 @@ async function updateCircleRole(
 		circleRoleId: Id<'circleRoles'>;
 		name?: string;
 		purpose?: string;
+		decisionRights?: string[];
 		representsToParent?: boolean;
 	}
 ) {
@@ -126,6 +145,7 @@ async function updateCircleRole(
 	const updates: {
 		name?: string;
 		purpose?: string;
+		decisionRights?: string[];
 		representsToParent?: boolean;
 		updatedAt: number;
 		updatedByPersonId: Id<'people'>;
@@ -156,7 +176,15 @@ async function updateCircleRole(
 	}
 
 	if (args.purpose !== undefined) {
+		// GOV-02: Validate purpose is non-empty
+		validateRolePurpose(args.purpose);
 		updates.purpose = args.purpose;
+	}
+
+	if (args.decisionRights !== undefined) {
+		// GOV-03: Validate at least one decision right
+		validateRoleDecisionRights(args.decisionRights);
+		updates.decisionRights = args.decisionRights;
 	}
 
 	if (args.representsToParent !== undefined) {
@@ -178,7 +206,12 @@ async function updateInlineCircleRole(
 	args: {
 		sessionId: string;
 		circleRoleId: Id<'circleRoles'>;
-		updates: { name?: string; purpose?: string; representsToParent?: boolean };
+		updates: {
+			name?: string;
+			purpose?: string;
+			decisionRights?: string[];
+			representsToParent?: boolean;
+		};
 	}
 ) {
 	const role = await ctx.db.get(args.circleRoleId);
@@ -231,7 +264,15 @@ async function updateInlineCircleRole(
 	}
 
 	if (args.updates.purpose !== undefined) {
+		// GOV-02: Validate purpose is non-empty
+		validateRolePurpose(args.updates.purpose);
 		updateData.purpose = args.updates.purpose;
+	}
+
+	if (args.updates.decisionRights !== undefined) {
+		// GOV-03: Validate at least one decision right
+		validateRoleDecisionRights(args.updates.decisionRights);
+		updateData.decisionRights = args.updates.decisionRights;
 	}
 
 	if (args.updates.representsToParent !== undefined) {
@@ -242,7 +283,7 @@ async function updateInlineCircleRole(
 
 	const afterDoc = await ctx.db.get(args.circleRoleId);
 	if (afterDoc) {
-		await captureUpdate(ctx, 'circleRole', beforeDoc, afterDoc);
+		await recordUpdateHistory(ctx, 'circleRole', beforeDoc, afterDoc);
 	}
 
 	return { success: true };

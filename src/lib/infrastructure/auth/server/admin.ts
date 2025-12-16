@@ -26,7 +26,7 @@ export async function requireSystemAdmin(sessionId: string | null): Promise<void
 		});
 
 		const isAdmin = (await Promise.race([
-			client.query(api.rbac.permissions.isSystemAdmin, {
+			client.query(api.infrastructure.rbac.permissions.isSystemAdmin, {
 				sessionId
 			}),
 			timeoutPromise

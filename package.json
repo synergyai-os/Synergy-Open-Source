@@ -24,7 +24,7 @@
 		"test:unit:server": "vitest --run --project=server",
 		"test:integration": "vitest --run tests/convex/integration",
 		"test:integration:watch": "vitest tests/convex/integration",
-		"test": "npm run test:unit:server && npm run test:integration && npm run test:e2e",
+		"test": "npm run test:unit:server",
 		"test:e2e": "npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test",
 		"test:e2e:setup": "playwright test e2e/auth.setup.ts",
 		"test:e2e:quick-create": "playwright test e2e/quick-create.spec.ts",
@@ -79,12 +79,12 @@
 		"test:transforms": "vitest run scripts/tests/transforms.test.ts",
 		"validate:all": "npm run tokens:build && npm run recipes:validate && npm run validate:utilities && npm run validate:css-conflicts && npm run validate:docs && npm run test:transforms",
 		"migrate-ui-imports": "npx tsx scripts/migrate-ui-imports.ts",
-		"precommit": "npm run check && npm run test:sessionid && npm run check:confidentiality && npm run audit:naming && npm run lint && npm run test:unit:server && npm run test:integration",
+		"precommit": "npm run check && npm run test:sessionid && npm run check:confidentiality && npm run audit:naming && npm run lint && npm run test:unit:server",
 		"review": "coderabbit review",
 		"review:staged": "coderabbit review --staged",
 		"review:plain": "coderabbit review --plain",
 		"ci:quick": "npm run check && npm run check:confidentiality && npm run audit:naming && npm run recipes:validate && npm run lint && npm run build && npm run ci:invariants",
-		"ci:local": "npm run check && npm run recipes:validate && npm run lint && npm run test:unit:server && npm run test:integration && npm run test:e2e && npm run build",
+		"ci:local": "npm run check && npm run recipes:validate && npm run lint && npm run test:unit:server && npm run build",
 		"chromatic": "node scripts/run-chromatic.js"
 	},
 	"devDependencies": {

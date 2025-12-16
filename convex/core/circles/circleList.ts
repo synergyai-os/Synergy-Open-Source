@@ -1,5 +1,6 @@
 import type { Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
+import type { CircleType, DecisionModel } from './constants';
 import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 
 export async function listCircles(
@@ -21,6 +22,8 @@ export async function listCircles(
 		memberCount: number;
 		roleCount: number;
 		roles: Array<{ roleId: Id<'circleRoles'>; name: string; status: string; isHiring: boolean }>;
+		circleType?: CircleType;
+		decisionModel?: DecisionModel;
 		createdAt: number;
 		updatedAt: number;
 		archivedAt?: number;
@@ -90,6 +93,8 @@ export async function listCircles(
 					status: r.status,
 					isHiring: r.isHiring
 				})),
+				circleType: circle.circleType,
+				decisionModel: circle.decisionModel,
 				createdAt: circle.createdAt,
 				updatedAt: circle.updatedAt,
 				archivedAt: circle.archivedAt

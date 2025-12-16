@@ -2,9 +2,18 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { parseConvexError } from '$lib/utils/parseConvexError';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+	import { InfoCard } from '$lib/components/molecules';
+	import { browser } from '$app/environment';
+	import { useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const convexClient = browser ? useConvexClient() : null;
 
 	let orgName = $state('');
 	let isCreating = $state(false);
@@ -18,21 +27,32 @@
 
 		try {
 			await workspaces.createWorkspace({ name: orgName.trim() });
-			// Redirect to /w/:slug/circles after successful creation
-			// Wait a moment for activeWorkspace to be updated with slug
-			const checkSlug = () => {
-				const slug = workspaces?.activeWorkspace?.slug;
-				if (slug) {
-					goto(resolveRoute(`/w/${slug}/circles`));
-				} else {
-					// Retry after a short delay
-					setTimeout(checkSlug, 50);
+
+			// Mark workspace creation step as completed
+			// Get the active workspace after creation
+			const activeWorkspace = workspaces.activeWorkspace;
+			if (activeWorkspace?.workspaceId && convexClient && data?.sessionId) {
+				try {
+					await convexClient.mutation(api.features.onboarding.index.updateOnboardingStep, {
+						sessionId: data.sessionId,
+						workspaceId: activeWorkspace.workspaceId,
+						step: 'workspace_created',
+						completed: true
+					});
+				} catch (stepError) {
+					// Don't fail workspace creation if step update fails
+					console.warn('Failed to update onboarding step:', stepError);
 				}
-			};
-			checkSlug();
+			}
+
+			// SYOS-891: Redirect to onboarding flow instead of directly to workspace
+			// Only redirect on success - errors will be caught and displayed
+			goto(resolveRoute('/onboarding/terminology'));
 		} catch (error) {
 			console.error('Failed to create workspace:', error);
-			errorMessage = error instanceof Error ? error.message : 'Failed to create workspace';
+			// Extract user-friendly error message, removing all technical details
+			errorMessage = parseConvexError(error);
+			// Don't redirect - stay on page to show error
 		} finally {
 			isCreating = false;
 		}
@@ -70,11 +90,7 @@
 				</label>
 
 				{#if errorMessage}
-					<div
-						class="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400"
-					>
-						{errorMessage}
-					</div>
+					<InfoCard variant="error" message={errorMessage} />
 				{/if}
 
 				<div class="flex items-center justify-end gap-2 pt-2">

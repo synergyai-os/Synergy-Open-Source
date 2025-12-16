@@ -40,12 +40,12 @@ async function ensureWorkspaceMembership(
 	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
-	const membership = await ctx.db
-		.query('workspaceMembers')
+	const person = await ctx.db
+		.query('people')
 		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
-	if (!membership) {
+	if (!person) {
 		throw createError(
 			ErrorCodes.WORKSPACE_ACCESS_DENIED,
 			'You do not have access to this workspace'
@@ -234,8 +234,8 @@ export const importOrgStructure = mutation({
 					slug,
 					purpose: node.purpose?.trim(),
 					parentCircleId,
-					circleType: 'hierarchy', // Default circle type (SYOS-675)
-					decisionModel: 'manager_decides', // Default decision model (SYOS-675)
+					circleType: CIRCLE_TYPES.HIERARCHY, // Default circle type (SYOS-675)
+					decisionModel: DECISION_MODELS.MANAGER_DECIDES, // Default decision model (SYOS-675)
 					status: 'draft', // All imports start as draft
 					createdAt: now,
 					updatedAt: now,
@@ -249,7 +249,13 @@ export const importOrgStructure = mutation({
 				}
 
 				// Auto-create core roles (Circle Lead, etc.) - respects circleType (SYOS-675)
-				await createCoreRolesForCircle(ctx, circleId, args.workspaceId, userId, 'hierarchy');
+				await createCoreRolesForCircle(
+					ctx,
+					circleId,
+					args.workspaceId,
+					userId,
+					CIRCLE_TYPES.HIERARCHY
+				);
 
 				// Recursively create children
 				for (const child of node.children) {

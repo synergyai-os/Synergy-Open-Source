@@ -20,20 +20,8 @@ async function findWorkspaceForUser(ctx: MutationCtx, userId: Id<'users'>) {
 
 	if (active.length === 1) return active[0].workspaceId;
 
-	// Fallback: look at workspace membership records
-	const memberships = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
-		.collect();
-	if (memberships.length === 1) return memberships[0].workspaceId;
-
-	if (active.length === 0 && memberships.length > 1) {
-		const workspaces = memberships.map((m) => m.workspaceId).join(', ');
-		throw new Error(`Ambiguous workspace for user ${userId} from memberships: [${workspaces}]`);
-	}
-
-	if (active.length === 0 && memberships.length === 0) {
-		throw new Error(`No active people or workspace memberships for user ${userId}`);
+	if (active.length === 0) {
+		throw new Error(`No active people for user ${userId}`);
 	}
 
 	// Ambiguous active people
@@ -64,45 +52,7 @@ async function ensurePersonForWorkspace(
 		.first();
 	if (activePerson) return activePerson;
 
-	// 3) Try to create a person from workspace membership + user record
-	const membership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
-		.first();
-	if (!membership) {
-		throw new Error(`No active person found and no workspace members for workspace ${workspaceId}`);
-	}
-	const memberUserId = membership.userId;
-	const user = await ctx.db.get(memberUserId);
-	if (!user) {
-		throw new Error(`Workspace member user ${memberUserId} not found for workspace ${workspaceId}`);
-	}
-
-	const now = Date.now();
-	const displayName = (user as any).name ?? (user as any).email ?? `user-${memberUserId}`;
-	const email = (user as any).email ?? `user-${memberUserId}@example.invalid`;
-
-	const newPersonId = await ctx.db.insert('people', {
-		workspaceId,
-		userId: memberUserId,
-		email,
-		displayName,
-		workspaceRole: membership.role ?? 'member',
-		status: 'active',
-		invitedAt: now,
-		invitedBy: undefined,
-		joinedAt: now,
-		archivedAt: undefined,
-		archivedBy: undefined
-	});
-
-	const newPerson = await ctx.db.get(newPersonId);
-	if (!newPerson) {
-		throw new Error(
-			`Failed to create person for workspace ${workspaceId} from membership ${membership._id}`
-		);
-	}
-	return newPerson;
+	throw new Error(`No active person found for workspace ${workspaceId}.`);
 }
 
 export const migrateTagsToPersonId = internalMutation({

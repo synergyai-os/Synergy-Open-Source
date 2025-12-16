@@ -205,7 +205,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
-	const userPermissions = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
+	const userPermissions = await client.query(api.infrastructure.rbac.permissions.getUserPermissionsQuery, {
 		sessionId
 	});
 

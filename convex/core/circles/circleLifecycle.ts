@@ -7,11 +7,13 @@ import {
 	ensureWorkspaceMembership,
 	requireWorkspacePersonFromSession
 } from './circleAccess';
-import { createCoreRolesForCircle } from './circleCoreRoles';
+import { createCoreRolesForCircle, transformLeadRoleOnCircleTypeChange } from './circleCoreRoles';
 import { slugifyName } from './slug';
 import { validateCircleName, validateCircleNameUpdate } from './validation';
-import type { CircleType } from './schema';
-import { requireQuickEditPermissionForPerson } from '../../rbac/orgChart';
+import { CIRCLE_TYPES, DECISION_MODELS, type CircleType, type DecisionModel } from './constants';
+import { requireQuickEditPermissionForPerson } from '../../infrastructure/rbac/orgChart';
+import { createSystemCustomFieldDefinitions } from '../../admin/seed/customFieldDefinitions';
+import { seedWorkspaceResources } from '../../admin/seed/workspaceSeed';
 
 export async function createCircleInternal(
 	ctx: MutationCtx,
@@ -22,7 +24,7 @@ export async function createCircleInternal(
 		purpose?: string;
 		parentCircleId?: Id<'circles'>;
 		circleType?: CircleType;
-		decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
+		decisionModel?: DecisionModel;
 	}
 ) {
 	const actorPersonId = await requireWorkspacePersonFromSession(
@@ -70,8 +72,8 @@ export async function createCircleInternal(
 	const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugBase);
 	const now = Date.now();
 
-	const circleType = args.circleType ?? 'hierarchy';
-	const decisionModel = args.decisionModel ?? 'manager_decides';
+	const circleType = args.circleType ?? CIRCLE_TYPES.HIERARCHY;
+	const decisionModel = args.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
 
 	const circleId = await ctx.db.insert('circles', {
 		workspaceId: args.workspaceId,
@@ -93,6 +95,15 @@ export async function createCircleInternal(
 	}
 
 	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, actorPersonId, circleType);
+
+	// If this is a root circle (first circle in workspace), seed workspace resources
+	if (args.parentCircleId === undefined) {
+		// Seed custom field definitions (workspace-scoped)
+		await createSystemCustomFieldDefinitions(ctx, args.workspaceId, actorPersonId);
+
+		// Seed meeting templates (workspace-scoped, generic templates)
+		await seedWorkspaceResources(ctx, args.workspaceId, actorPersonId);
+	}
 
 	return {
 		circleId,
@@ -183,7 +194,7 @@ export async function updateInlineCircle(
 			name?: string;
 			purpose?: string;
 			circleType?: CircleType;
-			decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
+			decisionModel?: DecisionModel;
 		};
 	}
 ) {
@@ -224,7 +235,36 @@ export async function updateInlineCircle(
 		updateData.purpose = args.updates.purpose;
 	}
 
-	if (args.updates.circleType !== undefined) {
+	// Handle circle type change (GOV-01: transform lead role)
+	if (args.updates.circleType !== undefined && args.updates.circleType !== beforeDoc.circleType) {
+		const newCircleType = args.updates.circleType;
+		const isFirstTimeSettingCircleType = beforeDoc.circleType === undefined;
+
+		// If this is the first time setting circle type on a non-root circle,
+		// seed custom field definitions if not already seeded for the workspace.
+		// Root circles are seeded when created (in createCircleInternal).
+		if (isFirstTimeSettingCircleType && beforeDoc.parentCircleId !== undefined) {
+			await createSystemCustomFieldDefinitions(ctx, beforeDoc.workspaceId, actorPersonId);
+		}
+
+		// CRITICAL FIX: If circleType was undefined, we're setting it for the first time.
+		// The function checks for leadRole existence FIRST, so it will create roles if missing.
+		// However, we must pass a valid CircleType for the oldCircleType parameter.
+		// Use CIRCLE_TYPES.HIERARCHY as default only for the type signature - the function's logic
+		// (checking leadRole first) ensures roles are created even if types match.
+		const oldCircleType: CircleType = beforeDoc.circleType ?? CIRCLE_TYPES.HIERARCHY;
+
+		// Transform lead role to match new circle type (or create if first time)
+		// Note: transformLeadRoleOnCircleTypeChange checks for leadRole existence FIRST,
+		// so even if oldCircleType === newCircleType, it will create roles if missing.
+		await transformLeadRoleOnCircleTypeChange(
+			ctx,
+			args.circleId,
+			oldCircleType,
+			newCircleType,
+			actorPersonId
+		);
+
 		updateData.circleType = args.updates.circleType;
 	}
 

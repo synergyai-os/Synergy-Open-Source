@@ -17,9 +17,10 @@
 	const getSessionId = () => sessionId;
 	const getWorkspaceId = () => workspaceId;
 
+	// SYOS-855: Roles queries moved to infrastructure/access/workspaceRoles
 	const membersQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.core.workspaces.roles.getWorkspaceMembersWithRoles, () => {
+			? useQuery(api.infrastructure.access.workspaceRoles.getWorkspaceMembersWithRoles, () => {
 					const s = getSessionId();
 					const w = getWorkspaceId();
 					invariant(s && w, 'sessionId and workspaceId required');
@@ -29,7 +30,7 @@
 
 	const rolesQuery =
 		browser && getSessionId()
-			? useQuery(api.core.workspaces.roles.getAssignableRoles, () => {
+			? useQuery(api.infrastructure.access.workspaceRoles.getAssignableRoles, () => {
 					const s = getSessionId();
 					invariant(s, 'sessionId required');
 					return { sessionId: s };
@@ -59,7 +60,7 @@
 			const role = availableRoles.find((r) => r._id === selectedRoleId);
 			invariant(role, 'Role not found');
 
-			await convexClient.mutation(api.rbac.roles.assignRole, {
+			await convexClient.mutation(api.infrastructure.rbac.roles.assignRole, {
 				sessionId,
 				userId: selectedUserId as Id<'users'>,
 				roleSlug: role.slug,
@@ -88,9 +89,9 @@
 		if (!confirm('Are you sure you want to remove this role?')) return;
 
 		try {
-			await convexClient.mutation(api.rbac.roles.revokeRole, {
+			await convexClient.mutation(api.infrastructure.rbac.roles.revokeRole, {
 				sessionId,
-				userRoleId: userRoleId as Id<'userRoles'>
+				userRoleId: userRoleId as Id<'systemRoles'> | Id<'workspaceRoles'>
 			});
 		} catch (error) {
 			alert(error instanceof Error ? error.message : 'Failed to remove role');

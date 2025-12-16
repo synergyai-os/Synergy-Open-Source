@@ -61,14 +61,13 @@ export async function listMembersWithoutRoles(
 		roleIds.map(async (roleId) => {
 			const assignments = args.includeArchived
 				? await ctx.db
-						.query('userCircleRoles')
-						.withIndex('by_role', (q) => q.eq('circleRoleId', roleId))
+						.query('assignments')
+						.withIndex('by_role', (q) => q.eq('roleId', roleId))
 						.collect()
 				: await ctx.db
-						.query('userCircleRoles')
-						.withIndex('by_role_archived', (q) =>
-							q.eq('circleRoleId', roleId).eq('archivedAt', undefined)
-						)
+						.query('assignments')
+						.withIndex('by_role', (q) => q.eq('roleId', roleId))
+						.filter((q) => q.eq(q.field('status'), 'active'))
 						.collect();
 			return assignments;
 		})

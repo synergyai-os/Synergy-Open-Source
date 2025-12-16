@@ -54,7 +54,8 @@ export async function parseIncrementalDate(
 ): Promise<string | undefined> {
 	if (dateFilter || limit || updatedBefore) return dateFilter;
 
-	const getUserSettingsQuery = internal.settings.getUserSettingsForSync as FunctionReference<
+	const getUserSettingsQuery = internal.core.workspaces.settings
+		.getUserSettingsForSync as FunctionReference<
 		'query',
 		'internal',
 		{ userId: string },

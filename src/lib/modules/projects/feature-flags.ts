@@ -1,18 +1,11 @@
 /**
  * Projects Module Feature Flags
  *
- * Feature flags specific to the projects module.
- * System-level flags are in `$lib/infrastructure/feature-flags`.
+ * All feature flags have been removed - projects will be a core feature when implemented.
+ * This file is kept for backward compatibility but exports empty objects.
  */
 
-export const ProjectsFeatureFlags = {
-	/**
-	 * Projects Module
-	 * Status: 🚧 Planned (not yet implemented)
-	 * Controls: Full projects module access (projects routes + dashboard)
-	 */
-	PROJECTS_MODULE: 'projects-module'
-} as const;
+export const ProjectsFeatureFlags = {} as const;
 
 export type ProjectsFeatureFlagKey =
 	(typeof ProjectsFeatureFlags)[keyof typeof ProjectsFeatureFlags];

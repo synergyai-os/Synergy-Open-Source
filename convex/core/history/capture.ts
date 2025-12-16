@@ -52,24 +52,6 @@ function extractEntityFields<T extends EntityType>(
 				personId: doc.personId,
 				archivedAt: doc.archivedAt
 			};
-		case 'circleItemCategory':
-			return {
-				workspaceId: doc.workspaceId,
-				entityType: doc.entityType,
-				name: doc.name,
-				order: doc.order,
-				isDefault: doc.isDefault,
-				archivedAt: doc.archivedAt
-			};
-		case 'circleItem':
-			return {
-				categoryId: doc.categoryId,
-				entityType: doc.entityType,
-				entityId: doc.entityId,
-				content: doc.content,
-				order: doc.order,
-				archivedAt: doc.archivedAt
-			};
 		default:
 			return undefined as Snapshot<T>;
 	}
@@ -85,9 +67,6 @@ function getWorkspaceId(
 		case 'circle':
 		case 'circleRole':
 			return doc.workspaceId;
-		case 'circleItemCategory':
-		case 'circleItem':
-			return doc.workspaceId || null;
 		case 'userCircleRole':
 			return null; // resolved during recording
 		case 'circleMember':

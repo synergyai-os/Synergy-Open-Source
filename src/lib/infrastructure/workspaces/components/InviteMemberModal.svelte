@@ -79,7 +79,7 @@
 				return;
 			}
 
-			const mutation = api.core.workspaces.index.createWorkspaceInvite;
+			const mutation = api.features.invites.mutations.createWorkspaceInvite;
 			const args = {
 				sessionId: currentSessionId,
 				workspaceId: targetId as Id<'workspaces'>,

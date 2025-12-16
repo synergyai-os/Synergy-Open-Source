@@ -16,7 +16,7 @@ export const tasksTable = defineTable({
 	linearTicketId: v.optional(v.string()),
 	notionPageId: v.optional(v.string()),
 	createdAt: v.number(),
-	createdBy: v.id('users'),
+	createdByPersonId: v.id('people'),
 	updatedAt: v.optional(v.number())
 })
 	.index('by_workspace', ['workspaceId'])

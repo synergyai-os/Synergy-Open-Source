@@ -24,7 +24,6 @@
 		scrollAreaScrollbarRecipe,
 		scrollAreaThumbRecipe
 	} from '$lib/design-system/recipes';
-	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
@@ -50,21 +49,7 @@
 		return org?.slug ?? undefined;
 	});
 
-	// Check feature flag (SYOS-226: workspace-based targeting)
 	const getWorkspaceId = () => workspaceId();
-	const flagQuery =
-		browser && getSessionId()
-			? useQuery(api.infrastructure.featureFlags.isFlagEnabled, () => {
-					const session = getSessionId();
-					invariant(session, 'sessionId required');
-					return {
-						flag: FeatureFlags.MEETINGS_MODULE,
-						sessionId: session
-					};
-				})
-			: null;
-
-	const featureEnabled = $derived(flagQuery?.data ?? false);
 
 	// Fetch circles for create modal
 	const circlesQuery =
@@ -201,239 +186,221 @@
 </script>
 
 <!-- Title is set by workspace layout -->
+<!-- Meetings Page -->
+<ScrollArea.Root type="auto" scrollHideDelay={400} class={[scrollAreaRootRecipe(), 'h-full']}>
+	<ScrollArea.Viewport class={[scrollAreaViewportRecipe(), 'h-full', 'w-full']}>
+		<div>
+			<!-- Page Header -->
+			<PageHeader>
+				{#snippet titleSlot()}
+					<div class="gap-header flex items-center">
+						<!-- Group 1: Title -->
+						<Text variant="label" size="sm" color="secondary" weight="normal">Meetings</Text>
 
-{#if !featureEnabled && !flagQuery?.isLoading}
-	<!-- Feature not enabled -->
-	<div class="bg-surface flex min-h-screen items-center justify-center">
-		<div class="text-center">
-			<Heading level="h1" size="h1" class="font-semibold">Meetings Module</Heading>
-			<Text variant="body" color="secondary" class="mt-text-gap">
-				This feature is not yet available. Contact your administrator for access.
-			</Text>
-		</div>
-	</div>
-{:else if flagQuery?.isLoading}
-	<!-- Loading -->
-	<div class="bg-surface flex min-h-screen items-center justify-center">
-		<Text variant="body" color="secondary">Loading...</Text>
-	</div>
-{:else}
-	<!-- Meetings Page -->
-	<ScrollArea.Root type="auto" scrollHideDelay={400} class={[scrollAreaRootRecipe(), 'h-full']}>
-		<ScrollArea.Viewport class={[scrollAreaViewportRecipe(), 'h-full', 'w-full']}>
-			<div>
-				<!-- Page Header -->
-				<PageHeader>
-					{#snippet titleSlot()}
-						<div class="gap-header flex items-center">
-							<!-- Group 1: Title -->
-							<Text variant="label" size="sm" color="secondary" weight="normal">Meetings</Text>
+						<!-- Group 2: Divider -->
+						<div class="w-px shrink-0 self-stretch bg-[var(--color-border-default)]"></div>
 
-							<!-- Group 2: Divider -->
-							<div class="w-px shrink-0 self-stretch bg-[var(--color-border-default)]"></div>
-
-							<!-- Group 3: Buttons -->
-							<div class="gap-button flex items-center">
-								<Button
-									variant={state.activeTab === 'my-meetings' ? 'primary' : 'ghost'}
-									size="sm"
-									onclick={() => (state.activeTab = 'my-meetings')}
-								>
-									My Meetings
-								</Button>
-								<Button
-									variant={state.activeTab === 'reports' ? 'primary' : 'ghost'}
-									size="sm"
-									onclick={() => (state.activeTab = 'reports')}
-								>
-									Reports
-								</Button>
-							</div>
-						</div>
-					{/snippet}
-
-					{#snippet right()}
-						<Button variant="outline" size="sm" onclick={() => (state.showCreateModal = true)}>
-							<div class="gap-button flex items-center">
-								<Icon type="add" size="sm" />
-								<span>Add meeting</span>
-							</div>
-						</Button>
-					{/snippet}
-				</PageHeader>
-
-				<!-- Meeting List -->
-				<div class="max-w-container px-page py-page mx-auto">
-					{#if meetings.isLoading}
-						<div class="py-content-section text-center">
-							<Text variant="body" color="secondary">Loading meetings...</Text>
-						</div>
-					{:else if meetings.error}
-						<div class="py-content-section text-center">
-							<Text variant="body" color="error"
-								>Error loading meetings: {meetings.error.message}</Text
+						<!-- Group 3: Buttons -->
+						<div class="gap-button flex items-center">
+							<Button
+								variant={state.activeTab === 'my-meetings' ? 'primary' : 'ghost'}
+								size="sm"
+								onclick={() => (state.activeTab = 'my-meetings')}
 							>
+								My Meetings
+							</Button>
+							<Button
+								variant={state.activeTab === 'reports' ? 'primary' : 'ghost'}
+								size="sm"
+								onclick={() => (state.activeTab = 'reports')}
+							>
+								Reports
+							</Button>
 						</div>
-					{:else if state.activeTab === 'my-meetings'}
-						<!-- My Meetings Tab -->
-						<!-- Today Section -->
-						<div class="mb-section">
-							<div class="gap-fieldGroup mb-header flex items-center">
-								<Heading level={5} color="secondary">Today</Heading>
-								<Icon type="info" size="md" color="tertiary" />
+					</div>
+				{/snippet}
+
+				{#snippet right()}
+					<Button variant="outline" size="sm" onclick={() => (state.showCreateModal = true)}>
+						<div class="gap-button flex items-center">
+							<Icon type="add" size="sm" />
+							<span>Add meeting</span>
+						</div>
+					</Button>
+				{/snippet}
+			</PageHeader>
+
+			<!-- Meeting List -->
+			<div class="max-w-container px-page py-page mx-auto">
+				{#if meetings.isLoading}
+					<div class="py-content-section text-center">
+						<Text variant="body" color="secondary">Loading meetings...</Text>
+					</div>
+				{:else if meetings.error}
+					<div class="py-content-section text-center">
+						<Text variant="body" color="error"
+							>Error loading meetings: {meetings.error.message}</Text
+						>
+					</div>
+				{:else if state.activeTab === 'my-meetings'}
+					<!-- My Meetings Tab -->
+					<!-- Today Section -->
+					<div class="mb-section">
+						<div class="gap-fieldGroup mb-header flex items-center">
+							<Heading level={5} color="secondary">Today</Heading>
+							<Icon type="info" size="md" color="tertiary" />
+						</div>
+
+						{#if meetings.todayMeetings.length === 0}
+							<div
+								class="border-border-base rounded-card bg-surface border border-dashed text-center"
+								style="padding-block: var(--spacing-8);"
+							>
+								<Text variant="body" color="tertiary">No meetings scheduled for today</Text>
 							</div>
-
-							{#if meetings.todayMeetings.length === 0}
-								<div
-									class="border-border-base rounded-card bg-surface border border-dashed text-center"
-									style="padding-block: var(--spacing-8);"
-								>
-									<Text variant="body" color="tertiary">No meetings scheduled for today</Text>
-								</div>
-							{:else}
-								<!-- Horizontal scroll container on desktop, vertical on mobile -->
-								<div
-									class="md:pb-section gap-section md:gap-section flex flex-col md:flex-row md:overflow-x-auto"
-									style="scrollbar-width: thin;"
-								>
-									{#each meetings.todayMeetings as meeting (meeting._id)}
-										<div class="flex-shrink-0">
-											<TodayMeetingCard
-												{meeting}
-												templateName={meeting.templateId
-													? templateNameMap().get(meeting.templateId)
-													: undefined}
-												attendeeAvatars={meeting.invitedUsers?.map((user) => ({
-													name: user.name,
-													color: '' // Not used - card uses variant="brand"
-												})) ?? []}
-												onStart={() => handleStart(meeting)}
-												onAddAgendaItem={() => handleAddAgendaItem(meeting)}
-											/>
-										</div>
-									{/each}
-								</div>
-							{/if}
-						</div>
-
-						<!-- This Week Section -->
-						<div class="mb-section">
-							<Heading level={5} color="secondary" class="mb-header">This week</Heading>
-
-							{#if meetings.thisWeekMeetings.length === 0}
-								<div
-									class="border-border-base rounded-card bg-surface border border-dashed text-center"
-									style="padding-block: var(--spacing-8);"
-								>
-									<Text variant="body" color="tertiary">No meetings scheduled this week</Text>
-								</div>
-							{:else}
-								<div
-									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
-								>
-									{#each meetings.thisWeekMeetings as meeting (meeting._id)}
-										<MeetingCard
+						{:else}
+							<!-- Horizontal scroll container on desktop, vertical on mobile -->
+							<div
+								class="md:pb-section gap-section md:gap-section flex flex-col md:flex-row md:overflow-x-auto"
+								style="scrollbar-width: thin;"
+							>
+								{#each meetings.todayMeetings as meeting (meeting._id)}
+									<div class="flex-shrink-0">
+										<TodayMeetingCard
 											{meeting}
 											templateName={meeting.templateId
 												? templateNameMap().get(meeting.templateId)
 												: undefined}
-											organizationName={activeWorkspace()?.name}
+											attendeeAvatars={meeting.invitedUsers?.map((user) => ({
+												name: user.name,
+												color: '' // Not used - card uses variant="brand"
+											})) ?? []}
 											onStart={() => handleStart(meeting)}
 											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
 										/>
-									{/each}
-								</div>
-							{/if}
-						</div>
-
-						<!-- Future Section -->
-						<div>
-							<Heading level={5} color="secondary" class="mb-header">Future</Heading>
-
-							{#if meetings.futureMeetings.length === 0}
-								<div
-									class="border-border-base rounded-card bg-surface border border-dashed text-center"
-									style="padding-block: var(--spacing-8);"
-								>
-									<Text variant="body" color="tertiary">No upcoming meetings scheduled</Text>
-								</div>
-							{:else}
-								<div
-									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
-								>
-									{#each meetings.futureMeetings as meeting (meeting._id)}
-										<MeetingCard
-											{meeting}
-											templateName={meeting.templateId
-												? templateNameMap().get(meeting.templateId)
-												: undefined}
-											organizationName={activeWorkspace()?.name}
-											onStart={() => handleStart(meeting)}
-											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
-										/>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					{:else if state.activeTab === 'reports'}
-						<!-- Reports Tab -->
-						<div>
-							<Heading level={5} color="secondary" class="mb-header">Closed meetings</Heading>
-
-							{#if meetings.closedMeetings.length === 0}
-								<div
-									class="border-border-base text-text-tertiary rounded-card bg-surface border border-dashed text-center"
-									style="padding-block: var(--spacing-8);"
-								>
-									<div class="mx-auto">
-										<Icon type="document" size="xl" color="tertiary" />
 									</div>
-									<Text variant="body" color="tertiary" class="mt-form-section"
-										>No closed meetings yet</Text
-									>
-									<Text variant="body" size="sm" color="tertiary" class="mt-fieldGroup"
-										>Closed meetings will appear here</Text
-									>
-								</div>
-							{:else}
-								<div
-									class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
-								>
-									{#each meetings.closedMeetings as meeting (meeting._id)}
-										<MeetingCard
-											{meeting}
-											templateName={meeting.templateId
-												? templateNameMap().get(meeting.templateId)
-												: undefined}
-											organizationName={activeWorkspace()?.name}
-											onShowReport={() => handleShowReport(meeting)}
-										/>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					{/if}
-				</div>
-			</div>
-		</ScrollArea.Viewport>
-		<!-- Scrollbar styling with design tokens -->
-		<ScrollArea.Scrollbar
-			orientation="vertical"
-			class={scrollAreaScrollbarRecipe({ orientation: 'vertical' })}
-			style="width: 0.5rem;"
-		>
-			<ScrollArea.Thumb class={scrollAreaThumbRecipe()} style="opacity: var(--opacity-50);" />
-		</ScrollArea.Scrollbar>
-	</ScrollArea.Root>
+								{/each}
+							</div>
+						{/if}
+					</div>
 
-	<!-- Create Meeting Modal -->
-	{#if workspaceId() && getSessionId()}
-		<CreateMeetingModal
-			bind:open={state.showCreateModal}
-			onClose={() => (state.showCreateModal = false)}
-			workspaceId={workspaceId()!}
-			sessionId={getSessionId()!}
-			{circles}
-		/>
-	{/if}
+					<!-- This Week Section -->
+					<div class="mb-section">
+						<Heading level={5} color="secondary" class="mb-header">This week</Heading>
+
+						{#if meetings.thisWeekMeetings.length === 0}
+							<div
+								class="border-border-base rounded-card bg-surface border border-dashed text-center"
+								style="padding-block: var(--spacing-8);"
+							>
+								<Text variant="body" color="tertiary">No meetings scheduled this week</Text>
+							</div>
+						{:else}
+							<div
+								class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
+							>
+								{#each meetings.thisWeekMeetings as meeting (meeting._id)}
+									<MeetingCard
+										{meeting}
+										templateName={meeting.templateId
+											? templateNameMap().get(meeting.templateId)
+											: undefined}
+										organizationName={activeWorkspace()?.name}
+										onStart={() => handleStart(meeting)}
+										onAddAgendaItem={() => handleAddAgendaItem(meeting)}
+									/>
+								{/each}
+							</div>
+						{/if}
+					</div>
+
+					<!-- Future Section -->
+					<div>
+						<Heading level={5} color="secondary" class="mb-header">Future</Heading>
+
+						{#if meetings.futureMeetings.length === 0}
+							<div
+								class="border-border-base rounded-card bg-surface border border-dashed text-center"
+								style="padding-block: var(--spacing-8);"
+							>
+								<Text variant="body" color="tertiary">No upcoming meetings scheduled</Text>
+							</div>
+						{:else}
+							<div
+								class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
+							>
+								{#each meetings.futureMeetings as meeting (meeting._id)}
+									<MeetingCard
+										{meeting}
+										templateName={meeting.templateId
+											? templateNameMap().get(meeting.templateId)
+											: undefined}
+										organizationName={activeWorkspace()?.name}
+										onStart={() => handleStart(meeting)}
+										onAddAgendaItem={() => handleAddAgendaItem(meeting)}
+									/>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{:else if state.activeTab === 'reports'}
+					<!-- Reports Tab -->
+					<div>
+						<Heading level={5} color="secondary" class="mb-header">Closed meetings</Heading>
+
+						{#if meetings.closedMeetings.length === 0}
+							<div
+								class="border-border-base text-text-tertiary rounded-card bg-surface border border-dashed text-center"
+								style="padding-block: var(--spacing-8);"
+							>
+								<div class="mx-auto">
+									<Icon type="document" size="xl" color="tertiary" />
+								</div>
+								<Text variant="body" color="tertiary" class="mt-form-section"
+									>No closed meetings yet</Text
+								>
+								<Text variant="body" size="sm" color="tertiary" class="mt-fieldGroup"
+									>Closed meetings will appear here</Text
+								>
+							</div>
+						{:else}
+							<div
+								class="divide-border-base border-border-base rounded-card bg-surface divide-y border"
+							>
+								{#each meetings.closedMeetings as meeting (meeting._id)}
+									<MeetingCard
+										{meeting}
+										templateName={meeting.templateId
+											? templateNameMap().get(meeting.templateId)
+											: undefined}
+										organizationName={activeWorkspace()?.name}
+										onShowReport={() => handleShowReport(meeting)}
+									/>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
+	</ScrollArea.Viewport>
+	<!-- Scrollbar styling with design tokens -->
+	<ScrollArea.Scrollbar
+		orientation="vertical"
+		class={scrollAreaScrollbarRecipe({ orientation: 'vertical' })}
+		style="width: 0.5rem;"
+	>
+		<ScrollArea.Thumb class={scrollAreaThumbRecipe()} style="opacity: var(--opacity-50);" />
+	</ScrollArea.Scrollbar>
+</ScrollArea.Root>
+
+<!-- Create Meeting Modal -->
+{#if workspaceId() && getSessionId()}
+	<CreateMeetingModal
+		bind:open={state.showCreateModal}
+		onClose={() => (state.showCreateModal = false)}
+		workspaceId={workspaceId()!}
+		sessionId={getSessionId()!}
+		{circles}
+	/>
 {/if}

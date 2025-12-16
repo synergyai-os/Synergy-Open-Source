@@ -10,8 +10,6 @@ import {
 	listTemplatesArgs,
 	removeTemplateStepArgs,
 	reorderTemplateStepsArgs,
-	seedTemplatesArgs,
-	seedTemplatesInternalArgs,
 	updateTemplateArgs
 } from './helpers/templates';
 import {
@@ -23,10 +21,10 @@ import {
 	listTemplates,
 	removeTemplateStep,
 	reorderTemplateSteps,
-	seedDefaultTemplates as seedDefaultTemplatesHelper,
-	seedDefaultTemplatesInternal as seedDefaultTemplatesInternalHelper,
 	updateTemplate
 } from './helpers/templates';
+import { seedMeetingTemplates } from '../../admin/seed/meetingTemplates';
+import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './helpers/access';
 
 export const list = query({
 	args: {
@@ -103,12 +101,25 @@ export const reorderSteps = mutation({
 export const seedDefaultTemplates = mutation({
 	args: {
 		sessionId: v.string(),
-		...seedTemplatesArgs
+		workspaceId: v.id('workspaces')
 	},
-	handler: (ctx, args) => seedDefaultTemplatesHelper(ctx, args)
+	handler: async (ctx, args) => {
+		const { personId } = await requireWorkspacePersonFromSession(
+			ctx,
+			args.sessionId,
+			args.workspaceId
+		);
+		await ensureWorkspaceMembership(ctx, args.workspaceId, personId);
+		return seedMeetingTemplates(ctx, args.workspaceId, personId);
+	}
 });
 
 export const seedDefaultTemplatesInternal = internalMutation({
-	args: seedTemplatesInternalArgs,
-	handler: (ctx, args) => seedDefaultTemplatesInternalHelper(ctx, args)
+	args: {
+		workspaceId: v.id('workspaces'),
+		personId: v.id('people')
+	},
+	handler: async (ctx, args) => {
+		return seedMeetingTemplates(ctx, args.workspaceId, args.personId);
+	}
 });

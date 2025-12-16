@@ -5,7 +5,7 @@ import { makeResult, type InvariantResult } from './types';
  * XDOM-01: No userId references in core domain tables
  *
  * Core tables should use personId, not userId, for actor references.
- * Exceptions: users, people, workspaceMembers (infrastructure layer)
+ * Exceptions: users, people
  *
  * Checks: circleItems, circleItemCategories, meetings (attendees), notes
  */

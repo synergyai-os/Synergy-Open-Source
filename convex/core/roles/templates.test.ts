@@ -68,9 +68,12 @@ describe('roleTemplates.create', () => {
 				sessionId: 's1',
 				workspaceId,
 				name: 'Template',
+				roleType: 'custom',
+				defaultPurpose: 'Test purpose',
+				defaultDecisionRights: ['Test decision'],
 				description: undefined,
 				isCore: false,
-				isRequired: false
+				appliesTo: 'hierarchy'
 			})
 		).rejects.toThrow(/PERSON_NOT_FOUND/);
 	});

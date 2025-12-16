@@ -1,17 +1,18 @@
 import { internalMutation, mutation, query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Doc, Id } from '../../_generated/dataModel';
-import type { MutationCtx } from '../../_generated/server';
+import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import {
 	getWorkspaceOwnerCount,
-	listWorkspaceMemberships,
 	requireWorkspaceAdminOrOwner,
 	requireWorkspaceMembership
 } from './access';
-import { findUserEmailField, findUserNameField } from './user';
-import { findPersonByUserAndWorkspace } from '../people/queries';
+// SYOS-855: User helpers merged into lifecycle.ts
+import { findUserEmailField, findUserNameField } from './lifecycle';
+import { findPersonByUserAndWorkspace, listPeopleInWorkspace } from '../people/queries';
+import { archivePerson } from '../people/mutations';
 
 export const removeOrganizationMember = mutation({
 	args: {
@@ -53,7 +54,11 @@ export const addMemberDirect = internalMutation({
 		userId: v.id('users'),
 		role: v.union(v.literal('owner'), v.literal('admin'), v.literal('member'))
 	},
-	handler: async (ctx, args) => createMemberWithoutInvite(ctx, args)
+	handler: async (ctx, args) => {
+		const personId = await createMemberWithoutInvite(ctx, args);
+		// SYOS-814 Phase 3: Return personId instead of membershipId
+		return personId;
+	}
 });
 
 export async function removeMember(
@@ -71,62 +76,69 @@ export async function removeMember(
 		'Only admins/owners can remove members'
 	);
 
-	const targetMembership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) =>
-			q.eq('workspaceId', args.workspaceId).eq('userId', args.memberUserId)
-		)
-		.first();
-
-	if (!targetMembership) {
+	const targetPerson = await findPersonByUserAndWorkspace(ctx, args.memberUserId, args.workspaceId);
+	if (!targetPerson || targetPerson.status !== 'active') {
 		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'User is not a member of this workspace');
 	}
 
-	if (targetMembership.role === 'owner') {
+	if (targetPerson.workspaceRole === 'owner') {
 		const ownerCount = await getWorkspaceOwnerCount(ctx, args.workspaceId);
 		if (ownerCount === 1) {
 			throw createError(ErrorCodes.WORKSPACE_LAST_OWNER, 'Cannot remove the last owner');
 		}
 	}
 
-	await ctx.db.delete(targetMembership._id);
+	// Archive the person instead of deleting (preserves history)
+	const actingPerson = await findPersonByUserAndWorkspace(ctx, args.actingUserId, args.workspaceId);
+	if (!actingPerson) {
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			'Actor is not a member of this workspace'
+		);
+	}
+
+	await archivePerson(ctx, {
+		personId: targetPerson._id,
+		archivedByPersonId: actingPerson._id
+	});
+
 	return { success: true };
 }
 
-async function listMembersForWorkspace(ctx: MutationCtx, workspaceId: Id<'workspaces'>) {
-	const memberships = await listWorkspaceMemberships(ctx, workspaceId);
+// SYOS-814 Phase 3: Migrated to use people table
+async function listMembersForWorkspace(ctx: MutationCtx | QueryCtx, workspaceId: Id<'workspaces'>) {
+	const activePeople = await listPeopleInWorkspace(ctx, workspaceId, { status: 'active' });
 
 	const members = await Promise.all(
-		memberships.map(async (membership) => getMemberFromMembership(ctx, membership))
+		activePeople.map(async (person) => getMemberFromPerson(ctx, person))
 	);
 
 	return members.filter((member): member is NonNullable<typeof member> => member !== null);
 }
 
-async function getMemberFromMembership(ctx: MutationCtx, membership: Doc<'workspaceMembers'>) {
-	const user = await ctx.db.get(membership.userId);
-	if (!user) return null;
+async function getMemberFromPerson(ctx: MutationCtx | QueryCtx, person: Doc<'people'>) {
+	if (!person.userId) return null; // Skip invited-only people
 
-	// personId is optional for backward compatibility; best-effort lookup by workspace + user
-	const person = await findPersonByUserAndWorkspace(ctx, membership.userId, membership.workspaceId);
+	const user = await ctx.db.get(person.userId);
+	if (!user) return null;
 
 	const email = findUserEmailField(user);
 	const name = findUserNameField(user);
 
 	return {
-		userId: membership.userId,
-		personId: person?._id,
+		userId: person.userId,
+		personId: person._id,
 		email: email ?? '',
 		name: name ?? '',
-		role: membership.role,
-		joinedAt: membership.joinedAt
+		role: person.workspaceRole,
+		joinedAt: person.joinedAt ?? person.invitedAt
 	};
 }
 
 async function createMemberWithoutInvite(
 	ctx: MutationCtx,
 	args: { workspaceId: Id<'workspaces'>; userId: Id<'users'>; role: 'owner' | 'admin' | 'member' }
-) {
+): Promise<Id<'people'>> {
 	const workspace = await ctx.db.get(args.workspaceId);
 	if (!workspace) {
 		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Organization not found');
@@ -137,25 +149,34 @@ async function createMemberWithoutInvite(
 		throw createError(ErrorCodes.PERSON_NOT_FOUND, 'User not found');
 	}
 
-	const existing = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) =>
-			q.eq('workspaceId', args.workspaceId).eq('userId', args.userId)
-		)
-		.first();
+	const now = Date.now();
 
-	if (existing) {
+	// SYOS-814 Phase 3: Check for existing people record
+	const existingPerson = await findPersonByUserAndWorkspace(ctx, args.userId, args.workspaceId);
+	if (existingPerson && existingPerson.status === 'active') {
 		console.log(`User ${args.userId} is already a member of org ${args.workspaceId}`);
-		return existing._id;
+		return existingPerson._id;
 	}
 
-	const membershipId = await ctx.db.insert('workspaceMembers', {
+	// Create people record (organizational identity)
+	const userName = findUserNameField(user);
+	const userEmail = findUserEmailField(user);
+	const displayName = userName || userEmail?.split('@')[0] || 'Unknown';
+
+	const personId = await ctx.db.insert('people', {
 		workspaceId: args.workspaceId,
 		userId: args.userId,
-		role: args.role,
-		joinedAt: Date.now()
+		displayName,
+		email: undefined, // Email comes from user lookup, not stored per people/README.md
+		workspaceRole: args.role,
+		status: 'active',
+		invitedAt: now,
+		invitedBy: undefined, // Direct add, no inviter
+		joinedAt: now,
+		archivedAt: undefined,
+		archivedBy: undefined
 	});
 
 	console.log(`✅ Added user ${args.userId} to org ${args.workspaceId} with role ${args.role}`);
-	return membershipId;
+	return personId;
 }

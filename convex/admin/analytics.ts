@@ -7,7 +7,7 @@
 
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
-import { requireSystemAdmin } from '../rbac/permissions';
+import { requireSystemAdmin } from '../infrastructure/rbac/permissions';
 
 /**
  * Get system statistics
@@ -30,14 +30,16 @@ export const getSystemStats = query({
 		const circles = await ctx.db.query('circles').collect();
 
 		// Get role assignments count
-		const userRoles = await ctx.db.query('userRoles').collect();
-		const activeUserRoles = userRoles.filter((ur) => !ur.revokedAt);
+		// SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
+		const systemRoles = await ctx.db.query('systemRoles').collect();
+		const workspaceRoles = await ctx.db.query('workspaceRoles').collect();
+		const activeUserRoles = [...systemRoles, ...workspaceRoles]; // All are active in new model
 
 		// Get roles count
-		const roles = await ctx.db.query('roles').collect();
+		const roles = await ctx.db.query('rbacRoles').collect();
 
 		// Get permissions count
-		const permissions = await ctx.db.query('permissions').collect();
+		const permissions = await ctx.db.query('rbacPermissions').collect();
 
 		return {
 			users: {
@@ -62,9 +64,9 @@ export const getSystemStats = query({
 				custom: permissions.filter((p) => !p.isSystem).length
 			},
 			roleAssignments: {
-				total: userRoles.length,
+				total: activeUserRoles.length,
 				active: activeUserRoles.length,
-				revoked: userRoles.length - activeUserRoles.length
+				revoked: 0 // New model doesn't have revokedAt
 			}
 		};
 	}

@@ -6,7 +6,7 @@ import { describe, expect, test } from 'vitest';
 import { countLeadRoles, isLeadRequiredForCircleType } from './lead';
 
 describe('countLeadRoles', () => {
-	test('counts lead roles based on template isRequired', () => {
+	test('counts lead roles based on template roleType', () => {
 		const roles = [
 			{ templateId: 'lead-template' },
 			{ templateId: 'non-lead-template' },
@@ -14,9 +14,12 @@ describe('countLeadRoles', () => {
 			{ templateId: 'missing-template' }
 		];
 
-		const templateMap = new Map<string, { isRequired?: boolean | null }>([
-			['lead-template', { isRequired: true }],
-			['non-lead-template', { isRequired: false }]
+		const templateMap = new Map<
+			string,
+			{ roleType?: 'circle_lead' | 'structural' | 'custom' | null }
+		>([
+			['lead-template', { roleType: 'circle_lead' }],
+			['non-lead-template', { roleType: 'structural' }]
 		]);
 
 		const result = countLeadRoles(roles, (templateId) => templateMap.get(templateId));

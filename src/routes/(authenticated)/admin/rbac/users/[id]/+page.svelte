@@ -76,7 +76,7 @@
 										try {
 											await convexClient.mutation(api.admin.rbac.revokeUserRole, {
 												sessionId: getSessionId()!,
-												userRoleId: userRole.userRoleId as Id<'userRoles'>
+												userRoleId: userRole.userRoleId as Id<'systemRoles'> | Id<'workspaceRoles'>
 											});
 											// Reload page to refresh data
 											window.location.reload();

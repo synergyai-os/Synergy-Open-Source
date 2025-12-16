@@ -5,6 +5,9 @@
  * soft delete fields (updatedAt, updatedBy, etc.) populated.
  *
  * Run with: npx convex run admin/migrateOrgChartSoftDelete:migrateSoftDeleteFields
+ *
+ * @deprecated This migration has been completed. The userCircleRoles table
+ * was deleted in SYOS-815 (migrated to assignments table).
  */
 
 import { internalMutation } from '../_generated/server';
@@ -17,11 +20,11 @@ export const migrateSoftDeleteFields = internalMutation({
 	args: {},
 	handler: async (ctx) => {
 		console.log('🔄 Starting migration: Soft Delete Fields Backfill');
-		console.log('  Tables: circles, circleRoles, userCircleRoles, circleMembers\n');
+		console.log('  Tables: circles, circleRoles, circleMembers');
+		console.log('  Note: userCircleRoles table removed (SYOS-815)\n');
 
 		let circlesUpdated = 0;
 		let rolesUpdated = 0;
-		let assignmentsUpdated = 0;
 		let membersUpdated = 0;
 
 		// ============================================================================
@@ -73,28 +76,10 @@ export const migrateSoftDeleteFields = internalMutation({
 		console.log(`✅ Updated ${rolesUpdated} circle roles`);
 
 		// ============================================================================
-		// STEP 3: User Circle Roles (Assignments) - Add updatedAt where missing
+		// STEP 3: SKIPPED - userCircleRoles table deleted (SYOS-815)
+		// Data migrated to assignments table
 		// ============================================================================
-		console.log('🔍 Step 3: Backfilling user circle role assignments...');
-		const assignments = await ctx.db.query('userCircleRoles').collect();
-
-		for (const assignment of assignments) {
-			const updates: {
-				updatedAt?: number;
-			} = {};
-
-			// Add updatedAt if missing (use assignedAt as fallback)
-			if (!assignment.updatedAt) {
-				updates.updatedAt = assignment.assignedAt || Date.now();
-			}
-
-			if (Object.keys(updates).length > 0) {
-				await ctx.db.patch(assignment._id, updates);
-				assignmentsUpdated++;
-			}
-		}
-
-		console.log(`✅ Updated ${assignmentsUpdated} user circle role assignments`);
+		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)');
 
 		// ============================================================================
 		// STEP 4: Circle Members - No updatedAt field needed (uses joinedAt)
@@ -110,14 +95,13 @@ export const migrateSoftDeleteFields = internalMutation({
 		console.log('\n✅ Migration complete!');
 		console.log(`- Circles updated: ${circlesUpdated}`);
 		console.log(`- Circle roles updated: ${rolesUpdated}`);
-		console.log(`- Assignments updated: ${assignmentsUpdated}`);
+		console.log(`- Assignments: skipped (SYOS-815)`);
 		console.log(`- Members verified: ${membersUpdated}`);
 
 		return {
 			success: true,
 			circlesUpdated,
 			rolesUpdated,
-			assignmentsUpdated,
 			membersVerified: membersUpdated
 		};
 	}

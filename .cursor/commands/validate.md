@@ -1,6 +1,30 @@
 # validate
 
-Verify completed work against ticket criteria and constraints. Read actual code. No assumptions.
+Verify completed work against ticket criteria, architecture.md, and constraints. Read actual code. No assumptions.
+
+---
+
+## Foundational Principle: Docs Lead, Code Follows
+
+**Architecture.md is the source of truth. Validation checks alignment with docs, not just "does the code work."**
+
+A validation can fail for two reasons:
+1. **Code doesn't meet ticket criteria** — Fix the code
+2. **Code doesn't align with architecture.md** — Either fix the code OR update the docs first
+
+When you find code that contradicts architecture.md:
+```markdown
+> ⚠️ **Architecture Misalignment Detected:**
+> 
+> **Architecture.md says:** [quote with section reference]
+> **Code implements:** [what you found]
+> 
+> **This is a validation failure** unless:
+> - A) The code is fixed to match architecture.md
+> - B) Architecture.md is updated first (with rationale)
+> 
+> **Cannot pass validation while misaligned.**
+```
 
 ---
 
@@ -23,54 +47,54 @@ If you find yourself writing a report without tool calls, STOP. You're doing it 
 ## Principles
 
 1. **Fetch first** — Always call Linear MCP before anything else
-2. **Read files** — `view` every file in scope, don't assume contents
-3. **Run commands** — `grep`, `wc -l`, `vitest` — actual execution
-4. **Evidence required** — Every ✅ needs tool output, not memory
-5. **No auto-update** — Wait for explicit "confirm"
-6. **Scope matters** — Ticket constraints block; repo standards inform
+2. **Docs first** — Check architecture.md alignment, not just "code works"
+3. **Read files** — `view` every file in scope, don't assume contents
+4. **Run commands** — `grep`, `wc -l`, `npm run check` — actual execution
+5. **Evidence required** — Every ✅ needs tool output, not memory
+6. **No auto-update** — Wait for explicit "confirm"
+7. **Report gaps** — Doc/code misalignment is a finding, not ignorable
 
 ---
 
 ## Constraint Classification
 
-### Ticket-Scoped Constraints (Block Merge)
+### Blocking Constraints (Architecture Principles)
 
-These constraints are **directly relevant to the ticket's purpose**. Failures here mean the ticket isn't done.
+These derive from architecture.md and **always apply** to new/modified code:
 
-| Category | Constraint IDs | When to Include |
-|----------|----------------|-----------------|
-| Auth patterns | `cvx-auth-before-write`, `hygiene-auth-helpers` | Any mutation work |
-| Query purity | `cvx-queries-pure` | Any query work |
-| Error handling | `err-code-format` | If AC mentions errors |
-| Testing | `test-colocated`, `test-independent` | If AC mentions tests |
-| Domain language | `lang-terminology` | Any new code |
-| Dependencies | `dep-layer-direction`, `dep-explicit` | Cross-domain work |
-| No classes | `cvx-no-classes` | Any new code |
+| Category | Principle # | Check | Blocking? |
+|----------|-------------|-------|-----------|
+| **Identity** | XDOM-01 | Audit fields use `personId`, not `userId` | **Always** |
+| **Identity** | — | Auth chain: sessionId → userId → personId | **Always** |
+| **Auth** | #9 | Auth before any DB write | **Always** |
+| **Auth** | — | Uses `validateSessionAndGetUserId` | **Always** |
+| **No Classes** | #11 | Zero class declarations | **Always** |
+| **Dependencies** | #5 | Layer direction: infra ← core ← features | **Always** |
+| **Queries** | #8 | Queries are pure reads | **Always** |
+| **Terminology** | #15-16 | Domain language (circle, role, person) | **Always** |
+| **Exports** | #6 | Only via index.ts | **Always** |
+| **Errors** | #33 | Format: `ERR_CODE: message` | **Always** |
 
-### Repo-Wide Standards (Report, Don't Block)
+### Guideline Constraints (Report, Don't Block)
 
-These are **always-on enforcement standards** that apply to the whole codebase. They should be caught by CI gates or linting, not bundled into every ticket.
+These are guidelines per architecture.md Trade-off Guidance:
 
-| Constraint | Enforcement Point | Why Not Ticket-Scoped |
-|------------|-------------------|----------------------|
-| `hygiene-file-size` | CI gate | Pre-existing violations aren't this ticket's job |
-| `hygiene-handler-thin` | CI gate | Requires dedicated refactor tickets |
-| `hygiene-no-casts` | Linting | Automated enforcement |
-| `quality-no-magic` | Linting | Automated enforcement |
+| Constraint | Principle # | Guidance |
+|------------|-------------|----------|
+| File size | #32 | ~300 lines guideline, not rule. Domain cohesion > line limits |
+| Handler size | #26 | ≤20 lines guideline. Report if exceeded, don't block |
+| Validation in rules.ts | #27 | Should extract, but existing inline validation isn't blocking |
 
-**Key principle:** If a file was already over 300 lines before this ticket started, the ticket shouldn't be blocked by that violation unless the ticket's explicit purpose is to fix it.
+**Key insight from Trade-off Guidance:**
+> "400-line file in the right place beats 8 files scattered"
 
-### Decision Tree: Is This Constraint Blocking?
+Pre-existing violations of guidelines don't block tickets unless the ticket's explicit purpose is to fix them.
 
-```
-Is the constraint explicitly in the ticket's ## Constraints section?
-├─ YES → Is it directly related to the ticket's purpose?
-│        ├─ YES → BLOCKING
-│        └─ NO → REPORT AS WARNING, suggest removing from ticket
-└─ NO → Is it a core safety constraint (auth, no-classes)?
-         ├─ YES → BLOCKING (always applies to new code)
-         └─ NO → REPORT ONLY (repo-wide standard)
-```
+### Ticket-Specific Constraints
+
+Constraints listed in the ticket's `## Constraints` section. Classify each:
+- If it's an architecture principle → Blocking
+- If it's a guideline → Report only (unless ticket purpose is to fix it)
 
 ---
 
@@ -87,11 +111,6 @@ If no ticket ID provided:
 
 **This must be your first tool call. No exceptions.**
 
-Do NOT:
-- Use ticket details from earlier in the conversation
-- Assume you know what the ticket says
-- Skip this because "we just created it"
-
 ### Step 2: Parse Ticket
 
 From the Linear response, extract:
@@ -104,7 +123,7 @@ Display what was found:
 ```markdown
 ## Parsed from SYOS-XXX
 
-**Ticket Purpose:** [one-line summary of what this ticket is actually about]
+**Ticket Purpose:** [one-line summary]
 
 **Acceptance Criteria:**
 - [ ] AC-1: [text]
@@ -113,141 +132,132 @@ Display what was found:
 **Files in Scope:**
 - convex/core/circles/mutations.ts
 - convex/core/circles/rules.ts
-- convex/core/circles/circles.test.ts
 
 **Ticket Constraints:**
-- `hygiene-auth-helpers`
-- `cvx-auth-before-write`
-- `err-code-format`
-- `test-colocated`
+- [list from ticket]
 
-**Inferred Core Constraints:** (always apply to new code)
-- `cvx-no-classes`
-- `lang-terminology`
-- `dep-layer-direction`
+**Architecture Principles (Always Apply):**
+- #9: Auth before writes
+- #11: No classes
+- #15-16: Domain terminology
+- XDOM-01: personId for audit fields
 ```
 
-### Step 3: Classify Constraints
+### Step 3: Read Architecture.md (Required)
 
-Before running checks, classify each constraint:
-
-```markdown
-## Constraint Classification
-
-**Blocking (ticket-scoped):**
-- `hygiene-auth-helpers` — core purpose of ticket
-- `cvx-auth-before-write` — required for mutation work
-- `err-code-format` — in AC
-- `test-colocated` — in AC
-
-**Reporting Only (repo-wide):**
-- `hygiene-file-size` — pre-existing condition, not ticket purpose
-- `hygiene-handler-thin` — pre-existing condition, not ticket purpose
-```
-
-If ticket lists constraints that seem unrelated to its purpose:
-> ⚠️ Ticket includes `hygiene-file-size` but ticket purpose is auth refactor. Treating as report-only. Remove from ticket if this is correct.
-
-### Step 4: Run Constraint Checks
-
-#### Grep-Based Checks (Zero matches = Pass)
-
-| Constraint | Command | Pass |
-|------------|---------|------|
-| `cvx-no-classes` | `grep -n "^class " [scoped files]` | 0 matches |
-| `dep-layer-direction` | `grep -r "from.*features" convex/core/` | 0 matches |
-| `hygiene-no-casts` | `grep -n "as unknown as" [scoped files]` | 0 matches |
-| `lang-terminology` | `grep -in '"team"\|"manager"\|"permission"\|"user"' [scoped]` | 0 matches |
-| `test-independent` | `grep -r "import.*\.test" [scoped tests]` | 0 matches |
-
-#### Size Checks
-
-| Constraint | Command | Pass |
-|------------|---------|------|
-| `hygiene-file-size` | `wc -l [each scoped file]` | All ≤300 |
-| `hygiene-handler-thin` | `view` + count handler lines | All handlers ≤20 |
-
-#### Content Checks (Require `view`)
-
-**`cvx-auth-before-write`:**
-```
-View mutation file. For each mutation handler:
-1. Find first auth call (requireAuth, validateSessionAndGetUserId, getAuthenticatedUser)
-2. Find first ctx.db write (insert, patch, replace, delete)
-3. Pass if: auth line < write line
-4. Fail if: any write before auth, or auth missing
-```
-
-**`hygiene-auth-helpers`:**
-```
-View scoped files. Check that:
-- All auth uses validateSessionAndGetUserId (not getAuthUserId)
-- No public handler accepts client-supplied userId for acting user
-- Acting user always derived from session
-Pass if: consistent auth helper usage
-```
-
-**`cvx-queries-pure`:**
-```
-View query file. For each query handler:
-- No ctx.db.insert/patch/replace/delete
-- No mutations called
-- Pass if: read-only operations only
-```
-
-**`hygiene-handler-thin`:**
-```
-View file. For each handler:
-1. Find `handler: async (ctx, args) => {`
-2. Count lines to closing `}`
-3. Exclude blank lines and comment-only lines
-4. Pass if: ≤20 lines
-```
-
-**`hygiene-validation-rules`:**
-```
-View mutations file. Check that:
-- Input validation calls functions from rules.ts
-- No inline validation logic (if statements checking args)
-Pass if: validation delegated to rules.ts
-```
-
-**`err-code-format`:**
-```
-View files. For each `throw new Error(`:
-- Must match pattern: "ERR_CODE: message"
-- ERR_CODE should be SCREAMING_SNAKE
-- Should use createError(ErrorCodes.X, ...) helper
-Pass if: all errors follow format
-```
-
-**`test-colocated`:**
-```
-For each domain in scope:
-- Check that {domain}.test.ts exists next to source files
-Pass if: test file exists in same directory
-```
-
-**`dep-explicit`:**
-```
-View index.ts files. Check that:
-- Only types and rule functions exported
-- No schema definitions exported
-- No internal helpers exported
-Pass if: clean public API
-```
-
-#### Test Execution
+Before checking code, refresh on relevant architecture sections:
 
 ```bash
-# Run scoped tests
-npx vitest run [scoped test files]
-
-# For core domains needing coverage
-npx vitest run --coverage [scoped test files]
+view architecture.md
 ```
 
-### Step 5: Check Acceptance Criteria
+Note the current:
+- Identity chain pattern
+- Auth helper name
+- Domain terminology rules
+- Layer dependency direction
+- RBAC scope model (if RBAC-related)
+
+### Step 4: Read Files and Check Architecture Alignment
+
+For each file in scope:
+
+```bash
+view [file]
+wc -l [file]
+```
+
+**While reading, check alignment with architecture.md:**
+
+#### Identity Chain Check
+```
+For each mutation:
+1. Find session validation call
+2. Verify pattern: sessionId → userId → personId
+3. Verify audit fields use personId, not userId
+
+Pass: Chain is correct
+Fail: Wrong order, missing step, or userId in audit fields
+```
+
+#### Auth Pattern Check
+```
+For each mutation:
+1. Find auth call (should be validateSessionAndGetUserId)
+2. Find first DB write (insert, patch, replace, delete)
+3. Verify: auth line number < write line number
+
+Pass: Auth before write, correct helper
+Fail: Write before auth, wrong helper, or missing auth
+```
+
+**Deprecated helpers (architecture.md doesn't list these):**
+- `getAuthUserId` — replaced by `validateSessionAndGetUserId`
+- `requireAuth` — replaced by `validateSessionAndGetUserId`
+- `getAuthenticatedUser` — replaced by `validateSessionAndGetUserId`
+
+#### Layer Dependency Check
+```bash
+# Core importing from features (violation)
+grep -r "from.*features" convex/core/
+
+# Features importing from other features (violation)  
+grep -r "from.*features" convex/features/[current-feature]/
+```
+
+Pass: 0 matches
+Fail: Any matches
+
+#### Terminology Check
+```bash
+# In NEW code only (not string literals or comments about external systems)
+grep -in '"team"\|"manager"\|"boss"' [scoped files]
+```
+
+Pass: 0 matches in domain logic
+Note: "user" is valid in auth context (users domain, userId)
+
+#### No Classes Check
+```bash
+grep -n "^class \|^export class " [scoped files]
+```
+
+Pass: 0 matches
+Fail: Any matches
+
+#### Error Format Check
+```bash
+grep -n "throw new Error" [scoped files]
+```
+
+For each match, verify format: `ERR_CODE: message` or uses `createError(ErrorCodes.X, ...)`
+
+#### RBAC Scope Check (if RBAC-related)
+```
+Per architecture.md RBAC Scope Model:
+- System scope: systemRoles table, uses userId
+- Workspace scope: workspaceRoles table, uses personId
+
+Verify correct scope and identifier used.
+```
+
+### Step 5: Run Validation Commands
+
+```bash
+# TypeScript compilation (must pass)
+npm run check
+
+# Linting (report warnings)
+npm run lint
+
+# Tests if applicable
+npm run test:unit:server -- --filter=[domain]
+
+# Invariants if schema changed
+npm run invariants:critical
+```
+
+### Step 6: Check Acceptance Criteria
 
 For each AC, determine verification method:
 
@@ -255,12 +265,11 @@ For each AC, determine verification method:
 |------------|--------|
 | "X exists" | `view` or `ls` |
 | "X returns Y" | Run test or `view` test assertions |
-| "X ≤ N lines" | `wc -l` |
-| "X uses pattern Y" | `view` + inspect |
-| "Tests pass" | `npx vitest run` |
+| "X uses pattern Y" | `view` + inspect against architecture.md |
+| "Tests pass" | `npm run test:unit:server` |
 | "Handles error case" | `view` test file for error case |
 
-### Step 6: Report
+### Step 7: Generate Report
 
 ```markdown
 # Validation: SYOS-XXX
@@ -268,261 +277,210 @@ For each AC, determine verification method:
 ## Ticket Purpose
 [One-line summary: what this ticket is actually trying to accomplish]
 
-## Tool Calls
+## Tool Calls Made
 | # | Tool | Target | Result |
 |---|------|--------|--------|
 | 1 | Linear:get_issue | SYOS-XXX | ✅ |
-| 2 | view | mutations.ts | ✅ read |
-| 3 | grep | getAuthUserId | 0 matches |
-| 4 | grep | throw new Error | 6 matches |
-| 5 | vitest | circles.test.ts | 12/12 passed |
+| 2 | view | architecture.md | ✅ read |
+| 3 | view | mutations.ts | ✅ read |
+| 4 | grep | class declarations | 0 matches |
+| 5 | npm run check | — | ✅ pass |
 
-## Blocking Constraints (Ticket-Scoped)
+## Architecture Alignment (Blocking)
 
-| ID | Constraint | Status | Evidence |
-|----|------------|--------|----------|
-| `hygiene-auth-helpers` | Auth helper migration | ✅ | All files use validateSessionAndGetUserId |
-| `cvx-auth-before-write` | Auth before writes | ✅ | mutations.ts:23 auth, :45 write |
-| `err-code-format` | Error format | ❌ | 6 throws without ERR_CODE (see details) |
-| `test-colocated` | Tests co-located | ❌ | Missing for 3 files |
+| Principle | Check | Status | Evidence |
+|-----------|-------|--------|----------|
+| Identity Chain | sessionId → userId → personId | ✅ / ❌ | [line numbers or gap description] |
+| XDOM-01 | Audit fields use personId | ✅ / ❌ | [field names found] |
+| #9 Auth Before Write | validateSessionAndGetUserId first | ✅ / ❌ | [line numbers] |
+| #11 No Classes | Zero class declarations | ✅ / ❌ | grep: 0 matches |
+| #5 Layer Dependencies | No upward imports | ✅ / ❌ | grep: 0 matches |
+| #15-16 Terminology | circle/role/person | ✅ / ❌ | [any violations] |
+| #33 Error Format | ERR_CODE: message | ✅ / ❌ | [violations if any] |
 
-### Failed Constraint Details
+### Architecture Gaps Found
 
-**`err-code-format`** — 6 violations:
-- `circleLifecycle.ts:200-205` — name validation throws raw error
-- `roleLifecycle.ts:193-197` — "Circle not found" without code
-- `orgChartPermissions.ts:85-90` — "Circle not found" without code
-- `orgChartPermissions.ts:195-216` — 3 quick-edit errors without codes
+**If any ❌ above:**
 
-**`test-colocated`** — 3 missing test files:
-- `orgStructureImport.ts` — no `orgStructureImport.test.ts`
-- `orgChartPermissions.ts` — no `orgChartPermissions.test.ts`
-- `roleTemplates.ts` — no `roleTemplates.test.ts`
+```markdown
+> ⚠️ **Architecture Misalignment:**
+> 
+> **Principle #X:** [description]
+> **Architecture.md says:** [quote]
+> **Code shows:** [what was found]
+> **Location:** [file:line]
+> 
+> **Must fix before passing validation.**
+```
 
-## Repo-Wide Standards (Report Only)
+## Guidelines (Report Only, Non-Blocking)
 
-| ID | Status | Notes |
-|----|--------|-------|
-| `hygiene-file-size` | ⚠️ | settings.ts: 384, roleTemplates.ts: 380 |
-| `hygiene-handler-thin` | ⚠️ | Multiple handlers >20 lines |
+| Guideline | Status | Notes |
+|-----------|--------|-------|
+| #32 File Size (~300) | ⚠️ / ✅ | [file]: [X] lines |
+| #26 Handler Size (≤20) | ⚠️ / ✅ | [handlers over if any] |
 
-*These are pre-existing conditions. Address in separate cleanup tickets if desired.*
+*Per Trade-off Guidance: "Domain cohesion > line limits." These don't block unless ticket purpose is to fix them.*
 
 ## Acceptance Criteria
 
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
-| AC-1 | All files use validateSessionAndGetUserId | ✅ | grep getAuthUserId: 0 matches |
-| AC-2 | No client-supplied acting userId | ✅ | All handlers derive from session |
-| AC-3 | Errors use createError with ErrorCodes | ❌ | 6 raw throws remain |
-| AC-4 | Tests added/updated next to source | ❌ | 3 files missing tests |
+| AC-1 | [text] | ✅ / ❌ | [evidence from tool] |
+| AC-2 | [text] | ✅ / ❌ | [evidence from tool] |
+
+## Validation Commands
+
+| Command | Result |
+|---------|--------|
+| `npm run check` | ✅ Pass / ❌ Fail |
+| `npm run lint` | ✅ Pass / ⚠️ X warnings |
+| Tests | ✅ Pass / ❌ X failures |
+| Invariants | ✅ Pass / ⚠️ X issues |
 
 ## Summary
 
-**Blocking Constraints:** 2/4 passed
-**Acceptance Criteria:** 2/4 passed
-**Repo Standards:** 2 warnings (non-blocking)
+**Architecture Alignment:** X/Y passed
+**Acceptance Criteria:** X/Y passed
+**Guidelines:** X warnings (non-blocking)
 
 ## Recommendation
 
-❌ **FIX FIRST**
+### If all blocking checks pass:
+✅ **PASS** — Ready to merge.
 
-### Required Fixes (Blocking)
+### If architecture alignment fails:
+❌ **ARCHITECTURE MISALIGNMENT** — Cannot pass.
 
-1. **Error formatting** (6 locations)
-   - Replace `throw new Error(...)` with `throw createError(ErrorCodes.X, ...)`
-   - Add error codes to `convex/infrastructure/errors/codes.ts` if needed
+**Required fixes:**
+1. [Specific fix with file:line]
+2. [Specific fix with file:line]
 
-2. **Colocated tests** (3 files)
-   - Add `orgStructureImport.test.ts`
-   - Add `orgChartPermissions.test.ts`
-   - Add `roleTemplates.test.ts`
+### If AC fails but architecture aligned:
+❌ **INCOMPLETE** — Ticket criteria not met.
 
-### Optional Fixes (Repo-Wide, Not Blocking)
-
-- Consider splitting `settings.ts` (384 lines) in a future ticket
-- Consider splitting `roleTemplates.ts` (380 lines) in a future ticket
-- Consider extracting handler helpers to reduce line counts
+**Required fixes:**
+1. [Specific AC and what's missing]
 
 ---
 
-Say **"fix errors"** to address the 6 error format violations.
-Say **"fix tests"** to scaffold the 3 missing test files.
-Say **"fix all"** to address all blocking issues.
-Say **"confirm anyway"** to update ticket with partial results (not recommended).
+**Next steps:**
+- Say **"fix [issue]"** to address specific issues
+- Say **"fix all"** to address all blocking issues
+- Say **"confirm"** to update ticket (only if PASS)
 ```
 
-### Step 7: Update Ticket (on confirm)
+### Step 8: Update Ticket (on explicit confirm only)
 
-Only after user says "confirm":
+Only after user says "confirm" AND validation passed:
 
-1. Check boxes ONLY for passed items
+1. Check boxes for passed items
 2. Add comment to ticket:
 
 ```markdown
 ## Validation: [timestamp]
 
-**Result:** [X]/[Y] blocking constraints passed, [A]/[B] AC passed
+**Result:** ✅ PASS
 
-**Blocking (Passed):**
-- `hygiene-auth-helpers` ✅
-- `cvx-auth-before-write` ✅
-
-**Blocking (Failed):**
-- `err-code-format`: 6 raw throws without ERR_CODE
-- `test-colocated`: Missing tests for orgStructureImport, orgChartPermissions, roleTemplates
-
-**Repo-Wide (Non-Blocking):**
-- `hygiene-file-size`: 2 files over 300 lines (pre-existing)
-- `hygiene-handler-thin`: Multiple handlers over 20 lines (pre-existing)
+**Architecture Alignment:** All principles satisfied
+**Acceptance Criteria:** All met
+**Guidelines:** [X warnings noted, non-blocking]
 
 **Validated by:** /validate command
 ```
 
-3. Update ticket state based on results:
-   - All blocking passed → "Done" (or prompt user)
-   - Some blocking failed → Keep current state
+3. Update ticket state to appropriate status
 
 ---
 
-## Constraint Reference
+## Architecture Principle Reference
 
-### Always Blocking (Core Safety)
+### Always Blocking (From architecture.md)
 
-| ID | Check | Pass Criteria |
-|----|-------|---------------|
-| `cvx-auth-before-write` | Auth call before any ctx.db write | Auth line < write line |
-| `cvx-queries-pure` | No writes in query handlers | Zero write operations |
-| `cvx-no-classes` | `grep "^class "` | 0 matches |
-| `dep-layer-direction` | Core doesn't import features | 0 matches |
+| ID | Principle | Check Method |
+|----|-----------|--------------|
+| #5 | Layer dependencies | grep for upward imports |
+| #8 | Queries pure | No writes in query handlers |
+| #9 | Auth before write | Line number comparison |
+| #11 | No classes | grep for class declarations |
+| #15-16 | Domain terminology | grep for forbidden terms |
+| #33 | Error format | grep + manual check |
+| XDOM-01 | personId in audit fields | View schema/mutations |
 
-### Blocking When Listed
+### Identity Chain (Critical)
 
-| ID | Check | Pass Criteria |
-|----|-------|---------------|
-| `hygiene-auth-helpers` | Correct auth helper usage | All use validateSessionAndGetUserId |
-| `err-code-format` | Error format | All errors: `ERR_CODE: message` |
-| `test-colocated` | Tests next to source | `{domain}.test.ts` exists |
-| `test-independent` | No cross-test imports | 0 matches |
-| `lang-terminology` | Domain language | No team/manager/permission/user |
-| `dep-explicit` | Clean exports | Only types + rules in index.ts |
-| `hygiene-validation-rules` | Validation in rules.ts | No inline validation |
-
-### Report Only (Repo-Wide)
-
-| ID | Check | Notes |
-|----|-------|-------|
-| `hygiene-file-size` | `wc -l` ≤300 | Pre-existing violations don't block |
-| `hygiene-handler-thin` | Handler ≤20 lines | Requires dedicated refactor |
-| `hygiene-no-casts` | No `as unknown as` | Should be linting rule |
-| `quality-no-magic` | No hardcoded values | Should be linting rule |
-
----
-
-## Handling Misclassified Constraints
-
-If ticket lists repo-wide constraints as blocking:
-
-```markdown
-## Constraint Scope Issue
-
-The following constraints are listed on the ticket but appear to be repo-wide 
-standards rather than ticket-specific requirements:
-
-- `hygiene-file-size` — files were already >300 lines before this ticket
-- `hygiene-handler-thin` — handlers were already >20 lines before this ticket
-
-**Options:**
-1. Remove these from ticket constraints (recommended)
-2. Create separate cleanup tickets for these issues
-3. Expand this ticket's scope to include refactoring (not recommended)
-
-Treating as **report-only** for this validation.
+```
+sessionId → userId → personId → workspaceId
 ```
 
+**Correct pattern:**
+```typescript
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+const person = await getPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+// Use person._id for all workspace operations
+```
+
+**Wrong patterns:**
+- `userId` in audit fields (violates XDOM-01)
+- `personId` derived before `userId` (wrong order)
+- Missing workspace scoping step
+
+### RBAC Scopes (If Relevant)
+
+| Scope | Table | Identifier | Check |
+|-------|-------|------------|-------|
+| System | `systemRoles` | `userId` | Platform-wide access |
+| Workspace | `workspaceRoles` | `personId` | Org-specific access |
+
+Using wrong identifier for scope is a blocking issue.
+
+### Terminology Rules
+
+| ✅ Valid | ❌ Invalid | Context |
+|----------|------------|---------|
+| circle | team | Always |
+| role | job, position | Always |
+| person | member | Workspace context |
+| user, userId | — | Auth context only |
+| authority | permission | Domain context |
+
+**Note:** "user" is valid in auth context. Don't flag `userId` in auth code.
+
+### Guidelines (Non-Blocking)
+
+| Guideline | Target | Flexibility |
+|-----------|--------|-------------|
+| File size | ~300 lines | 400+ OK if cohesive |
+| Handler size | ≤20 lines | Can exceed if readable |
+| Validation location | rules.ts | Existing inline OK |
+
 ---
 
-## Self-Check: Is This Validation Real?
+## Common Validation Mistakes
 
-Before presenting your report, verify:
+| Mistake | Why Wrong | Correct |
+|---------|-----------|---------|
+| Blocking on file size | It's a guideline | Report, don't block |
+| Flagging "user" in auth code | Valid in auth context | Only flag in workspace context |
+| Passing without tool calls | Memory isn't evidence | Must run actual commands |
+| Ignoring doc/code gaps | Docs are truth | Report misalignment |
+| Checking code patterns only | Must check architecture | Always compare to docs |
+
+---
+
+## Self-Check Before Reporting
 
 | Question | Required |
 |----------|----------|
-| Did I call `Linear:get_issue`? | Must see it in tool calls |
-| Did I `view` every file in scope? | Must see it in tool calls |
-| Did I run `wc -l` for size checks? | Must see actual line counts |
-| Did I run `grep` for pattern checks? | Must see actual match counts |
-| Did I run tests if AC mentions them? | Must see vitest output |
-| Does every ✅ have evidence from a tool? | No "I know because I wrote it" |
-| Did I classify constraints before reporting? | Blocking vs report-only |
-| Did I focus on ticket purpose? | Not just checking everything |
+| Did I fetch from Linear? | Must see Linear:get_issue in tool calls |
+| Did I read architecture.md? | Must reference specific principles |
+| Did I view every scoped file? | Must see view calls |
+| Did I run validation commands? | Must see npm run output |
+| Does every ✅ have tool evidence? | No "I know because..." |
+| Did I check architecture alignment? | Not just "does code work" |
+| Did I classify blocking vs guideline? | Per Trade-off Guidance |
 
-**If any answer is NO, you haven't validated. Go back and run the tools.**
-
----
-
-## Red Flag: Scope Creep Validation
-
-If your report blocks on constraints unrelated to the ticket's purpose:
-
-```markdown
-❌ WRONG:
-Ticket: "Migrate auth helpers"
-Blocked by: hygiene-file-size (384 lines in settings.ts)
-
-✅ RIGHT:
-Ticket: "Migrate auth helpers"
-Blocked by: err-code-format (6 throws need ERR_CODE)
-Reported: hygiene-file-size (384 lines — pre-existing, not blocking)
-```
-
-The validation should answer: **"Did this ticket accomplish its stated purpose?"**
-
-Not: **"Is every file this ticket touched now perfect?"**
-
----
-
-## Repo-Wide Checks (Always Run, Never Block)
-
-After scoped checks, run full repo checks:
-
-```bash
-npm run check    # TypeScript
-npm run lint     # ESLint
-```
-
-Report results but don't block:
-
-```markdown
-## Repo Health
-
-| Check | Status | Notes |
-|-------|--------|-------|
-| TypeScript | ✅ | Clean |
-| ESLint | ⚠️ | 3 warnings in unrelated files |
-
-*Repo health issues don't block ticket completion.*
-```
-
----
-
-## Quick Reference: Common Ticket Types
-
-### Auth Refactor Ticket
-**Blocking:** `hygiene-auth-helpers`, `cvx-auth-before-write`
-**Report only:** `hygiene-file-size`, `hygiene-handler-thin`
-
-### New Feature Ticket
-**Blocking:** `cvx-no-classes`, `lang-terminology`, `dep-layer-direction`, `test-colocated`
-**Report only:** `hygiene-file-size` (unless creating new files)
-
-### Bug Fix Ticket
-**Blocking:** Specific to the bug being fixed
-**Report only:** Most hygiene constraints
-
-### Refactor Ticket
-**Blocking:** `hygiene-file-size`, `hygiene-handler-thin` (this IS the purpose)
-**Report only:** None — these are the point
+**If any NO, you haven't validated. Go back and run the tools.**
 
 ---
 
@@ -530,5 +488,5 @@ Report results but don't block:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 2.0 | 2025-12-08 | Separated blocking vs report-only constraints. Added constraint classification step. Focus on ticket purpose. |
+| 2.0 | 2025-12-14 | Aligned with architecture.md v3.5. Added docs-first validation, architecture alignment checks, identity chain validation, RBAC scope checks, corrected terminology rules, clarified blocking vs guideline per Trade-off Guidance. |
 | 1.0 | 2025-12-07 | Original version |

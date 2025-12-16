@@ -1,7 +1,10 @@
 import { defineSchema } from 'convex/server';
 
 // Notes reuse inboxItems (no separate notes table).
-import { circleItemCategoriesTable, circleItemsTable } from './core/circleItems/tables';
+import {
+	customFieldDefinitionsTable,
+	customFieldValuesTable
+} from './features/customFields/tables';
 import { circleMembersTable, circleRolesTable, circlesTable } from './core/circles/tables';
 import { orgVersionHistoryTable } from './core/history/schema';
 import {
@@ -11,7 +14,7 @@ import {
 	proposalObjectionsTable
 } from './core/proposals/tables';
 import { assignmentsTable } from './core/assignments/tables';
-import { roleTemplatesTable, userCircleRolesTable } from './core/roles/tables';
+import { roleTemplatesTable } from './core/roles/tables';
 import { accountLinksTable, userSettingsTable, usersTable } from './core/users/tables';
 import {
 	authLoginStateTable,
@@ -48,20 +51,21 @@ import { tasksTable } from './features/tasks/tables';
 import {
 	workspacesTable,
 	workspaceAliasesTable,
-	workspaceInvitesTable,
-	workspaceMembersTable,
 	workspaceOrgSettingsTable,
 	workspaceSettingsTable
 } from './core/workspaces/tables';
+import { workspaceInvitesTable } from './features/invites/tables';
+import { onboardingProgressTable } from './features/onboarding/tables';
 import { peopleTable } from './core/people/tables';
 import {
-	permissionAuditLogTable,
-	permissionsTable,
+	rbacAuditLogTable,
+	rbacPermissionsTable,
 	resourceGuestsTable,
-	rolePermissionsTable,
-	rolesTable,
-	userRolesTable
-} from './rbac/tables';
+	rbacRolePermissionsTable,
+	rbacRolesTable,
+	systemRolesTable,
+	workspaceRolesTable
+} from './infrastructure/rbac/tables';
 
 // TEMPORARY: Disable schema validation during ID migration
 const schema = defineSchema(
@@ -74,24 +78,13 @@ const schema = defineSchema(
 		workspaceAliases: workspaceAliasesTable,
 		people: peopleTable,
 
-		// legacy - replaced by `people` table (SYOS-809)
-		// Still used: access checks, member management, feature flags, migrations
-		// TODO: Remove in Phase 7 (see people/README.md)
-		workspaceMembers: workspaceMembersTable,
-
 		circles: circlesTable,
 		circleMembers: circleMembersTable,
 		circleRoles: circleRolesTable,
 		assignments: assignmentsTable,
 		roleTemplates: roleTemplatesTable,
-
-		// legacy - replaced by `assignments` table (SYOS-809)
-		// Still used: authority calculation, role queries, history, triggers
-		// Invariants: UCROLE-* (convex/admin/invariants/legacyAssignments.ts)
-		// TODO: Complete migration and retire UCROLE-* invariants
-		userCircleRoles: userCircleRolesTable,
-		circleItemCategories: circleItemCategoriesTable,
-		circleItems: circleItemsTable,
+		customFieldDefinitions: customFieldDefinitionsTable,
+		customFieldValues: customFieldValuesTable,
 		orgVersionHistory: orgVersionHistoryTable,
 		meetings: meetingsTable,
 		meetingAttendees: meetingAttendeesTable,
@@ -107,6 +100,7 @@ const schema = defineSchema(
 		projects: projectsTable,
 		tasks: tasksTable,
 		workspaceInvites: workspaceInvitesTable,
+		onboardingProgress: onboardingProgressTable,
 		userSettings: userSettingsTable,
 		workspaceSettings: workspaceSettingsTable,
 		workspaceOrgSettings: workspaceOrgSettingsTable,
@@ -125,12 +119,13 @@ const schema = defineSchema(
 		flashcardTags: flashcardTagsTable,
 		featureFlags: featureFlagsTable,
 		waitlist: waitlistTable,
-		roles: rolesTable,
-		permissions: permissionsTable,
-		rolePermissions: rolePermissionsTable,
-		userRoles: userRolesTable,
+		rbacRoles: rbacRolesTable,
+		rbacPermissions: rbacPermissionsTable,
+		rbacRolePermissions: rbacRolePermissionsTable,
+		systemRoles: systemRolesTable,
+		workspaceRoles: workspaceRolesTable,
 		resourceGuests: resourceGuestsTable,
-		permissionAuditLog: permissionAuditLogTable,
+		rbacAuditLog: rbacAuditLogTable,
 		verificationCodes: verificationCodesTable,
 		doc404Errors: doc404ErrorsTable
 	},

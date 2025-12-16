@@ -1,6 +1,7 @@
 import { mutation, query } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
+import { CIRCLE_TYPES, DECISION_MODELS } from './constants';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { archiveCircle, restoreCircle } from './circleArchival';
 import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
@@ -91,18 +92,18 @@ export const create = mutation({
 		parentCircleId: v.optional(v.id('circles')),
 		circleType: v.optional(
 			v.union(
-				v.literal('hierarchy'),
-				v.literal('empowered_team'),
-				v.literal('guild'),
-				v.literal('hybrid')
+				v.literal(CIRCLE_TYPES.HIERARCHY),
+				v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
+				v.literal(CIRCLE_TYPES.GUILD),
+				v.literal(CIRCLE_TYPES.HYBRID)
 			)
 		),
 		decisionModel: v.optional(
 			v.union(
-				v.literal('manager_decides'),
-				v.literal('team_consensus'),
-				v.literal('consent'),
-				v.literal('coordination_only')
+				v.literal(DECISION_MODELS.MANAGER_DECIDES),
+				v.literal(DECISION_MODELS.TEAM_CONSENSUS),
+				v.literal(DECISION_MODELS.CONSENT),
+				v.literal(DECISION_MODELS.COORDINATION_ONLY)
 			)
 		)
 	},
@@ -134,18 +135,18 @@ export const updateInline = mutation({
 			purpose: v.optional(v.string()),
 			circleType: v.optional(
 				v.union(
-					v.literal('hierarchy'),
-					v.literal('empowered_team'),
-					v.literal('guild'),
-					v.literal('hybrid')
+					v.literal(CIRCLE_TYPES.HIERARCHY),
+					v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
+					v.literal(CIRCLE_TYPES.GUILD),
+					v.literal(CIRCLE_TYPES.HYBRID)
 				)
 			),
 			decisionModel: v.optional(
 				v.union(
-					v.literal('manager_decides'),
-					v.literal('team_consensus'),
-					v.literal('consent'),
-					v.literal('coordination_only')
+					v.literal(DECISION_MODELS.MANAGER_DECIDES),
+					v.literal(DECISION_MODELS.TEAM_CONSENSUS),
+					v.literal(DECISION_MODELS.CONSENT),
+					v.literal(DECISION_MODELS.COORDINATION_ONLY)
 				)
 			)
 		})

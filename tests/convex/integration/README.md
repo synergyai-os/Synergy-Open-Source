@@ -71,13 +71,19 @@ describe('Tags Module', () => {
 ✅ **Session validation** - Auth flow works end-to-end
 ✅ **Return value contracts** - Functions return expected shapes
 
-## CI/CD Integration
+## Manual Testing Only
 
-These tests run automatically:
+**Important**: Integration tests are excluded from all automation (CI/CD, pre-commit hooks, etc.). They must be run manually when needed:
 
-- Pre-commit hook (fast tests only)
-- GitHub Actions on every PR
-- Block merge if tests fail
+- Integration tests are NOT run automatically in GitHub Actions
+- Integration tests are NOT run in pre-commit hooks
+- Integration tests are NOT run in `npm run test` or `npm run ci:local`
+- Integration tests can only be run manually using specific commands (see "Running Tests" above)
+
+To run integration tests manually:
+
+- `npm run test:integration` - Run all integration tests
+- `npm run test:integration:watch` - Run in watch mode
 
 ---
 

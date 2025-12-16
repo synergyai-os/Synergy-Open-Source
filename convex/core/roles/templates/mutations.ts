@@ -1,6 +1,7 @@
 import { mutation } from '../../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../../_generated/dataModel';
+import { CIRCLE_TYPES, type CircleType } from '../../../core/circles';
 import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 import { findLeadRoleTemplate, isWorkspaceAdmin, updateLeadRolesFromTemplate } from './rules';
 import { requireWorkspacePersonFromSession } from '../roleAccess';
@@ -10,9 +11,17 @@ export const create = mutation({
 		sessionId: v.string(),
 		workspaceId: v.id('workspaces'),
 		name: v.string(),
+		roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
+		defaultPurpose: v.string(),
+		defaultDecisionRights: v.array(v.string()),
 		description: v.optional(v.string()),
 		isCore: v.optional(v.boolean()),
-		isRequired: v.optional(v.boolean())
+		appliesTo: v.union(
+			v.literal(CIRCLE_TYPES.HIERARCHY),
+			v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
+			v.literal(CIRCLE_TYPES.GUILD),
+			v.literal(CIRCLE_TYPES.HYBRID)
+		)
 	},
 	handler: async (ctx, args) => {
 		const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, args.workspaceId);
@@ -30,24 +39,17 @@ export const create = mutation({
 			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Template name is required');
 		}
 
-		if (args.isRequired === true) {
-			const existingLeadTemplate = await findLeadRoleTemplate(ctx, args.workspaceId);
-			if (existingLeadTemplate) {
-				throw createError(
-					ErrorCodes.VALIDATION_INVALID_FORMAT,
-					'A Lead role template already exists for this workspace. Archive or modify the existing Lead template first.'
-				);
-			}
-		}
-
 		const now = Date.now();
 
 		const templateId = await ctx.db.insert('roleTemplates', {
 			workspaceId: args.workspaceId,
 			name: trimmedName,
+			roleType: args.roleType,
+			defaultPurpose: args.defaultPurpose,
+			defaultDecisionRights: args.defaultDecisionRights,
 			description: args.description,
 			isCore: args.isCore ?? false,
-			isRequired: args.isRequired ?? false,
+			appliesTo: args.appliesTo,
 			createdAt: now,
 			createdByPersonId: personId,
 			updatedAt: now
@@ -64,7 +66,14 @@ export const update = mutation({
 		name: v.optional(v.string()),
 		description: v.optional(v.string()),
 		isCore: v.optional(v.boolean()),
-		isRequired: v.optional(v.boolean())
+		appliesTo: v.optional(
+			v.union(
+				v.literal(CIRCLE_TYPES.HIERARCHY),
+				v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
+				v.literal(CIRCLE_TYPES.GUILD),
+				v.literal(CIRCLE_TYPES.HYBRID)
+			)
+		)
 	},
 	handler: async (ctx, args) => {
 		const template = await ctx.db.get(args.templateId);
@@ -90,7 +99,7 @@ export const update = mutation({
 			name?: string;
 			description?: string;
 			isCore?: boolean;
-			isRequired?: boolean;
+			appliesTo?: CircleType;
 			updatedAt: number;
 			updatedByPersonId: Id<'people'>;
 		} = {
@@ -98,18 +107,7 @@ export const update = mutation({
 			updatedByPersonId: personId
 		};
 
-		const wasLeadTemplate = template.isRequired === true;
-		const willBeLeadTemplate = args.isRequired === true;
-
-		if (willBeLeadTemplate && !wasLeadTemplate) {
-			const existingLeadTemplate = await findLeadRoleTemplate(ctx, workspaceId);
-			if (existingLeadTemplate && existingLeadTemplate !== args.templateId) {
-				throw createError(
-					ErrorCodes.VALIDATION_INVALID_FORMAT,
-					'A Lead role template already exists for this workspace. Archive or modify the existing Lead template first.'
-				);
-			}
-		}
+		const wasLeadTemplate = template.roleType === 'circle_lead';
 
 		if (args.name !== undefined) {
 			updates.name = args.name.trim();
@@ -123,14 +121,14 @@ export const update = mutation({
 			updates.isCore = args.isCore;
 		}
 
-		if (args.isRequired !== undefined) {
-			updates.isRequired = args.isRequired;
+		if (args.appliesTo !== undefined) {
+			updates.appliesTo = args.appliesTo;
 		}
 
 		await ctx.db.patch(args.templateId, updates);
 
 		const updatedTemplate = await ctx.db.get(args.templateId);
-		if (updatedTemplate && (wasLeadTemplate || willBeLeadTemplate)) {
+		if (updatedTemplate && wasLeadTemplate) {
 			if (args.name !== undefined || args.description !== undefined) {
 				await updateLeadRolesFromTemplate(ctx, args.templateId, personId);
 			}
@@ -172,7 +170,7 @@ export const archive = mutation({
 			return { success: true };
 		}
 
-		if (template.isRequired) {
+		if (template.roleType === 'circle_lead') {
 			const existingLeadTemplate = await findLeadRoleTemplate(ctx, template.workspaceId);
 			if (!existingLeadTemplate || existingLeadTemplate === args.templateId) {
 				throw createError(

@@ -8,11 +8,11 @@
 
 ## Summary
 
-| Table              | Status         | Replacement   | References | Decision                       |
-| ------------------ | -------------- | ------------- | ---------- | ------------------------------ |
-| `workspaceMembers` | **Legacy**     | `people`      | 56         | Keep with `// legacy` comment  |
-| `workspaceInvites` | **NOT Legacy** | N/A           | 23         | Keep as-is (different purpose) |
-| `userCircleRoles`  | **Legacy**     | `assignments` | 56         | Keep with `// legacy` comment  |
+| Table              | Status          | Replacement   | References | Decision                       |
+| ------------------ | --------------- | ------------- | ---------- | ------------------------------ |
+| `workspaceMembers` | **✅ Complete** | `people`      | 0          | Table removed (SYOS-814)       |
+| `workspaceInvites` | **NOT Legacy**  | N/A           | 23         | Keep as-is (different purpose) |
+| `userCircleRoles`  | **Legacy**      | `assignments` | 56         | Keep with `// legacy` comment  |
 
 ---
 
@@ -20,26 +20,22 @@
 
 ### workspaceMembers
 
-**Status:** Kept (legacy)  
+**Status:** ✅ **Migration Complete** (SYOS-814)  
 **Replacement:** `people` table  
-**References found:** 56 across convex/
+**References found:** 0 (table removed from schema)
 
-**Key Reference Locations:**
+**Migration Status:**
 
-- `convex/core/workspaces/access.ts` - Access checks
-- `convex/core/workspaces/members.ts` - Member management
-- `convex/infrastructure/access/permissions.ts` - Permission checks
-- `convex/infrastructure/featureFlags/targeting.ts` - Feature flag targeting
-- Various admin/migration scripts
-
-**Decision:** Cannot remove yet. The `people` table is the architectural replacement, but `workspaceMembers` is still heavily used across access control, member management, and infrastructure code.
+- ✅ Table removed from schema
+- ✅ All core code migrated to `people` table
+- ✅ Remaining references are only in comments, verification scripts, and function names (concept, not table)
 
 **Documentation:**
 
-- INVARIANTS.md (line 226): "Legacy table tracking workspace membership. Being superseded by `people` table."
-- people/README.md (line 94): "**Do NOT delete** `workspaceMembers` yet - that's Phase 7"
+- architecture.md: Migration marked as complete (SYOS-814)
+- INVARIANTS.md: XDOM-01 exception updated (workspaceMembers removed)
 
-**Tracking:** Phase 7 cleanup (see `convex/core/people/README.md`)
+**Tracking:** SYOS-814 (completed), SYOS-840 (cleanup of remaining references)
 
 ---
 
@@ -116,11 +112,6 @@ The tables work together:
 Added legacy comments to `convex/schema.ts` for:
 
 ```typescript
-// legacy - replaced by `people` table (SYOS-809)
-// Still used: access checks, member management, feature flags, migrations
-// TODO: Remove in Phase 7 (see people/README.md)
-workspaceMembers: workspaceMembersTable,
-
 // legacy - replaced by `assignments` table (SYOS-809)
 // Still used: authority calculation, role queries, history, triggers
 // Invariants: UCROLE-* (convex/admin/invariants/legacyAssignments.ts)
@@ -128,14 +119,16 @@ workspaceMembers: workspaceMembersTable,
 userCircleRoles: userCircleRolesTable,
 ```
 
+**Note:** `workspaceMembers` table has been removed from schema (SYOS-814 complete).
+
 ---
 
 ## Future Work
 
-| Table              | Next Step                                | Tracking      |
-| ------------------ | ---------------------------------------- | ------------- |
-| `workspaceMembers` | Migrate remaining references to `people` | Phase 7       |
-| `userCircleRoles`  | Complete migration to `assignments`      | Create ticket |
+| Table              | Next Step                                  | Tracking           |
+| ------------------ | ------------------------------------------ | ------------------ |
+| `workspaceMembers` | ✅ Complete - cleanup remaining references | SYOS-840           |
+| `userCircleRoles`  | Complete migration to `assignments`        | SYOS-809, SYOS-815 |
 
 ---
 
@@ -151,6 +144,7 @@ userCircleRoles: userCircleRolesTable,
 
 ## Document History
 
-| Version | Date       | Change                          |
-| ------- | ---------- | ------------------------------- |
-| 1.0     | 2025-12-11 | Initial evaluation per SYOS-809 |
+| Version | Date       | Change                                                           |
+| ------- | ---------- | ---------------------------------------------------------------- |
+| 1.1     | 2025-12-13 | Updated workspaceMembers status to Complete (SYOS-814, SYOS-840) |
+| 1.0     | 2025-12-11 | Initial evaluation per SYOS-809                                  |

@@ -18,7 +18,7 @@ export const projectsTable = defineTable({
 	lastSyncedAt: v.optional(v.number()),
 	externalUrl: v.optional(v.string()),
 	createdAt: v.number(),
-	createdBy: v.id('users'),
+	createdByPersonId: v.id('people'),
 	updatedAt: v.number()
 })
 	.index('by_workspace', ['workspaceId'])

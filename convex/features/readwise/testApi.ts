@@ -52,9 +52,12 @@ export const fetchTestHighlights = action({
 			);
 
 			// Get encrypted keys
-			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {
-				userId
-			});
+			const encryptedKeys = await ctx.runQuery(
+				internal.core.workspaces.settings.getEncryptedKeysInternal,
+				{
+					userId
+				}
+			);
 			if (!encryptedKeys?.readwiseApiKey) {
 				throw createError(
 					ErrorCodes.EXTERNAL_API_KEY_MISSING,
@@ -167,9 +170,12 @@ export const fetchTestBooks = action({
 				}
 			);
 
-			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {
-				userId
-			});
+			const encryptedKeys = await ctx.runQuery(
+				internal.core.workspaces.settings.getEncryptedKeysInternal,
+				{
+					userId
+				}
+			);
 			if (!encryptedKeys?.readwiseApiKey) {
 				throw createError(
 					ErrorCodes.EXTERNAL_API_KEY_MISSING,

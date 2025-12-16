@@ -1,7 +1,13 @@
 import { internalQuery } from '../../_generated/server';
+import { CIRCLE_TYPES } from '../../core/circles';
 import { findOperationalWorkspaces, makeResult, type InvariantResult } from './types';
 
-const VALID_CIRCLE_TYPES = new Set(['hierarchy', 'empowered_team', 'guild', 'hybrid']);
+const VALID_CIRCLE_TYPES = new Set([
+	CIRCLE_TYPES.HIERARCHY,
+	CIRCLE_TYPES.EMPOWERED_TEAM,
+	CIRCLE_TYPES.GUILD,
+	CIRCLE_TYPES.HYBRID
+]);
 const VALID_CIRCLE_STATUS = new Set(['draft', 'active']);
 
 export const checkORG01 = internalQuery({

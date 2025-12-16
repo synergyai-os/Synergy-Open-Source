@@ -6,4 +6,5 @@
 import type { Doc } from '../../_generated/dataModel';
 
 export type CircleRoleDoc = Doc<'circleRoles'>;
-export type UserCircleRoleDoc = Doc<'userCircleRoles'>;
+// Legacy: userCircleRoles migrated to assignments table (SYOS-815)
+// export type UserCircleRoleDoc = Doc<'userCircleRoles'>;

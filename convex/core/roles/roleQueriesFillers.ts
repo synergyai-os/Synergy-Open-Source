@@ -25,14 +25,13 @@ async function listRoleFillers(
 
 	const assignments = args.includeArchived
 		? await ctx.db
-				.query('userCircleRoles')
-				.withIndex('by_role', (q) => q.eq('circleRoleId', args.circleRoleId))
+				.query('assignments')
+				.withIndex('by_role', (q) => q.eq('roleId', args.circleRoleId))
 				.collect()
 		: await ctx.db
-				.query('userCircleRoles')
-				.withIndex('by_role_archived', (q) =>
-					q.eq('circleRoleId', args.circleRoleId).eq('archivedAt', undefined)
-				)
+				.query('assignments')
+				.withIndex('by_role', (q) => q.eq('roleId', args.circleRoleId))
+				.filter((q) => q.eq(q.field('status'), 'active'))
 				.collect();
 
 	const fillers = await Promise.all(

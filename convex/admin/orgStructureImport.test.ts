@@ -33,14 +33,14 @@ describe('importOrgStructure', () => {
 			db: createDb({
 				query: (name: string) => ({
 					withIndex: (_index: string, cb: (q: any) => any) => {
-						if (name === 'workspaceMembers') {
+						if (name === 'people') {
 							const builder = {
 								eq: () => builder
 							};
 							return {
 								first: async () => {
 									cb(builder);
-									return null;
+									return null; // No person found = access denied
 								},
 								collect: async () => []
 							};

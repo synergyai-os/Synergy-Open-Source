@@ -7,6 +7,7 @@ export const ErrorCodes = {
 	SESSION_NOT_FOUND: 'SESSION_NOT_FOUND',
 	SESSION_EXPIRED: 'SESSION_EXPIRED',
 	SESSION_REVOKED: 'SESSION_REVOKED',
+	USER_NOT_FOUND: 'USER_NOT_FOUND',
 
 	// ============================================
 	// AUTHZ - Authorization failures (permissions)
@@ -170,6 +171,73 @@ export const ErrorCodes = {
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
 
-export function createError(code: ErrorCode, message: string): Error {
-	return new Error(`${code}: ${message}`);
+/**
+ * Type guard for SynergyOS structured errors
+ *
+ * Checks if an error follows the SynergyOS error format:
+ * `SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`
+ */
+export function isSynergyOSError(error: unknown): error is Error & {
+	code: ErrorCode;
+	userMessage: string;
+	technicalDetails: string;
+} {
+	if (!(error instanceof Error)) return false;
+	const message = error.message || error.toString();
+	return message.startsWith('SYNERGYOS_ERROR|');
+}
+
+/**
+ * Create a structured error with separate user-facing message and technical details
+ *
+ * Follows Principle #11: Functions only, no classes. Creates a plain Error object
+ * with metadata encoded in the message format that survives Convex serialization.
+ *
+ * Error message format: `SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`
+ *
+ * This allows parseConvexError() to detect and extract the user message directly
+ * without relying on regex parsing.
+ *
+ * @param code - Error code from ErrorCodes
+ * @param userMessage - Clean, user-friendly message shown in UI (no technical jargon)
+ * @param technicalDetails - Optional technical details for logging (defaults to error code)
+ * @returns Error object with structured message format
+ *
+ * @example
+ * ```typescript
+ * throw createError(
+ *   ErrorCodes.WORKSPACE_SLUG_RESERVED,
+ *   "The name 'admin' is not available. Please choose a different workspace name.",
+ *   `Slug 'admin' is in reserved list. Attempted by user ${userId}`
+ * );
+ * ```
+ */
+export function createError(
+	code: ErrorCode,
+	userMessage: string,
+	technicalDetails?: string
+): Error {
+	const fullDetails = technicalDetails || `Error code: ${code}`;
+	const serializedMessage = `SYNERGYOS_ERROR|${code}|${userMessage}|${fullDetails}`;
+
+	const error = new Error(serializedMessage);
+	error.name = 'SynergyOSError';
+
+	// Attach metadata as properties (for type safety and debugging)
+	// Note: These properties don't survive Convex serialization, but the message format does
+	(error as any).code = code;
+	(error as any).userMessage = userMessage;
+	(error as any).technicalDetails = fullDetails;
+
+	// Auto-log technical details to console/terminal
+	// In Convex server context, this goes to server logs
+	// In browser context, this goes to browser console
+	console.error(`[${code}] ${userMessage}`, {
+		code,
+		userMessage,
+		technicalDetails: fullDetails,
+		stack: error.stack
+	});
+
+	return error;
 }

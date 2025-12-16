@@ -48,7 +48,7 @@ export interface Project {
 	lastSyncedAt?: number;
 	externalUrl?: string;
 	createdAt: number;
-	createdBy: Id<'users'>;
+	createdByPersonId: Id<'people'>;
 	updatedAt: number;
 }
 

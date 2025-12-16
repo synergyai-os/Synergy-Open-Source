@@ -106,9 +106,9 @@ export const orgVersionHistoryTable = defineTable(
 			)
 		}),
 		v.object({
-			entityType: v.literal('userCircleRole'),
+			entityType: v.literal('assignment'),
 			workspaceId: v.id('workspaces'),
-			entityId: v.id('userCircleRoles'),
+			entityId: v.id('assignments'),
 			changeType: v.union(
 				v.literal('create'),
 				v.literal('update'),
@@ -120,18 +120,20 @@ export const orgVersionHistoryTable = defineTable(
 			changeDescription: v.optional(v.string()),
 			before: v.optional(
 				v.object({
+					circleId: v.id('circles'),
 					personId: v.id('people'),
-					circleRoleId: v.id('circleRoles'),
-					scope: v.optional(v.string()),
-					archivedAt: v.optional(v.number())
+					roleId: v.id('circleRoles'),
+					status: v.union(v.literal('active'), v.literal('ended')),
+					endedAt: v.optional(v.number())
 				})
 			),
 			after: v.optional(
 				v.object({
+					circleId: v.id('circles'),
 					personId: v.id('people'),
-					circleRoleId: v.id('circleRoles'),
-					scope: v.optional(v.string()),
-					archivedAt: v.optional(v.number())
+					roleId: v.id('circleRoles'),
+					status: v.union(v.literal('active'), v.literal('ended')),
+					endedAt: v.optional(v.number())
 				})
 			)
 		}),
@@ -159,74 +161,6 @@ export const orgVersionHistoryTable = defineTable(
 				v.object({
 					circleId: v.id('circles'),
 					personId: v.id('people'),
-					archivedAt: v.optional(v.number())
-				})
-			)
-		}),
-		v.object({
-			entityType: v.literal('circleItemCategory'),
-			workspaceId: v.id('workspaces'),
-			entityId: v.id('circleItemCategories'),
-			changeType: v.union(
-				v.literal('create'),
-				v.literal('update'),
-				v.literal('archive'),
-				v.literal('restore')
-			),
-			changedByPersonId: v.id('people'),
-			changedAt: v.number(),
-			changeDescription: v.optional(v.string()),
-			before: v.optional(
-				v.object({
-					workspaceId: v.id('workspaces'),
-					entityType: v.union(v.literal('circle'), v.literal('role')),
-					name: v.string(),
-					order: v.number(),
-					isDefault: v.boolean(),
-					archivedAt: v.optional(v.number())
-				})
-			),
-			after: v.optional(
-				v.object({
-					workspaceId: v.id('workspaces'),
-					entityType: v.union(v.literal('circle'), v.literal('role')),
-					name: v.string(),
-					order: v.number(),
-					isDefault: v.boolean(),
-					archivedAt: v.optional(v.number())
-				})
-			)
-		}),
-		v.object({
-			entityType: v.literal('circleItem'),
-			workspaceId: v.id('workspaces'),
-			entityId: v.id('circleItems'),
-			changeType: v.union(
-				v.literal('create'),
-				v.literal('update'),
-				v.literal('archive'),
-				v.literal('restore')
-			),
-			changedByPersonId: v.id('people'),
-			changedAt: v.number(),
-			changeDescription: v.optional(v.string()),
-			before: v.optional(
-				v.object({
-					categoryId: v.id('circleItemCategories'),
-					entityType: v.union(v.literal('circle'), v.literal('role')),
-					entityId: v.string(),
-					content: v.string(),
-					order: v.number(),
-					archivedAt: v.optional(v.number())
-				})
-			),
-			after: v.optional(
-				v.object({
-					categoryId: v.id('circleItemCategories'),
-					entityType: v.union(v.literal('circle'), v.literal('role')),
-					entityId: v.string(),
-					content: v.string(),
-					order: v.number(),
 					archivedAt: v.optional(v.number())
 				})
 			)

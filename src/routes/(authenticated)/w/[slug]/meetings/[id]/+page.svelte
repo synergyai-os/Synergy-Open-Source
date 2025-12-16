@@ -30,8 +30,8 @@
 
 	const { data }: Props = $props();
 
-	// Check feature flag
-	const meetingsEnabled = data.enabledFeatures.includes('meetings');
+	// Meetings is always enabled (core feature)
+	const meetingsEnabled = true;
 
 	// Get meetingId from URL params
 	const meetingId = () => page.params.id as Id<'meetings'> | undefined;

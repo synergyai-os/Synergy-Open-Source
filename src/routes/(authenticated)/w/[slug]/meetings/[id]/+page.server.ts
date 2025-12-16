@@ -10,10 +10,8 @@ export const load: PageServerLoad = async ({ parent }) => {
 		throw error(401, 'Unauthorized');
 	}
 
-	// Build enabledFeatures array from individual feature flags
-	const enabledFeatures: string[] = [];
-	if (parentData.circlesEnabled) enabledFeatures.push('circles');
-	if (parentData.meetingsEnabled) enabledFeatures.push('meetings');
+	// Core features are always enabled
+	const enabledFeatures: string[] = ['circles', 'meetings'];
 
 	return {
 		sessionId: parentData.sessionId,

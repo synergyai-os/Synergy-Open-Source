@@ -3,6 +3,12 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import type { CircleSummary } from '$lib/infrastructure/organizational-model';
+	import {
+		CIRCLE_TYPES,
+		DECISION_MODELS,
+		type CircleType,
+		type DecisionModel
+	} from '$lib/infrastructure/organizational-model/constants';
 	import FormSelect from '$lib/components/atoms/FormSelect.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 
@@ -16,23 +22,23 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 
-	const circleType = $derived(circle.circleType ?? 'hierarchy');
+	const circleType = $derived((circle.circleType ?? CIRCLE_TYPES.HIERARCHY) as CircleType);
 
 	// All available decision model options
 	const allOptions = [
 		{
-			value: 'manager_decides',
+			value: DECISION_MODELS.MANAGER_DECIDES,
 			label: 'Manager Decides',
 			description: 'Single approver (manager/lead)'
 		},
 		{
-			value: 'team_consensus',
+			value: DECISION_MODELS.TEAM_CONSENSUS,
 			label: 'Team Consensus',
 			description: 'All members must agree'
 		},
-		{ value: 'consent', label: 'Consent', description: 'No valid objections (IDM)' },
+		{ value: DECISION_MODELS.CONSENT, label: 'Consent', description: 'No valid objections (IDM)' },
 		{
-			value: 'coordination_only',
+			value: DECISION_MODELS.COORDINATION_ONLY,
 			label: 'Coordination Only',
 			description: 'Guild: must approve in home circle'
 		}
@@ -41,14 +47,14 @@
 	// Filter options based on circle type
 	const availableOptions = $derived.by(() => {
 		switch (circleType) {
-			case 'hierarchy':
-				return allOptions.filter((o) => o.value === 'manager_decides');
-			case 'empowered_team':
-				return allOptions.filter((o) => o.value !== 'coordination_only');
-			case 'guild':
-				return allOptions.filter((o) => o.value === 'coordination_only');
-			case 'hybrid':
-				return allOptions.filter((o) => o.value !== 'coordination_only');
+			case CIRCLE_TYPES.HIERARCHY:
+				return allOptions.filter((o) => o.value === DECISION_MODELS.MANAGER_DECIDES);
+			case CIRCLE_TYPES.EMPOWERED_TEAM:
+				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
+			case CIRCLE_TYPES.GUILD:
+				return allOptions.filter((o) => o.value === DECISION_MODELS.COORDINATION_ONLY);
+			case CIRCLE_TYPES.HYBRID:
+				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
 			default:
 				return allOptions;
 		}
@@ -59,14 +65,14 @@
 		targetValue: string | undefined,
 		options: typeof availableOptions
 	): string {
-		const value = (targetValue ?? 'manager_decides') as string;
+		const value = (targetValue ?? DECISION_MODELS.MANAGER_DECIDES) as string;
 		return options.some((o) => o.value === value)
 			? value
-			: (options[0]?.value ?? 'manager_decides');
+			: (options[0]?.value ?? DECISION_MODELS.MANAGER_DECIDES);
 	}
 
 	// Initialize state - will be set properly in effect
-	let decisionModelValue = $state<string>('manager_decides');
+	let decisionModelValue = $state<string>(DECISION_MODELS.MANAGER_DECIDES);
 
 	// Track the circle ID and decisionModel to detect external changes
 	let lastCircleId = $state<string | null>(null);
@@ -84,7 +90,7 @@
 		}
 
 		const currentCircleId = circle.circleId;
-		const currentDecisionModel = circle.decisionModel ?? 'manager_decides';
+		const currentDecisionModel = circle.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
 		const currentCircleType = circleType;
 		const currentValue = decisionModelValue;
 		const currentOptions = availableOptions;
@@ -133,7 +139,7 @@
 			!convexClient ||
 			!sessionId ||
 			!canEdit ||
-			decisionModelValue === (circle.decisionModel ?? 'manager_decides')
+			decisionModelValue === (circle.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES)
 		) {
 			return;
 		}
@@ -160,8 +166,8 @@
 			})
 			.catch((error) => {
 				// Revert on error
-				decisionModelValue = circle.decisionModel ?? 'manager_decides';
-				lastDecisionModel = circle.decisionModel ?? 'manager_decides';
+				decisionModelValue = circle.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
+				lastDecisionModel = circle.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
 				isUserUpdating = false;
 				alert(error instanceof Error ? error.message : 'Failed to update decision model');
 			});

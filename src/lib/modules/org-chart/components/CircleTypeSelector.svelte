@@ -7,6 +7,9 @@
 	import Text from '$lib/components/atoms/Text.svelte';
 	import { toast } from '$lib/utils/toast';
 	import {
+		CIRCLE_TYPES,
+		DEFAULT_CIRCLE_TYPE_LABELS,
+		DEFAULT_CIRCLE_TYPE_DESCRIPTIONS,
 		getLeadAuthorityLevel,
 		getAuthorityUI,
 		getLeadLabel,
@@ -24,16 +27,32 @@
 	const convexClient = browser ? useConvexClient() : null;
 
 	const options = [
-		{ value: 'hierarchy', label: 'Hierarchy', description: 'Traditional: manager decides' },
-		{ value: 'empowered_team', label: 'Empowered Team', description: 'Agile: team consensus' },
-		{ value: 'guild', label: 'Guild', description: 'Coordination only, no authority' },
-		{ value: 'hybrid', label: 'Hybrid', description: 'Mixed: depends on decision type' }
+		{
+			value: CIRCLE_TYPES.HIERARCHY,
+			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY],
+			description: DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.HIERARCHY]
+		},
+		{
+			value: CIRCLE_TYPES.EMPOWERED_TEAM,
+			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.EMPOWERED_TEAM],
+			description: DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.EMPOWERED_TEAM]
+		},
+		{
+			value: CIRCLE_TYPES.GUILD,
+			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.GUILD],
+			description: DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.GUILD]
+		},
+		{
+			value: CIRCLE_TYPES.HYBRID,
+			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HYBRID],
+			description: DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.HYBRID]
+		}
 	];
 
 	// Ensure value is always a valid option value - compute synchronously
 	function getValidValue(targetValue: string | undefined): string {
-		const value = (targetValue ?? 'hierarchy') as string;
-		return options.some((o) => o.value === value) ? value : 'hierarchy';
+		const value = (targetValue ?? CIRCLE_TYPES.HIERARCHY) as string;
+		return options.some((o) => o.value === value) ? value : CIRCLE_TYPES.HIERARCHY;
 	}
 
 	let circleTypeValue = $state<string>(getValidValue(circle.circleType));
@@ -77,7 +96,7 @@
 			!convexClient ||
 			!sessionId ||
 			!canEdit ||
-			circleTypeValue === (circle.circleType ?? 'hierarchy')
+			circleTypeValue === (circle.circleType ?? CIRCLE_TYPES.HIERARCHY)
 		) {
 			return;
 		}
@@ -88,7 +107,7 @@
 		lastCircleType = circleTypeValue; // Update immediately to prevent sync
 
 		// Calculate authority change for notification
-		const oldType = (circle.circleType ?? 'hierarchy') as CircleType;
+		const oldType = (circle.circleType ?? CIRCLE_TYPES.HIERARCHY) as CircleType;
 		const newType = circleTypeValue as CircleType;
 		const oldAuthority = getLeadAuthorityLevel(oldType);
 		const newAuthority = getLeadAuthorityLevel(newType);
@@ -127,8 +146,8 @@
 			})
 			.catch((error) => {
 				// Revert on error
-				circleTypeValue = circle.circleType ?? 'hierarchy';
-				lastCircleType = circle.circleType ?? 'hierarchy';
+				circleTypeValue = circle.circleType ?? CIRCLE_TYPES.HIERARCHY;
+				lastCircleType = circle.circleType ?? CIRCLE_TYPES.HIERARCHY;
 				isUserUpdating = false;
 				toast.error(error instanceof Error ? error.message : 'Failed to update circle type');
 			});

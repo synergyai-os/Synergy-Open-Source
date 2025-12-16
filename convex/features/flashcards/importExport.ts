@@ -21,9 +21,9 @@ async function requireUserIdFromSession(
 async function fetchKeys(ctx: FlashcardActionCtx, userId: string) {
 	const getEncryptedKeysInternal = (
 		internal as unknown as {
-			settings: { getEncryptedKeysInternal: unknown };
+			core: { workspaces: { settings: { getEncryptedKeysInternal: unknown } } };
 		}
-	).settings.getEncryptedKeysInternal;
+	).core.workspaces.settings.getEncryptedKeysInternal;
 	const keys = (await ctx.runQuery(getEncryptedKeysInternal, { userId })) as {
 		claudeApiKey: string | null;
 		readwiseApiKey: string | null;

@@ -3,6 +3,7 @@ import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
 import { invariant } from '$lib/utils/invariant';
+import type { CircleType, DecisionModel } from '../constants';
 
 export type CircleSummary = {
 	circleId: Id<'circles'>;
@@ -13,8 +14,8 @@ export type CircleSummary = {
 	parentCircleId?: Id<'circles'>;
 	parentName?: string | null;
 	memberCount: number;
-	circleType?: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
-	decisionModel?: 'manager_decides' | 'team_consensus' | 'consent' | 'coordination_only';
+	circleType?: CircleType;
+	decisionModel?: DecisionModel;
 	createdAt: number;
 	updatedAt: number;
 	archivedAt?: number;

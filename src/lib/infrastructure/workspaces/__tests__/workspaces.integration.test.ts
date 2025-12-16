@@ -94,7 +94,7 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Admin should be able to create invite
-		const result = await t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
+		const result = await t.mutation(api.features.invites.mutations.createWorkspaceInvite, {
 			sessionId: adminSessionId,
 			workspaceId: orgId,
 			email: 'newuser@example.com',
@@ -133,7 +133,6 @@ describe('Organizations Integration Tests', () => {
 
 			if (!invite) throw new Error('Invite not found');
 
-			// Create membership via people table (workspaceMembers has been migrated)
 			const now = Date.now();
 			const inviteeUser = await ctx.db.get(inviteeUserId);
 			await ctx.db.insert('people', {
@@ -157,7 +156,6 @@ describe('Organizations Integration Tests', () => {
 
 		expect(result.workspaceId).toBe(orgId);
 
-		// Verify membership exists via people table (workspaceMembers has been migrated)
 		const membership = await t.run(async (ctx) => {
 			return await ctx.db
 				.query('people')
@@ -190,7 +188,6 @@ describe('Organizations Integration Tests', () => {
 			await ctx.db.delete(inviteId);
 		});
 
-		// Verify no membership created via people table (workspaceMembers has been migrated)
 		const membership = await t.run(async (ctx) => {
 			return await ctx.db
 				.query('people')
@@ -231,10 +228,9 @@ describe('Organizations Integration Tests', () => {
 
 		expect(result.success).toBe(true);
 
-		// Verify membership removed
 		const membership = await t.run(async (ctx) => {
 			return await ctx.db
-				.query('workspaceMembers')
+				.query('people')
 				.withIndex('by_workspace_user', (q) =>
 					q.eq('workspaceId', orgId).eq('userId', memberUserId)
 				)
@@ -310,7 +306,7 @@ describe('Organizations Integration Tests', () => {
 			];
 
 			for (const email of validEmails) {
-				const result = await t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
+				const result = await t.mutation(api.features.invites.mutations.createWorkspaceInvite, {
 					sessionId,
 					workspaceId: orgId,
 					email,
@@ -343,7 +339,7 @@ describe('Organizations Integration Tests', () => {
 
 			for (const email of invalidEmails) {
 				await expect(
-					t.mutation(api.core.workspaces.index.createWorkspaceInvite, {
+					t.mutation(api.features.invites.mutations.createWorkspaceInvite, {
 						sessionId,
 						workspaceId: orgId,
 						email,

@@ -22,9 +22,3 @@ export {
 	reorderTemplateSteps,
 	reorderTemplateStepsArgs
 } from './steps';
-export {
-	seedDefaultTemplates,
-	seedDefaultTemplatesInternal,
-	seedTemplatesArgs,
-	seedTemplatesInternalArgs
-} from './seed';

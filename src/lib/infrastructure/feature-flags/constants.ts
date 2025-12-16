@@ -1,29 +1,11 @@
 /**
  * Feature Flag Constants
  *
- * Central registry for system-level feature flags.
- * Module-specific flags are in their respective module folders.
- *
- * Naming Convention: <AREA>_<FEATURE>_<STATUS>
- * - AREA: notes, inbox, sync, etc.
- * - FEATURE: What it does
- * - STATUS: beta, dev, rollout, etc.
- *
- * @example
- * ```typescript
- * import { FeatureFlags } from '$lib/infrastructure/feature-flags';
- * const enabled = await isFlagEnabled(FeatureFlags.NOTES_PROSEMIRROR_BETA, userId);
- * ```
+ * All feature flags have been removed - core features are always enabled.
+ * This file is kept for backward compatibility but exports empty objects.
  */
 
-export const FeatureFlags = {
-	// === Notes Module ===
-	/**
-	 * Example: New ProseMirror-based notes editor
-	 * Status: Not yet implemented
-	 */
-	NOTES_PROSEMIRROR_BETA: 'notes_prosemirror_beta'
-} as const;
+export const FeatureFlags = {} as const;
 
 /**
  * Type for feature flag keys
@@ -31,10 +13,6 @@ export const FeatureFlags = {
 export type FeatureFlagKey = (typeof FeatureFlags)[keyof typeof FeatureFlags];
 
 /**
- * Flag descriptions map - extracted from JSDoc comments
- * Used as fallback when DB doesn't have a description
+ * Flag descriptions map - empty since all flags removed
  */
-export const FlagDescriptions: Record<FeatureFlagKey, string> = {
-	[FeatureFlags.NOTES_PROSEMIRROR_BETA]:
-		'ProseMirror Notes Editor - Replaces the current notes editor with a ProseMirror-based rich text editor featuring improved formatting, collaboration, and performance.'
-};
+export const FlagDescriptions: Record<string, string> = {};

@@ -1,5 +1,23 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
+// NOTE: These literals must match constants.ts
+// Convex requires literal values in v.literal(), so we can't use constants directly here.
+// See: convex/core/circles/constants.ts for single source of truth
+import { CIRCLE_TYPES, DECISION_MODELS } from './constants';
+
+// Runtime check: Ensure schema literals match constants (catches mismatches at startup)
+const _schemaCheck: {
+	circleTypes: ['hierarchy', 'empowered_team', 'guild', 'hybrid'];
+	decisionModels: ['manager_decides', 'team_consensus', 'consent', 'coordination_only'];
+} = {
+	circleTypes: Object.values(CIRCLE_TYPES) as ['hierarchy', 'empowered_team', 'guild', 'hybrid'],
+	decisionModels: Object.values(DECISION_MODELS) as [
+		'manager_decides',
+		'team_consensus',
+		'consent',
+		'coordination_only'
+	]
+};
 
 export const circlesTable = defineTable({
 	workspaceId: v.id('workspaces'),
@@ -53,7 +71,9 @@ export const circleRolesTable = defineTable({
 	circleId: v.id('circles'),
 	workspaceId: v.id('workspaces'),
 	name: v.string(),
-	purpose: v.optional(v.string()),
+	roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
+	purpose: v.string(),
+	decisionRights: v.array(v.string()),
 	templateId: v.optional(v.id('roleTemplates')),
 	status: v.union(v.literal('draft'), v.literal('active')),
 	isHiring: v.boolean(),
@@ -68,4 +88,5 @@ export const circleRolesTable = defineTable({
 	.index('by_circle_archived', ['circleId', 'archivedAt'])
 	.index('by_template', ['templateId'])
 	.index('by_circle_status', ['circleId', 'status', 'archivedAt'])
-	.index('by_workspace_hiring', ['workspaceId', 'isHiring', 'archivedAt']);
+	.index('by_workspace_hiring', ['workspaceId', 'isHiring', 'archivedAt'])
+	.index('by_circle_roleType', ['circleId', 'roleType']);

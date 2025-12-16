@@ -50,7 +50,7 @@ export function useWorkspaceQueries(
 	// Organization invites query
 	const organizationInvitesQuery =
 		browser && getSessionId()
-			? useQuery(api.core.workspaces.index.listWorkspaceInvites, () => {
+			? useQuery(api.features.invites.queries.listWorkspaceInvites, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };

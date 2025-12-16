@@ -5,6 +5,9 @@
  * org chart entities (circles, roles, assignments, members, categories, items).
  *
  * Run with: npx convex run admin/migrateVersionHistory:migrateVersionHistory
+ *
+ * @deprecated This migration has been completed. The userCircleRoles table
+ * was deleted in SYOS-815 (migrated to assignments table).
  */
 
 import { internalMutation } from '../_generated/server';
@@ -20,13 +23,13 @@ async function getWorkspaceOwner(
 	ctx: MutationCtx,
 	workspaceId: Id<'workspaces'>
 ): Promise<Id<'users'> | null> {
-	const members = await ctx.db
-		.query('workspaceMembers')
+	const people = await ctx.db
+		.query('people')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 		.collect();
 
 	// Find first owner or admin
-	const owner = members.find((m) => m.role === 'owner' || m.role === 'admin');
+	const owner = people.find((p) => p.workspaceRole === 'owner' || p.workspaceRole === 'admin');
 	if (owner) {
 		return owner.userId;
 	}
@@ -68,7 +71,7 @@ export const migrateVersionHistory = internalMutation({
 
 		let circlesCreated = 0;
 		let rolesCreated = 0;
-		let assignmentsCreated = 0;
+		// assignmentsCreated removed (SYOS-815: userCircleRoles table deleted)
 		let membersCreated = 0;
 		let categoriesCreated = 0;
 		let itemsCreated = 0;
@@ -176,66 +179,10 @@ export const migrateVersionHistory = internalMutation({
 		console.log(`✅ Created ${rolesCreated} role history records (${skipped} skipped)`);
 
 		// ============================================================================
-		// STEP 3: User Circle Roles (Assignments)
+		// STEP 3: SKIPPED - userCircleRoles table deleted (SYOS-815)
+		// Data migrated to assignments table
 		// ============================================================================
-		console.log('🔍 Step 3: Backfilling user circle role assignments...');
-		const assignments = await ctx.db.query('userCircleRoles').collect();
-		skipped = 0;
-
-		for (const assignment of assignments) {
-			// Check if history already exists
-			const existing = await ctx.db
-				.query('orgVersionHistory')
-				.withIndex('by_entity', (q) =>
-					q.eq('entityType', 'userCircleRole').eq('entityId', assignment._id)
-				)
-				.first();
-
-			if (existing) {
-				skipped++;
-				continue;
-			}
-
-			// Get role to find circle, then workspaceId
-			const role = await ctx.db.get(assignment.circleRoleId);
-			if (!role) {
-				console.log(
-					`⚠️  Role ${assignment.circleRoleId} not found for assignment ${assignment._id}, skipping...`
-				);
-				skipped++;
-				continue;
-			}
-
-			const circle = await ctx.db.get(role.circleId);
-			if (!circle) {
-				console.log(`⚠️  Circle ${role.circleId} not found, skipping...`);
-				skipped++;
-				continue;
-			}
-
-			// Get changedBy (use assignedBy)
-			const changedBy = assignment.assignedBy;
-
-			await ctx.db.insert('orgVersionHistory', {
-				entityType: 'userCircleRole',
-				workspaceId: circle.workspaceId,
-				entityId: assignment._id,
-				changeType: 'create',
-				changedBy,
-				changedAt: assignment.assignedAt || Date.now(),
-				before: undefined,
-				after: {
-					userId: assignment.userId,
-					circleRoleId: assignment.circleRoleId,
-					scope: undefined, // Scope field not yet implemented in assignments
-					archivedAt: assignment.archivedAt
-				}
-			});
-
-			assignmentsCreated++;
-		}
-
-		console.log(`✅ Created ${assignmentsCreated} assignment history records (${skipped} skipped)`);
+		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)');
 
 		// ============================================================================
 		// STEP 4: Circle Members
@@ -398,7 +345,7 @@ export const migrateVersionHistory = internalMutation({
 		console.log('\n✅ Migration complete!');
 		console.log(`- Circle history records: ${circlesCreated}`);
 		console.log(`- Role history records: ${rolesCreated}`);
-		console.log(`- Assignment history records: ${assignmentsCreated}`);
+		console.log(`- Assignment history records: skipped (SYOS-815)`);
 		console.log(`- Member history records: ${membersCreated}`);
 		console.log(`- Category history records: ${categoriesCreated}`);
 		console.log(`- Item history records: ${itemsCreated}`);
@@ -407,7 +354,6 @@ export const migrateVersionHistory = internalMutation({
 			success: true,
 			circlesCreated,
 			rolesCreated,
-			assignmentsCreated,
 			membersCreated,
 			categoriesCreated,
 			itemsCreated

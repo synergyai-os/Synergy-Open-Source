@@ -1,4 +1,4 @@
-import type { CircleType } from '../circles';
+import { CIRCLE_TYPES, type CircleType } from '../circles';
 import type { CirclePolicy } from './types';
 
 /**
@@ -6,7 +6,7 @@ import type { CirclePolicy } from './types';
  * Defines governance rules based on organizational model.
  */
 export const circlePolicies: Record<CircleType, CirclePolicy> = {
-	hierarchy: {
+	[CIRCLE_TYPES.HIERARCHY]: {
 		leadRequired: true,
 		leadLabel: 'Circle Lead',
 		decisionModel: 'lead_decides',
@@ -14,7 +14,7 @@ export const circlePolicies: Record<CircleType, CirclePolicy> = {
 		canLeadAssignRoles: true,
 		coreRoles: ['Circle Lead', 'Secretary']
 	},
-	empowered_team: {
+	[CIRCLE_TYPES.EMPOWERED_TEAM]: {
 		leadRequired: false,
 		leadLabel: 'Coordinator',
 		decisionModel: 'consent',
@@ -22,7 +22,7 @@ export const circlePolicies: Record<CircleType, CirclePolicy> = {
 		canLeadAssignRoles: false,
 		coreRoles: ['Facilitator', 'Secretary']
 	},
-	guild: {
+	[CIRCLE_TYPES.GUILD]: {
 		leadRequired: false,
 		leadLabel: 'Steward',
 		decisionModel: 'consensus',
@@ -30,7 +30,7 @@ export const circlePolicies: Record<CircleType, CirclePolicy> = {
 		canLeadAssignRoles: false,
 		coreRoles: ['Steward']
 	},
-	hybrid: {
+	[CIRCLE_TYPES.HYBRID]: {
 		leadRequired: true,
 		leadLabel: 'Circle Lead',
 		decisionModel: 'consent',

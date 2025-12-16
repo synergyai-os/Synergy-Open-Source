@@ -1,6 +1,7 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import { findPersonByUserAndWorkspace } from '../../core/people/queries';
 
 type Ctx = QueryCtx | MutationCtx;
 
@@ -9,12 +10,8 @@ export async function ensureWorkspaceMembership(
 	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
-	const membership = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
-		.first();
-
-	if (!membership) {
+	const person = await findPersonByUserAndWorkspace(ctx, userId, workspaceId);
+	if (!person || person.status !== 'active') {
 		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Workspace membership required');
 	}
 }

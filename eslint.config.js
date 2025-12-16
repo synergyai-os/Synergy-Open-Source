@@ -11,9 +11,11 @@ import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
 import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
 import noFeatureComponentsInComponents from './eslint-rules/no-feature-components-in-components.js';
+import noHardcodedCircleConstants from './eslint-rules/no-hardcoded-circle-constants.js';
 import noHardcodedDesignValues from './eslint-rules/no-hardcoded-design-values.js';
 import noLegacyAuthPatterns from './eslint-rules/no-legacy-auth-patterns.js';
 import noThrowNewError from './eslint-rules/no-throw-new-error.js';
+import noUseridInAuditFields from './eslint-rules/no-userid-in-audit-fields.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -48,7 +50,11 @@ export default defineConfig(
 			'src/**/*.svelte.js'
 		],
 		rules: {
-			'synergyos/no-throw-new-error': 'error'
+			'synergyos/no-throw-new-error': 'error',
+			// Constants enforcement: Prevent hardcoded circle types and decision models
+			// Use constants from src/lib/infrastructure/organizational-model/constants.ts
+			// See: convex/core/circles/constants.ts
+			'synergyos/no-hardcoded-circle-constants': 'error'
 		}
 	},
 	{
@@ -60,9 +66,11 @@ export default defineConfig(
 				rules: {
 					'no-cross-module-imports': noCrossModuleImports,
 					'no-feature-components-in-components': noFeatureComponentsInComponents,
+					'no-hardcoded-circle-constants': noHardcodedCircleConstants,
 					'no-hardcoded-design-values': noHardcodedDesignValues,
 					'no-legacy-auth-patterns': noLegacyAuthPatterns,
-					'no-throw-new-error': noThrowNewError
+					'no-throw-new-error': noThrowNewError,
+					'no-userid-in-audit-fields': noUseridInAuditFields
 				}
 			}
 			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
@@ -157,15 +165,18 @@ export default defineConfig(
 		}
 	},
 	{
-		// Relax rules for test files
+		// Relax rules for test files (but keep constants enforcement)
 		files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts', 'e2e/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
 			'synergyos/no-throw-new-error': 'off',
-			// Allow hardcoded values in test files (ESLint allows it for test mocks)
+			// Allow hardcoded design values in test files (ESLint allows it for test mocks)
 			'better-tailwindcss/no-restricted-classes': 'off',
-			'synergyos/no-hardcoded-design-values': 'off'
+			'synergyos/no-hardcoded-design-values': 'off',
+			// Keep constants enforcement: tests should use constants too
+			// If constant changes, tests should auto-update (better coverage)
+			'synergyos/no-hardcoded-circle-constants': 'error'
 		}
 	},
 	{
@@ -202,7 +213,15 @@ export default defineConfig(
 				}
 			],
 			'no-useless-escape': 'off',
-			'synergyos/no-legacy-auth-patterns': 'error'
+			'synergyos/no-legacy-auth-patterns': 'error',
+			// Schema-level validation: Enforce XDOM-01/XDOM-02 invariants
+			// Audit fields (createdBy, updatedBy, archivedBy) must use v.id('people')
+			// See: convex/admin/invariants/INVARIANTS.md (XDOM-01, XDOM-02)
+			'synergyos/no-userid-in-audit-fields': 'error',
+			// Constants enforcement: Prevent hardcoded circle types and decision models
+			// Use constants from convex/core/circles/constants.ts
+			// See: convex/core/circles/constants.ts
+			'synergyos/no-hardcoded-circle-constants': 'error'
 		}
 	},
 	{

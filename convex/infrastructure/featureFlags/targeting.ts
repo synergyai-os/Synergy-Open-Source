@@ -1,6 +1,7 @@
 import type { Doc, Id } from '../_generated/dataModel';
 import type { Ctx, FlagEvaluationInput, FlagEvaluationResult } from './types';
 import { getUserRolloutBucket, hasTargetingRules } from './utils';
+import { listWorkspacesForUser } from '../../core/people/queries';
 
 async function userHasWorkspaceAccess(
 	ctx: Ctx,
@@ -9,13 +10,8 @@ async function userHasWorkspaceAccess(
 ): Promise<boolean> {
 	if (!allowedWorkspaceIds?.length) return false;
 
-	const memberships = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
-		.collect();
-
-	const userOrgIds = memberships.map((m) => m.workspaceId);
-	return allowedWorkspaceIds.some((orgId) => userOrgIds.includes(orgId));
+	const userWorkspaceIds = await listWorkspacesForUser(ctx, userId);
+	return allowedWorkspaceIds.some((orgId) => userWorkspaceIds.includes(orgId));
 }
 
 function isDomainAllowed(user: Doc<'users'> | null, allowedDomains: string[] | undefined): boolean {

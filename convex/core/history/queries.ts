@@ -10,9 +10,7 @@ export const getEntityHistory = query({
 			v.literal('circle'),
 			v.literal('circleRole'),
 			v.literal('userCircleRole'),
-			v.literal('circleMember'),
-			v.literal('circleItemCategory'),
-			v.literal('circleItem')
+			v.literal('circleMember')
 		),
 		entityId: v.string(),
 		limit: v.optional(v.number())

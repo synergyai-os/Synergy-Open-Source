@@ -25,15 +25,14 @@ export const migrateWorkspace = mutation({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user is workspace admin
-		const membership = await ctx.db
-			.query('workspaceMembers')
+		const person = await ctx.db
+			.query('people')
 			.withIndex('by_workspace_user', (q) =>
 				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
 			)
 			.first();
 
-		if (!membership) {
+		if (!person) {
 			throw createError(
 				ErrorCodes.WORKSPACE_ACCESS_DENIED,
 				'You do not have access to this workspace'

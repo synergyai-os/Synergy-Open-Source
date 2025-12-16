@@ -119,20 +119,23 @@ export function useWorkspaceMutations(
 					}, 500);
 				}
 			}
-		} catch (_error) {
-			console.error('Failed to create workspace:', _error);
-
-			// Show error toast
-			if (browser) {
-				toast.error('Failed to create workspace. Please try again.');
-			}
+		} catch (error) {
+			console.error('Failed to create workspace:', error);
 
 			// Hide overlay on error
 			if (loadingOverlay) {
 				loadingOverlay.hideOverlay();
 			}
 
+			// Show error toast (only in browser context, e.g., when called from modal)
+			// When called from onboarding page, the page will handle error display
+			if (browser) {
+				toast.error('Failed to create workspace. Please try again.');
+			}
+
 			// Keep modal open on error so user can retry
+			// Re-throw error so callers (like onboarding page) can catch and handle it
+			throw error;
 		} finally {
 			loadingState.createWorkspace = false;
 		}
@@ -147,7 +150,7 @@ export function useWorkspaceMutations(
 
 		try {
 			const result = await convexClient.mutation(
-				api.core.workspaces.index.acceptOrganizationInvite,
+				api.features.invites.mutations.acceptOrganizationInvite,
 				{
 					sessionId,
 					code: trimmed
@@ -168,10 +171,13 @@ export function useWorkspaceMutations(
 		const trimmed = code.trim();
 		if (!trimmed) return;
 
-		const result = await convexClient.mutation(api.core.workspaces.index.acceptOrganizationInvite, {
-			sessionId,
-			code: trimmed
-		});
+		const result = await convexClient.mutation(
+			api.features.invites.mutations.acceptOrganizationInvite,
+			{
+				sessionId,
+				code: trimmed
+			}
+		);
 		if (result?.workspaceId) {
 			setActiveWorkspace(result.workspaceId);
 		}
@@ -181,7 +187,7 @@ export function useWorkspaceMutations(
 		if (!convexClient) return;
 		const sessionId = getSessionId();
 		if (!sessionId) return;
-		await convexClient.mutation(api.core.workspaces.index.declineOrganizationInvite, {
+		await convexClient.mutation(api.features.invites.mutations.declineOrganizationInvite, {
 			sessionId,
 			inviteId: inviteId as Id<'workspaceInvites'>
 		});

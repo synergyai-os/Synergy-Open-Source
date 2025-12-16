@@ -17,7 +17,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	let isAdmin = false;
 	try {
 		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
-		isAdmin = await client.query(api.rbac.permissions.isSystemAdmin, {
+		isAdmin = await client.query(api.infrastructure.rbac.permissions.isSystemAdmin, {
 			sessionId
 		});
 	} catch (err) {

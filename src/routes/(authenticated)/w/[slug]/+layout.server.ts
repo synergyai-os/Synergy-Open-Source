@@ -56,7 +56,8 @@ async function resolveWorkspace(
 	}
 
 	// 3. Try as alias (old slug)
-	const alias = await client.query(api.core.workspaces.aliases.getBySlug, {
+	// SYOS-855: Alias query merged into queries.ts
+	const alias = await client.query(api.core.workspaces.queries.getAliasBySlug, {
 		slug: slugOrId,
 		sessionId
 	});
@@ -107,6 +108,41 @@ export const load: LayoutServerLoad = async ({ params, locals, parent, url }) =>
 				throw redirect(302, `/w/${firstWorkspace.slug}/inbox`);
 			}
 			// No workspaces - redirect to onboarding
+			throw redirect(302, '/onboarding');
+		}
+
+		// SECURITY: Check onboarding completion for this specific workspace
+		// Users MUST have onboardingCompletedAt set to access workspace
+		try {
+			const onboardingState = await client.query(
+				api.features.onboarding.index.findOnboardingState,
+				{
+					sessionId,
+					workspaceId: result.workspace.workspaceId
+				}
+			);
+
+			// Enforce onboarding completion - fail closed
+			if (!onboardingState.workspaceSetupComplete) {
+				// Workspace setup not complete → redirect to workspace setup
+				throw redirect(302, '/onboarding');
+			}
+
+			if (!onboardingState.userOnboardingComplete) {
+				// User onboarding not complete → redirect to user onboarding
+				throw redirect(302, '/onboarding/welcome');
+			}
+		} catch (onboardingError) {
+			// If it's already a redirect, re-throw it
+			if (onboardingError instanceof Response && onboardingError.status === 302) {
+				throw onboardingError;
+			}
+			// SECURITY: Fail closed - if onboarding check fails, redirect to onboarding
+			// This prevents users from accessing workspace if check fails
+			console.error('Failed to check onboarding state for workspace:', {
+				workspaceId: result.workspace.workspaceId,
+				error: onboardingError instanceof Error ? onboardingError.message : String(onboardingError)
+			});
 			throw redirect(302, '/onboarding');
 		}
 

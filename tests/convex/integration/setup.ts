@@ -143,7 +143,7 @@ export async function createTestOrganization(
 }
 
 /**
- * Create an workspace membership (via people table - workspaceMembers has been removed)
+ * Create an workspace membership
  */
 export async function createTestOrganizationMember(
 	t: TestConvex<any>,
@@ -292,6 +292,8 @@ export async function createTestPermission(
 
 /**
  * Assign a role to a user
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export async function assignRoleToUser(
 	t: TestConvex<any>,
@@ -302,16 +304,53 @@ export async function assignRoleToUser(
 		circleId?: Id<'circles'>;
 		assignedBy?: Id<'users'>;
 	}
-): Promise<Id<'userRoles'>> {
+): Promise<Id<'systemRoles'> | Id<'workspaceRoles'>> {
 	return await t.run(async (ctx) => {
-		return await ctx.db.insert('userRoles', {
-			userId,
-			roleId,
-			workspaceId: context?.workspaceId,
-			circleId: context?.circleId,
-			assignedBy: context?.assignedBy ?? userId, // Default to self-assignment for tests
-			assignedAt: Date.now()
-		});
+		// Get role slug
+		const role = await ctx.db.get(roleId);
+		if (!role) {
+			throw new Error(`Role ${roleId} not found`);
+		}
+
+		if (context?.workspaceId) {
+			// Workspace-scoped role
+			const person = await ctx.db
+				.query('people')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.filter((q) => q.eq(q.field('workspaceId'), context.workspaceId))
+				.first();
+
+			if (!person) {
+				throw new Error(`Person not found for user ${userId} in workspace ${context.workspaceId}`);
+			}
+
+			// Get assignedBy personId if provided
+			let grantedByPersonId: Id<'people'> | undefined;
+			if (context.assignedBy) {
+				const assignedByPerson = await ctx.db
+					.query('people')
+					.withIndex('by_user', (q) => q.eq('userId', context.assignedBy!))
+					.filter((q) => q.eq(q.field('workspaceId'), context.workspaceId))
+					.first();
+				grantedByPersonId = assignedByPerson?._id;
+			}
+
+			return await ctx.db.insert('workspaceRoles', {
+				personId: person._id,
+				workspaceId: context.workspaceId,
+				role: role.slug,
+				grantedAt: Date.now(),
+				grantedByPersonId
+			});
+		} else {
+			// System-scoped role
+			return await ctx.db.insert('systemRoles', {
+				userId,
+				role: role.slug,
+				grantedAt: Date.now(),
+				grantedBy: context?.assignedBy ?? userId // Default to self-assignment for tests
+			});
+		}
 	});
 }
 
@@ -350,16 +389,14 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(session._id);
 		}
 
-		// Clean up user roles
-		const userRoles = await ctx.db
-			.query('userRoles')
+		// Clean up system roles (SYOS-862: migrated from userRoles)
+		const systemRoles = await ctx.db
+			.query('systemRoles')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
-		for (const userRole of userRoles) {
-			await ctx.db.delete(userRole._id);
+		for (const role of systemRoles) {
+			await ctx.db.delete(role._id);
 		}
-
-		// Note: workspaceMembers table removed - membership now tracked via people table
 
 		// Clean up workspace invites sent by user
 		const invites = await ctx.db
@@ -379,7 +416,7 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(link._id);
 		}
 
-		// Clean up tags and people
+		// Clean up tags and people (SYOS-862: also clean up workspaceRoles)
 		const people = await ctx.db
 			.query('people')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
@@ -392,6 +429,16 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			for (const tag of tags) {
 				await ctx.db.delete(tag._id);
 			}
+
+			// Clean up workspace roles for this person
+			const workspaceRoles = await ctx.db
+				.query('workspaceRoles')
+				.withIndex('by_person', (q) => q.eq('personId', person._id))
+				.collect();
+			for (const role of workspaceRoles) {
+				await ctx.db.delete(role._id);
+			}
+
 			await ctx.db.delete(person._id);
 		}
 
@@ -503,8 +550,6 @@ export async function cleanupTestOrganization(
 			// Then delete the circle
 			await ctx.db.delete(circle._id);
 		}
-
-		// Note: workspaceMembers table removed - membership now tracked via people table (cleaned above)
 
 		// Clean up workspace invites
 		const invites = await ctx.db

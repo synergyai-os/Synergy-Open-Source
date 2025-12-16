@@ -9,9 +9,10 @@
  * Individual fixes can be run separately:
  * - fixStatusEnums: Fix ORG-07 (circle status) and ROLE-04 (role status)
  * - fixOrphanedCircleMembers: Fix CMEM-01, CMEM-02
- * - fixOrphanedLegacyAssignments: Fix UCROLE-01, UCROLE-02
  * - fixProposalTimestamps: Fix PROP-05
  * - fixHistoryPersonIds: Fix HIST-01
+ *
+ * Note: Legacy UCROLE-* fixes removed after SYOS-815 migration
  */
 
 import { internalMutation, internalQuery } from '../_generated/server';
@@ -137,48 +138,8 @@ export const fixOrphanedCircleMembers = internalMutation({
 });
 
 // =============================================================================
-// FIX: UCROLE-01, UCROLE-02 (Orphaned legacy assignments)
+// REMOVED: UCROLE-01, UCROLE-02 fixes (SYOS-815: userCircleRoles table deleted)
 // =============================================================================
-
-export const fixOrphanedLegacyAssignments = internalMutation({
-	args: {},
-	handler: async (ctx) => {
-		console.log('🔧 Fixing orphaned legacy assignments (UCROLE-01, UCROLE-02)...\n');
-
-		const userCircleRoles = await ctx.db.query('userCircleRoles').collect();
-		const roles = await ctx.db.query('circleRoles').collect();
-		const people = await ctx.db.query('people').collect();
-
-		const roleIds = new Set(roles.map((r) => r._id.toString()));
-		const personIds = new Set(people.map((p) => p._id.toString()));
-
-		let deletedForMissingPerson = 0;
-		let deletedForMissingRole = 0;
-
-		for (const ucr of userCircleRoles) {
-			const hasRole = roleIds.has(ucr.circleRoleId.toString());
-			const hasPerson = ucr.personId ? personIds.has(ucr.personId.toString()) : true;
-
-			if (!hasRole || !hasPerson) {
-				await ctx.db.delete(ucr._id);
-
-				if (!hasRole) {
-					deletedForMissingRole++;
-					console.log(`  Deleted userCircleRole ${ucr._id}: missing role ${ucr.circleRoleId}`);
-				}
-				if (!hasPerson) {
-					deletedForMissingPerson++;
-					console.log(`  Deleted userCircleRole ${ucr._id}: missing person ${ucr.personId}`);
-				}
-			}
-		}
-
-		console.log(
-			`\n✅ Deleted ${deletedForMissingRole} for missing roles, ${deletedForMissingPerson} for missing people`
-		);
-		return { deletedForMissingRole, deletedForMissingPerson };
-	}
-});
 
 // =============================================================================
 // FIX: PROP-05 (Proposals missing submittedAt)
@@ -374,30 +335,8 @@ export const reportWorkspacesWithoutOwners = internalQuery({
 });
 
 // =============================================================================
-// FIX: UCROLE-01 (orphaned legacy assignment with null personId)
+// REMOVED: UCROLE-01 null personId fix (SYOS-815: userCircleRoles table deleted)
 // =============================================================================
-
-export const fixOrphanedLegacyAssignmentsNullPerson = internalMutation({
-	args: {},
-	handler: async (ctx) => {
-		console.log('🔧 Fixing orphaned legacy assignments with null personId...\n');
-
-		const userCircleRoles = await ctx.db.query('userCircleRoles').collect();
-		let deleted = 0;
-
-		for (const ucr of userCircleRoles) {
-			// Check for null personId
-			if (!ucr.personId) {
-				await ctx.db.delete(ucr._id);
-				deleted++;
-				console.log(`  Deleted userCircleRole ${ucr._id}: null personId`);
-			}
-		}
-
-		console.log(`\n✅ Deleted ${deleted} orphaned legacy assignments`);
-		return { deleted };
-	}
-});
 
 // =============================================================================
 // FIX: XDOM-01 (meetings still using userId)
@@ -664,28 +603,26 @@ export const fixAll = internalMutation({
 		console.log('\n📌 Step 2: Fixing orphaned circle members...');
 		const circleMemberResult = await fixOrphanedCircleMembersHandler(ctx);
 
-		// 3. Fix orphaned legacy assignments
-		console.log('\n📌 Step 3: Fixing orphaned legacy assignments...');
-		const legacyAssignmentResult = await fixOrphanedLegacyAssignmentsHandler(ctx);
+		// Step 3 removed: Legacy assignments (SYOS-815: userCircleRoles table deleted)
 
-		// 4. Fix proposal timestamps
-		console.log('\n📌 Step 4: Fixing proposal timestamps...');
+		// 3. Fix proposal timestamps
+		console.log('\n📌 Step 3: Fixing proposal timestamps...');
 		const proposalResult = await fixProposalTimestampsHandler(ctx);
 
-		// 5. Fix history personIds
-		console.log('\n📌 Step 5: Fixing history personIds...');
+		// 4. Fix history personIds
+		console.log('\n📌 Step 4: Fixing history personIds...');
 		const historyResult = await fixHistoryPersonIdsHandler(ctx);
 
-		// 6. Fix circleItemCategory userIds
-		console.log('\n📌 Step 6: Fixing circleItemCategory userIds...');
+		// 5. Fix circleItemCategory userIds
+		console.log('\n📌 Step 5: Fixing circleItemCategory userIds...');
 		const categoryResult = await fixCircleItemCategoryUserIdsHandler(ctx);
 
-		// 7. Fix circleItem userIds
-		console.log('\n📌 Step 7: Fixing circleItem userIds...');
+		// 6. Fix circleItem userIds
+		console.log('\n📌 Step 6: Fixing circleItem userIds...');
 		const circleItemResult = await fixCircleItemUserIdsHandler(ctx);
 
-		// 8. Archive abandoned workspaces (makes AUTH and WS invariants pass)
-		console.log('\n📌 Step 8: Archiving abandoned workspaces...');
+		// 7. Archive abandoned workspaces (makes AUTH and WS invariants pass)
+		console.log('\n📌 Step 7: Archiving abandoned workspaces...');
 		const archiveResult = await archiveAbandonedWorkspacesHandler(ctx);
 
 		console.log('\n' + '═'.repeat(60));
@@ -694,7 +631,6 @@ export const fixAll = internalMutation({
 		return {
 			statusEnums: statusResult,
 			circleMemberOrphans: circleMemberResult,
-			legacyAssignmentOrphans: legacyAssignmentResult,
 			proposalTimestamps: proposalResult,
 			historyPersonIds: historyResult,
 			circleItemCategories: categoryResult,
@@ -753,27 +689,7 @@ async function fixOrphanedCircleMembersHandler(ctx: MutationCtx) {
 	return { deleted };
 }
 
-async function fixOrphanedLegacyAssignmentsHandler(ctx: MutationCtx) {
-	const userCircleRoles = await ctx.db.query('userCircleRoles').collect();
-	const roles = await ctx.db.query('circleRoles').collect();
-	const people = await ctx.db.query('people').collect();
-
-	const roleIds = new Set(roles.map((r) => r._id.toString()));
-	const personIds = new Set(people.map((p) => p._id.toString()));
-
-	let deleted = 0;
-	for (const ucr of userCircleRoles) {
-		const hasRole = roleIds.has(ucr.circleRoleId.toString());
-		const hasPerson = ucr.personId ? personIds.has(ucr.personId.toString()) : true;
-		if (!hasRole || !hasPerson) {
-			await ctx.db.delete(ucr._id);
-			deleted++;
-		}
-	}
-
-	console.log(`  Deleted ${deleted} orphaned legacy assignments`);
-	return { deleted };
-}
+// fixOrphanedLegacyAssignmentsHandler removed (SYOS-815: userCircleRoles table deleted)
 
 async function fixProposalTimestampsHandler(ctx: MutationCtx) {
 	const proposals = await ctx.db.query('circleProposals').collect();

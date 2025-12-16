@@ -61,7 +61,7 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 	// Query user permissions from Convex
 	const permissionsQuery =
 		browser && params.sessionId()
-			? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
+			? useQuery(api.infrastructure.rbac.permissions.getUserPermissionsQuery, () => {
 					const sessionId = params.sessionId();
 					invariant(sessionId, 'sessionId required'); // Should not happen due to outer check
 

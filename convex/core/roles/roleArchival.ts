@@ -5,13 +5,11 @@ import type { MutationCtx } from '../../_generated/server';
 import { recordArchiveHistory, recordRestoreHistory } from '../history';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import {
-	countLeadRolesInCircle,
 	ensureCircleExists,
 	ensureWorkspaceMembership,
 	requireWorkspacePersonById,
 	requireWorkspacePersonFromSession
 } from './roleAccess';
-import { isLeadRequiredForCircleType } from './lead';
 import { handleUserCircleRoleRemoved, handleUserCircleRoleRestored } from './roleRbac';
 
 async function archiveRoleHelper(
@@ -29,34 +27,18 @@ async function archiveRoleHelper(
 		return;
 	}
 
-	if (reason === 'direct' && role.templateId) {
-		const template = await ctx.db.get(role.templateId);
-		if (template?.isRequired) {
-			const circle = await ctx.db.get(role.circleId);
-			if (!circle) {
-				throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
-			}
-
-			const orgSettings = await ctx.db
-				.query('workspaceOrgSettings')
-				.withIndex('by_workspace', (q) => q.eq('workspaceId', circle.workspaceId))
-				.first();
-
-			const circleType = circle.circleType ?? 'hierarchy';
-			const leadRequired = isLeadRequiredForCircleType(
-				circleType,
-				orgSettings?.leadRequirementByCircleType
+	// GOV-04: Lead role cannot be deleted while circle exists
+	if (reason === 'direct' && role.roleType === 'circle_lead') {
+		const circle = await ctx.db.get(role.circleId);
+		if (!circle || circle.archivedAt !== undefined) {
+			// Circle is archived or doesn't exist - allow archiving lead role
+			// (this happens during cascade archival)
+		} else {
+			// Circle is active - prevent deleting lead role
+			throw createError(
+				ErrorCodes.GENERIC_ERROR,
+				'GOV-04: Lead role cannot be deleted while circle exists. Every circle must have exactly one lead role.'
 			);
-
-			if (leadRequired) {
-				const leadCount = await countLeadRolesInCircle(ctx, role.circleId);
-				if (leadCount <= 1) {
-					throw createError(
-						ErrorCodes.GENERIC_ERROR,
-						`Cannot archive the last Lead role in a ${circleType} circle. ${circleType} circles require at least one Lead role.`
-					);
-				}
-			}
 		}
 	}
 

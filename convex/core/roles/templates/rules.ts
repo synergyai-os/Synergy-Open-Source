@@ -14,7 +14,7 @@ export async function isWorkspaceAdmin(
 }
 
 /**
- * Returns the Lead role template (isRequired) for a workspace or system.
+ * Returns the Lead role template (roleType: 'circle_lead') for a workspace or system.
  */
 export async function findLeadRoleTemplate(
 	ctx: QueryCtx | MutationCtx,
@@ -23,7 +23,7 @@ export async function findLeadRoleTemplate(
 	const workspaceLeadTemplate = await ctx.db
 		.query('roleTemplates')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
-		.filter((q) => q.eq(q.field('isRequired'), true).eq(q.field('archivedAt'), undefined))
+		.filter((q) => q.eq(q.field('roleType'), 'circle_lead').eq(q.field('archivedAt'), undefined))
 		.first();
 
 	if (workspaceLeadTemplate) {
@@ -33,7 +33,7 @@ export async function findLeadRoleTemplate(
 	const systemLeadTemplate = await ctx.db
 		.query('roleTemplates')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
-		.filter((q) => q.eq(q.field('isRequired'), true).eq(q.field('archivedAt'), undefined))
+		.filter((q) => q.eq(q.field('roleType'), 'circle_lead').eq(q.field('archivedAt'), undefined))
 		.first();
 
 	return systemLeadTemplate?._id ?? null;
@@ -48,7 +48,7 @@ export async function updateLeadRolesFromTemplate(
 	personId: Id<'people'>
 ): Promise<void> {
 	const template = await ctx.db.get(templateId);
-	if (!template || !template.isRequired) {
+	if (!template || template.roleType !== 'circle_lead') {
 		return;
 	}
 

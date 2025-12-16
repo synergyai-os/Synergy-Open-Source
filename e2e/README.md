@@ -236,18 +236,27 @@ npm run ci:local
 # - Type checking (npm run check)
 # - Linting (npm run lint)
 # - Unit tests (npm run test:unit:server)
-# - Integration tests (npm run test:integration)
-# - E2E tests (npm run test:e2e)
 # - Build (npm run build)
+#
+# Note: E2E tests are excluded from automation and must be run manually
 ```
 
-### CI Pipeline
+### Manual Testing Only
 
-Tests run automatically in GitHub Actions:
+**Important**: E2E tests are excluded from all automation (CI/CD, pre-commit hooks, etc.). They must be run manually when needed:
 
-- On pull requests
-- On pushes to main
-- `E2E_TEST_MODE=true` must be set in CI environment variables
+- E2E tests are NOT run automatically in GitHub Actions
+- E2E tests are NOT run in pre-commit hooks
+- E2E tests are NOT run in `npm run test` or `npm run ci:local`
+- E2E tests can only be run manually using specific commands (see "Running Tests" above)
+
+To run E2E tests manually:
+
+- `npm run test:e2e` - Run all E2E tests
+- `npm run test:e2e:auth` - Run auth tests only
+- `npm run test:e2e:inbox` - Run inbox tests only
+- `npm run test:e2e:settings` - Run settings tests only
+- `npm run test:e2e:quick-create` - Run quick-create tests only
 
 ## Test Helper for Email Verification
 

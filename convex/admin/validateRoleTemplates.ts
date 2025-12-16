@@ -33,9 +33,10 @@ export const checkSystemTemplates = query({
 			templates: systemTemplates.map((t) => ({
 				_id: t._id,
 				name: t.name,
+				roleType: t.roleType,
 				description: t.description,
 				isCore: t.isCore,
-				isRequired: t.isRequired,
+				appliesTo: t.appliesTo,
 				archivedAt: t.archivedAt
 			}))
 		};
@@ -54,15 +55,14 @@ export const checkCoreTemplates = query({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access
-		const membership = await ctx.db
-			.query('workspaceMembers')
+		const person = await ctx.db
+			.query('people')
 			.withIndex('by_workspace_user', (q) =>
 				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
 			)
 			.first();
 
-		if (!membership) {
+		if (!person) {
 			throw createError(
 				ErrorCodes.WORKSPACE_ACCESS_DENIED,
 				'You do not have access to this workspace'
@@ -89,9 +89,10 @@ export const checkCoreTemplates = query({
 				templates: systemCoreTemplates.map((t) => ({
 					_id: t._id,
 					name: t.name,
+					roleType: t.roleType,
 					description: t.description,
 					isCore: t.isCore,
-					isRequired: t.isRequired
+					appliesTo: t.appliesTo
 				}))
 			},
 			workspace: {
@@ -99,9 +100,10 @@ export const checkCoreTemplates = query({
 				templates: workspaceCoreTemplates.map((t) => ({
 					_id: t._id,
 					name: t.name,
+					roleType: t.roleType,
 					description: t.description,
 					isCore: t.isCore,
-					isRequired: t.isRequired
+					appliesTo: t.appliesTo
 				}))
 			},
 			total: systemCoreTemplates.length + workspaceCoreTemplates.length
@@ -125,15 +127,14 @@ export const checkCircleRoles = query({
 			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
 
-		// Verify user has access
-		const membership = await ctx.db
-			.query('workspaceMembers')
+		const person = await ctx.db
+			.query('people')
 			.withIndex('by_workspace_user', (q) =>
 				q.eq('workspaceId', circle.workspaceId).eq('userId', userId)
 			)
 			.first();
 
-		if (!membership) {
+		if (!person) {
 			throw createError(
 				ErrorCodes.WORKSPACE_ACCESS_DENIED,
 				'You do not have access to this workspace'
@@ -162,12 +163,13 @@ export const checkCircleRoles = query({
 						? {
 								_id: template._id,
 								name: template.name,
+								roleType: template.roleType,
 								isCore: template.isCore,
-								isRequired: template.isRequired,
+								appliesTo: template.appliesTo,
 								archivedAt: template.archivedAt
 							}
 						: null,
-					isLeadRole: template?.isRequired === true,
+					isLeadRole: template?.roleType === 'circle_lead',
 					isCoreRole: template?.isCore === true
 				};
 			})
@@ -196,15 +198,14 @@ export const validateWorkspace = query({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access
-		const membership = await ctx.db
-			.query('workspaceMembers')
+		const person = await ctx.db
+			.query('people')
 			.withIndex('by_workspace_user', (q) =>
 				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
 			)
 			.first();
 
-		if (!membership) {
+		if (!person) {
 			throw createError(
 				ErrorCodes.WORKSPACE_ACCESS_DENIED,
 				'You do not have access to this workspace'
@@ -249,7 +250,7 @@ export const validateWorkspace = query({
 							name: role.name,
 							templateId: role.templateId,
 							isCore: template?.isCore === true,
-							isLead: template?.isRequired === true
+							isLead: template?.roleType === 'circle_lead'
 						};
 					})
 				);
@@ -292,13 +293,15 @@ export const validateWorkspace = query({
 			templates: {
 				system: systemCoreTemplates.map((t) => ({
 					name: t.name,
+					roleType: t.roleType,
 					isCore: t.isCore,
-					isRequired: t.isRequired
+					appliesTo: t.appliesTo
 				})),
 				workspace: workspaceCoreTemplates.map((t) => ({
 					name: t.name,
+					roleType: t.roleType,
 					isCore: t.isCore,
-					isRequired: t.isRequired
+					appliesTo: t.appliesTo
 				}))
 			}
 		};

@@ -1,8 +1,8 @@
 /**
  * Feature Flags Infrastructure
  *
- * Central export point for feature flags infrastructure.
- * Module-specific flags are in their respective module folders.
+ * All feature flags have been removed - core features are always enabled.
+ * This file is kept for backward compatibility but exports empty objects.
  *
  * @example
  * ```typescript
@@ -37,13 +37,9 @@ import { OrgChartFeatureFlags } from '../../modules/org-chart/feature-flags';
 
 /**
  * Combined FeatureFlags object including all system and module flags.
- * For backward compatibility - prefer importing from specific modules.
+ * Empty since all flags have been removed.
  *
- * @deprecated Use module-specific flag exports when possible:
- * - System flags: `$lib/infrastructure/feature-flags`
- * - Inbox flags: `$lib/modules/inbox/feature-flags`
- * - Meetings flags: `$lib/modules/meetings/feature-flags`
- * - Org Chart flags: `$lib/modules/org-chart/feature-flags`
+ * @deprecated All feature flags have been removed - core features are always enabled.
  */
 export const FeatureFlags = {
 	...SystemFlags,
@@ -59,23 +55,8 @@ export type FeatureFlagKey = (typeof FeatureFlags)[keyof typeof FeatureFlags];
 
 /**
  * Combined FlagDescriptions including all system and module flag descriptions.
- * Used as fallback when DB doesn't have a description.
+ * Empty since all flags have been removed.
  */
 export const FlagDescriptions: Record<string, string> = {
-	...SystemFlagDescriptions,
-	// Inbox module flags
-	[InboxFeatureFlags.INBOX_BATCH_ACTIONS_DEV]:
-		'Inbox Batch Actions - Enables multi-select functionality in the inbox: select multiple items, bulk archive, bulk delete, bulk tag, and bulk move to folders.',
-	[InboxFeatureFlags.SYNC_READWISE_V2_ROLLOUT]:
-		'Readwise Sync v2 - Upgrades Readwise integration with improved error handling, retry logic, and sync reliability. Automatically handles failed syncs and provides better status reporting.',
-	// Meetings module flags
-	[MeetingsFeatureFlags.MEETING_MODULE_BETA]:
-		'Meeting Module Beta - Legacy flag for meeting features. Note: Replaced by MEETINGS_MODULE flag. Consider removing if no longer needed.',
-	[MeetingsFeatureFlags.MEETING_INTEGRATIONS_BETA]:
-		'Meeting Integrations Beta - Enables calendar synchronization (import/export meetings) and video call platform integrations (Zoom, Google Meet, etc.).',
-	[MeetingsFeatureFlags.MEETINGS_MODULE]:
-		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.',
-	// Org Chart module flags
-	[OrgChartFeatureFlags.ORG_MODULE_BETA]:
-		'Organization Module Beta - Enables workspace creation, workspace settings, and team management features. Note: May be deprecated in favor of default workspace features.'
+	...SystemFlagDescriptions
 };

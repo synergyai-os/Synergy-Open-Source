@@ -2,11 +2,12 @@ import { internalQuery } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
+import { listWorkspacesForUser } from '../../core/people/queries';
 
 /**
  * Get user's accessible workspace IDs
- * FUTURE: Query workspaceMembers table
- * CURRENT: Returns empty array (user-scoped only)
+ * SYOS-814 Phase 2: Migrated to use people table
+ * Returns workspace IDs where user has active person record
  */
 export async function getUserWorkspaceIds(
 	ctx: QueryCtx | MutationCtx,
@@ -14,28 +15,24 @@ export async function getUserWorkspaceIds(
 ): Promise<string[]> {
 	const normalizedUserId = userId as Id<'users'>;
 
-	const memberships = await ctx.db
-		.query('workspaceMembers')
-		.withIndex('by_user', (q) => q.eq('userId', normalizedUserId))
-		.collect();
+	// Use people table to get workspace IDs (SYOS-814 Phase 2)
+	const workspaceIds = await listWorkspacesForUser(ctx, normalizedUserId);
 
-	return memberships.map((membership) => membership.workspaceId);
+	return workspaceIds;
 }
 
 /**
  * Internal query: Get user's workspace IDs (for use in actions)
+ * SYOS-814 Phase 2: Migrated to use people table
  */
 export const getUserOrganizationIdsQuery = internalQuery({
 	args: {
 		userId: v.id('users')
 	},
 	handler: async (ctx, args) => {
-		const memberships = await ctx.db
-			.query('workspaceMembers')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
-			.collect();
-
-		return memberships.map((membership) => membership.workspaceId);
+		// Use people table to get workspace IDs (SYOS-814 Phase 2)
+		const workspaceIds = await listWorkspacesForUser(ctx, args.userId);
+		return workspaceIds;
 	}
 });
 

@@ -5,6 +5,7 @@
  * Queries/mutations currently delegate to existing implementations.
  */
 
+export * from './constants';
 export * from './schema';
 export * from './queries';
 export * from './mutations';

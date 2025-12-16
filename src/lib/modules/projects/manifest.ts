@@ -13,7 +13,6 @@
  */
 
 import type { ModuleManifest } from '../registry';
-import { ProjectsFeatureFlags } from './feature-flags';
 import type { ProjectsModuleAPI } from './api';
 
 /**
@@ -27,6 +26,6 @@ export const projectsModule: ModuleManifest = {
 	name: 'projects',
 	version: '1.0.0',
 	dependencies: ['shared-ui'],
-	featureFlag: ProjectsFeatureFlags.PROJECTS_MODULE, // 'projects-module'
+	featureFlag: null, // Always enabled - core feature (when implemented)
 	api: undefined as ProjectsModuleAPI | undefined // Type reference for API contract
 };

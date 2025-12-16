@@ -44,7 +44,7 @@ export function useWorkspaceMembers(options: {
 	// Query workspace invites
 	const invitesQuery =
 		browser && getSessionId() && getWorkspaceId()
-			? useQuery(api.core.workspaces.index.getWorkspaceInvites, () => {
+			? useQuery(api.features.invites.queries.getWorkspaceInvites, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
 					invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
@@ -97,7 +97,7 @@ export function useWorkspaceMembers(options: {
 			state.loading.invite = true;
 			try {
 				const result = await convexClient.mutation(
-					api.core.workspaces.index.createWorkspaceInvite,
+					api.features.invites.mutations.createWorkspaceInvite,
 					{
 						sessionId,
 						workspaceId: workspaceId as Id<'workspaces'>,
@@ -131,7 +131,7 @@ export function useWorkspaceMembers(options: {
 
 			state.loading.resend = true;
 			try {
-				await convexClient.mutation(api.core.workspaces.index.resendOrganizationInvite, {
+				await convexClient.mutation(api.features.invites.mutations.resendOrganizationInvite, {
 					sessionId,
 					inviteId: inviteId as Id<'workspaceInvites'>
 				});

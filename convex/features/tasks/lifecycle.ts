@@ -1,6 +1,7 @@
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import { getPersonByUserAndWorkspace } from '../../core/people/queries';
 import {
 	ensureWorkspaceMembership,
 	getAgendaItemOrThrow,
@@ -54,6 +55,10 @@ export async function createTask(
 		ensureProjectBelongsToWorkspace(project.workspaceId, args.workspaceId);
 	}
 
+	// Convert userId to personId for audit field (XDOM-01/XDOM-02 compliance)
+	const person = await getPersonByUserAndWorkspace(ctx, args.userId, args.workspaceId);
+	const createdByPersonId = person._id;
+
 	const actionItemId = await ctx.db.insert('tasks', {
 		workspaceId: args.workspaceId,
 		meetingId: args.meetingId,
@@ -67,7 +72,7 @@ export async function createTask(
 		dueDate: args.dueDate,
 		status: args.status ?? 'todo',
 		createdAt: Date.now(),
-		createdBy: args.userId
+		createdByPersonId
 	});
 
 	return { actionItemId };

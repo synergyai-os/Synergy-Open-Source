@@ -132,8 +132,9 @@ export function useOrgChart(options: {
 
 	// Query workspace org settings (includes allowQuickChanges for quick edit permission)
 	// Loaded once per workspace - provides instant "quick edits disabled" check
+	// SYOS-855: Workspace settings moved to features/workspace-settings/
 	const orgSettingsQuery = browser
-		? useQuery(api.core.workspaces.workspaceSettings.getOrgSettings, () => {
+		? useQuery(api.features.workspaceSettings.index.getOrgSettings, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');

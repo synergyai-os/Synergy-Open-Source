@@ -1,23 +1,15 @@
 import type { Change } from 'convex-helpers/server/triggers';
 import type { DataModel, Doc } from '../../_generated/dataModel';
 
-export type EntityType =
-	| 'circle'
-	| 'circleRole'
-	| 'userCircleRole'
-	| 'circleMember'
-	| 'circleItemCategory'
-	| 'circleItem';
+export type EntityType = 'circle' | 'circleRole' | 'assignment' | 'circleMember';
 
 export type ChangeType = 'create' | 'update' | 'archive' | 'restore';
 
 export type EntityDocByType = {
 	circle: Doc<'circles'>;
 	circleRole: Doc<'circleRoles'>;
-	userCircleRole: Doc<'userCircleRoles'>;
+	assignment: Doc<'assignments'>;
 	circleMember: Doc<'circleMembers'>;
-	circleItemCategory: Doc<'circleItemCategories'>;
-	circleItem: Doc<'circleItems'>;
 };
 
 export type EntityDoc = EntityDocByType[EntityType];
@@ -42,19 +34,11 @@ export type SnapshotByType = {
 		EntityDocByType['circleRole'],
 		'circleId' | 'name' | 'purpose' | 'templateId' | 'status' | 'isHiring' | 'archivedAt'
 	>;
-	userCircleRole: Pick<
-		EntityDocByType['userCircleRole'],
-		'personId' | 'circleRoleId' | 'scope' | 'archivedAt'
+	assignment: Pick<
+		EntityDocByType['assignment'],
+		'circleId' | 'personId' | 'roleId' | 'status' | 'endedAt'
 	>;
 	circleMember: Pick<EntityDocByType['circleMember'], 'circleId' | 'personId' | 'archivedAt'>;
-	circleItemCategory: Pick<
-		EntityDocByType['circleItemCategory'],
-		'workspaceId' | 'entityType' | 'name' | 'order' | 'isDefault' | 'archivedAt'
-	>;
-	circleItem: Pick<
-		EntityDocByType['circleItem'],
-		'categoryId' | 'entityType' | 'entityId' | 'content' | 'order' | 'archivedAt'
-	>;
 };
 
 export type Snapshot<T extends EntityType> = SnapshotByType[T] | undefined;

@@ -8,14 +8,14 @@
  * to enable isolated testing and clear separation of concerns.
  */
 
+import { CIRCLE_TYPES, type CircleType } from '../circles';
 import { getPolicy } from './policies';
 import { isCircleLead, isCircleMember, isFacilitator } from './rules';
 import type {
 	Authority,
 	AuthorityContext,
 	AuthorityLevel,
-	CirclePolicy,
-	CircleType
+	CirclePolicy
 } from './types';
 
 /**
@@ -32,13 +32,13 @@ import type {
  * @returns Authority level for the Lead role in this circle
  */
 export function calculateAuthorityLevel(circleType: CircleType | null | undefined): AuthorityLevel {
-	const effectiveType = circleType ?? 'hierarchy';
+	const effectiveType = circleType ?? CIRCLE_TYPES.HIERARCHY;
 
 	const mapping: Record<CircleType, AuthorityLevel> = {
-		hierarchy: 'authority', // Lead decides directly
-		empowered_team: 'facilitative', // Team consensus, Lead facilitates
-		guild: 'convening', // No authority, coordination only
-		hybrid: 'authority' // Lead decides (same as hierarchy)
+		[CIRCLE_TYPES.HIERARCHY]: 'authority', // Lead decides directly
+		[CIRCLE_TYPES.EMPOWERED_TEAM]: 'facilitative', // Team consensus, Lead facilitates
+		[CIRCLE_TYPES.GUILD]: 'convening', // No authority, coordination only
+		[CIRCLE_TYPES.HYBRID]: 'authority' // Lead decides (same as hierarchy)
 	};
 
 	return mapping[effectiveType];

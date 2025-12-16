@@ -1,7 +1,7 @@
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
-import { requirePermission } from '../../rbac/permissions';
+import { requirePermission } from '../../infrastructure/rbac/permissions';
 
 export async function requireSessionUserId(
 	ctx: QueryCtx | MutationCtx,

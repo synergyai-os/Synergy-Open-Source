@@ -7,8 +7,8 @@ import type { Doc } from '../../_generated/dataModel';
 
 /**
  * Canonical circle operating modes.
- * Sourced here so all domains share the same union.
+ * Re-exported from constants.ts (single source of truth).
  */
-export type CircleType = 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid';
+export type { CircleType, DecisionModel } from './constants';
 
 export type CircleDoc = Doc<'circles'>;

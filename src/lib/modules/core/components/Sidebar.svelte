@@ -39,8 +39,8 @@
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 		user?: { email: string; firstName?: string; lastName?: string } | null;
-		meetingsEnabled?: boolean;
-		dashboardEnabled?: boolean;
+		meetingsEnabled?: boolean; // Deprecated: Always true, kept for backward compatibility
+		dashboardEnabled?: boolean; // Deprecated: Always true, kept for backward compatibility
 	};
 
 	let {
@@ -54,8 +54,8 @@
 		onCreateMenuChange: _onCreateMenuChange,
 		onQuickCreate: _onQuickCreate,
 		user = null,
-		meetingsEnabled = false,
-		dashboardEnabled = false
+		meetingsEnabled: _meetingsEnabled = true, // Always enabled - core feature
+		dashboardEnabled = true // Always enabled - core feature
 	}: Props = $props();
 
 	// Initialize sidebarWidth from prop or token
@@ -94,7 +94,7 @@
 		return workspaces.activeWorkspace?.slug ?? null;
 	});
 
-	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
+	// Core features (circles, meetings) are always enabled
 
 	// Get available accounts from localStorage (not database)
 	// This ensures only accounts with active sessions are shown
@@ -618,20 +618,16 @@
 						{/if}
 
 						<div class="space-y-form-field-gap">
-							<!-- Meetings (Beta - Feature Flag) -->
-							{#if meetingsEnabled}
-								<NavItem
-									href={resolveRoute(
-										activeWorkspaceSlug()
-											? `/w/${activeWorkspaceSlug()}/meetings`
-											: '/auth/redirect'
-									)}
-									iconType="calendar"
-									label="Meetings"
-									title="Meetings"
-									collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-								/>
-							{/if}
+							<!-- Meetings -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/auth/redirect'
+								)}
+								iconType="calendar"
+								label="Meetings"
+								title="Meetings"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
 
 							<!-- Proposals -->
 							<NavItem
@@ -1001,18 +997,16 @@
 					{/if}
 
 					<div class="space-y-form-field-gap">
-						<!-- Meetings (Beta - Feature Flag) -->
-						{#if meetingsEnabled}
-							<NavItem
-								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/auth/redirect'
-								)}
-								iconType="calendar"
-								label="Meetings"
-								title="Meetings"
-								collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-							/>
-						{/if}
+						<!-- Meetings -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/auth/redirect'
+							)}
+							iconType="calendar"
+							label="Meetings"
+							title="Meetings"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
 
 						<!-- Proposals -->
 						<NavItem

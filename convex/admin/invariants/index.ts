@@ -48,11 +48,7 @@ const checkRefs = [
 	internal.admin.invariants.assignments.checkASSIGN04,
 	internal.admin.invariants.assignments.checkASSIGN05,
 	internal.admin.invariants.assignments.checkASSIGN06,
-	// Legacy Assignments (4)
-	internal.admin.invariants.legacyAssignments.checkUCROLE01,
-	internal.admin.invariants.legacyAssignments.checkUCROLE02,
-	internal.admin.invariants.legacyAssignments.checkUCROLE03,
-	internal.admin.invariants.legacyAssignments.checkUCROLE04,
+	// Legacy Assignments removed (SYOS-815: userCircleRoles table migrated to assignments)
 	// Authority (4)
 	internal.admin.invariants.authority.checkAUTH01,
 	internal.admin.invariants.authority.checkAUTH02,

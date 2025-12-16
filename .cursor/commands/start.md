@@ -1,6 +1,34 @@
-# /start
+# start
 
-Begin work on a task. Read ticket from Linear, understand constraints, confirm before coding.
+Begin work on a task. Read ticket from Linear, verify against architecture docs, confirm before coding.
+
+---
+
+## Foundational Principle: Docs Lead, Code Follows
+
+**Architecture.md is the source of truth. The codebase may be outdated.**
+
+When you find a gap between documentation and code:
+- **DO NOT** assume the code is correct
+- **DO NOT** silently follow the code pattern
+- **DO** stop and report the gap
+- **DO** ask whether to: (A) follow docs, (B) update docs first, (C) clarify intent
+
+```markdown
+> ⚠️ **Doc/Code Gap Detected:**
+> 
+> **Document says:** [quote from architecture.md]
+> **Code shows:** [what you found]
+> 
+> **This could mean:**
+> - A) Code is outdated → Follow docs
+> - B) Docs need updating → Update docs first, then implement
+> - C) Edge case not covered → Need clarification
+> 
+> **Waiting for guidance before proceeding.**
+```
+
+**Why this matters:** AI agents often treat existing code as authoritative. In SynergyOS, we're pre-production with active architecture evolution. Following outdated patterns propagates tech debt.
 
 ---
 
@@ -11,7 +39,7 @@ Begin work on a task. Read ticket from Linear, understand constraints, confirm b
 - Scope ambiguity ("Should I also update X?")
 - Architectural decisions ("Should this be a new file or extend existing?")
 - Missing information ("Ticket doesn't specify error handling for Y")
-- Conflicting constraints ("File is 280 lines, adding 30 would exceed limit")
+- Conflicting constraints ("Doc says X, code does Y")
 - Domain terminology ("Is this a 'member' or 'person' in this context?")
 - Implicit expectations ("Does 'update' mean patch or replace?")
 
@@ -138,8 +166,8 @@ Extract from the ticket description:
 
 ## Key Constraints (from ticket + parent)
 
-- `constraint-id-1`: [description]
-- `constraint-id-2`: [description]
+- [constraint description]
+- [constraint description]
 
 ## Out of Scope (explicitly stated)
 
@@ -147,21 +175,30 @@ Extract from the ticket description:
 - [thing deferred to later phase]
 ```
 
-#### Auto-Infer Constraints
+### Step 4: Read Architecture Docs
 
-If constraints section missing, apply based on files:
+**Before touching any code, read the relevant architecture docs.**
 
-| If files touch... | Apply these constraints |
-|-------------------|------------------------|
-| `convex/core/` | `core-complete`, `dep-layer-direction`, `test-core-coverage` |
-| Any mutation | `cvx-auth-before-write`, `hygiene-handler-thin`, `err-code-format` |
-| Any query | `cvx-queries-pure`, `hygiene-handler-thin` |
-| Any Convex file | `cvx-no-classes`, `hygiene-file-size`, `lang-terminology` |
-| `src/` components | `svelte-thin-components`, `svelte-delegate`, `svelte-runes` |
-| Any test file | `test-colocated`, `test-independent` |
-| New domain folder | `README.md` required, standard file structure |
+| If ticket involves... | Read these docs |
+|-----------------------|-----------------|
+| Any backend work | `architecture.md` (always) |
+| Core domain (circles, roles, people, etc.) | `architecture.md` — check FROZEN/STABLE status |
+| UI components | `design-system.md` |
+| Permissions/access | `convex/infrastructure/rbac/README.md` |
+| Data integrity | `convex/admin/invariants/INVARIANTS.md` |
+| Feature flags | `convex/infrastructure/featureFlags/README.md` |
 
-### Step 4: Read Current State
+**Check domain status before modifying core:**
+
+| Status | Meaning | Process Required |
+|--------|---------|------------------|
+| **FROZEN** | Organizational truth — foundational | RFC ticket + 1 week cooling + migration plan |
+| **STABLE** | Supporting infrastructure | Document reasoning in ticket |
+
+FROZEN domains (require RFC): users, people, circles, roles, assignments, authority, history
+STABLE domains (careful evolution): workspaces, proposals, policies
+
+### Step 5: Read Current Code State
 
 For each file in scope:
 
@@ -172,43 +209,53 @@ ls -la [file]
 # Read current content
 view [file]
 
-# Note line count for hygiene check
+# Note line count (guideline, not rule)
 wc -l [file]
 ```
 
+**While reading, actively compare against architecture.md:**
+
+| Check | If Gap Found |
+|-------|--------------|
+| Identity pattern (sessionId → userId → personId) | Report gap |
+| Auth helper usage (validateSessionAndGetUserId) | Report gap |
+| Domain terminology (circle, role, person) | Report gap |
+| Layer dependencies (infra ← core ← features) | Report gap |
+| Export pattern (only via index.ts) | Report gap |
+
 Document:
-- Current line counts (for `hygiene-file-size` ≤300 limit)
-- Existing patterns to follow
+- Current patterns (do they match architecture.md?)
+- Any gaps between docs and code (MUST REPORT)
 - Related code that might be affected
 - Whether file exists or needs creation
 
-### Step 5a: Identify Approach
+### Step 6: Identify Approach (Docs-First)
 
-Based on architecture.md principles:
+**Always derive approach from architecture.md, not from existing code patterns.**
 
-| If working on... | Approach |
-|------------------|----------|
-| New domain | Create full structure: tables.ts, schema.ts, queries.ts, mutations.ts, rules.ts, index.ts, README.md, tests |
-| New mutation | Auth → RBAC → Authority → Validate → Write pattern |
+| If working on... | Architecture.md says... |
+|------------------|------------------------|
+| New domain | 8-file structure: tables.ts, schema.ts, queries.ts, mutations.ts, rules.ts, index.ts, README.md, tests |
+| New mutation | Auth (validateSessionAndGetUserId) → Get person context → Authority check → Validate → Write |
 | New query | Pure read, no side effects, proper indexes |
 | New rule | Pure function if possible, contextual if needs ctx |
 | UI component | Thin, delegate to Convex, use recipes |
 | Tests | Co-located, independent, cover required cases |
 | Schema change | Update tables.ts, register in schema.ts, add indexes |
+| RBAC work | Two scopes: systemRoles (userId) vs workspaceRoles (personId) |
 
----
-
-### Step 5b: Edge Case Check
+### Step 7: Edge Case Check
 
 Before presenting plan, consider:
 - Bootstrap/first-record scenarios
 - Empty state handling
-- Circular dependencies (e.g., invitedBy references people, but first person has no inviter)
+- Circular dependencies
 - Status transition edge cases
+- Identity model edge cases (user in multiple workspaces)
 
 If any found, include in "Open Questions" section.
 
-### Step 6: Present Plan (Wait for Confirmation)
+### Step 8: Present Plan (Wait for Confirmation)
 
 ```markdown
 ## Task: SYOS-XXX — [Title]
@@ -216,36 +263,53 @@ If any found, include in "Open Questions" section.
 ### Context
 - **Parent:** SYOS-YYY — [parent title]
 - **Phase:** X of Y
+- **Domain Status:** [FROZEN/STABLE/Feature]
 - **Key constraint from parent:** [e.g., "Use personId for org identity, userId for auth only"]
+
+### Doc/Code Alignment Check
+
+| Aspect | Architecture.md | Current Code | Status |
+|--------|-----------------|--------------|--------|
+| Identity chain | sessionId → userId → personId | [what code shows] | ✅ Aligned / ⚠️ Gap |
+| Auth helper | validateSessionAndGetUserId | [what code uses] | ✅ Aligned / ⚠️ Gap |
+| Layer imports | infra ← core ← features | [what imports show] | ✅ Aligned / ⚠️ Gap |
+
+**If gaps found:**
+> ⚠️ **Gaps require resolution before proceeding.** See details above.
 
 ### What I'll Do
 
 1. **[Logical unit 1]**
    - Create `path/to/file.ts`
    - Implement [specific thing]
+   - Pattern source: [architecture.md section]
 
 2. **[Logical unit 2]**
    - Update `path/to/other.ts`
    - Add [specific thing]
+   - Pattern source: [architecture.md section]
 
 3. **[Logical unit 3]**
    - Add tests in `path/to/tests.ts`
 
 ### Files to Touch
 
-| File | Exists? | Current Lines | Action | Final Lines |
-|------|---------|---------------|--------|-------------|
+| File | Exists? | Current Lines | Action | Est. Final |
+|------|---------|---------------|--------|------------|
 | tables.ts | No | 0 | Create | ~40 |
 | queries.ts | No | 0 | Create | ~80 |
 | mutations.ts | No | 0 | Create | ~120 |
-| rules.ts | No | 0 | Create | ~60 |
-| README.md | No | 0 | Create | ~50 |
 
-### Constraints I'll Follow
+*Note: Line counts are estimates. Per architecture.md Trade-off Guidance, domain cohesion takes priority over line limits.*
 
-- `constraint-1`: [How I'll satisfy it]
-- `constraint-2`: [How I'll satisfy it]
-- `hygiene-file-size`: All files under 300 lines ✓
+### Architecture Principles I'll Follow
+
+| Principle # | Description | How I'll Apply |
+|-------------|-------------|----------------|
+| #9 | Mutations validate auth BEFORE writing | Auth first line of every handler |
+| #11 | Zero classes | Functions only |
+| #15-16 | Domain language | circle, role, person terminology |
+| #26 | Handlers ≤20 lines | Extract to rules.ts if growing |
 
 ### Acceptance Criteria Mapping
 
@@ -259,7 +323,7 @@ If any found, include in "Open Questions" section.
 
 | Risk | Mitigation |
 |------|------------|
-| [e.g., Schema change might affect X] | [Will verify Y first] |
+| [e.g., Code uses deprecated pattern] | [Will follow architecture.md, not code] |
 | [e.g., New table needs registration] | [Will update schema.ts] |
 
 ### Open Questions (if any)
@@ -283,20 +347,21 @@ Reply with:
 
 **Do not proceed without explicit confirmation.**
 
-### Step 7: Execute with Checkpoints
+### Step 9: Execute with Checkpoints
 
 After confirmation, implement the plan.
 
 #### During Implementation
 
-**Continuously verify:**
+**Continuously verify against architecture.md (not existing code):**
 
-- [ ] Auth before writes (don't "check exists" first)
+- [ ] Auth before writes (validateSessionAndGetUserId first)
+- [ ] Identity chain correct (sessionId → userId → personId)
 - [ ] Handler staying under 20 lines (extract if growing)
 - [ ] Using domain language (circles not teams, person not member)
 - [ ] Error format: `ERR_CODE: message`
 - [ ] No classes anywhere
-- [ ] Following patterns from existing code
+- [ ] Exports only via index.ts
 
 #### Checkpoint After Each Logical Unit
 
@@ -322,73 +387,84 @@ If checkpoint fails:
 
 **Do not accumulate errors across steps. Fix before continuing.**
 
-#### If You Encounter Ambiguity During Implementation
+#### If You Find Code That Contradicts Architecture
 
 ```markdown
-> ❓ **Encountered ambiguity during implementation:**
+> ⚠️ **Found code contradicting architecture.md:**
 > 
-> **Context:** Working on [step X], specifically [what you're doing]
-> 
-> **Issue:** [What's unclear]
+> **Location:** `convex/core/circles/mutations.ts:45`
+> **Code pattern:** Uses `getAuthUserId(ctx)` 
+> **Architecture.md says:** Use `validateSessionAndGetUserId(ctx, sessionId)`
 > 
 > **Options:**
-> - A) [option]
-> - B) [option]
+> - A) Follow architecture.md (correct pattern, may require refactoring)
+> - B) Follow existing code (propagates tech debt)
+> - C) This is a known legacy pattern (add to tech debt doc)
 > 
 > **Pausing for guidance.**
 ```
 
-### Step 8: Self-Check Before Completion
+### Step 10: Self-Check Before Completion
 
-Before saying "done", run these checks:
+Before saying "done", verify against architecture.md:
 
 ```bash
-# File sizes (must be ≤300)
-wc -l [all touched files]
-
-# No classes
-grep -n "^class " [touched files]
-
-# Terminology (should find 0)
-grep -in '"team"\|"manager"\|"permission"' [touched files]
-
-# Error format (should use ERR_CODE pattern)
-grep -n "throw new Error" [touched files]
-
 # Type check
 npm run check
 
-# Tests pass (if tests exist)
-npm run test -- --filter=[domain]
+# Lint
+npm run lint
+
+# Tests (if applicable)
+npm run test:unit:server -- --filter=[domain]
 ```
+
+**Manual verification checklist:**
+
+| Check | Method | Pass Criteria |
+|-------|--------|---------------|
+| Identity chain | View mutations | sessionId → userId → personId |
+| Auth pattern | View mutations | validateSessionAndGetUserId used |
+| No classes | `grep -n "^class " [files]` | 0 matches |
+| Domain language | Review code | No team/manager/permission |
+| Error format | Review throws | All use ERR_CODE: message |
+| Exports clean | View index.ts | Only public API exported |
+| Handler size | Count lines | ≤20 lines (guideline) |
 
 Report results:
 
 ```markdown
 ## Self-Check Complete
 
-| Check | Result |
-|-------|--------|
-| File sizes ≤300 | ✅ tables.ts: 42, queries.ts: 78, mutations.ts: 115 |
-| No classes | ✅ 0 matches |
-| Terminology | ✅ 0 violations |
-| Error format | ✅ All use ERR_CODE: message |
-| Type check | ✅ npm run check passes |
-| Tests | ✅ All passing |
+### Validation Commands
 
-## Acceptance Criteria
+| Command | Result |
+|---------|--------|
+| `npm run check` | ✅ Pass |
+| `npm run lint` | ✅ Pass / ⚠️ X warnings |
+| Tests | ✅ Pass / ⚠️ X failures |
+
+### Architecture Alignment
+
+| Principle | Status | Evidence |
+|-----------|--------|----------|
+| #9 Auth before write | ✅ | All mutations auth first |
+| #11 No classes | ✅ | 0 class declarations |
+| #15-16 Terminology | ✅ | circle/role/person used |
+| #26 Handler size | ✅ | All handlers ≤20 lines |
+
+### Acceptance Criteria
 
 - [x] AC-1: [evidence]
 - [x] AC-2: [evidence]
 - [x] AC-3: [evidence]
 
-## Files Created/Modified
+### Files Created/Modified
 
 | File | Lines | Change |
 |------|-------|--------|
 | `core/people/tables.ts` | 42 | Created |
 | `core/people/queries.ts` | 78 | Created |
-| ... | ... | ... |
 
 ---
 
@@ -399,86 +475,105 @@ Report results:
 
 ## Architecture Quick Reference
 
-### Documents to Read (if needed)
-
-| Topic | Document |
-|-------|----------|
-| Backend/domain structure | `dev-docs/master-docs/architecture.md` |
-| UI/styling/tokens | `dev-docs/master-docs/design-system.md` |
-| Authentication | `dev-docs/master-docs/workos-convex-auth-architecture.md` |
-| Access control | `dev-docs/master-docs/rbac/rbac-architecture.md` |
-
-### File Locations
-
-| Domain | Path |
-|--------|------|
-| Users (auth) | `/convex/core/users/` |
-| People (org) | `/convex/core/people/` |
-| Circles | `/convex/core/circles/` |
-| Roles | `/convex/core/roles/` |
-| Assignments | `/convex/core/assignments/` |
-| Proposals | `/convex/core/proposals/` |
-| Authority | `/convex/core/authority/` |
-| History | `/convex/core/history/` |
-| Workspaces | `/convex/core/workspaces/` |
-| Meetings | `/convex/features/meetings/` |
-| Tags | `/convex/features/tags/` |
-
-### Identity Model (Critical)
+### Identity Model (Critical — Memorize This)
 
 ```
-sessionId → personId → userId → authenticated
+sessionId → userId → personId → workspaceId
 
-sessionId  = "Which browser session?" (temporary, auth mechanism)
-personId   = "Who in THIS workspace?" (scoped, 1 per workspace)
-userId     = "Which human logged in?" (global, exactly 1 per human)
+sessionId   = "Which browser session?" (temporary, rotates on logout)
+userId      = "Which human logged in?" (global, exactly 1 per human)
+personId    = "Who in THIS workspace?" (scoped, 1 per workspace per user)
+workspaceId = "Which organization?" (tenant boundary)
 ```
 
-| When you need... | Use | Location |
-|------------------|-----|----------|
-| Auth identity | `userId` | `infrastructure/auth`, `rbac` only |
-| Org identity | `personId` | Everywhere else |
+| Context | Use This | Why |
+|---------|----------|-----|
+| Authentication | `userId` | Global identity |
+| Workspace operations | `personId` | Workspace-scoped identity |
+| Audit fields (createdBy, etc.) | `personId` | Maintains workspace isolation |
+| System RBAC | `userId` | Platform-wide access |
+| Workspace RBAC | `personId` | Org-specific permissions |
 
-### Standard Domain Structure
+**The Invariant (XDOM-01):** No `userId` in core domain tables except `users` and `people`. All audit fields use `personId`.
 
-```
-convex/core/{domain}/
-├── tables.ts         # Table definitions (defineTable)
-├── schema.ts         # Schema export for convex/schema.ts
-├── queries.ts        # Read operations
-├── mutations.ts      # Write operations
-├── rules.ts          # Business rules (pure + contextual)
-├── index.ts          # Public API exports only
-├── README.md         # Domain documentation (AI-friendly)
-└── {domain}.test.ts  # Co-located tests
-```
-
-### Mutation Pattern
+### Auth Flow (Every Mutation)
 
 ```typescript
 export const doThing = mutation({
-  args: { sessionId: v.string(), /* other args */ },
+  args: { sessionId: v.string(), workspaceId: v.id('workspaces'), /* ... */ },
   handler: async (ctx, args) => {
-    // 1. Auth (ALWAYS FIRST)
+    // 1. Session → User (auth layer)
     const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
     
-    // 2. Get person context (for org operations)
+    // 2. User → Person (workspace layer)
     const person = await getPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+    const personId = person._id;
     
-    // 3. Authority check
-    await requireCircleLead(ctx, person._id, args.circleId);
+    // 3. Authority check (if needed)
+    await requireCircleLead(ctx, personId, args.circleId);
     
     // 4. Validation (via rules.ts)
     validateInput(args);
     
-    // 5. Write
+    // 5. Write (using personId for audit)
     return ctx.db.insert("things", { 
-      createdByPersonId: person._id,
+      workspaceId: args.workspaceId,
+      createdByPersonId: personId,
       /* ... */ 
     });
   },
 });
 ```
+
+### RBAC Two-Scope Model
+
+| Scope | Table | Identifier | Use Case |
+|-------|-------|------------|----------|
+| **System** | `systemRoles` | `userId` | Platform ops: admin console, developer access |
+| **Workspace** | `workspaceRoles` | `personId` | Org ops: billing admin, workspace settings |
+
+### Domain File Structure
+
+```
+convex/core/{domain}/
+├── tables.ts         # Table definitions (REQUIRED)
+├── schema.ts         # Types/aliases (OPTIONAL)
+├── queries.ts        # Read operations
+├── mutations.ts      # Write operations  
+├── rules.ts          # Business rules
+├── index.ts          # Public exports ONLY
+├── README.md         # Domain documentation
+└── {domain}.test.ts  # Co-located tests
+```
+
+### Layer Dependencies
+
+```
+Application (src/) → Features (convex/features/) → Core (convex/core/) → Infrastructure (convex/infrastructure/)
+```
+
+**Never reversed.** Features cannot import from Application. Core cannot import from Features.
+
+### Trade-off Guidance (When Principles Conflict)
+
+| Prioritize This... | Even Over... |
+|-------------------|--------------|
+| Domain cohesion | File line limits |
+| Explicit boundaries | DRY across domains |
+| Working code | Perfect structure |
+| Readability | Clever abstractions |
+
+### Terminology (Always)
+
+| ✅ Correct | ❌ Never Use |
+|-----------|-------------|
+| Circle | Team |
+| Role | Job, Position |
+| Person | Member, User (in workspace context) |
+| Authority | Permission |
+| Workspace | Organization |
+
+**Exception:** "user" is valid in auth context (users domain, userId for auth).
 
 ### Test Cases Required (per mutation)
 
@@ -495,12 +590,24 @@ export const doThing = mutation({
 
 ## Critical Reminders
 
-1. **Fetch ticket from Linear** — Never work from memory
-2. **Load parent context** — Sub-tickets inherit constraints
-3. **Check blockers** — Don't start blocked work
-4. **Present plan first** — Wait for explicit confirmation
-5. **Never assume** — When in doubt, ask
-6. **Checkpoint often** — Run `npm run check` after each logical unit
-7. **Self-check before done** — Verify all criteria met
-8. **Domain language** — Circle, role, person (not team, job, member, user for org context)
-9. **personId for org, userId for auth** — Never mix them up
+1. **Docs lead, code follows** — Architecture.md is truth, codebase may be outdated
+2. **Report gaps** — Don't silently follow outdated code patterns
+3. **Fetch ticket from Linear** — Never work from memory
+4. **Check domain status** — FROZEN domains require RFC process
+5. **Load parent context** — Sub-tickets inherit constraints
+6. **Check blockers** — Don't start blocked work
+7. **Present plan first** — Wait for explicit confirmation
+8. **Never assume** — When in doubt, ask
+9. **Checkpoint often** — Run `npm run check` after each logical unit
+10. **Identity chain** — sessionId → userId → personId (in that order)
+11. **Audit fields** — Always use `personId`, never `userId`
+12. **Domain language** — Circle, role, person (not team, job, member)
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 2.0 | 2025-12-14 | Aligned with architecture.md v3.5. Added docs-first principle, gap detection, identity chain fix, RBAC scopes, trade-off guidance. |
+| 1.0 | 2025-12-07 | Original version |

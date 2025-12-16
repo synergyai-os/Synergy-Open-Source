@@ -18,9 +18,10 @@
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query org chart settings
+	// SYOS-855: Workspace settings moved to features/workspace-settings/
 	const orgSettingsQuery =
 		browser && data.sessionId && data.workspaceId
-			? useQuery(api.core.workspaces.workspaceSettings.getOrgSettings, () => ({
+			? useQuery(api.features.workspaceSettings.index.getOrgSettings, () => ({
 					sessionId: data.sessionId,
 					workspaceId: data.workspaceId as Id<'workspaces'>
 				}))
@@ -62,7 +63,7 @@
 		isSaving = true;
 
 		try {
-			await convexClient.mutation(api.core.workspaces.workspaceSettings.updateOrgSettings, {
+			await convexClient.mutation(api.features.workspaceSettings.index.updateOrgSettings, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
 				allowQuickChanges: newValue
@@ -95,7 +96,7 @@
 		isSaving = true;
 
 		try {
-			await convexClient.mutation(api.core.workspaces.workspaceSettings.updateOrgSettings, {
+			await convexClient.mutation(api.features.workspaceSettings.index.updateOrgSettings, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
 				leadRequirementByCircleType: updatedRequirement

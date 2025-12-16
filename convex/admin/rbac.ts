@@ -7,7 +7,7 @@
 
 import { query, mutation } from '../_generated/server';
 import { v } from 'convex/values';
-import { requireSystemAdmin } from '../rbac/permissions';
+import { requireSystemAdmin } from '../infrastructure/rbac/permissions';
 import type { Id } from '../_generated/dataModel';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
@@ -26,13 +26,13 @@ export const listRoles = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const roles = await ctx.db.query('roles').collect();
+		const roles = await ctx.db.query('rbacRoles').collect();
 
 		// Get permission counts for each role
 		const rolesWithCounts = await Promise.all(
 			roles.map(async (role) => {
 				const rolePermissions = await ctx.db
-					.query('rolePermissions')
+					.query('rbacRolePermissions')
 					.withIndex('by_role', (q) => q.eq('roleId', role._id))
 					.collect();
 
@@ -68,7 +68,7 @@ export const listRoles = query({
 export const getRole = query({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles')
+		roleId: v.id('rbacRoles')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
@@ -80,7 +80,7 @@ export const getRole = query({
 
 		// Get all permissions for this role
 		const rolePermissions = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role', (q) => q.eq('roleId', args.roleId))
 			.collect();
 
@@ -123,7 +123,7 @@ export const listPermissions = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const permissions = await ctx.db.query('permissions').collect();
+		const permissions = await ctx.db.query('rbacPermissions').collect();
 
 		// Group by category
 		const grouped = permissions.reduce(
@@ -157,13 +157,13 @@ export const listPermissions = query({
 export const getRolePermissions = query({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles')
+		roleId: v.id('rbacRoles')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
 		const rolePermissions = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role', (q) => q.eq('roleId', args.roleId))
 			.collect();
 
@@ -189,6 +189,8 @@ export const getRolePermissions = query({
 
 /**
  * Get all roles for a user (with scoping info)
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export const getUserRoles = query({
 	args: {
@@ -198,36 +200,83 @@ export const getUserRoles = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const userRoles = await ctx.db
-			.query('userRoles')
+		const result: Array<{
+			userRoleId: Id<'systemRoles'> | Id<'workspaceRoles'>;
+			roleId: Id<'rbacRoles'>;
+			roleSlug: string;
+			roleName: string;
+			workspaceId?: Id<'workspaces'>;
+			circleId?: Id<'circles'>;
+			assignedAt: number;
+			expiresAt?: number;
+			revokedAt?: number;
+		}> = [];
+
+		// Get system roles (platform-level)
+		const systemRoles = await ctx.db
+			.query('systemRoles')
 			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
-		const roles = await Promise.all(
-			userRoles.map(async (ur) => {
-				const role = await ctx.db.get(ur.roleId);
-				if (!role) return null;
+		for (const systemRole of systemRoles) {
+			const role = await ctx.db
+				.query('rbacRoles')
+				.withIndex('by_slug', (q) => q.eq('slug', systemRole.role))
+				.first();
 
-				return {
-					userRoleId: ur._id,
+			if (role) {
+				result.push({
+					userRoleId: systemRole._id,
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					workspaceId: ur.workspaceId,
-					circleId: ur.circleId,
-					assignedAt: ur.assignedAt,
-					expiresAt: ur.expiresAt,
-					revokedAt: ur.revokedAt
-				};
-			})
-		);
+					assignedAt: systemRole.grantedAt,
+					expiresAt: undefined // System roles don't expire
+				});
+			}
+		}
 
-		return roles.filter((r) => r !== null);
+		// Get workspace roles (workspace-scoped)
+		// Need to find all people for this user across workspaces
+		const people = await ctx.db
+			.query('people')
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
+			.collect();
+
+		for (const person of people) {
+			const workspaceRoles = await ctx.db
+				.query('workspaceRoles')
+				.withIndex('by_person', (q) => q.eq('personId', person._id))
+				.collect();
+
+			for (const workspaceRole of workspaceRoles) {
+				const role = await ctx.db
+					.query('rbacRoles')
+					.withIndex('by_slug', (q) => q.eq('slug', workspaceRole.role))
+					.first();
+
+				if (role) {
+					result.push({
+						userRoleId: workspaceRole._id,
+						roleId: role._id,
+						roleSlug: role.slug,
+						roleName: role.name,
+						workspaceId: workspaceRole.workspaceId,
+						assignedAt: workspaceRole.grantedAt,
+						expiresAt: undefined // Workspace roles don't expire in new model
+					});
+				}
+			}
+		}
+
+		return result;
 	}
 });
 
 /**
  * List all user-role assignments (for admin overview)
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export const listUserRoles = query({
 	args: {
@@ -236,38 +285,80 @@ export const listUserRoles = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const userRoles = await ctx.db.query('userRoles').collect();
+		const assignments: Array<{
+			userRoleId: Id<'systemRoles'> | Id<'workspaceRoles'>;
+			userId: Id<'users'>;
+			userEmail: string;
+			userName: string;
+			roleId: Id<'rbacRoles'>;
+			roleSlug: string;
+			roleName: string;
+			workspaceId?: Id<'workspaces'>;
+			circleId?: Id<'circles'>;
+			assignedAt: number;
+			expiresAt?: number;
+			revokedAt?: number;
+		}> = [];
 
-		const assignments = await Promise.all(
-			userRoles.map(async (ur) => {
-				const role = await ctx.db.get(ur.roleId);
-				const user = await ctx.db.get(ur.userId);
-				if (!role || !user) return null;
+		// Get all system roles
+		const systemRoles = await ctx.db.query('systemRoles').collect();
+		for (const systemRole of systemRoles) {
+			const role = await ctx.db
+				.query('rbacRoles')
+				.withIndex('by_slug', (q) => q.eq('slug', systemRole.role))
+				.first();
+			const user = await ctx.db.get(systemRole.userId);
+			if (!role || !user) continue;
 
-				return {
-					userRoleId: ur._id,
-					userId: user._id,
-					userEmail: user.email,
-					userName: user.name || user.email,
-					roleId: role._id,
-					roleSlug: role.slug,
-					roleName: role.name,
-					workspaceId: ur.workspaceId,
-					circleId: ur.circleId,
-					assignedAt: ur.assignedAt,
-					expiresAt: ur.expiresAt,
-					revokedAt: ur.revokedAt
-				};
-			})
-		);
+			assignments.push({
+				userRoleId: systemRole._id,
+				userId: user._id,
+				userEmail: user.email,
+				userName: user.name || user.email,
+				roleId: role._id,
+				roleSlug: role.slug,
+				roleName: role.name,
+				assignedAt: systemRole.grantedAt,
+				expiresAt: undefined
+			});
+		}
 
-		return assignments.filter((a) => a !== null);
+		// Get all workspace roles
+		const workspaceRoles = await ctx.db.query('workspaceRoles').collect();
+		for (const workspaceRole of workspaceRoles) {
+			const role = await ctx.db
+				.query('rbacRoles')
+				.withIndex('by_slug', (q) => q.eq('slug', workspaceRole.role))
+				.first();
+			const person = await ctx.db.get(workspaceRole.personId);
+			if (!role || !person || !person.userId) continue;
+
+			const user = await ctx.db.get(person.userId);
+			if (!user) continue;
+
+			assignments.push({
+				userRoleId: workspaceRole._id,
+				userId: user._id,
+				userEmail: user.email,
+				userName: user.name || user.email,
+				roleId: role._id,
+				roleSlug: role.slug,
+				roleName: role.name,
+				workspaceId: workspaceRole.workspaceId,
+				assignedAt: workspaceRole.grantedAt,
+				expiresAt: undefined
+			});
+		}
+
+		return assignments;
 	}
 });
 
 /**
  * Get RBAC system analytics
  * Provides insights into role distribution, permission usage, and assignment patterns
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export const getRBACAnalytics = query({
 	args: {
@@ -276,23 +367,43 @@ export const getRBACAnalytics = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const allUserRoles = await ctx.db.query('userRoles').collect();
-		const allRoles = await ctx.db.query('roles').collect();
-		const allPermissions = await ctx.db.query('permissions').collect();
-		const allRolePermissions = await ctx.db.query('rolePermissions').collect();
+		const allSystemRoles = await ctx.db.query('systemRoles').collect();
+		const allWorkspaceRoles = await ctx.db.query('workspaceRoles').collect();
+		const allRoles = await ctx.db.query('rbacRoles').collect();
+		const allPermissions = await ctx.db.query('rbacPermissions').collect();
+		const allRolePermissions = await ctx.db.query('rbacRolePermissions').collect();
 
 		// Build lookup maps to avoid N+1 queries
-		const rolesById = new Map(allRoles.map((r) => [r._id, r]));
+		const rolesBySlug = new Map(allRoles.map((r) => [r.slug, r]));
 		const permsById = new Map(allPermissions.map((p) => [p._id, p]));
 
-		const now = Date.now();
+		// Combine all assignments (system + workspace)
+		const activeAssignments: Array<{
+			roleSlug: string;
+			userId: Id<'users'>;
+			workspaceId?: Id<'workspaces'>;
+			circleId?: Id<'circles'>;
+		}> = [];
 
-		// Filter active assignments (not revoked, not expired)
-		const activeAssignments = allUserRoles.filter((ur) => {
-			if (ur.revokedAt) return false;
-			if (ur.expiresAt && ur.expiresAt < now) return false;
-			return true;
-		});
+		// Process system roles
+		for (const systemRole of allSystemRoles) {
+			activeAssignments.push({
+				roleSlug: systemRole.role,
+				userId: systemRole.userId
+			});
+		}
+
+		// Process workspace roles
+		for (const workspaceRole of allWorkspaceRoles) {
+			const person = await ctx.db.get(workspaceRole.personId);
+			if (!person || !person.userId) continue;
+
+			activeAssignments.push({
+				roleSlug: workspaceRole.role,
+				userId: person.userId,
+				workspaceId: workspaceRole.workspaceId
+			});
+		}
 
 		// Role distribution (how many users per role)
 		const roleDistribution = new Map<
@@ -301,7 +412,7 @@ export const getRBACAnalytics = query({
 		>();
 
 		for (const assignment of activeAssignments) {
-			const role = rolesById.get(assignment.roleId);
+			const role = rolesBySlug.get(assignment.roleSlug);
 			if (!role) continue;
 
 			const existing = roleDistribution.get(role.slug) || {
@@ -359,7 +470,7 @@ export const getRBACAnalytics = query({
 
 		// Role health metrics
 		const rolesWithNoAssignments = allRoles.filter((role) => {
-			const hasAssignments = activeAssignments.some((ur) => ur.roleId === role._id);
+			const hasAssignments = activeAssignments.some((ur) => ur.roleSlug === role.slug);
 			return !hasAssignments;
 		});
 
@@ -368,13 +479,15 @@ export const getRBACAnalytics = query({
 			return !hasPermissions;
 		});
 
+		const totalAssignments = allSystemRoles.length + allWorkspaceRoles.length;
+
 		return {
 			overview: {
 				totalRoles: allRoles.length,
 				totalPermissions: allPermissions.length,
-				totalAssignments: allUserRoles.length,
+				totalAssignments,
 				activeAssignments: activeAssignments.length,
-				revokedAssignments: allUserRoles.length - activeAssignments.length
+				revokedAssignments: 0 // New model doesn't have revokedAt
 			},
 			roleDistribution: Array.from(roleDistribution.entries()).map(([slug, data]) => ({
 				slug,
@@ -466,7 +579,7 @@ export const createPermission = mutation({
 
 		// Check if permission with slug already exists
 		const existing = await ctx.db
-			.query('permissions')
+			.query('rbacPermissions')
 			.withIndex('by_slug', (q) => q.eq('slug', args.slug))
 			.first();
 
@@ -475,7 +588,7 @@ export const createPermission = mutation({
 		}
 
 		const now = Date.now();
-		const permissionId = await ctx.db.insert('permissions', {
+		const permissionId = await ctx.db.insert('rbacPermissions', {
 			slug: args.slug,
 			category: args.category,
 			action: args.action,
@@ -505,7 +618,7 @@ export const createRole = mutation({
 
 		// Check if role with slug already exists
 		const existing = await ctx.db
-			.query('roles')
+			.query('rbacRoles')
 			.withIndex('by_slug', (q) => q.eq('slug', args.slug))
 			.first();
 
@@ -514,7 +627,7 @@ export const createRole = mutation({
 		}
 
 		const now = Date.now();
-		const roleId = await ctx.db.insert('roles', {
+		const roleId = await ctx.db.insert('rbacRoles', {
 			slug: args.slug,
 			name: args.name,
 			description: args.description,
@@ -533,7 +646,7 @@ export const createRole = mutation({
 export const updateRole = mutation({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles'),
+		roleId: v.id('rbacRoles'),
 		name: v.optional(v.string()),
 		description: v.optional(v.string())
 	},
@@ -574,7 +687,7 @@ export const updateRole = mutation({
 export const deleteRole = mutation({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles')
+		roleId: v.id('rbacRoles')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
@@ -590,18 +703,24 @@ export const deleteRole = mutation({
 		}
 
 		// Check if role is assigned to any users
-		const userRoles = await ctx.db
-			.query('userRoles')
-			.withIndex('by_role', (q) => q.eq('roleId', args.roleId))
+		// Check systemRoles
+		const systemRoles = await ctx.db
+			.query('systemRoles')
+			.filter((q) => q.eq(q.field('role'), role.slug))
 			.first();
 
-		if (userRoles) {
+		const workspaceRoles = await ctx.db
+			.query('workspaceRoles')
+			.filter((q) => q.eq(q.field('role'), role.slug))
+			.first();
+
+		if (systemRoles || workspaceRoles) {
 			throw createError(ErrorCodes.GENERIC_ERROR, 'Cannot delete role that is assigned to users');
 		}
 
 		// Delete role permissions first
 		const rolePermissions = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role', (q) => q.eq('roleId', args.roleId))
 			.collect();
 
@@ -622,8 +741,8 @@ export const deleteRole = mutation({
 export const assignPermissionToRole = mutation({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles'),
-		permissionId: v.id('permissions'),
+		roleId: v.id('rbacRoles'),
+		permissionId: v.id('rbacPermissions'),
 		scope: v.union(v.literal('all'), v.literal('own'), v.literal('none'))
 	},
 	handler: async (ctx, args) => {
@@ -631,7 +750,7 @@ export const assignPermissionToRole = mutation({
 
 		// Check if assignment already exists
 		const existing = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role_permission', (q) =>
 				q.eq('roleId', args.roleId).eq('permissionId', args.permissionId)
 			)
@@ -646,7 +765,7 @@ export const assignPermissionToRole = mutation({
 		}
 
 		// Create new assignment
-		await ctx.db.insert('rolePermissions', {
+		await ctx.db.insert('rbacRolePermissions', {
 			roleId: args.roleId,
 			permissionId: args.permissionId,
 			scope: args.scope,
@@ -663,14 +782,14 @@ export const assignPermissionToRole = mutation({
 export const removePermissionFromRole = mutation({
 	args: {
 		sessionId: v.string(),
-		roleId: v.id('roles'),
-		permissionId: v.id('permissions')
+		roleId: v.id('rbacRoles'),
+		permissionId: v.id('rbacPermissions')
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
 		const rolePermission = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role_permission', (q) =>
 				q.eq('roleId', args.roleId).eq('permissionId', args.permissionId)
 			)
@@ -688,12 +807,14 @@ export const removePermissionFromRole = mutation({
 
 /**
  * Assign role to user (with optional org/team scoping, expiration)
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export const assignRoleToUser = mutation({
 	args: {
 		sessionId: v.string(),
 		assigneeUserId: v.id('users'),
-		roleId: v.id('roles'),
+		roleId: v.id('rbacRoles'),
 		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
@@ -701,82 +822,126 @@ export const assignRoleToUser = mutation({
 	handler: async (ctx, args) => {
 		const adminUserId = await requireSystemAdmin(ctx, args.sessionId);
 
-		// Check if assignment already exists
-		// Query all user-role assignments for this user+role combination
-		const allAssignments = await ctx.db
-			.query('userRoles')
-			.withIndex('by_user_role', (q) =>
-				q.eq('userId', args.assigneeUserId).eq('roleId', args.roleId)
-			)
-			.collect();
-
-		// Find matching assignment based on scoping
-		const existing = allAssignments.find((ur) => {
-			if (args.workspaceId) {
-				return ur.workspaceId === args.workspaceId && !ur.circleId;
-			}
-			if (args.circleId) {
-				return ur.circleId === args.circleId;
-			}
-			// Global role - no org/circle
-			return !ur.workspaceId && !ur.circleId;
-		});
-
-		if (existing) {
-			// Update existing assignment
-			await ctx.db.patch(existing._id, {
-				expiresAt: args.expiresAt,
-				revokedAt: undefined // Re-activate if revoked
-			});
-			return { success: true, updated: true, userRoleId: existing._id };
+		const role = await ctx.db.get(args.roleId);
+		if (!role) {
+			throw createError(ErrorCodes.ROLE_NOT_FOUND, 'Role not found');
 		}
 
-		// Create new assignment
-		const userRoleId = await ctx.db.insert('userRoles', {
-			userId: args.assigneeUserId,
-			roleId: args.roleId,
-			workspaceId: args.workspaceId,
-			circleId: args.circleId,
-			assignedBy: adminUserId,
-			assignedAt: Date.now(),
-			expiresAt: args.expiresAt
-		});
+		// Note: expiresAt is not supported in new model (systemRoles/workspaceRoles don't have expiration)
+		if (args.expiresAt) {
+			console.warn('expiresAt parameter is not supported in new RBAC model');
+		}
 
-		return { success: true, updated: false, userRoleId };
+		if (args.workspaceId) {
+			// Workspace-scoped role
+			const person = await ctx.db
+				.query('people')
+				.withIndex('by_user', (q) => q.eq('userId', args.assigneeUserId))
+				.filter((q) => q.eq(q.field('workspaceId'), args.workspaceId))
+				.first();
+
+			if (!person) {
+				throw createError(
+					ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
+					'User must be a member of the workspace to assign workspace roles'
+				);
+			}
+
+			// Check if already has this workspace role
+			const existing = await ctx.db
+				.query('workspaceRoles')
+				.withIndex('by_person', (q) => q.eq('personId', person._id))
+				.filter((q) =>
+					q.and(q.eq(q.field('workspaceId'), args.workspaceId), q.eq(q.field('role'), role.slug))
+				)
+				.first();
+
+			if (existing) {
+				return { success: true, updated: true, userRoleId: existing._id };
+			}
+
+			// Get admin personId for grantedByPersonId
+			const adminPerson = await ctx.db
+				.query('people')
+				.withIndex('by_user', (q) => q.eq('userId', adminUserId))
+				.filter((q) => q.eq(q.field('workspaceId'), args.workspaceId))
+				.first();
+
+			const userRoleId = await ctx.db.insert('workspaceRoles', {
+				personId: person._id,
+				workspaceId: args.workspaceId,
+				role: role.slug,
+				grantedAt: Date.now(),
+				grantedByPersonId: adminPerson?._id
+			});
+
+			return { success: true, updated: false, userRoleId };
+		} else {
+			// System-scoped role
+			// Check if already has this system role
+			const existing = await ctx.db
+				.query('systemRoles')
+				.withIndex('by_user', (q) => q.eq('userId', args.assigneeUserId))
+				.filter((q) => q.eq(q.field('role'), role.slug))
+				.first();
+
+			if (existing) {
+				return { success: true, updated: true, userRoleId: existing._id };
+			}
+
+			const userRoleId = await ctx.db.insert('systemRoles', {
+				userId: args.assigneeUserId,
+				role: role.slug,
+				grantedAt: Date.now(),
+				grantedBy: adminUserId
+			});
+
+			return { success: true, updated: false, userRoleId };
+		}
 	}
 });
 
 /**
  * Revoke role from user
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
  */
 export const revokeUserRole = mutation({
 	args: {
 		sessionId: v.string(),
-		userRoleId: v.id('userRoles')
+		userRoleId: v.union(v.id('systemRoles'), v.id('workspaceRoles'))
 	},
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const userRole = await ctx.db.get(args.userRoleId);
-		if (!userRole) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
+		// Try systemRoles first
+		const systemRole = await ctx.db.get(args.userRoleId as Id<'systemRoles'>);
+		if (systemRole && 'userId' in systemRole) {
+			await ctx.db.delete(args.userRoleId as Id<'systemRoles'>);
+			return { success: true };
 		}
 
-		await ctx.db.patch(args.userRoleId, {
-			revokedAt: Date.now()
-		});
+		// Try workspaceRoles
+		const workspaceRole = await ctx.db.get(args.userRoleId as Id<'workspaceRoles'>);
+		if (workspaceRole && 'personId' in workspaceRole) {
+			await ctx.db.delete(args.userRoleId as Id<'workspaceRoles'>);
+			return { success: true };
+		}
 
-		return { success: true };
+		throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 	}
 });
 
 /**
  * Update user role (scoping, expiration)
+ *
+ * SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
+ * Note: New model doesn't support updating scoping - must revoke and re-assign
  */
 export const updateUserRole = mutation({
 	args: {
 		sessionId: v.string(),
-		userRoleId: v.id('userRoles'),
+		userRoleId: v.union(v.id('systemRoles'), v.id('workspaceRoles')),
 		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
@@ -784,30 +949,25 @@ export const updateUserRole = mutation({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const userRole = await ctx.db.get(args.userRoleId);
-		if (!userRole) {
+		// Note: New model doesn't support updating scoping or expiration
+		// This mutation is kept for backward compatibility but does nothing
+		// Callers should revoke and re-assign if they need to change scoping
+		if (args.expiresAt !== undefined) {
+			console.warn('expiresAt is not supported in new RBAC model');
+		}
+		if (args.workspaceId !== undefined || args.circleId !== undefined) {
+			console.warn(
+				'Updating scoping is not supported in new RBAC model. Revoke and re-assign instead.'
+			);
+		}
+
+		// Verify the role exists
+		const systemRole = await ctx.db.get(args.userRoleId as Id<'systemRoles'>);
+		const workspaceRole = await ctx.db.get(args.userRoleId as Id<'workspaceRoles'>);
+
+		if (!systemRole && !workspaceRole) {
 			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found');
 		}
-
-		const updates: {
-			workspaceId?: Id<'workspaces'> | undefined;
-			circleId?: Id<'circles'> | undefined;
-			expiresAt?: number;
-		} = {};
-
-		if (args.workspaceId !== undefined) {
-			updates.workspaceId = args.workspaceId;
-		}
-
-		if (args.circleId !== undefined) {
-			updates.circleId = args.circleId;
-		}
-
-		if (args.expiresAt !== undefined) {
-			updates.expiresAt = args.expiresAt;
-		}
-
-		await ctx.db.patch(args.userRoleId, updates);
 
 		return { success: true };
 	}
@@ -827,12 +987,12 @@ export const setupDocsPermission = mutation({
 
 		// Step 1: Create docs.view permission if it doesn't exist
 		let docsViewPerm = await ctx.db
-			.query('permissions')
+			.query('rbacPermissions')
 			.withIndex('by_slug', (q) => q.eq('slug', 'docs.view'))
 			.first();
 
 		if (!docsViewPerm) {
-			const permissionId = await ctx.db.insert('permissions', {
+			const permissionId = await ctx.db.insert('rbacPermissions', {
 				slug: 'docs.view',
 				category: 'docs',
 				action: 'view',
@@ -850,7 +1010,7 @@ export const setupDocsPermission = mutation({
 
 		// Step 2: Get admin role
 		const adminRole = await ctx.db
-			.query('roles')
+			.query('rbacRoles')
 			.withIndex('by_slug', (q) => q.eq('slug', 'admin'))
 			.first();
 
@@ -863,14 +1023,14 @@ export const setupDocsPermission = mutation({
 
 		// Step 3: Assign docs.view permission to admin role (scope: "all")
 		const existingRolePerm = await ctx.db
-			.query('rolePermissions')
+			.query('rbacRolePermissions')
 			.withIndex('by_role_permission', (q) =>
 				q.eq('roleId', adminRole._id).eq('permissionId', docsViewPerm._id)
 			)
 			.first();
 
 		if (!existingRolePerm) {
-			await ctx.db.insert('rolePermissions', {
+			await ctx.db.insert('rbacRolePermissions', {
 				roleId: adminRole._id,
 				permissionId: docsViewPerm._id,
 				scope: 'all',
@@ -878,25 +1038,19 @@ export const setupDocsPermission = mutation({
 			});
 		}
 
-		// Step 4: Ensure admin role is assigned to current user (global scope)
-		const existingUserRole = await ctx.db
-			.query('userRoles')
-			.withIndex('by_user_role', (q) => q.eq('userId', adminUserId).eq('roleId', adminRole._id))
-			.filter((q) => {
-				return q.and(
-					q.eq(q.field('workspaceId'), undefined),
-					q.eq(q.field('circleId'), undefined),
-					q.eq(q.field('revokedAt'), undefined)
-				);
-			})
+		// Step 4: Ensure admin role is assigned to current user (system scope)
+		const existingSystemRole = await ctx.db
+			.query('systemRoles')
+			.withIndex('by_user', (q) => q.eq('userId', adminUserId))
+			.filter((q) => q.eq(q.field('role'), 'admin'))
 			.first();
 
-		if (!existingUserRole) {
-			await ctx.db.insert('userRoles', {
+		if (!existingSystemRole) {
+			await ctx.db.insert('systemRoles', {
 				userId: adminUserId,
-				roleId: adminRole._id,
-				assignedBy: adminUserId,
-				assignedAt: now
+				role: 'admin',
+				grantedAt: now,
+				grantedBy: adminUserId
 			});
 		}
 
@@ -941,7 +1095,7 @@ export const listRoleTemplates = query({
 				const enrichedPermissions = await Promise.all(
 					rbacPermissions.map(async (perm) => {
 						const permission = await ctx.db
-							.query('permissions')
+							.query('rbacPermissions')
 							.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
 							.first();
 
@@ -958,10 +1112,11 @@ export const listRoleTemplates = query({
 				return {
 					_id: template._id,
 					name: template.name,
+					roleType: template.roleType,
 					description: template.description,
 					workspaceId: template.workspaceId,
 					isCore: template.isCore,
-					isRequired: template.isRequired,
+					appliesTo: template.appliesTo,
 					rbacPermissions: enrichedPermissions,
 					createdAt: template.createdAt,
 					updatedAt: template.updatedAt
@@ -1003,7 +1158,7 @@ export const updateTemplateRbacPermissions = mutation({
 		// Validate all permission slugs exist
 		for (const perm of args.rbacPermissions) {
 			const permission = await ctx.db
-				.query('permissions')
+				.query('rbacPermissions')
 				.withIndex('by_slug', (q) => q.eq('slug', perm.permissionSlug))
 				.first();
 

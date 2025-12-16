@@ -113,7 +113,7 @@ projects: defineTable({
 
   // Metadata
   createdAt: v.number(),
-  createdBy: v.id('users'),
+  createdByPersonId: v.id('people'),
   updatedAt: v.number()
 })
 .index('by_organization', ['workspaceId'])

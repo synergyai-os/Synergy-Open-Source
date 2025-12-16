@@ -7,7 +7,7 @@
 
 import { query, mutation } from '../_generated/server';
 import { v } from 'convex/values';
-import { requireSystemAdmin } from '../rbac/permissions';
+import { requireSystemAdmin } from '../infrastructure/rbac/permissions';
 
 /**
  * Get system settings (placeholder for future system settings)

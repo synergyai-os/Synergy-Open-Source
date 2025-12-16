@@ -17,19 +17,18 @@ async function listUserRoles(
 	const actorByWorkspace = new Map<Id<'workspaces'>, Id<'people'>>();
 	const assignments = args.includeArchived
 		? await ctx.db
-				.query('userCircleRoles')
+				.query('assignments')
 				.withIndex('by_person', (q) => q.eq('personId', args.targetPersonId))
 				.collect()
 		: await ctx.db
-				.query('userCircleRoles')
-				.withIndex('by_person_archived', (q) =>
-					q.eq('personId', args.targetPersonId).eq('archivedAt', undefined)
-				)
+				.query('assignments')
+				.withIndex('by_person', (q) => q.eq('personId', args.targetPersonId))
+				.filter((q) => q.eq(q.field('status'), 'active'))
 				.collect();
 
 	const roles = await Promise.all(
 		assignments.map(async (assignment) => {
-			const role = await ctx.db.get(assignment.circleRoleId);
+			const role = await ctx.db.get(assignment.roleId);
 			if (!role) return null;
 
 			if (args.circleId && role.circleId !== args.circleId) {

@@ -211,16 +211,10 @@ export const checkIDENT08 = internalQuery({
 		// Get all assignments to identify people who were previously active
 		// (having assignments indicates they were active at some point)
 		const assignments = await ctx.db.query('assignments').collect();
-		const legacyAssignments = await ctx.db.query('userCircleRoles').collect();
 
 		const peopleWithActivity = new Set<string>();
 		for (const assignment of assignments) {
 			peopleWithActivity.add(assignment.personId.toString());
-		}
-		for (const assignment of legacyAssignments) {
-			if (assignment.personId) {
-				peopleWithActivity.add(assignment.personId.toString());
-			}
 		}
 
 		// Only flag archived people who had activity (were previously active)

@@ -37,7 +37,8 @@ async function getUserId(ctx: ActionCtx, sessionId: string): Promise<Id<'users'>
 }
 
 async function getDecryptedKey(ctx: ActionCtx, userId: string): Promise<string> {
-	const getKeysQuery = internal.settings.getEncryptedKeysInternal as FunctionReference<
+	const getKeysQuery = internal.core.workspaces.settings
+		.getEncryptedKeysInternal as FunctionReference<
 		'query',
 		'internal',
 		{ userId: string },

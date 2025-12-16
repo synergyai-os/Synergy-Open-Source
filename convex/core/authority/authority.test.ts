@@ -183,8 +183,8 @@ describe('getAuthorityContext', () => {
 		archivedAt: undefined
 	};
 
-	const facilitatorTemplate = { isCore: true };
-	const leadTemplate = { isRequired: true };
+	const facilitatorTemplate = { isCore: true, roleType: 'structural' as const };
+	const leadTemplate = { roleType: 'circle_lead' as const };
 
 	function makeCtx(overrides: {
 		circle?: any;

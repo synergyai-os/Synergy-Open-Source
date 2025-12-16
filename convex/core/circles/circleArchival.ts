@@ -54,18 +54,16 @@ export async function archiveCircle(
 		});
 
 		const assignments = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_role_archived', (q) =>
-				q.eq('circleRoleId', role._id).eq('archivedAt', undefined)
-			)
+			.query('assignments')
+			.withIndex('by_role', (q) => q.eq('roleId', role._id))
+			.filter((q) => q.eq(q.field('status'), 'active'))
 			.collect();
 
 		for (const assignment of assignments) {
 			await ctx.db.patch(assignment._id, {
-				archivedAt: now,
-				archivedByPersonId: actorPersonId,
-				updatedAt: now,
-				updatedByPersonId: actorPersonId
+				status: 'ended',
+				endedAt: now,
+				endedByPersonId: actorPersonId
 			});
 		}
 	}

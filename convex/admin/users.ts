@@ -7,8 +7,9 @@
 
 import { query } from '../_generated/server';
 import { v } from 'convex/values';
-import { requireSystemAdmin } from '../rbac/permissions';
+import { requireSystemAdmin } from '../infrastructure/rbac/permissions';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
+import type { Id } from '../_generated/dataModel';
 
 /**
  * List all users
@@ -56,29 +57,74 @@ export const getUserById = query({
 		}
 
 		// Get user's roles
-		const userRoles = await ctx.db
-			.query('userRoles')
+		// SYOS-862: Updated to use systemRoles + workspaceRoles instead of deprecated userRoles table
+		const roles: Array<{
+			userRoleId: Id<'systemRoles'> | Id<'workspaceRoles'>;
+			roleId: Id<'rbacRoles'>;
+			roleSlug: string;
+			roleName: string;
+			workspaceId?: Id<'workspaces'>;
+			circleId?: Id<'circles'>;
+			assignedAt: number;
+			expiresAt?: number;
+			revokedAt?: number;
+		}> = [];
+
+		// Get system roles
+		const systemRoles = await ctx.db
+			.query('systemRoles')
 			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
 			.collect();
 
-		const roles = await Promise.all(
-			userRoles.map(async (ur) => {
-				const role = await ctx.db.get(ur.roleId);
-				if (!role) return null;
+		for (const systemRole of systemRoles) {
+			const role = await ctx.db
+				.query('rbacRoles')
+				.withIndex('by_slug', (q) => q.eq('slug', systemRole.role))
+				.first();
 
-				return {
-					userRoleId: ur._id,
+			if (role) {
+				roles.push({
+					userRoleId: systemRole._id,
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					workspaceId: ur.workspaceId,
-					circleId: ur.circleId,
-					assignedAt: ur.assignedAt,
-					expiresAt: ur.expiresAt,
-					revokedAt: ur.revokedAt
-				};
-			})
-		);
+					assignedAt: systemRole.grantedAt,
+					expiresAt: undefined
+				});
+			}
+		}
+
+		// Get workspace roles
+		const people = await ctx.db
+			.query('people')
+			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
+			.collect();
+
+		for (const person of people) {
+			const workspaceRoles = await ctx.db
+				.query('workspaceRoles')
+				.withIndex('by_person', (q) => q.eq('personId', person._id))
+				.collect();
+
+			for (const workspaceRole of workspaceRoles) {
+				const role = await ctx.db
+					.query('rbacRoles')
+					.withIndex('by_slug', (q) => q.eq('slug', workspaceRole.role))
+					.first();
+
+				if (role) {
+					roles.push({
+						userRoleId: workspaceRole._id,
+						roleId: role._id,
+						roleSlug: role.slug,
+						roleName: role.name,
+						workspaceId: workspaceRole.workspaceId,
+						assignedAt: workspaceRole.grantedAt,
+						expiresAt: undefined
+					});
+				}
+			}
+		}
 
 		return {
 			_id: user._id,
@@ -93,7 +139,7 @@ export const getUserById = query({
 			updatedAt: user.updatedAt,
 			lastLoginAt: user.lastLoginAt,
 			deletedAt: user.deletedAt,
-			roles: roles.filter((r) => r !== null)
+			roles
 		};
 	}
 });

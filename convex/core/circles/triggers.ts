@@ -41,10 +41,10 @@ triggers.register('circleRoles', async (ctx, change) => {
 });
 
 /**
- * Register trigger for userCircleRoles table
+ * Register trigger for assignments table
  */
-triggers.register('userCircleRoles', async (ctx, change) => {
-	await recordVersionHistory(ctx, 'userCircleRole', change);
+triggers.register('assignments', async (ctx, change) => {
+	await recordVersionHistory(ctx, 'assignment', change);
 });
 
 /**
@@ -54,18 +54,7 @@ triggers.register('circleMembers', async (ctx, change) => {
 	await recordVersionHistory(ctx, 'circleMember', change);
 });
 
-/**
- * Register trigger for circleItemCategories table
- */
-triggers.register('circleItemCategories', async (ctx, change) => {
-	await recordVersionHistory(ctx, 'circleItemCategory', change);
-});
-
-/**
- * Register trigger for circleItems table
- */
-triggers.register('circleItems', async (ctx, change) => {
-	await recordVersionHistory(ctx, 'circleItem', change);
-});
+// SYOS-790: Legacy triggers removed - data deleted, now using customFieldDefinitions
+// circleItemCategories and circleItems tables are deprecated
 
 export default triggers;

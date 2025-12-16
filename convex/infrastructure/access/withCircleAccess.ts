@@ -30,11 +30,11 @@ const defaultDeps: WithCircleAccessDeps = {
 	validateSessionAndGetUserId,
 	getCircle: (ctx, circleId) => ctx.db.get(circleId),
 	isWorkspaceMember: async (ctx, workspaceId, userId) => {
-		const membership = await ctx.db
-			.query('workspaceMembers')
+		const person = await ctx.db
+			.query('people')
 			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 			.first();
-		return Boolean(membership);
+		return Boolean(person && person.status === 'active');
 	}
 };
 
