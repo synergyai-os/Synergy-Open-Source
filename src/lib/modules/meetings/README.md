@@ -230,7 +230,7 @@ describe('New Feature Integration Tests', () => {
 		const { sessionId, userId } = await createTestSession(t);
 		cleanupQueue.push({ userId });
 
-		const result = await t.query(api.modules.meetings.meetings.newFunction, { sessionId });
+		const result = await t.query(api.features.meetings.meetings.newFunction, { sessionId });
 		expect(result).toBeDefined();
 	});
 });
