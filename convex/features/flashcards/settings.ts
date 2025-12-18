@@ -3,10 +3,10 @@ import type { MutationCtx, QueryCtx } from '../../_generated/server';
 
 type Ctx = MutationCtx | QueryCtx;
 
-export async function getDefaultAlgorithm(ctx: Ctx, userId: Id<'users'>) {
+export async function getDefaultAlgorithm(ctx: Ctx, personId: Id<'people'>) {
 	const settings = await ctx.db
 		.query('userAlgorithmSettings')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.first();
 
 	return settings?.defaultAlgorithm ?? 'fsrs';

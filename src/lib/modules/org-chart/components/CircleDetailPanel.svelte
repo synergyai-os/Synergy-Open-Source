@@ -6,7 +6,7 @@
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
-	import { useCircleItems } from '../composables/useCircleItems.svelte';
+	import { useCustomFields } from '../composables/useCustomFields.svelte';
 	import { useEditCircle } from '../composables/useEditCircle.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
@@ -15,31 +15,17 @@
 	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 	import CategoryItemsList from './CategoryItemsList.svelte';
 	import CircleTypeBadge from './CircleTypeBadge.svelte';
-	import CircleTypeSelector from './CircleTypeSelector.svelte';
-	import DecisionModelSelector from './DecisionModelSelector.svelte';
+	import DecisionModelBadge from './DecisionModelBadge.svelte';
 	import AssignUserDialog from './AssignUserDialog.svelte';
 	import ConfirmDiscardDialog from './ConfirmDiscardDialog.svelte';
 	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
-	import FormSelect from '$lib/components/atoms/FormSelect.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
 	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
-	import Heading from '$lib/components/atoms/Heading.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
-	import {
-		CIRCLE_TYPES,
-		DECISION_MODELS,
-		DEFAULT_CIRCLE_TYPE_LABELS,
-		DEFAULT_DECISION_MODEL_LABELS,
-		type CircleType,
-		type DecisionModel
-	} from '$lib/infrastructure/organizational-model/constants';
-	import { untrack } from 'svelte';
-
-	type DecisionOption = { value: DecisionModel; label: string };
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -85,126 +71,117 @@
 		canQuickEdit: () => canEdit
 	});
 
-	// Circle items composable
-	const circleItems = useCircleItems({
+	// Custom fields composable
+	const customFields = useCustomFields({
 		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
 		entityType: () => 'circle',
 		entityId: () => circle?.circleId ?? null
 	});
 
-	// Circle type and decision model options for edit mode
-	const circleTypeOptions = [
-		{ value: CIRCLE_TYPES.HIERARCHY, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY] },
-		{
-			value: CIRCLE_TYPES.EMPOWERED_TEAM,
-			label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.EMPOWERED_TEAM]
-		},
-		{ value: CIRCLE_TYPES.GUILD, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.GUILD] },
-		{ value: CIRCLE_TYPES.HYBRID, label: DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HYBRID] }
-	];
+	// Map category names to system keys
+	// Note: System keys are singular (matching SYSTEM_FIELD_DEFINITIONS in constants.ts)
+	function getSystemKeyForCategory(categoryName: string): string | null {
+		const mapping: Record<string, string> = {
+			Domains: 'domain',
+			Accountabilities: 'accountability',
+			Policies: 'policy',
+			'Decision Rights': 'decision_right',
+			Notes: 'note'
+		};
+		return mapping[categoryName] ?? null;
+	}
 
-	// Extract circleType as separate derived value (only tracks circleType, not entire formValues)
-	// Pattern: Prevents infinite loop by tracking only the specific field we care about
-	const circleTypeValue = $derived(isEditMode ? editCircle.formValues.circleType : null);
-
-	// Decision model options (filtered based on circle type)
-	const decisionModelOptions = $derived.by<DecisionOption[]>(() => {
-		if (!isEditMode || !circleTypeValue) return [];
-		const allOptions: DecisionOption[] = [
-			{
-				value: DECISION_MODELS.MANAGER_DECIDES,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.MANAGER_DECIDES]
-			},
-			{
-				value: DECISION_MODELS.TEAM_CONSENSUS,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.TEAM_CONSENSUS]
-			},
-			{
-				value: DECISION_MODELS.CONSENT,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.CONSENT]
-			},
-			{
-				value: DECISION_MODELS.COORDINATION_ONLY,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.COORDINATION_ONLY]
-			}
-		];
-
-		switch (circleTypeValue) {
-			case CIRCLE_TYPES.HIERARCHY:
-				return allOptions.filter((o) => o.value === DECISION_MODELS.MANAGER_DECIDES);
-			case CIRCLE_TYPES.EMPOWERED_TEAM:
-				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
-			case CIRCLE_TYPES.GUILD:
-				return allOptions.filter((o) => o.value === DECISION_MODELS.COORDINATION_ONLY);
-			case CIRCLE_TYPES.HYBRID:
-				return allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
-			default:
-				return allOptions;
+	// Helper: Get field value as array (for multi-item fields)
+	function getFieldValueAsArray(systemKey: string): string[] {
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field || !field.parsedValue) return [];
+		if (Array.isArray(field.parsedValue)) {
+			return field.parsedValue.map((v) => String(v));
 		}
-	});
+		return [];
+	}
 
-	// Ensure decision model is valid for current circle type
-	// Pattern #L120: Only track circleTypeValue (not entire formValues) to prevent infinite loop
-	// Uses untrack() when calling setField() to prevent mutation from triggering effect
-	$effect(() => {
-		if (!isEditMode || !circle || !circleTypeValue) return;
+	// Helper: Get field value as string (for single-value fields)
+	function getFieldValueAsString(systemKey: string): string {
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field || !field.parsedValue) return '';
+		return String(field.parsedValue);
+	}
 
-		// Track only circleTypeValue - this is what triggers the effect
-		// NOT editCircle.formValues (which would track entire object and cause loop)
-		const circleType = circleTypeValue;
+	// Helper: Convert array items to CircleItem format for CategoryItemsList
+	function getItemsForCategory(categoryName: string): Array<{
+		itemId: Id<'circleItems'>;
+		content: string;
+		order: number;
+		createdAt: number;
+		updatedAt: number;
+	}> {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return [];
+		const items = getFieldValueAsArray(systemKey);
+		return items.map((content, index) => ({
+			itemId: `${systemKey}-${index}` as Id<'circleItems'>, // Temporary ID format
+			content,
+			order: index,
+			createdAt: Date.now(),
+			updatedAt: Date.now()
+		}));
+	}
 
-		// Compute valid options inline to avoid reactivity issues
-		const allOptions: DecisionOption[] = [
-			{
-				value: DECISION_MODELS.MANAGER_DECIDES,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.MANAGER_DECIDES]
-			},
-			{
-				value: DECISION_MODELS.TEAM_CONSENSUS,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.TEAM_CONSENSUS]
-			},
-			{
-				value: DECISION_MODELS.CONSENT,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.CONSENT]
-			},
-			{
-				value: DECISION_MODELS.COORDINATION_ONLY,
-				label: DEFAULT_DECISION_MODEL_LABELS[DECISION_MODELS.COORDINATION_ONLY]
-			}
-		];
+	// Handler: Add item to multi-item field
+	async function handleAddMultiItemField(categoryName: string, content: string) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = [...currentItems, content];
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
 
-		let validOptions: DecisionOption[];
-		switch (circleType) {
-			case CIRCLE_TYPES.HIERARCHY:
-				validOptions = allOptions.filter((o) => o.value === DECISION_MODELS.MANAGER_DECIDES);
-				break;
-			case CIRCLE_TYPES.EMPOWERED_TEAM:
-				validOptions = allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
-				break;
-			case CIRCLE_TYPES.GUILD:
-				validOptions = allOptions.filter((o) => o.value === DECISION_MODELS.COORDINATION_ONLY);
-				break;
-			case CIRCLE_TYPES.HYBRID:
-				validOptions = allOptions.filter((o) => o.value !== DECISION_MODELS.COORDINATION_ONLY);
-				break;
-			default:
-				validOptions = allOptions;
+	// Handler: Update item in multi-item field
+	async function handleUpdateMultiItemField(
+		categoryName: string,
+		itemId: Id<'circleItems'>,
+		content: string
+	) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const index = parseInt(String(itemId).split('-')[1] ?? '0');
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = [...currentItems];
+		updatedItems[index] = content;
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
+
+	// Handler: Delete item from multi-item field
+	async function handleDeleteMultiItemField(categoryName: string, itemId: Id<'circleItems'>) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const index = parseInt(String(itemId).split('-')[1] ?? '0');
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = currentItems.filter((_, i) => i !== index);
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
+
+	// Handler: Update single field (Notes)
+	async function handleUpdateSingleField(categoryName: string, content: string) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		if (!content.trim()) {
+			// Delete if empty
+			await customFields.deleteFieldValue(field.definition._id);
+		} else {
+			await customFields.setFieldValue(field.definition._id, content);
 		}
-
-		// Untrack decisionModel read to prevent loops
-		const currentDecisionModel = untrack(() => editCircle.formValues.decisionModel);
-
-		// Only update if current decision model is invalid
-		const isValid = validOptions.some((o) => o.value === currentDecisionModel);
-
-		if (!isValid && validOptions.length > 0) {
-			// Pattern #L120: Use untrack() when calling setField() to prevent mutation from triggering effect
-			// This breaks the cycle: setField() → state mutates → formValues recalculates → effect triggers
-			untrack(() => {
-				editCircle.setField('decisionModel', validOptions[0].value);
-			});
-		}
-	});
+	}
 
 	// Quick update handlers
 	async function handleQuickUpdateCircle(updates: { name?: string; purpose?: string }) {
@@ -512,7 +489,20 @@
 						{ label: 'Settings', onclick: () => {} },
 						{ label: 'Delete circle', onclick: () => {}, danger: true }
 					]}
-				/>
+				>
+					{#snippet titleBadges()}
+						<div class="gap-button flex items-center">
+							<CircleTypeBadge
+								circleType={isEditMode ? editCircle.formValues.circleType : circle.circleType}
+							/>
+							<DecisionModelBadge
+								decisionModel={isEditMode
+									? editCircle.formValues.decisionModel
+									: circle.decisionModel}
+							/>
+						</div>
+					{/snippet}
+				</CircleDetailHeader>
 
 				<!-- Edit Mode Indicator Bar -->
 				{#if isEditMode}
@@ -521,42 +511,6 @@
 					>
 						<Icon type="edit" size="sm" />
 						<Text variant="body" size="sm" color="primary" class="font-medium">Edit mode</Text>
-					</div>
-				{/if}
-
-				<!-- Operating Mode Section -->
-				{#if circle}
-					<div class="border-base mx-page rounded-card bg-surface card-padding mb-section border">
-						<div class="mb-fieldGroup flex items-center justify-between">
-							<Heading level={3}>Operating Mode</Heading>
-							{#if !isEditMode}
-								<CircleTypeBadge circleType={circle.circleType} />
-							{/if}
-						</div>
-
-						{#if isEditMode}
-							<!-- Edit Mode: Form Inputs -->
-							<div class="space-y-form">
-								<FormSelect
-									label="Circle Type"
-									value={editCircle.formValues.circleType}
-									onchange={(value) => editCircle.setField('circleType', value as CircleType)}
-									options={circleTypeOptions}
-								/>
-								<FormSelect
-									label="Decision Model"
-									value={editCircle.formValues.decisionModel}
-									onchange={(value) => editCircle.setField('decisionModel', value as DecisionModel)}
-									options={decisionModelOptions}
-								/>
-							</div>
-						{:else}
-							<!-- Read Mode: Selectors -->
-							<div class="space-y-form">
-								<CircleTypeSelector {circle} {sessionId} {canEdit} />
-								<DecisionModelSelector {circle} {sessionId} {canEdit} />
-							</div>
-						{/if}
 					</div>
 				{/if}
 
@@ -660,46 +614,51 @@
 								>
 									<!-- Left Column: Overview Details -->
 									<div class="gap-section flex min-w-0 flex-col overflow-hidden">
-										<!-- Purpose -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Purpose
-											</h4>
-											{#if isEditMode}
-												<FormTextarea
-													label=""
-													placeholder="What's the purpose of this circle?"
-													value={editCircle.formValues.purpose}
-													oninput={(e) => editCircle.setField('purpose', e.currentTarget.value)}
-													rows={4}
-												/>
-											{:else if canEdit}
-												<InlineEditText
-													value={circle.purpose || ''}
-													onSave={(purpose) => handleQuickUpdateCircle({ purpose })}
-													multiline={true}
-													placeholder="What's the purpose of this circle?"
-													maxRows={4}
-													size="md"
-												/>
-											{:else if editReason}
-												<EditPermissionTooltip reason={editReason}>
-													<div class="text-button text-secondary leading-relaxed break-words">
-														{#if circle.purpose}
-															{circle.purpose}
-														{:else}
-															<Text variant="body" size="md" color="tertiary">No purpose set</Text>
-														{/if}
-													</div>
-												</EditPermissionTooltip>
-											{:else}
-												<p class="text-button text-secondary leading-relaxed break-words">
-													{circle.purpose || 'No purpose set'}
-												</p>
-											{/if}
-										</div>
+										<!-- Purpose - from customFields only (SYOS-964) -->
+										{#if customFields.getFieldBySystemKey('purpose')}
+											{@const purposeField = customFields.getFieldBySystemKey('purpose')}
+											{@const purposeValue = getFieldValueAsString('purpose')}
+											<div>
+												<h4
+													class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
+												>
+													{purposeField.definition.name}
+												</h4>
+												{#if isEditMode}
+													<FormTextarea
+														label=""
+														placeholder="What's the purpose of this circle?"
+														value={editCircle.formValues.purpose}
+														oninput={(e) => editCircle.setField('purpose', e.currentTarget.value)}
+														rows={4}
+													/>
+												{:else if canEdit}
+													<InlineEditText
+														value={purposeValue}
+														onSave={(purpose) => handleQuickUpdateCircle({ purpose })}
+														multiline={true}
+														placeholder="What's the purpose of this circle?"
+														maxRows={4}
+														size="md"
+													/>
+												{:else if editReason}
+													<EditPermissionTooltip reason={editReason}>
+														<div class="text-button text-secondary leading-relaxed break-words">
+															{#if purposeValue}
+																{purposeValue}
+															{:else}
+																<Text variant="body" size="md" color="tertiary">No purpose set</Text
+																>
+															{/if}
+														</div>
+													</EditPermissionTooltip>
+												{:else}
+													<p class="text-button text-secondary leading-relaxed break-words">
+														{purposeValue || 'No purpose set'}
+													</p>
+												{/if}
+											</div>
+										{/if}
 
 										<!-- Domains -->
 										<div>
@@ -710,12 +669,13 @@
 											</h4>
 											<CategoryItemsList
 												categoryName="Domains"
-												items={circleItems.getItemsByCategory('Domains')}
+												items={getItemsForCategory('Domains')}
 												{canEdit}
 												{editReason}
-												onCreate={(content) => circleItems.createItem('Domains', content)}
-												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												onCreate={(content) => handleAddMultiItemField('Domains', content)}
+												onUpdate={(itemId, content) =>
+													handleUpdateMultiItemField('Domains', itemId, content)}
+												onDelete={(itemId) => handleDeleteMultiItemField('Domains', itemId)}
 												placeholder="What domains does this circle own?"
 											/>
 										</div>
@@ -729,12 +689,14 @@
 											</h4>
 											<CategoryItemsList
 												categoryName="Accountabilities"
-												items={circleItems.getItemsByCategory('Accountabilities')}
+												items={getItemsForCategory('Accountabilities')}
 												{canEdit}
 												{editReason}
-												onCreate={(content) => circleItems.createItem('Accountabilities', content)}
-												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												onCreate={(content) => handleAddMultiItemField('Accountabilities', content)}
+												onUpdate={(itemId, content) =>
+													handleUpdateMultiItemField('Accountabilities', itemId, content)}
+												onDelete={(itemId) =>
+													handleDeleteMultiItemField('Accountabilities', itemId)}
 												placeholder="What is this circle accountable for?"
 											/>
 										</div>
@@ -748,12 +710,13 @@
 											</h4>
 											<CategoryItemsList
 												categoryName="Policies"
-												items={circleItems.getItemsByCategory('Policies')}
+												items={getItemsForCategory('Policies')}
 												{canEdit}
 												{editReason}
-												onCreate={(content) => circleItems.createItem('Policies', content)}
-												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												onCreate={(content) => handleAddMultiItemField('Policies', content)}
+												onUpdate={(itemId, content) =>
+													handleUpdateMultiItemField('Policies', itemId, content)}
+												onDelete={(itemId) => handleDeleteMultiItemField('Policies', itemId)}
 												placeholder="What policies govern this circle?"
 											/>
 										</div>
@@ -767,12 +730,13 @@
 											</h4>
 											<CategoryItemsList
 												categoryName="Decision Rights"
-												items={circleItems.getItemsByCategory('Decision Rights')}
+												items={getItemsForCategory('Decision Rights')}
 												{canEdit}
 												{editReason}
-												onCreate={(content) => circleItems.createItem('Decision Rights', content)}
-												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												onCreate={(content) => handleAddMultiItemField('Decision Rights', content)}
+												onUpdate={(itemId, content) =>
+													handleUpdateMultiItemField('Decision Rights', itemId, content)}
+												onDelete={(itemId) => handleDeleteMultiItemField('Decision Rights', itemId)}
 												placeholder="What decisions can this circle make?"
 											/>
 										</div>
@@ -786,12 +750,12 @@
 											</h4>
 											<CategoryItemsList
 												categoryName="Notes"
-												items={circleItems.getItemsByCategory('Notes')}
+												items={getItemsForCategory('Notes')}
 												{canEdit}
 												{editReason}
-												onCreate={(content) => circleItems.createItem('Notes', content)}
-												onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-												onDelete={(itemId) => circleItems.deleteItem(itemId)}
+												onCreate={(content) => handleUpdateSingleField('Notes', content)}
+												onUpdate={(itemId, content) => handleUpdateSingleField('Notes', content)}
+												onDelete={(itemId) => handleUpdateSingleField('Notes', '')}
 												placeholder="Additional notes about this circle"
 											/>
 										</div>

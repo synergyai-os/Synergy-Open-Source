@@ -7,7 +7,7 @@ import { v } from 'convex/values';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { QueryCtx } from '../../_generated/server';
-import { ensureWorkspaceMembership } from './proposalAccess';
+import { ensureWorkspaceMembership } from './rules';
 import type { ProposalStatus } from './schema';
 import { getPersonForSessionAndWorkspace } from '../people/queries';
 

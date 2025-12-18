@@ -5,6 +5,7 @@ import { CIRCLE_TYPES, type CircleType } from '../../../core/circles';
 import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 import { findLeadRoleTemplate, isWorkspaceAdmin, updateLeadRolesFromTemplate } from './rules';
 import { requireWorkspacePersonFromSession } from '../roleAccess';
+import { ROLE_TYPES } from '../constants';
 
 export const create = mutation({
 	args: {
@@ -12,8 +13,12 @@ export const create = mutation({
 		workspaceId: v.id('workspaces'),
 		name: v.string(),
 		roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
-		defaultPurpose: v.string(),
-		defaultDecisionRights: v.array(v.string()),
+		defaultFieldValues: v.array(
+			v.object({
+				systemKey: v.string(),
+				values: v.array(v.string())
+			})
+		),
 		description: v.optional(v.string()),
 		isCore: v.optional(v.boolean()),
 		appliesTo: v.union(
@@ -45,8 +50,7 @@ export const create = mutation({
 			workspaceId: args.workspaceId,
 			name: trimmedName,
 			roleType: args.roleType,
-			defaultPurpose: args.defaultPurpose,
-			defaultDecisionRights: args.defaultDecisionRights,
+			defaultFieldValues: args.defaultFieldValues,
 			description: args.description,
 			isCore: args.isCore ?? false,
 			appliesTo: args.appliesTo,
@@ -107,7 +111,7 @@ export const update = mutation({
 			updatedByPersonId: personId
 		};
 
-		const wasLeadTemplate = template.roleType === 'circle_lead';
+		const wasLeadTemplate = template.roleType === ROLE_TYPES.CIRCLE_LEAD;
 
 		if (args.name !== undefined) {
 			updates.name = args.name.trim();
@@ -170,7 +174,7 @@ export const archive = mutation({
 			return { success: true };
 		}
 
-		if (template.roleType === 'circle_lead') {
+		if (template.roleType === ROLE_TYPES.CIRCLE_LEAD) {
 			const existingLeadTemplate = await findLeadRoleTemplate(ctx, template.workspaceId);
 			if (!existingLeadTemplate || existingLeadTemplate === args.templateId) {
 				throw createError(

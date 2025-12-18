@@ -134,11 +134,11 @@
 					{ sessionId: string; theme: string },
 					Id<'userSettings'>
 				>,
-				deleteClaudeApiKey: makeFunctionReference(
-					'settings:deleteClaudeApiKey'
+				removeClaudeApiKey: makeFunctionReference(
+					'settings:removeClaudeApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
-				deleteReadwiseApiKey: makeFunctionReference(
-					'settings:deleteReadwiseApiKey'
+				removeReadwiseApiKey: makeFunctionReference(
+					'settings:removeReadwiseApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				// Organization settings
 				getOrganizationSettings: makeFunctionReference(
@@ -162,8 +162,8 @@
 					{ sessionId: string; workspaceId: Id<'workspaces'>; apiKey: string },
 					Id<'workspaces'>
 				>,
-				deleteOrganizationClaudeApiKey: makeFunctionReference(
-					'workspaceSettings:deleteOrganizationClaudeApiKey'
+				removeOrganizationClaudeApiKey: makeFunctionReference(
+					'workspaceSettings:removeOrganizationClaudeApiKey'
 				) as FunctionReference<
 					'mutation',
 					'public',
@@ -252,8 +252,8 @@
 		| ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>)
 		| null;
 	let _updateThemeFn: UpdateThemeFn = $state(null);
-	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
-	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
+	let removeClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
+	let removeReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
 	// Initialize mutations and actions when ready
 	$effect(() => {
@@ -273,15 +273,15 @@
 		// Theme update is still a mutation (no validation needed)
 		_updateThemeFn = ((args: { sessionId: string; theme: 'light' | 'dark' }) =>
 			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof _updateThemeFn;
-		// Delete functions are actions (they validate via HTTP)
-		deleteClaudeApiKeyFn = ((sessionId: string) =>
-			convexClient!.action(settingsApiFunctions.deleteClaudeApiKey, {
+		// Remove functions are actions (they validate via HTTP)
+		removeClaudeApiKeyFn = ((sessionId: string) =>
+			convexClient!.action(settingsApiFunctions.removeClaudeApiKey, {
 				sessionId
-			})) as typeof deleteClaudeApiKeyFn;
-		deleteReadwiseApiKeyFn = ((sessionId: string) =>
-			convexClient!.action(settingsApiFunctions.deleteReadwiseApiKey, {
+			})) as typeof removeClaudeApiKeyFn;
+		removeReadwiseApiKeyFn = ((sessionId: string) =>
+			convexClient!.action(settingsApiFunctions.removeReadwiseApiKey, {
 				sessionId
-			})) as typeof deleteReadwiseApiKeyFn;
+			})) as typeof removeReadwiseApiKeyFn;
 	});
 
 	// State for API keys (initialized from Convex)
@@ -451,13 +451,13 @@
 		}
 	}
 
-	// Delete API key handlers
-	async function handleDeleteClaudeKey() {
+	// Remove API key handlers
+	async function handleRemoveClaudeKey() {
 		const sessionId = $page.data.sessionId;
-		if (!sessionId || !deleteClaudeApiKeyFn) return;
+		if (!sessionId || !removeClaudeApiKeyFn) return;
 
 		try {
-			await deleteClaudeApiKeyFn(sessionId);
+			await removeClaudeApiKeyFn(sessionId);
 			claudeApiKey = '';
 			claudeHasKey = false;
 			claudeShowCheckmark = false;
@@ -468,12 +468,12 @@
 		}
 	}
 
-	async function handleDeleteReadwiseKey() {
+	async function handleRemoveReadwiseKey() {
 		const sessionId = $page.data.sessionId;
-		if (!sessionId || !deleteReadwiseApiKeyFn) return;
+		if (!sessionId || !removeReadwiseApiKeyFn) return;
 
 		try {
-			await deleteReadwiseApiKeyFn(sessionId);
+			await removeReadwiseApiKeyFn(sessionId);
 			readwiseApiKey = '';
 			readwiseHasKey = false;
 			readwiseShowCheckmark = false;
@@ -657,7 +657,7 @@
 											<!-- Delete button (trash icon) - replaces eye icon for security -->
 											<button
 												type="button"
-												onclick={handleDeleteClaudeKey}
+												onclick={handleRemoveClaudeKey}
 												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
@@ -832,7 +832,7 @@
 											<!-- Delete button (trash icon) - replaces eye icon for security -->
 											<button
 												type="button"
-												onclick={handleDeleteReadwiseKey}
+												onclick={handleRemoveReadwiseKey}
 												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"

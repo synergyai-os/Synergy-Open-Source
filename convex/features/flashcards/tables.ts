@@ -2,7 +2,7 @@ import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export const flashcardsTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	question: v.string(),
 	answer: v.string(),
 	sourceInboxItemId: v.optional(v.id('inboxItems')),
@@ -24,16 +24,16 @@ export const flashcardsTable = defineTable({
 	lastReviewAt: v.optional(v.number()),
 	createdAt: v.number()
 })
-	.index('by_user', ['userId'])
-	.index('by_user_algorithm', ['userId', 'algorithm'])
-	.index('by_user_due', ['userId', 'algorithm', 'fsrsDue'])
+	.index('by_person', ['personId'])
+	.index('by_person_algorithm', ['personId', 'algorithm'])
+	.index('by_person_due', ['personId', 'algorithm', 'fsrsDue'])
 	.index('by_source', ['sourceInboxItemId'])
 	.index('by_workspace', ['workspaceId'])
 	.index('by_circle', ['circleId']);
 
 export const flashcardReviewsTable = defineTable({
 	flashcardId: v.id('flashcards'),
-	userId: v.id('users'),
+	personId: v.id('people'),
 	rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy')),
 	algorithm: v.string(),
 	reviewTime: v.optional(v.number()),
@@ -48,11 +48,11 @@ export const flashcardReviewsTable = defineTable({
 	)
 })
 	.index('by_flashcard', ['flashcardId'])
-	.index('by_user', ['userId'])
-	.index('by_user_reviewed', ['userId', 'reviewedAt']);
+	.index('by_person', ['personId'])
+	.index('by_person_reviewed', ['personId', 'reviewedAt']);
 
 export const userAlgorithmSettingsTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	defaultAlgorithm: v.string(),
 	fsrsParams: v.optional(
 		v.object({
@@ -63,7 +63,7 @@ export const userAlgorithmSettingsTable = defineTable({
 	),
 	createdAt: v.number(),
 	updatedAt: v.number()
-}).index('by_user', ['userId']);
+}).index('by_person', ['personId']);
 
 export const flashcardTagsTable = defineTable({
 	flashcardId: v.id('flashcards'),

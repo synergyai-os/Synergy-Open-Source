@@ -4,6 +4,7 @@ import { parseIncrementalDate, requireWorkspaceId } from './filters';
 import { collectHighlights, processHighlights } from './highlights';
 import { clearProgress, finalizeSync, initializeProgress } from './progress';
 import { ensureSources } from './sources';
+import { getPersonByUserAndWorkspace } from '../../core/people/queries';
 
 type SyncArgs = {
 	userId: Id<'users'>;
@@ -17,6 +18,8 @@ type SyncArgs = {
 export async function withReadwiseSyncHandler(ctx: ActionCtx, args: SyncArgs) {
 	const { userId, apiKey, updatedAfter: dateFilter, limit } = args;
 	const workspaceId = args.workspaceId ?? (await requireWorkspaceId(ctx, userId));
+	const person = await getPersonByUserAndWorkspace(ctx, userId, workspaceId);
+	const personId = person._id;
 
 	try {
 		const incrementalAfter = await parseIncrementalDate(
@@ -27,10 +30,10 @@ export async function withReadwiseSyncHandler(ctx: ActionCtx, args: SyncArgs) {
 			args.updatedBefore
 		);
 		const highlightsFilter = limit ? undefined : incrementalAfter;
-		await initializeProgress(ctx, userId, limit);
+		await initializeProgress(ctx, personId, limit);
 
 		const highlightsState = await collectHighlights(ctx, {
-			userId,
+			personId,
 			workspaceId,
 			apiKey,
 			limit,
@@ -39,7 +42,7 @@ export async function withReadwiseSyncHandler(ctx: ActionCtx, args: SyncArgs) {
 		});
 
 		const sourceIdMap = await ensureSources(ctx, {
-			userId,
+			personId,
 			apiKey,
 			workspaceId,
 			updatedAfter: limit ? undefined : incrementalAfter,
@@ -48,13 +51,13 @@ export async function withReadwiseSyncHandler(ctx: ActionCtx, args: SyncArgs) {
 		});
 
 		const processed = await processHighlights(ctx, {
-			userId,
+			personId,
 			workspaceId,
 			sourceIdMap,
 			highlightsToProcess: highlightsState.highlightsToProcess
 		});
 
-		await finalizeSync(ctx, userId);
+		await finalizeSync(ctx, personId);
 
 		return {
 			success: true,
@@ -65,7 +68,7 @@ export async function withReadwiseSyncHandler(ctx: ActionCtx, args: SyncArgs) {
 			errorsCount: processed.errorCount
 		};
 	} catch (error) {
-		await clearProgress(ctx, userId);
+		await clearProgress(ctx, personId);
 		throw error;
 	}
 }

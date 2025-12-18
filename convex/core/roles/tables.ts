@@ -5,8 +5,12 @@ export const roleTemplatesTable = defineTable({
 	workspaceId: v.optional(v.id('workspaces')),
 	name: v.string(),
 	roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
-	defaultPurpose: v.string(),
-	defaultDecisionRights: v.array(v.string()),
+	defaultFieldValues: v.array(
+		v.object({
+			systemKey: v.string(),
+			values: v.array(v.string())
+		})
+	),
 	description: v.optional(v.string()),
 	isCore: v.boolean(),
 	appliesTo: v.union(

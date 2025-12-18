@@ -774,8 +774,10 @@ System-level templates (10 total) define blueprints for auto-created roles:
   roleType: 'circle_lead' | 'structural',
   appliesTo: 'hierarchy' | 'empowered_team' | 'guild' | 'hybrid',
   isCore: boolean,                     // true = required for governance, false = optional
-  defaultPurpose: string,
-  defaultDecisionRights: string[],
+  defaultFieldValues: Array<{          // Generic field system (SYOS-960)
+    systemKey: string,                 // e.g., 'purpose', 'decision_right'
+    values: string[]                   // One or more default values
+  }>,
   description: string,
   createdByPersonId: undefined         // System template - no creator
 }
@@ -808,8 +810,8 @@ For complete invariant definitions, see `convex/admin/invariants/INVARIANTS.md`.
 ```typescript
 {
   roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),  // required
-  purpose: v.string(),                   // now required (was optional)
-  decisionRights: v.array(v.string()),   // new field, min 1 validated in mutations
+  templateId: v.optional(v.id('roleTemplates')),
+  // NOTE: purpose, decisionRights, etc. now stored in customFieldValues (SYOS-960)
   // ... other fields
 }
 // New index: by_circle_roleType ['circleId', 'roleType']
@@ -823,12 +825,28 @@ For complete invariant definitions, see `convex/admin/invariants/INVARIANTS.md`.
   roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
   appliesTo: v.union(v.literal('hierarchy'), v.literal('empowered_team'), v.literal('guild'), v.literal('hybrid')),
   isCore: v.boolean(),                   // true = required for governance
-  defaultPurpose: v.string(),
-  defaultDecisionRights: v.array(v.string()),
+  defaultFieldValues: v.array(v.object({
+    systemKey: v.string(),               // e.g., 'purpose', 'decision_right'
+    values: v.array(v.string())          // One or more default values
+  })),
   description: v.optional(v.string()),
   createdByPersonId: v.optional(v.id('people')),  // undefined for system templates
   // ... audit fields
 }
+```
+
+**customFieldValues table:** (see `features/customFields/tables.ts`)
+```typescript
+{
+  workspaceId: v.id('workspaces'),
+  definitionId: v.id('customFieldDefinitions'),
+  entityType: v.union(v.literal('circle'), v.literal('role'), ...),
+  entityId: v.string(),                  // ID of the role/circle
+  value: v.string(),                     // The actual value (one record per value)
+  searchText: v.optional(v.string()),    // Indexed for search
+  // ... audit fields
+}
+// Purpose, decision rights, etc. stored here, not on circleRoles
 ```
 
 **workspaces table:**
@@ -889,9 +907,11 @@ domain/
 
 | File | Purpose | Required | Contents |
 |------|---------|----------|----------|
-| `tables.ts` | Table definitions | **REQUIRED** | `defineTable()` calls, indexes |
+| `tables.ts` | Table definitions | **REQUIRED** (unless calculation-only) | `defineTable()` calls, indexes |
 | `schema.ts` | Types and aliases | OPTIONAL | Type exports, re-exports from tables.ts or constants.ts |
 | `constants.ts` | Runtime constants | OPTIONAL | Const objects with derived types, enums |
+
+**Note:** Calculation-only domains (e.g., `authority`) that compute values from other domains without storing data do not require `tables.ts`. These domains consist of pure calculation functions and queries that read from other domains.
 
 **When to use `constants.ts`:**
 - Domain has enum-like values used at runtime (iteration, validation, mapping)
@@ -1566,6 +1586,7 @@ These failures exist in test/development workspaces and do not affect production
 | Projects/Tasks audit fields | Migrate `createdBy` to `createdByPersonId` in projects and tasks tables | Medium | TBD |
 | Workspaces domain restructure | Consolidate workspaces-related code | Low | SYOS-843 |
 | `policies` domain implementation | Scaffold exists, no tables.ts, not implemented | Low | Deferred until governance customization scoped |
+| Flashcards/Readwise `userId` → `personId` | Migrate audit fields from `userId` to `personId` in flashcards and readwise tables | Medium | Separate ticket when feature work starts |
 
 ### Current Validation Status (2025-12-13)
 

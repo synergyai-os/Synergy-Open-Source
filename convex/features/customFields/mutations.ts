@@ -207,7 +207,7 @@ export const setValue = mutation({
 			definitionId: args.definitionId,
 			entityType: args.entityType,
 			entityId: args.entityId,
-			value: JSON.stringify(args.value),
+			value: String(args.value), // Plain string - no JSON encoding needed (SYOS-963)
 			searchText,
 			updatedAt: now,
 			updatedByPersonId: person._id
@@ -226,7 +226,7 @@ export const setValue = mutation({
 	}
 });
 
-export const deleteValue = mutation({
+export const archiveValue = mutation({
 	args: {
 		sessionId: v.string(),
 		definitionId: v.id('customFieldDefinitions'),

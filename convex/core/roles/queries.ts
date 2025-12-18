@@ -16,6 +16,7 @@ import {
 	requireWorkspacePersonFromSession
 } from './roleAccess';
 import { getPersonById } from '../people/queries';
+import { ROLE_TYPES } from './constants';
 
 // ============================================================================
 // Helper Functions
@@ -224,7 +225,7 @@ async function getRoleDetails(
 	let isLeadRoleFlag = false;
 	if (role.templateId) {
 		const template = await ctx.db.get(role.templateId);
-		isLeadRoleFlag = template?.roleType === 'circle_lead';
+		isLeadRoleFlag = template?.roleType === ROLE_TYPES.CIRCLE_LEAD;
 	}
 
 	return {

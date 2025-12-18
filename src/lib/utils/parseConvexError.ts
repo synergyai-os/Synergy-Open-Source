@@ -16,7 +16,7 @@
  *
  * SynergyOS errors use format: `SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`
  * This survives serialization across Convex boundaries.
- * 
+ *
  * Note: Convex may wrap our errors with prefixes like:
  * "[CONVEX M] [Request ID: ...] Server Error Uncaught SynergyOSError: SYNERGYOS_ERROR|..."
  * So we check if the message contains (not starts with) the structured format.
@@ -32,24 +32,24 @@ function isSynergyOSError(error: unknown): boolean {
  * Extract user message from SynergyOS structured error
  *
  * Format: `SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`
- * 
+ *
  * Handles cases where Convex wraps the error with prefixes:
  * "[CONVEX M] ... SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS"
  */
 function extractSynergyOSUserMessage(error: Error): string {
 	const message = error.message || error.toString();
-	
+
 	// Find the structured format within the message (may be wrapped by Convex)
 	const structuredStart = message.indexOf('SYNERGYOS_ERROR|');
 	if (structuredStart === -1) {
 		// Fallback if format not found
 		return message;
 	}
-	
+
 	// Extract the structured part: "SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS"
 	const structuredPart = message.substring(structuredStart);
 	const parts = structuredPart.split('|');
-	
+
 	// Format: SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS
 	// parts[0] = "SYNERGYOS_ERROR"
 	// parts[1] = CODE
@@ -58,7 +58,7 @@ function extractSynergyOSUserMessage(error: Error): string {
 	if (parts.length >= 3) {
 		return parts[2]; // USER_MESSAGE is third part
 	}
-	
+
 	// Fallback if format is unexpected
 	return message;
 }

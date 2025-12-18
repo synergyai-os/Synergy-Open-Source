@@ -14,7 +14,7 @@
 
 import type { MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
-import { CIRCLE_TYPES } from '../../core/circles/constants';
+import { CIRCLE_TYPES, type CircleType } from '../../core/circles/constants';
 
 /**
  * System role template definition
@@ -22,8 +22,7 @@ import { CIRCLE_TYPES } from '../../core/circles/constants';
 interface RoleTemplateDefinition {
 	name: string;
 	roleType: 'circle_lead' | 'structural' | 'custom';
-	defaultPurpose: string;
-	defaultDecisionRights: string[];
+	defaultFieldValues: Array<{ systemKey: string; values: string[] }>;
 	description: string;
 	isCore: boolean;
 	appliesTo: CircleType;
@@ -44,8 +43,24 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'circle_lead',
 		appliesTo: CIRCLE_TYPES.HIERARCHY,
 		isCore: true,
-		defaultPurpose: 'Lead this circle toward its purpose with full decision authority',
-		defaultDecisionRights: ['Decide all matters within circle scope', 'Assign roles within circle'],
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Lead this circle toward its purpose with full decision authority']
+			},
+			{
+				systemKey: 'decision_right',
+				values: [
+					'Decide all matters within circle scope',
+					'Assign roles within circle',
+					'Remove roles from circle'
+				]
+			},
+			{
+				systemKey: 'accountability',
+				values: ['Coordinate work across roles', 'Represent circle in parent circle']
+			}
+		],
 		description:
 			'Full authority lead role for hierarchical circles with traditional command structure.'
 	},
@@ -54,8 +69,24 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.HIERARCHY,
 		isCore: false,
-		defaultPurpose: 'Maintain circle records and schedule meetings',
-		defaultDecisionRights: ['Publish meeting notes'],
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Maintain circle records and support governance integrity']
+			},
+			{
+				systemKey: 'decision_right',
+				values: ['Decide what to record in meeting notes']
+			},
+			{
+				systemKey: 'accountability',
+				values: [
+					'Record meeting outputs',
+					'Maintain governance records',
+					'Interpret governance records'
+				]
+			}
+		],
 		description: 'Maintains records and schedules meetings for hierarchical circles.'
 	},
 
@@ -63,14 +94,23 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 	// EMPOWERED_TEAM - Consent-based, lead facilitates
 	// ═══════════════════════════════════════════════════════════════
 	{
-		name: 'Team Lead',
+		name: 'Circle Lead',
 		roleType: 'circle_lead',
 		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
 		isCore: true,
-		defaultPurpose: 'Facilitate team decisions and break ties when needed',
-		defaultDecisionRights: [
-			'Break ties when consent cannot be reached',
-			'Decide meeting schedule and format'
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Facilitate team decisions and break ties when consent cannot be reached']
+			},
+			{
+				systemKey: 'decision_right',
+				values: ['Break ties when consent fails', 'Assign roles within circle']
+			},
+			{
+				systemKey: 'accountability',
+				values: ['Facilitate governance meetings', 'Coordinate work across roles']
+			}
 		],
 		description: 'Facilitative lead role for empowered teams using consent-based decision making.'
 	},
@@ -79,10 +119,16 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
 		isCore: false,
-		defaultPurpose: 'Facilitate governance and tactical meetings',
-		defaultDecisionRights: [
-			'Decide when to move agenda items forward',
-			'Rule on process questions during meetings'
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Ensure governance and tactical meetings run effectively']
+			},
+			{ systemKey: 'decision_right', values: ['Interpret governance when ambiguous'] },
+			{
+				systemKey: 'accountability',
+				values: ['Facilitate circle meetings', 'Resolve process disputes']
+			}
 		],
 		description: 'Facilitates meetings and ensures process is followed for empowered teams.'
 	},
@@ -91,8 +137,24 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
 		isCore: false,
-		defaultPurpose: 'Maintain circle records and schedule meetings',
-		defaultDecisionRights: ['Publish meeting notes'],
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Maintain circle records and support governance integrity']
+			},
+			{
+				systemKey: 'decision_right',
+				values: ['Decide what to record in meeting notes']
+			},
+			{
+				systemKey: 'accountability',
+				values: [
+					'Record meeting outputs',
+					'Maintain governance records',
+					'Interpret governance records'
+				]
+			}
+		],
 		description: 'Maintains records and schedules meetings for empowered teams.'
 	},
 
@@ -104,10 +166,13 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'circle_lead',
 		appliesTo: CIRCLE_TYPES.GUILD,
 		isCore: true,
-		defaultPurpose: 'Convene and coordinate guild activities',
-		defaultDecisionRights: [
-			'Schedule guild meetings',
-			'Decide which circles to involve in guild initiatives'
+		defaultFieldValues: [
+			{ systemKey: 'purpose', values: ['Convene and coordinate guild activities'] },
+			{ systemKey: 'decision_right', values: ['Schedule guild meetings'] },
+			{
+				systemKey: 'accountability',
+				values: ['Maintain guild communication channels', 'Coordinate cross-team knowledge sharing']
+			}
 		],
 		description: 'Convening authority for guilds - coordinates activities across circles.'
 	},
@@ -116,8 +181,24 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.GUILD,
 		isCore: false,
-		defaultPurpose: 'Maintain circle records and schedule meetings',
-		defaultDecisionRights: ['Publish meeting notes'],
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Maintain circle records and support governance integrity']
+			},
+			{
+				systemKey: 'decision_right',
+				values: ['Decide what to record in meeting notes']
+			},
+			{
+				systemKey: 'accountability',
+				values: [
+					'Record meeting outputs',
+					'Maintain governance records',
+					'Interpret governance records'
+				]
+			}
+		],
 		description: 'Maintains records and schedules meetings for guilds.'
 	},
 
@@ -129,10 +210,20 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'circle_lead',
 		appliesTo: CIRCLE_TYPES.HYBRID,
 		isCore: true,
-		defaultPurpose: 'Lead using consent-based decision making',
-		defaultDecisionRights: [
-			'Decide all matters within circle scope using consent or directive',
-			'Choose decision mode per topic'
+		defaultFieldValues: [
+			{ systemKey: 'purpose', values: ['Lead using consent-based decision making'] },
+			{
+				systemKey: 'decision_right',
+				values: [
+					'Decide all matters within circle scope using consent or directive',
+					'Choose decision mode per topic',
+					'Assign roles within circle'
+				]
+			},
+			{
+				systemKey: 'accountability',
+				values: ['Coordinate work across roles', 'Facilitate governance meetings']
+			}
 		],
 		description: 'Full authority lead role that uses consent process - flexible decision making.'
 	},
@@ -141,10 +232,16 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.HYBRID,
 		isCore: false,
-		defaultPurpose: 'Facilitate governance and tactical meetings',
-		defaultDecisionRights: [
-			'Decide when to move agenda items forward',
-			'Rule on process questions during meetings'
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Ensure governance and tactical meetings run effectively']
+			},
+			{ systemKey: 'decision_right', values: ['Interpret governance when ambiguous'] },
+			{
+				systemKey: 'accountability',
+				values: ['Facilitate circle meetings', 'Resolve process disputes']
+			}
 		],
 		description: 'Facilitates meetings and ensures process is followed for hybrid circles.'
 	},
@@ -153,8 +250,24 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 		roleType: 'structural',
 		appliesTo: CIRCLE_TYPES.HYBRID,
 		isCore: false,
-		defaultPurpose: 'Maintain circle records and schedule meetings',
-		defaultDecisionRights: ['Publish meeting notes'],
+		defaultFieldValues: [
+			{
+				systemKey: 'purpose',
+				values: ['Maintain circle records and support governance integrity']
+			},
+			{
+				systemKey: 'decision_right',
+				values: ['Decide what to record in meeting notes']
+			},
+			{
+				systemKey: 'accountability',
+				values: [
+					'Record meeting outputs',
+					'Maintain governance records',
+					'Interpret governance records'
+				]
+			}
+		],
 		description: 'Maintains records and schedules meetings for hybrid circles.'
 	}
 ];
@@ -210,8 +323,7 @@ export async function createSystemRoleTemplates(
 			workspaceId: undefined, // System-level template
 			name: template.name,
 			roleType: template.roleType,
-			defaultPurpose: template.defaultPurpose,
-			defaultDecisionRights: template.defaultDecisionRights,
+			defaultFieldValues: template.defaultFieldValues,
 			description: template.description,
 			isCore: template.isCore,
 			appliesTo: template.appliesTo,

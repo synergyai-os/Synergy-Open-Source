@@ -33,4 +33,3 @@ export const VALID_TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
 	rejected: [],
 	withdrawn: []
 };
-

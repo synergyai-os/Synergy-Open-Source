@@ -175,17 +175,20 @@ Governance foundation invariants from governance-design.md. These enforce role c
 | ID     | Invariant                                                                          | Why                         | Check                                                                           | Severity |
 | ------ | ---------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------- | -------- |
 | GOV-01 | Every circle has exactly one role with `roleType: 'circle_lead'`                   | No authority structure      | Query `by_circle_roleType`, count per circle where `roleType='circle_lead'` = 1 | critical |
-| GOV-02 | Every role has a `purpose` (non-empty string)                                      | No role clarity             | All `circleRoles.purpose` is non-empty string                                   | critical |
-| GOV-03 | Every role has at least one `decisionRight`                                        | No explicit authority       | All `circleRoles.decisionRights.length >= 1` and no empty strings               | critical |
+| GOV-02 | Every role has a `purpose` (non-empty string)                                      | No role clarity             | All roles have customFieldValue with systemKey='purpose' and non-empty value    | critical |
+| GOV-03 | Every role has at least one `decisionRight`                                        | No explicit authority       | All roles have at least one customFieldValue with systemKey='decision_right'    | critical |
 | GOV-04 | Circle lead role cannot be deleted while circle exists                             | Lost authority chain        | Mutation validation prevents lead role deletion (enforced in code, not query)   | critical |
 | GOV-05 | Role assignments are traceable (who assigned, when)                                | Audit trail gaps            | All `assignments` have `createdAt`, `createdByPersonId`                         | warning  |
 | GOV-06 | Governance changes create history records (when phase = 'active')                  | Lost change history         | `orgVersionHistory` entries exist for governance changes in active workspaces   | warning  |
 | GOV-07 | Person can fill 0-N roles; role can have 0-N people (many-to-many via assignments) | Invalid assignment model    | Schema supports many-to-many (verified by structure, not query)                 | critical |
 | GOV-08 | Circle type is explicit, never null for active circles                             | Authority calculation fails | Active circles (`status='active'`) have `circleType` set (not null)             | critical |
 
-> **GOV-01 Auto-Creation**: Enforced via auto-creation on circle creation. See `convex/core/circles/circleCoreRoles.ts`.
+> **GOV-01 Auto-Creation**: Enforced via auto-creation on circle creation. See `convex/core/circles/autoCreateRoles.ts`.
 >
-> **GOV-02 & GOV-03 Validation**: Enforced in mutations via `convex/core/roles/rules.ts` validators.
+> **GOV-02 & GOV-03 Validation**:
+>
+> - Enforced at mutation time via `convex/infrastructure/customFields/helpers.ts` (role creation)
+> - Enforced at data level via `convex/admin/invariants/governance.ts` (SYOS-962)
 >
 > **GOV-04 Protection**: Lead role deletion blocked in `convex/core/roles/roleArchival.ts`.
 >

@@ -37,6 +37,83 @@ export const checkSystemTemplates = query({
 				description: t.description,
 				isCore: t.isCore,
 				appliesTo: t.appliesTo,
+				archivedAt: t.archivedAt,
+				workspaceId: t.workspaceId // DIAGNOSTIC: Include workspaceId to verify it's undefined
+			}))
+		};
+	}
+});
+
+/**
+ * DIAGNOSTIC: Deep dive into template query behavior
+ * Tests different query patterns to isolate the bug
+ */
+export const diagnosticTemplateQuery = query({
+	args: {
+		sessionId: v.string(),
+		circleType: v.union(
+			v.literal('hierarchy'),
+			v.literal('empowered_team'),
+			v.literal('guild'),
+			v.literal('hybrid')
+		)
+	},
+	handler: async (ctx, args) => {
+		await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Test 1: Query ALL templates (no filters)
+		const allTemplates = await ctx.db.query('roleTemplates').collect();
+
+		// Test 2: Query using index with workspaceId = undefined
+		const byWorkspaceIndex = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
+			.collect();
+
+		// Test 3: Filter by appliesTo only (no workspaceId filter)
+		const byAppliesTo = allTemplates.filter((t) => t.appliesTo === args.circleType);
+
+		// Test 4: Filter by appliesTo AND archivedAt (no workspaceId filter)
+		const byAppliesToAndArchived = allTemplates.filter(
+			(t) => t.appliesTo === args.circleType && t.archivedAt === undefined
+		);
+
+		// Test 5: Full query as used in code
+		const fullQuery = await ctx.db
+			.query('roleTemplates')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
+			.filter((q) =>
+				q.and(q.eq(q.field('appliesTo'), args.circleType), q.eq(q.field('archivedAt'), undefined))
+			)
+			.collect();
+
+		// Test 6: Check workspaceId values in all templates
+		const workspaceIdAnalysis = {
+			undefined: allTemplates.filter((t) => t.workspaceId === undefined).length,
+			defined: allTemplates.filter((t) => t.workspaceId !== undefined).length,
+			null: allTemplates.filter((t) => t.workspaceId === null).length
+		};
+
+		return {
+			circleType: args.circleType,
+			counts: {
+				allTemplates: allTemplates.length,
+				byWorkspaceIndex: byWorkspaceIndex.length,
+				byAppliesTo: byAppliesTo.length,
+				byAppliesToAndArchived: byAppliesToAndArchived.length,
+				fullQuery: fullQuery.length
+			},
+			workspaceIdAnalysis,
+			byAppliesToTemplates: byAppliesTo.map((t) => ({
+				name: t.name,
+				roleType: t.roleType,
+				workspaceId: t.workspaceId,
+				archivedAt: t.archivedAt
+			})),
+			fullQueryTemplates: fullQuery.map((t) => ({
+				name: t.name,
+				roleType: t.roleType,
+				workspaceId: t.workspaceId,
 				archivedAt: t.archivedAt
 			}))
 		};

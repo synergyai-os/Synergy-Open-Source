@@ -7,11 +7,17 @@ import { v } from 'convex/values';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { ensureWorkspaceMembership, getNextAgendaOrder, ensureUniqueCircleSlug } from './proposalAccess';
+import { ensureWorkspaceMembership, getNextAgendaOrder, ensureUniqueCircleSlug } from './rules';
 import type { ProposalStatus } from './schema';
 import { getPersonForSessionAndWorkspace } from '../people/queries';
-import { calculateAuthority, getAuthorityContext } from '../authority';
+import { calculateAuthority, getAuthorityContext, isCircleLead } from '../authority';
 import { slugifyName } from '../circles/slug';
+import {
+	isCustomField,
+	findCustomFieldValueBySystemKey,
+	setCustomFieldValueBySystemKey,
+	archiveCustomFieldValueBySystemKey
+} from '../../infrastructure/customFields/helpers';
 
 // ============================================================================
 // Draft Mutations
@@ -26,7 +32,7 @@ export const create = mutation({
 		title: v.string(),
 		description: v.string()
 	},
-	handler: async (ctx, args): Promise<Id<'circleProposals'>> => createProposalMutation(ctx, args)
+	handler: async (ctx, args) => createProposalMutation(ctx, args)
 });
 
 export const addEvolution = mutation({
@@ -74,8 +80,7 @@ export const createFromDiff = mutation({
 			representsToParent: v.optional(v.boolean())
 		})
 	},
-	handler: async (ctx, args): Promise<Id<'circleProposals'>> =>
-		createProposalFromDiffMutation(ctx, args)
+	handler: async (ctx, args) => createProposalFromDiffMutation(ctx, args)
 });
 
 // ============================================================================
@@ -126,6 +131,25 @@ export const reject = mutation({
 		proposalId: v.id('circleProposals')
 	},
 	handler: async (ctx, args) => rejectProposalMutation(ctx, args)
+});
+
+export const saveAndApprove = mutation({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		entityType: v.union(v.literal('circle'), v.literal('role')),
+		entityId: v.string(),
+		title: v.string(),
+		description: v.string(),
+		editedValues: v.object({
+			name: v.optional(v.string()),
+			purpose: v.optional(v.string()),
+			circleType: v.optional(v.string()),
+			decisionModel: v.optional(v.string()),
+			representsToParent: v.optional(v.boolean())
+		})
+	},
+	handler: async (ctx, args) => saveAndApproveMutation(ctx, args)
 });
 
 // ============================================================================
@@ -310,6 +334,39 @@ async function createProposalFromDiffMutation(
 	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
 	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
+	return createFromDiffInternal(ctx, {
+		personId: person._id,
+		workspaceId: args.workspaceId,
+		entityType: args.entityType,
+		entityId: args.entityId,
+		title: args.title,
+		description: args.description,
+		editedValues: args.editedValues
+	});
+}
+
+/**
+ * Internal helper to create a proposal from a diff.
+ * Used by createFromDiff and saveAndApprove mutations.
+ */
+async function createFromDiffInternal(
+	ctx: MutationCtx,
+	args: {
+		personId: Id<'people'>;
+		workspaceId: Id<'workspaces'>;
+		entityType: 'circle' | 'role';
+		entityId: string;
+		title: string;
+		description: string;
+		editedValues: {
+			name?: string;
+			purpose?: string;
+			circleType?: string;
+			decisionModel?: string;
+			representsToParent?: boolean;
+		};
+	}
+): Promise<{ proposalId: Id<'circleProposals'> }> {
 	const entity =
 		args.entityType === 'circle'
 			? await ctx.db.get(args.entityId as Id<'circles'>)
@@ -336,7 +393,7 @@ async function createProposalFromDiffMutation(
 		title: args.title.trim(),
 		description: args.description.trim(),
 		status: 'submitted',
-		createdByPersonId: person._id,
+		createdByPersonId: args.personId,
 		createdAt: now,
 		updatedAt: now
 	});
@@ -353,7 +410,21 @@ async function createProposalFromDiffMutation(
 	for (const [field, label] of Object.entries(fieldLabels)) {
 		if (!(field in args.editedValues)) continue;
 
-		const currentValue = (entity as Record<string, unknown>)[field];
+		// Read current value: schema field vs custom field (SYOS-989)
+		let currentValue: unknown;
+		if (await isCustomField(ctx, args.workspaceId, field)) {
+			// Read from customFieldValues
+			currentValue = await findCustomFieldValueBySystemKey(ctx, {
+				workspaceId: args.workspaceId,
+				entityType: args.entityType,
+				entityId: args.entityId,
+				systemKey: field
+			});
+		} else {
+			// Read from entity schema
+			currentValue = (entity as Record<string, unknown>)[field];
+		}
+
 		const editedValue = (args.editedValues as Record<string, unknown>)[field];
 
 		const currentValueStr =
@@ -621,6 +692,83 @@ async function rejectProposalMutation(
 	return { success: true };
 }
 
+async function saveAndApproveMutation(
+	ctx: MutationCtx,
+	args: {
+		sessionId: string;
+		workspaceId: Id<'workspaces'>;
+		entityType: 'circle' | 'role';
+		entityId: string;
+		title: string;
+		description: string;
+		editedValues: {
+			name?: string;
+			purpose?: string;
+			circleType?: string;
+			decisionModel?: string;
+			representsToParent?: boolean;
+		};
+	}
+): Promise<{ proposalId: Id<'circleProposals'> }> {
+	// 1. Validate session and get user
+	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
+
+	// 2. Verify this is a hierarchy circle
+	const circle =
+		args.entityType === 'circle'
+			? await ctx.db.get(args.entityId as Id<'circles'>)
+			: await ctx.db
+					.get(args.entityId as Id<'circleRoles'>)
+					.then((role) => (role ? ctx.db.get(role.circleId) : null));
+
+	if (!circle) {
+		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
+	}
+
+	if (circle.circleType !== CIRCLE_TYPES.HIERARCHY) {
+		throw createError(
+			ErrorCodes.PROPOSAL_ACCESS_DENIED,
+			'Auto-approve only available for hierarchy circles'
+		);
+	}
+
+	// 3. Verify user is circle lead
+	const authorityContext = await getAuthorityContext(ctx, {
+		personId: person._id,
+		circleId: circle._id
+	});
+
+	if (!isCircleLead(authorityContext)) {
+		throw createError(
+			ErrorCodes.PROPOSAL_ACCESS_DENIED,
+			'Only circle lead can auto-approve proposals'
+		);
+	}
+
+	// 4. Create proposal (reuse createFromDiff logic)
+	const { proposalId } = await createFromDiffInternal(ctx, {
+		personId: person._id,
+		workspaceId: args.workspaceId,
+		entityType: args.entityType,
+		entityId: args.entityId,
+		title: args.title,
+		description: args.description,
+		editedValues: args.editedValues
+	});
+
+	// 5. Auto-approve (this creates orgVersionHistory entry)
+	await approveInternal(ctx, {
+		proposalId,
+		approverPersonId: person._id
+	});
+
+	// TODO: Placeholder for notification system (SYOS-985)
+	// await notifyProposalApproved(ctx, proposalId);
+
+	return { proposalId };
+}
+
 async function approveProposal(
 	ctx: MutationCtx,
 	args: { sessionId: string; proposalId: Id<'circleProposals'> }
@@ -665,9 +813,28 @@ async function approveProposal(
 		throw createError(ErrorCodes.PROPOSAL_ACCESS_DENIED, 'Insufficient authority to approve');
 	}
 
-	const entity = proposalEntity.entity;
+	return approveInternal(ctx, {
+		proposalId: args.proposalId,
+		approverPersonId: person._id
+	});
+}
 
-	const beforeDoc = { ...entity };
+/**
+ * Internal helper to approve a proposal and create version history.
+ * Used by approve and saveAndApprove mutations.
+ */
+async function approveInternal(
+	ctx: MutationCtx,
+	args: {
+		proposalId: Id<'circleProposals'>;
+		approverPersonId: Id<'people'>;
+	}
+): Promise<{ success: true; versionHistoryId: Id<'orgVersionHistory'> }> {
+	const proposal = await ctx.db.get(args.proposalId);
+	if (!proposal) throw createError(ErrorCodes.PROPOSAL_NOT_FOUND, 'Proposal not found');
+
+	const proposalEntity = await getProposalEntity(ctx, proposal);
+	const entity = proposalEntity.entity;
 
 	const evolutions = await ctx.db
 		.query('proposalEvolutions')
@@ -678,21 +845,53 @@ async function approveProposal(
 		throw createError(ErrorCodes.PROPOSAL_INVALID_STATE, 'Proposal has no changes to apply');
 	}
 
-	const updates: Partial<Doc<'circles'>> | Partial<Doc<'circleRoles'>> = {
+	// SYOS-984: Read custom field values before changes for version history
+	const purposeBefore = await findCustomFieldValueBySystemKey(ctx, {
+		workspaceId: proposal.workspaceId,
+		entityType: proposal.entityType,
+		entityId: proposal.entityId,
+		systemKey: 'purpose'
+	});
+
+	// Separate schema field updates from custom field updates (SYOS-984)
+	const schemaUpdates: Partial<Doc<'circles'>> | Partial<Doc<'circleRoles'>> = {
 		updatedAt: Date.now(),
-		updatedByPersonId: person._id
+		updatedByPersonId: args.approverPersonId
 	};
 
 	for (const evolution of evolutions) {
 		const afterValue = evolution.afterValue ? JSON.parse(evolution.afterValue) : undefined;
+		const fieldPath = evolution.fieldPath;
 
-		if (evolution.changeType !== 'remove' && afterValue !== undefined) {
-			(updates as Record<string, unknown>)[evolution.fieldPath] = afterValue;
+		if (await isCustomField(ctx, proposal.workspaceId, fieldPath)) {
+			// Write to customFieldValues (SYOS-989)
+			if (evolution.changeType === 'remove') {
+				await archiveCustomFieldValueBySystemKey(ctx, {
+					workspaceId: proposal.workspaceId,
+					entityId: proposal.entityId,
+					systemKey: fieldPath
+				});
+			} else if (afterValue !== undefined) {
+				await setCustomFieldValueBySystemKey(ctx, {
+					workspaceId: proposal.workspaceId,
+					entityType: proposal.entityType,
+					entityId: proposal.entityId,
+					systemKey: fieldPath,
+					value: String(afterValue),
+					updatedByPersonId: args.approverPersonId
+				});
+			}
+		} else {
+			// Schema field - add to entity updates
+			if (evolution.changeType !== 'remove' && afterValue !== undefined) {
+				(schemaUpdates as Record<string, unknown>)[fieldPath] = afterValue;
+			}
 		}
 	}
 
+	// Apply schema field updates to entity
 	if (proposal.entityType === 'circle') {
-		const circleUpdates = updates as Partial<Doc<'circles'>>;
+		const circleUpdates = schemaUpdates as Partial<Doc<'circles'>>;
 		if (circleUpdates.name) {
 			const slugBase = slugifyName(circleUpdates.name);
 			circleUpdates.slug = await ensureUniqueCircleSlug(ctx, entity.workspaceId, slugBase);
@@ -701,7 +900,7 @@ async function approveProposal(
 	} else {
 		await ctx.db.patch(
 			proposal.entityId as Id<'circleRoles'>,
-			updates as Partial<Doc<'circleRoles'>>
+			schemaUpdates as Partial<Doc<'circleRoles'>>
 		);
 	}
 
@@ -710,35 +909,42 @@ async function approveProposal(
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Failed to retrieve updated entity');
 	}
 
+	// SYOS-984: Read custom field values after changes for version history
+	const purposeAfter = await findCustomFieldValueBySystemKey(ctx, {
+		workspaceId: proposal.workspaceId,
+		entityType: proposal.entityType,
+		entityId: proposal.entityId,
+		systemKey: 'purpose'
+	});
+
 	const changeDescription = `Approved via proposal: ${proposal.title}`;
 
 	let versionHistoryId: Id<'orgVersionHistory'>;
 
 	if (proposal.entityType === 'circle') {
-		const circleBefore = beforeDoc as Doc<'circles'>;
 		const circleAfter = afterDoc as Doc<'circles'>;
 		versionHistoryId = await ctx.db.insert('orgVersionHistory', {
 			entityType: 'circle',
 			workspaceId: proposal.workspaceId,
 			entityId: proposal.entityId as Id<'circles'>,
 			changeType: 'update',
-			changedByPersonId: person._id,
+			changedByPersonId: args.approverPersonId,
 			changedAt: Date.now(),
 			changeDescription,
 			before: {
-				name: circleBefore.name,
-				slug: circleBefore.slug,
-				purpose: circleBefore.purpose,
-				parentCircleId: circleBefore.parentCircleId,
-				status: circleBefore.status,
-				circleType: circleBefore.circleType,
-				decisionModel: circleBefore.decisionModel,
-				archivedAt: circleBefore.archivedAt
+				name: entity.name,
+				slug: (entity as Doc<'circles'>).slug,
+				purpose: purposeBefore ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				parentCircleId: (entity as Doc<'circles'>).parentCircleId,
+				status: entity.status,
+				circleType: (entity as Doc<'circles'>).circleType,
+				decisionModel: (entity as Doc<'circles'>).decisionModel,
+				archivedAt: entity.archivedAt
 			},
 			after: {
 				name: circleAfter.name,
 				slug: circleAfter.slug,
-				purpose: circleAfter.purpose,
+				purpose: purposeAfter ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
 				parentCircleId: circleAfter.parentCircleId,
 				status: circleAfter.status,
 				circleType: circleAfter.circleType,
@@ -747,29 +953,28 @@ async function approveProposal(
 			}
 		});
 	} else {
-		const roleBefore = beforeDoc as Doc<'circleRoles'>;
 		const roleAfter = afterDoc as Doc<'circleRoles'>;
 		versionHistoryId = await ctx.db.insert('orgVersionHistory', {
 			entityType: 'circleRole',
 			workspaceId: proposal.workspaceId,
 			entityId: proposal.entityId as Id<'circleRoles'>,
 			changeType: 'update',
-			changedByPersonId: person._id,
+			changedByPersonId: args.approverPersonId,
 			changedAt: Date.now(),
 			changeDescription,
 			before: {
-				circleId: roleBefore.circleId,
-				name: roleBefore.name,
-				purpose: roleBefore.purpose,
-				templateId: roleBefore.templateId,
-				status: roleBefore.status,
-				isHiring: roleBefore.isHiring,
-				archivedAt: roleBefore.archivedAt
+				circleId: (entity as Doc<'circleRoles'>).circleId,
+				name: entity.name,
+				purpose: purposeBefore ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				templateId: (entity as Doc<'circleRoles'>).templateId,
+				status: entity.status,
+				isHiring: (entity as Doc<'circleRoles'>).isHiring,
+				archivedAt: entity.archivedAt
 			},
 			after: {
 				circleId: roleAfter.circleId,
 				name: roleAfter.name,
-				purpose: roleAfter.purpose,
+				purpose: purposeAfter ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
 				templateId: roleAfter.templateId,
 				status: roleAfter.status,
 				isHiring: roleAfter.isHiring,
@@ -781,7 +986,7 @@ async function approveProposal(
 	await ctx.db.patch(args.proposalId, {
 		status: 'approved',
 		processedAt: Date.now(),
-		processedByPersonId: person._id,
+		processedByPersonId: args.approverPersonId,
 		versionHistoryEntryId: versionHistoryId,
 		updatedAt: Date.now()
 	});

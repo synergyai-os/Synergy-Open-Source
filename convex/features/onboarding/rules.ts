@@ -203,7 +203,7 @@ export function getStepForRoute(route: string): string | null {
  */
 export function getRouteIndex(route: string): number {
 	const normalized = route.replace(/^\/onboarding\/?/, '').replace(/\/$/, '') || 'workspace';
-	return ONBOARDING_ROUTE_ORDER.indexOf(normalized as typeof ONBOARDING_ROUTE_ORDER[number]);
+	return ONBOARDING_ROUTE_ORDER.indexOf(normalized as (typeof ONBOARDING_ROUTE_ORDER)[number]);
 }
 
 // ============================================================================

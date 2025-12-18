@@ -16,7 +16,7 @@ import {
 import { delay } from './jobs';
 
 type CollectArgs = {
-	userId: string;
+	personId: Id<'people'>;
 	workspaceId: Id<'workspaces'>;
 	apiKey: string;
 	updatedAfter?: string;
@@ -37,7 +37,7 @@ export async function collectHighlights(
 	ctx: ActionCtx,
 	args: CollectArgs
 ): Promise<HighlightCollection> {
-	const { userId, workspaceId, apiKey, updatedAfter, updatedBefore, limit } = args;
+	const { personId, workspaceId, apiKey, updatedAfter, updatedBefore, limit } = args;
 	let newCount = 0;
 	let skippedCount = 0;
 	let errorCount = 0;
@@ -50,7 +50,7 @@ export async function collectHighlights(
 		if (limit && newCount >= limit) break;
 		if (limit && newCount < limit) {
 			await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-				userId,
+				personId,
 				step: 'Fetching highlights...',
 				current: newCount,
 				total: limit,
@@ -71,23 +71,23 @@ export async function collectHighlights(
 
 		for (const highlight of sortedHighlights) {
 			totalChecked++;
-			await maybeUpdateProgress(ctx, userId, totalChecked, newCount, limit, response, highlight);
+			await maybeUpdateProgress(ctx, personId, totalChecked, newCount, limit, response, highlight);
 
 			try {
-				const highlightExists = await hasHighlight(ctx, userId, String(highlight.id));
+				const highlightExists = await hasHighlight(ctx, personId, String(highlight.id));
 
 				let needsImport = !highlightExists;
 				if (limit && highlightExists) {
 					const existingHighlightId = await findHighlightIdByExternalId(
 						ctx,
-						userId,
+						personId,
 						String(highlight.id)
 					);
 
 					if (existingHighlightId) {
 						const inboxItemExists = await hasInboxItem(
 							ctx,
-							userId,
+							personId,
 							workspaceId,
 							existingHighlightId
 						);
@@ -130,18 +130,18 @@ export async function collectHighlights(
 export async function processHighlights(
 	ctx: ActionCtx,
 	args: {
-		userId: string;
+		personId: Id<'people'>;
 		workspaceId: Id<'workspaces'>;
 		sourceIdMap: Map<number, string>;
 		highlightsToProcess: ReadwiseHighlight[];
 	}
 ) {
-	const { userId, workspaceId, sourceIdMap, highlightsToProcess } = args;
+	const { personId, workspaceId, sourceIdMap, highlightsToProcess } = args;
 	let processedCount = 0;
 	let errorCount = 0;
 
 	await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-		userId,
+		personId,
 		step: 'Importing highlights...',
 		current: 0,
 		total: highlightsToProcess.length,
@@ -153,7 +153,7 @@ export async function processHighlights(
 		highlightIndex++;
 		if (highlightIndex % 10 === 0 || highlightIndex === highlightsToProcess.length) {
 			await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-				userId,
+				personId,
 				step: 'Importing highlights...',
 				current: highlightIndex,
 				total: highlightsToProcess.length,
@@ -164,7 +164,7 @@ export async function processHighlights(
 		try {
 			let sourceId: string | null = sourceIdMap.get(highlight.book_id) || null;
 			if (!sourceId) {
-				sourceId = await findSourceIdByBookId(ctx, userId, String(highlight.book_id));
+				sourceId = await findSourceIdByBookId(ctx, personId, String(highlight.book_id));
 			}
 
 			if (!sourceId) {
@@ -176,13 +176,13 @@ export async function processHighlights(
 			}
 
 			const highlightId = await createHighlightIfMissing(ctx, {
-				userId,
+				personId,
 				sourceId: sourceId as Id<'sources'>,
 				readwiseHighlight: highlight
 			});
 
 			await createInboxItemIfMissing(ctx, {
-				userId,
+				personId,
 				workspaceId,
 				highlightId
 			});

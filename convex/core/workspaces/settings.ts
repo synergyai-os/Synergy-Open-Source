@@ -288,11 +288,11 @@ export const updateTheme = mutation({
 });
 
 /**
- * Delete Claude API key
+ * Remove Claude API key
  *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
-export const deleteClaudeApiKey = mutation({
+export const removeClaudeApiKey = mutation({
 	args: {
 		sessionId: v.string()
 	},
@@ -317,11 +317,11 @@ export const deleteClaudeApiKey = mutation({
 });
 
 /**
- * Delete Readwise API key
+ * Remove Readwise API key
  *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
-export const deleteReadwiseApiKey = mutation({
+export const removeReadwiseApiKey = mutation({
 	args: {
 		sessionId: v.string()
 	},

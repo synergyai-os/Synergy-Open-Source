@@ -20,7 +20,7 @@ Clean seed infrastructure for governance foundation per `governance-design.md`.
 ### Seed Everything (Templates + Demo Workspace)
 
 ```bash
-npx convex run admin/seed/index:seedDatabase --arg includeDemo=true
+npx convex run admin/seed/index:seedDatabase '{"includeDemo": true}'
 ```
 
 ### Seed Role Templates Only
@@ -39,33 +39,33 @@ Per `governance-design.md` §6.3, creates **10 system-level templates** (one for
 
 #### Hierarchy Circle Type
 
-| Template    | roleType      | isCore | Purpose                                                 |
-| ----------- | ------------- | ------ | ------------------------------------------------------- |
-| Circle Lead | `circle_lead` | true   | Lead circle toward purpose with full decision authority |
-| Secretary   | `structural`  | false  | Maintain circle records and schedule meetings           |
+| Template    | roleType      | isCore | Purpose                                                  |
+| ----------- | ------------- | ------ | -------------------------------------------------------- |
+| Circle Lead | `circle_lead` | true   | Lead circle toward purpose with full decision authority  |
+| Secretary   | `structural`  | false  | Maintain circle records and support governance integrity |
 
 #### Empowered Team Circle Type
 
-| Template    | roleType      | isCore | Purpose                                              |
-| ----------- | ------------- | ------ | ---------------------------------------------------- |
-| Team Lead   | `circle_lead` | true   | Facilitate team decisions and break ties when needed |
-| Facilitator | `structural`  | false  | Facilitate governance and tactical meetings          |
-| Secretary   | `structural`  | false  | Maintain circle records and schedule meetings        |
+| Template    | roleType      | isCore | Purpose                                                                 |
+| ----------- | ------------- | ------ | ----------------------------------------------------------------------- |
+| Circle Lead | `circle_lead` | true   | Facilitate team decisions and break ties when consent cannot be reached |
+| Facilitator | `structural`  | false  | Ensure governance and tactical meetings run effectively                 |
+| Secretary   | `structural`  | false  | Maintain circle records and support governance integrity                |
 
 #### Guild Circle Type
 
-| Template  | roleType      | isCore | Purpose                                       |
-| --------- | ------------- | ------ | --------------------------------------------- |
-| Steward   | `circle_lead` | true   | Convene and coordinate guild activities       |
-| Secretary | `structural`  | false  | Maintain circle records and schedule meetings |
+| Template  | roleType      | isCore | Purpose                                                  |
+| --------- | ------------- | ------ | -------------------------------------------------------- |
+| Steward   | `circle_lead` | true   | Convene and coordinate guild activities                  |
+| Secretary | `structural`  | false  | Maintain circle records and support governance integrity |
 
 #### Hybrid Circle Type
 
-| Template    | roleType      | isCore | Purpose                                       |
-| ----------- | ------------- | ------ | --------------------------------------------- |
-| Circle Lead | `circle_lead` | true   | Lead using consent-based decision making      |
-| Facilitator | `structural`  | false  | Facilitate governance and tactical meetings   |
-| Secretary   | `structural`  | false  | Maintain circle records and schedule meetings |
+| Template    | roleType      | isCore | Purpose                                                  |
+| ----------- | ------------- | ------ | -------------------------------------------------------- |
+| Circle Lead | `circle_lead` | true   | Lead using consent-based decision making                 |
+| Facilitator | `structural`  | false  | Ensure governance and tactical meetings run effectively  |
+| Secretary   | `structural`  | false  | Maintain circle records and support governance integrity |
 
 **Key Points:**
 
@@ -104,7 +104,7 @@ All seed functions are idempotent:
 
 Requires schema from SYOS-886 (Schema Updates for Governance):
 
-- `roleTemplates`: `roleType`, `appliesTo`, `defaultPurpose`, `defaultDecisionRights`, `isCore`
+- `roleTemplates`: `roleType`, `appliesTo`, `defaultFieldValues`, `isCore`
 - `circleRoles`: `roleType`, `purpose`, `decisionRights`, `templateId`
 - `workspaces`: `phase`, `displayNames`
 
@@ -114,37 +114,38 @@ Requires schema from SYOS-886 (Schema Updates for Governance):
 - Multiple templates can share the same name across different circle types (e.g., "Circle Lead" exists for both hierarchy and hybrid)
 - Multiple templates can share the same `roleType` + `appliesTo` but have different names (e.g., "Facilitator" and "Secretary" are both `structural` for `empowered_team`)
 - The seed script checks for exact matches on all three fields to ensure idempotency
-- Note: `getSystemTemplateByRoleType()` in `circleCoreRoles.ts` queries by `roleType` + `appliesTo` only (returns first match), but the seed script needs to check for specific templates by name
+- Note: `getSystemTemplateByRoleType()` in `autoCreateRoles.ts` queries by `roleType` + `appliesTo` only (returns first match), but the seed script needs to check for specific templates by name
 
 ### System Custom Field Definitions
 
-Per SYOS-790, creates **14 system field definitions** (6 for circles, 8 for roles):
+Per SYOS-790 and SYOS-955, creates **13 system field definitions** (6 for circles, 7 for roles):
 
 #### Circle Fields
 
-| Field            | systemKey          | Order |
-| ---------------- | ------------------ | ----- |
-| Purpose          | `purpose`          | 0     |
-| Domains          | `domains`          | 1     |
-| Accountabilities | `accountabilities` | 2     |
-| Policies         | `policies`         | 3     |
-| Decision Rights  | `decision_rights`  | 4     |
-| Notes            | `notes`            | 5     |
+| Field            | systemKey        | fieldType  | Order |
+| ---------------- | ---------------- | ---------- | ----- |
+| Purpose          | `purpose`        | `text`     | 1     |
+| Domains          | `domain`         | `text`     | 2     |
+| Accountabilities | `accountability` | `text`     | 3     |
+| Policies         | `policy`         | `text`     | 4     |
+| Decision Rights  | `decision_right` | `text`     | 5     |
+| Notes            | `note`           | `longText` | 6     |
 
 #### Role Fields (Matching Role & Decision Rights Charter)
 
-| Field            | systemKey          | Order | Description                                                                |
-| ---------------- | ------------------ | ----- | -------------------------------------------------------------------------- |
-| Role Purpose     | `purpose`          | 0     | Why does this role exist? What impact does it have if successful?          |
-| Accountabilities | `accountabilities` | 1     | What ongoing activities does this role do?                                 |
-| Steering Metrics | `steering_metrics` | 2     | What can we measure to know if this role is succeeding?                    |
-| Decision Rights  | `decision_rights`  | 3     | What decision rights does the role need? What can it decide alone?         |
-| Role Filling     | `role_filling`     | 4     | How will the role be filled? And for how long? (e.g., quarterly elections) |
-| Domains          | `domains`          | 5     | Areas of authority and control for this role                               |
-| Policies         | `policies`         | 6     | Rules and constraints that apply to this role                              |
-| Notes            | `notes`            | 7     | Additional notes and context for this role                                 |
+| Field            | systemKey         | fieldType  | Order | Description                                                        |
+| ---------------- | ----------------- | ---------- | ----- | ------------------------------------------------------------------ |
+| Purpose          | `purpose`         | `text`     | 1     | Why does this role exist? What impact does it have if successful?  |
+| Decision Rights  | `decision_right`  | `text`     | 2     | What decision rights does the role need? What can it decide alone? |
+| Accountabilities | `accountability`  | `text`     | 3     | What ongoing activities does this role do?                         |
+| Domains          | `domain`          | `text`     | 4     | Areas of authority and control for this role                       |
+| Policies         | `policy`          | `text`     | 5     | Rules and constraints that apply to this role                      |
+| Steering Metrics | `steering_metric` | `text`     | 6     | What can we measure to know if this role is succeeding?            |
+| Notes            | `note`            | `longText` | 7     | Additional notes and context for this role                         |
 
 **Note:** Role Holder(s) is tracked via the `assignments` table (personId + roleId + circleId), not as a custom field.
+
+**Source of Truth:** Field definitions are imported from `convex/features/customFields/constants.ts` (SYOS-955).
 
 **Key Points:**
 

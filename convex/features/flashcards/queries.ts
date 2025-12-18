@@ -5,7 +5,7 @@ import { collectFlashcardTagsByIds } from './tags';
 
 export async function listDueFlashcards(
 	ctx: QueryCtx,
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	limit: number,
 	algorithm: string,
 	tagIds?: Id<'tags'>[] | null
@@ -14,14 +14,14 @@ export async function listDueFlashcards(
 
 	let dueCards = await ctx.db
 		.query('flashcards')
-		.withIndex('by_user_due', (q) =>
-			q.eq('userId', userId).eq('algorithm', algorithm).lte('fsrsDue', now)
+		.withIndex('by_person_due', (q) =>
+			q.eq('personId', personId).eq('algorithm', algorithm).lte('fsrsDue', now)
 		)
 		.order('asc')
 		.take(limit * 2);
 
 	if (tagIds && tagIds.length > 0) {
-		const allTagIds = await collectFlashcardTagsByIds(ctx, tagIds, userId);
+		const allTagIds = await collectFlashcardTagsByIds(ctx, tagIds, personId);
 		if (allTagIds) {
 			const flashcardTagRelations = await Promise.all(
 				allTagIds.map((tagId) =>
@@ -48,16 +48,16 @@ export async function listDueFlashcards(
 
 export async function listUserFlashcards(
 	ctx: QueryCtx,
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	tagIds?: Id<'tags'>[]
 ) {
 	let flashcards = await ctx.db
 		.query('flashcards')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.collect();
 
 	if (tagIds && tagIds.length > 0) {
-		const allTagIds = await collectFlashcardTagsByIds(ctx, tagIds, userId);
+		const allTagIds = await collectFlashcardTagsByIds(ctx, tagIds, personId);
 		if (allTagIds) {
 			const flashcardTagRelations = await Promise.all(
 				allTagIds.map((tagId) =>
@@ -82,21 +82,21 @@ export async function listUserFlashcards(
 	return flashcards;
 }
 
-export async function listCollections(ctx: QueryCtx, userId: Id<'users'>) {
+export async function listCollections(ctx: QueryCtx, personId: Id<'people'>) {
 	const tags = await ctx.db
 		.query('tags')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.collect();
 	const flashcards = await ctx.db
 		.query('flashcards')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.collect();
 	const flashcardTags = await ctx.db.query('flashcardTags').collect();
 
 	const tagToFlashcards = new Map<Id<'tags'>, Set<Id<'flashcards'>>>();
 	for (const ft of flashcardTags) {
 		const flashcard = flashcards.find((f) => f._id === ft.flashcardId);
-		if (!flashcard || flashcard.userId !== userId) continue;
+		if (!flashcard || flashcard.personId !== personId) continue;
 
 		if (!tagToFlashcards.has(ft.tagId)) {
 			tagToFlashcards.set(ft.tagId, new Set());

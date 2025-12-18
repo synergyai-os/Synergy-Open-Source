@@ -49,10 +49,12 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 
 	// If user shouldn't be on this step, redirect to correct one
 	// Allow access if nextRoute is invite OR complete (invite is optional)
-	if (nextStep.nextRoute !== '/onboarding/invite' && nextStep.nextRoute !== '/onboarding/complete') {
+	if (
+		nextStep.nextRoute !== '/onboarding/invite' &&
+		nextStep.nextRoute !== '/onboarding/complete'
+	) {
 		throw redirect(302, nextStep.nextRoute || '/onboarding');
 	}
 
 	return {};
 };
-

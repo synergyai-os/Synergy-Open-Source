@@ -49,7 +49,7 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 | File           | Purpose                                                |
 | -------------- | ------------------------------------------------------ |
 | `tables.ts`    | Defines `users`, `accountLinks`, `userSettings` tables |
-| `schema.ts`    | Type exports and re-exports                           |
+| `schema.ts`    | Type exports and re-exports                            |
 | `constants.ts` | Runtime constants (MAX_LINK_DEPTH, MAX_TOTAL_ACCOUNTS) |
 | `queries.ts`   | Reads user records, settings, and account links        |
 | `mutations.ts` | Creates, updates users and manages account linking     |

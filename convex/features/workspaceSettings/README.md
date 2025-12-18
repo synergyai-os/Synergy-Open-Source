@@ -19,7 +19,7 @@
 | -------------------------------- | -------------------------------------------------------------------------- |
 | `getOrganizationSettings`        | Gets workspace settings with encrypted key flags (hasClaudeKey)            |
 | `updateOrganizationClaudeApiKey` | Validates and saves Claude API key (admin only, validates via HTTP)        |
-| `deleteOrganizationClaudeApiKey` | Removes Claude API key from workspace settings                             |
+| `removeOrganizationClaudeApiKey` | Removes Claude API key from workspace settings                             |
 | `getOrgSettings`                 | Gets org chart settings (lead requirements, quick changes, role templates) |
 | `updateOrgSettings`              | Updates org chart settings (admin only)                                    |
 

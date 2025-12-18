@@ -5,18 +5,18 @@ import type { ReadwiseSource } from '../../../../src/lib/types/readwise';
 
 export async function createAuthorIfMissingImpl(
 	ctx: MutationCtx,
-	args: { userId: Id<'users'>; authorName: string }
+	args: { personId: Id<'people'>; authorName: string }
 ) {
-	const { userId, authorName } = args;
+	const { personId, authorName } = args;
 	const normalizedName = parseAuthorName(authorName);
 	const existing = await ctx.db
 		.query('authors')
-		.withIndex('by_user_name', (q) => q.eq('userId', userId).eq('name', normalizedName))
+		.withIndex('by_person_name', (q) => q.eq('personId', personId).eq('name', normalizedName))
 		.first();
 	if (existing) return existing._id;
 
 	return ctx.db.insert('authors', {
-		userId,
+		personId,
 		name: normalizedName,
 		displayName: authorName,
 		createdAt: Date.now()
@@ -25,9 +25,9 @@ export async function createAuthorIfMissingImpl(
 
 export async function createSourceIfMissingImpl(
 	ctx: MutationCtx,
-	args: { userId: Id<'users'>; primaryAuthorId: Id<'authors'>; readwiseSource: ReadwiseSource }
+	args: { personId: Id<'people'>; primaryAuthorId: Id<'authors'>; readwiseSource: ReadwiseSource }
 ) {
-	const { userId, primaryAuthorId, readwiseSource } = args;
+	const { personId, primaryAuthorId, readwiseSource } = args;
 	const externalId = String(readwiseSource.id);
 	const existing = await ctx.db
 		.query('sources')
@@ -39,7 +39,7 @@ export async function createSourceIfMissingImpl(
 	const lastHighlightAt = parseISODate(readwiseSource.last_highlight_at);
 
 	const sourceData = {
-		userId,
+		personId,
 		authorId: primaryAuthorId,
 		title: readwiseSource.title,
 		category: readwiseSource.category,

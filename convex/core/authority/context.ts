@@ -2,7 +2,7 @@ import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { requireActivePerson } from '../people/rules';
-import { isLeadTemplate } from '../roles/detection';
+import { isLeadTemplate } from '../roles/rules';
 import { getPolicy } from './policies';
 import type { Assignment, AuthorityContext, CirclePolicy, CircleType } from './types';
 

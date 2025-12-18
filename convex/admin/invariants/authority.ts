@@ -1,5 +1,5 @@
 import { calculateAuthority } from '../../core/authority';
-import { isLeadTemplate } from '../../core/roles/detection';
+import { isLeadTemplate } from '../../core/roles/rules';
 import { CIRCLE_TYPES } from '../../core/circles';
 import { internalQuery } from '../../_generated/server';
 import { findOperationalWorkspaces, makeResult, type InvariantResult } from './types';

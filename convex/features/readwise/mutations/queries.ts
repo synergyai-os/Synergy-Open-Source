@@ -28,11 +28,10 @@ export async function findHighlightIdByExternalIdImpl(ctx: QueryCtx, externalId:
 
 export async function hasInboxItemImpl(
 	ctx: QueryCtx,
-	userId: Id<'users'>,
+	personId: Id<'people'>,
 	workspaceId: Id<'workspaces'>,
 	highlightId: Id<'highlights'>
 ) {
-	const personId = await findPersonId(ctx, userId, workspaceId);
 	const existing = await ctx.db
 		.query('inboxItems')
 		.withIndex('by_person', (q) => q.eq('personId', personId))

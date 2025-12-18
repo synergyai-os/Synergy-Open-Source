@@ -281,8 +281,10 @@ describe('templates', () => {
 					workspaceId: templateWorkspaceId,
 					name: 'Template',
 					roleType: 'custom',
-					defaultPurpose: 'Test purpose',
-					defaultDecisionRights: ['Test decision'],
+					defaultFieldValues: [
+						{ systemKey: 'purpose', values: ['Test purpose'] },
+						{ systemKey: 'decision_right', values: ['Test decision'] }
+					],
 					description: undefined,
 					isCore: false,
 					appliesTo: 'hierarchy'
@@ -297,7 +299,6 @@ describe('templates', () => {
 // ============================================================================
 
 describe('validation', () => {
-
 	const roles = [
 		{ _id: '1', name: 'Lead' },
 		{ _id: '2', name: 'Member' }
@@ -330,7 +331,6 @@ describe('validation', () => {
 });
 
 describe('lead detection', () => {
-
 	describe('isLeadTemplate', () => {
 		test('returns true when template is circle_lead', () => {
 			expect(isLeadTemplate({ roleType: 'circle_lead' })).toBe(true);
@@ -355,7 +355,6 @@ describe('lead detection', () => {
 });
 
 describe('lead helpers', () => {
-
 	describe('countLeadRoles', () => {
 		test('counts lead roles based on template roleType', () => {
 			const roles = [
@@ -401,4 +400,3 @@ describe('lead helpers', () => {
 		});
 	});
 });
-

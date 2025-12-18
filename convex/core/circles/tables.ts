@@ -23,7 +23,6 @@ export const circlesTable = defineTable({
 	workspaceId: v.id('workspaces'),
 	name: v.string(),
 	slug: v.string(),
-	purpose: v.optional(v.string()),
 	parentCircleId: v.optional(v.id('circles')),
 	status: v.union(v.literal('draft'), v.literal('active')),
 	circleType: v.optional(
@@ -72,8 +71,6 @@ export const circleRolesTable = defineTable({
 	workspaceId: v.id('workspaces'),
 	name: v.string(),
 	roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
-	purpose: v.string(),
-	decisionRights: v.array(v.string()),
 	templateId: v.optional(v.id('roleTemplates')),
 	status: v.union(v.literal('draft'), v.literal('active')),
 	isHiring: v.boolean(),

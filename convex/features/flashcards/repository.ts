@@ -1,9 +1,8 @@
 import type { Id } from '../../_generated/dataModel';
-import type { ActionCtx, MutationCtx, QueryCtx } from '../../_generated/server';
+import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 
 type Ctx = MutationCtx | QueryCtx;
-type AnyCtx = MutationCtx | QueryCtx | ActionCtx;
 
 export async function requireFlashcard(ctx: Ctx, flashcardId: Id<'flashcards'>) {
 	const flashcard = await ctx.db.get(flashcardId);
@@ -16,10 +15,10 @@ export async function requireFlashcard(ctx: Ctx, flashcardId: Id<'flashcards'>) 
 export async function requireOwnedFlashcard(
 	ctx: Ctx,
 	flashcardId: Id<'flashcards'>,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ) {
 	const flashcard = await requireFlashcard(ctx, flashcardId);
-	if (flashcard.userId !== userId) {
+	if (flashcard.personId !== personId) {
 		throw createError(ErrorCodes.FLASHCARD_ACCESS_DENIED, 'Not authorized');
 	}
 	return flashcard;
@@ -48,13 +47,13 @@ export async function deleteFlashcard(ctx: MutationCtx, flashcardId: Id<'flashca
 	await ctx.db.delete(flashcardId);
 }
 
-export async function getUserFlashcards(ctx: QueryCtx, userId: Id<'users'>) {
+export async function getUserFlashcards(ctx: QueryCtx, personId: Id<'people'>) {
 	return ctx.db
 		.query('flashcards')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.collect();
 }
 
-export async function listFlashcardTags(ctx: AnyCtx) {
+export async function listFlashcardTags(ctx: Ctx) {
 	return ctx.db.query('flashcardTags').collect();
 }

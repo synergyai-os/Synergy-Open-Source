@@ -59,13 +59,15 @@
 				}
 
 				if (!rootCircle.name || !rootCircle.name.trim()) {
-					validationError = 'Root circle must have a name. Please complete the circle setup step first.';
+					validationError =
+						'Root circle must have a name. Please complete the circle setup step first.';
 					canComplete = false;
 					return;
 				}
 
 				if (!rootCircle.circleType) {
-					validationError = 'Root circle must have a circle type selected. Please complete the circle setup step first.';
+					validationError =
+						'Root circle must have a circle type selected. Please complete the circle setup step first.';
 					canComplete = false;
 					return;
 				}

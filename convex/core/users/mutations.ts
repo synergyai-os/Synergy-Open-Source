@@ -278,4 +278,3 @@ async function removeBidirectionalLink(
 		await ctx.db.delete(link2._id);
 	}
 }
-

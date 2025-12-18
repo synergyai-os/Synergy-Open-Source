@@ -60,6 +60,7 @@ export type CustomFieldEntityType =
 export type CustomFieldType =
 	| 'text'
 	| 'longText'
+	| 'textList'
 	| 'number'
 	| 'boolean'
 	| 'date'

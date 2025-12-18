@@ -7,11 +7,11 @@ import {
 	ensureWorkspaceMembership,
 	requireWorkspacePersonFromSession
 } from './circleAccess';
-import { createCoreRolesForCircle, transformLeadRoleOnCircleTypeChange } from './circleCoreRoles';
+import { createCoreRolesForCircle, transformLeadRoleOnCircleTypeChange } from './autoCreateRoles';
 import { slugifyName } from './slug';
 import { validateCircleName, validateCircleNameUpdate } from './validation';
 import { CIRCLE_TYPES, DECISION_MODELS, type CircleType, type DecisionModel } from './constants';
-import { requireQuickEditPermissionForPerson } from '../../infrastructure/rbac/orgChart';
+import { requireQuickEditPermissionForPerson } from '../authority/quickEdit';
 import { createSystemCustomFieldDefinitions } from '../../admin/seed/customFieldDefinitions';
 import { seedWorkspaceResources } from '../../admin/seed/workspaceSeed';
 
@@ -68,6 +68,12 @@ export async function createCircleInternal(
 		}
 	}
 
+	// If this is a root circle (first circle in workspace), seed customFieldDefinitions FIRST
+	// (needed before we can create customFieldValues)
+	if (args.parentCircleId === undefined) {
+		await createSystemCustomFieldDefinitions(ctx, args.workspaceId, actorPersonId);
+	}
+
 	const slugBase = slugifyName(trimmedName);
 	const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugBase);
 	const now = Date.now();
@@ -75,11 +81,11 @@ export async function createCircleInternal(
 	const circleType = args.circleType ?? CIRCLE_TYPES.HIERARCHY;
 	const decisionModel = args.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
 
+	// Create lean circle (no descriptive fields per SYOS-961)
 	const circleId = await ctx.db.insert('circles', {
 		workspaceId: args.workspaceId,
 		name: trimmedName,
 		slug,
-		purpose: args.purpose,
 		parentCircleId: args.parentCircleId,
 		circleType,
 		decisionModel,
@@ -94,14 +100,35 @@ export async function createCircleInternal(
 		await recordCreateHistory(ctx, 'circle', newCircle);
 	}
 
+	// Create customFieldValue for purpose if provided (SYOS-961)
+	if (args.purpose) {
+		const purposeDefinition = await ctx.db
+			.query('customFieldDefinitions')
+			.withIndex('by_workspace_system_key', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('systemKey', 'purpose')
+			)
+			.first();
+
+		if (purposeDefinition) {
+			await ctx.db.insert('customFieldValues', {
+				workspaceId: args.workspaceId,
+				definitionId: purposeDefinition._id,
+				entityType: 'circle',
+				entityId: circleId,
+				value: args.purpose,
+				searchText: args.purpose,
+				createdByPersonId: actorPersonId,
+				createdAt: now,
+				updatedAt: now,
+				updatedByPersonId: actorPersonId
+			});
+		}
+	}
+
 	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, actorPersonId, circleType);
 
-	// If this is a root circle (first circle in workspace), seed workspace resources
+	// If this is a root circle, seed meeting templates (workspace-scoped)
 	if (args.parentCircleId === undefined) {
-		// Seed custom field definitions (workspace-scoped)
-		await createSystemCustomFieldDefinitions(ctx, args.workspaceId, actorPersonId);
-
-		// Seed meeting templates (workspace-scoped, generic templates)
 		await seedWorkspaceResources(ctx, args.workspaceId, actorPersonId);
 	}
 
@@ -152,8 +179,50 @@ export async function updateCircleInternal(
 		updates.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
 	}
 
+	// Update purpose as customFieldValue (SYOS-961)
 	if (args.purpose !== undefined) {
-		updates.purpose = args.purpose;
+		const purposeDefinition = await ctx.db
+			.query('customFieldDefinitions')
+			.withIndex('by_workspace_system_key', (q) =>
+				q.eq('workspaceId', circle.workspaceId).eq('systemKey', 'purpose')
+			)
+			.first();
+
+		if (purposeDefinition) {
+			// Check if customFieldValue already exists
+			const existingValue = await ctx.db
+				.query('customFieldValues')
+				.withIndex('by_definition_entity', (q) =>
+					q.eq('definitionId', purposeDefinition._id).eq('entityId', args.circleId)
+				)
+				.first();
+
+			const now = Date.now();
+
+			if (existingValue) {
+				// Update existing value
+				await ctx.db.patch(existingValue._id, {
+					value: args.purpose,
+					searchText: args.purpose,
+					updatedAt: now,
+					updatedByPersonId: actorPersonId
+				});
+			} else {
+				// Create new value
+				await ctx.db.insert('customFieldValues', {
+					workspaceId: circle.workspaceId,
+					definitionId: purposeDefinition._id,
+					entityType: 'circle',
+					entityId: args.circleId,
+					value: args.purpose,
+					searchText: args.purpose,
+					createdByPersonId: actorPersonId,
+					createdAt: now,
+					updatedAt: now,
+					updatedByPersonId: actorPersonId
+				});
+			}
+		}
 	}
 
 	if (args.parentCircleId !== undefined) {
@@ -231,8 +300,50 @@ export async function updateInlineCircle(
 		updateData.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
 	}
 
+	// Update purpose as customFieldValue (SYOS-961)
 	if (args.updates.purpose !== undefined) {
-		updateData.purpose = args.updates.purpose;
+		const purposeDefinition = await ctx.db
+			.query('customFieldDefinitions')
+			.withIndex('by_workspace_system_key', (q) =>
+				q.eq('workspaceId', circle.workspaceId).eq('systemKey', 'purpose')
+			)
+			.first();
+
+		if (purposeDefinition) {
+			// Check if customFieldValue already exists
+			const existingValue = await ctx.db
+				.query('customFieldValues')
+				.withIndex('by_definition_entity', (q) =>
+					q.eq('definitionId', purposeDefinition._id).eq('entityId', args.circleId)
+				)
+				.first();
+
+			const now = Date.now();
+
+			if (existingValue) {
+				// Update existing value
+				await ctx.db.patch(existingValue._id, {
+					value: args.updates.purpose,
+					searchText: args.updates.purpose,
+					updatedAt: now,
+					updatedByPersonId: actorPersonId
+				});
+			} else {
+				// Create new value
+				await ctx.db.insert('customFieldValues', {
+					workspaceId: circle.workspaceId,
+					definitionId: purposeDefinition._id,
+					entityType: 'circle',
+					entityId: args.circleId,
+					value: args.updates.purpose,
+					searchText: args.updates.purpose,
+					createdByPersonId: actorPersonId,
+					createdAt: now,
+					updatedAt: now,
+					updatedByPersonId: actorPersonId
+				});
+			}
+		}
 	}
 
 	// Handle circle type change (GOV-01: transform lead role)

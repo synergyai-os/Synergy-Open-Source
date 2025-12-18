@@ -5,31 +5,31 @@ import type { ReadwiseHighlight, ReadwiseSource } from '../../../src/lib/types/r
 
 export async function findHighlightIdByExternalId(
 	ctx: ActionCtx,
-	userId: string,
+	personId: Id<'people'>,
 	externalId: string
 ): Promise<Id<'highlights'> | null> {
 	return ctx.runQuery(internal.features.readwise.mutations.findHighlightIdByExternalId, {
-		userId,
+		personId,
 		externalId
 	});
 }
 
 export async function hasHighlight(
 	ctx: ActionCtx,
-	userId: string,
+	personId: Id<'people'>,
 	externalId: string
 ): Promise<boolean> {
-	return ctx.runQuery(internal.features.readwise.mutations.hasHighlight, { userId, externalId });
+	return ctx.runQuery(internal.features.readwise.mutations.hasHighlight, { personId, externalId });
 }
 
 export async function hasInboxItem(
 	ctx: ActionCtx,
-	userId: string,
+	personId: Id<'people'>,
 	workspaceId: Id<'workspaces'>,
 	highlightId: Id<'highlights'>
 ): Promise<boolean> {
 	return ctx.runQuery(internal.features.readwise.mutations.hasInboxItem, {
-		userId,
+		personId,
 		workspaceId,
 		highlightId
 	});
@@ -37,39 +37,39 @@ export async function hasInboxItem(
 
 export async function createHighlightIfMissing(
 	ctx: ActionCtx,
-	args: { userId: string; sourceId: Id<'sources'>; readwiseHighlight: ReadwiseHighlight }
+	args: { personId: Id<'people'>; sourceId: Id<'sources'>; readwiseHighlight: ReadwiseHighlight }
 ): Promise<Id<'highlights'>> {
 	return ctx.runMutation(internal.features.readwise.mutations.createHighlightIfMissing, args);
 }
 
 export async function createInboxItemIfMissing(
 	ctx: ActionCtx,
-	args: { userId: string; workspaceId: Id<'workspaces'>; highlightId: Id<'highlights'> }
+	args: { personId: Id<'people'>; workspaceId: Id<'workspaces'>; highlightId: Id<'highlights'> }
 ): Promise<Id<'inboxItems'>> {
 	return ctx.runMutation(internal.features.readwise.mutations.createInboxItemIfMissing, args);
 }
 
 export async function findSourceIdByBookId(
 	ctx: ActionCtx,
-	userId: string,
+	personId: Id<'people'>,
 	bookId: string
 ): Promise<Id<'sources'> | null> {
 	return ctx.runQuery(internal.features.readwise.mutations.findSourceIdByBookId, {
-		userId,
+		personId,
 		bookId
 	});
 }
 
 export async function createAuthorIfMissing(
 	ctx: ActionCtx,
-	args: { userId: string; authorName: string }
+	args: { personId: Id<'people'>; authorName: string }
 ): Promise<Id<'authors'>> {
 	return ctx.runMutation(internal.features.readwise.mutations.createAuthorIfMissing, args);
 }
 
 export async function createSourceIfMissing(
 	ctx: ActionCtx,
-	args: { userId: string; primaryAuthorId: Id<'authors'>; readwiseSource: ReadwiseSource }
+	args: { personId: Id<'people'>; primaryAuthorId: Id<'authors'>; readwiseSource: ReadwiseSource }
 ): Promise<Id<'sources'>> {
 	return ctx.runMutation(internal.features.readwise.mutations.createSourceIfMissing, args);
 }
@@ -84,7 +84,7 @@ export async function linkAuthorToSource(
 export async function createTagIfMissing(
 	ctx: ActionCtx,
 	args: {
-		userId: string;
+		personId: Id<'people'>;
 		workspaceId: Id<'workspaces'>;
 		tagName: string;
 		externalId?: number;

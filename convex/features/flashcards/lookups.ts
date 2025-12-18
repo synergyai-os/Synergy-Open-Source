@@ -1,7 +1,7 @@
 import { query } from '../../_generated/server';
 import { v } from 'convex/values';
 
-import { getUserId } from './auth';
+import { getPersonId } from './auth';
 
 export const findFlashcard = query({
 	args: {
@@ -9,9 +9,9 @@ export const findFlashcard = query({
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getUserId(ctx, args.sessionId);
+		const personId = await getPersonId(ctx, args.sessionId);
 		const flashcard = await ctx.db.get(args.flashcardId);
-		if (!flashcard || flashcard.userId !== userId) return null;
+		if (!flashcard || flashcard.personId !== personId) return null;
 		return flashcard;
 	}
 });
@@ -22,10 +22,10 @@ export const findFlashcardTags = query({
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getUserId(ctx, args.sessionId);
+		const personId = await getPersonId(ctx, args.sessionId);
 
 		const flashcard = await ctx.db.get(args.flashcardId);
-		if (!flashcard || flashcard.userId !== userId) return null;
+		if (!flashcard || flashcard.personId !== personId) return null;
 
 		const flashcardTags = await ctx.db
 			.query('flashcardTags')

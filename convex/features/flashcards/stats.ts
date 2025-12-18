@@ -8,11 +8,11 @@ type FlashcardStats = {
 
 export async function getFlashcardStats(
 	ctx: QueryCtx,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ): Promise<FlashcardStats> {
 	const flashcards = await ctx.db
 		.query('flashcards')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.collect();
 
 	const now = Date.now();

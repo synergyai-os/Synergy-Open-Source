@@ -244,7 +244,7 @@ describe('circles domain', () => {
 			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p1')
 		}));
 
-		vi.mock('./circleCoreRoles', () => ({
+		vi.mock('./autoCreateRoles', () => ({
 			createCoreRolesForCircle: vi.fn()
 		}));
 

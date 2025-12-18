@@ -15,7 +15,7 @@ import { parseAuthorNames } from './transform';
 import { delay } from './jobs';
 
 type EnsureSourcesArgs = {
-	userId: string;
+	personId: Id<'people'>;
 	apiKey: string;
 	workspaceId: Id<'workspaces'>;
 	updatedAfter?: string;
@@ -27,13 +27,13 @@ export async function ensureSources(
 	ctx: ActionCtx,
 	args: EnsureSourcesArgs
 ): Promise<Map<number, string>> {
-	const { userId, apiKey, workspaceId, updatedAfter, updatedBefore, neededBookIds } = args;
+	const { personId, apiKey, workspaceId, updatedAfter, updatedBefore, neededBookIds } = args;
 	const sourceIdMap = new Map<number, string>();
 
 	if (neededBookIds.size === 0) return sourceIdMap;
 
 	await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-		userId,
+		personId,
 		step: 'Fetching sources...',
 		current: 0,
 		total: neededBookIds.size,
@@ -44,7 +44,7 @@ export async function ensureSources(
 	const neededSources = allSources.filter((source) => neededBookIds.has(source.id));
 
 	await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-		userId,
+		personId,
 		step: 'Processing sources...',
 		current: 0,
 		total: neededSources.length,
@@ -56,7 +56,7 @@ export async function ensureSources(
 		sourceIndex++;
 		if (sourceIndex % 10 === 0 || sourceIndex === neededSources.length) {
 			await ctx.runMutation(internal.features.readwise.mutations.updateSyncProgressState, {
-				userId,
+				personId,
 				step: 'Processing sources...',
 				current: sourceIndex,
 				total: neededSources.length,
@@ -64,7 +64,7 @@ export async function ensureSources(
 			});
 		}
 
-		const existingSourceId = await findSourceIdByBookId(ctx, userId, String(source.id));
+		const existingSourceId = await findSourceIdByBookId(ctx, personId, String(source.id));
 
 		if (existingSourceId) {
 			sourceIdMap.set(source.id, existingSourceId);
@@ -78,12 +78,12 @@ export async function ensureSources(
 		}
 
 		const primaryAuthorId = await createAuthorIfMissing(ctx, {
-			userId,
+			personId,
 			authorName: authorNames[0]
 		});
 
 		const sourceId = await createSourceIfMissing(ctx, {
-			userId,
+			personId,
 			primaryAuthorId,
 			readwiseSource: source
 		});
@@ -92,7 +92,7 @@ export async function ensureSources(
 
 		for (let i = 1; i < authorNames.length; i++) {
 			const authorId = await createAuthorIfMissing(ctx, {
-				userId,
+				personId,
 				authorName: authorNames[i]
 			});
 
@@ -104,7 +104,7 @@ export async function ensureSources(
 
 		for (const tag of source.tags || []) {
 			const tagId = await createTagIfMissing(ctx, {
-				userId,
+				personId,
 				workspaceId,
 				tagName: tag.name,
 				externalId: tag.id

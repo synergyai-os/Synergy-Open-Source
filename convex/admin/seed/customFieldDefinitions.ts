@@ -6,51 +6,18 @@
  * Users can rename these but cannot delete them.
  *
  * System Fields:
- * - Circle fields: purpose, domains, accountabilities, policies, decision_rights, notes
- * - Role fields: purpose, accountabilities, steering_metrics, decision_rights, role_filling,
- *   domains, policies, notes (matches Role & Decision Rights Charter + additional fields)
+ * - Circle fields: purpose, domain, accountability, policy, decision_right, note
+ * - Role fields: purpose, decision_right, accountability, domain, policy, steering_metric, note
  *
  * Note: Role holders are tracked via the `assignments` table, not custom fields.
+ *
+ * @see SYOS-955: SYSTEM_FIELD_DEFINITIONS constant (single source of truth)
+ * @see SYOS-959: Update seeding to use SYSTEM_FIELD_DEFINITIONS
  */
 
 import type { MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
-
-/**
- * System field definition structure
- */
-interface CustomFieldDefinition {
-	entityType: 'circle' | 'role';
-	systemKey: string;
-	name: string;
-	order: number;
-}
-
-/**
- * System field definitions per SYOS-790
- *
- * These are the default fields that exist on all circles and roles.
- * They are workspace-scoped (created per workspace) but follow a standard schema.
- */
-const SYSTEM_FIELD_DEFINITIONS: CustomFieldDefinition[] = [
-	// Circle fields (keeping existing structure)
-	{ entityType: 'circle', systemKey: 'purpose', name: 'Purpose', order: 0 },
-	{ entityType: 'circle', systemKey: 'domains', name: 'Domains', order: 1 },
-	{ entityType: 'circle', systemKey: 'accountabilities', name: 'Accountabilities', order: 2 },
-	{ entityType: 'circle', systemKey: 'policies', name: 'Policies', order: 3 },
-	{ entityType: 'circle', systemKey: 'decision_rights', name: 'Decision Rights', order: 4 },
-	{ entityType: 'circle', systemKey: 'notes', name: 'Notes', order: 5 },
-	// Role fields (matching Role & Decision Rights Charter + additional fields)
-	{ entityType: 'role', systemKey: 'purpose', name: 'Role Purpose', order: 0 },
-	{ entityType: 'role', systemKey: 'accountabilities', name: 'Accountabilities', order: 1 },
-	{ entityType: 'role', systemKey: 'steering_metrics', name: 'Steering Metrics', order: 2 },
-	{ entityType: 'role', systemKey: 'decision_rights', name: 'Decision Rights', order: 3 },
-	{ entityType: 'role', systemKey: 'role_filling', name: 'Role Filling', order: 4 },
-	{ entityType: 'role', systemKey: 'domains', name: 'Domains', order: 5 },
-	{ entityType: 'role', systemKey: 'policies', name: 'Policies', order: 6 },
-	{ entityType: 'role', systemKey: 'notes', name: 'Notes', order: 7 }
-	// Note: Role Holder(s) is tracked via assignments table, not a custom field
-];
+import { SYSTEM_FIELD_DEFINITIONS } from '../../features/customFields/constants';
 
 /**
  * Create system custom field definitions for a workspace
@@ -108,12 +75,12 @@ export async function createSystemCustomFieldDefinitions(
 			description: undefined,
 			order: field.order,
 			systemKey: field.systemKey,
-			isSystemField: true,
-			isRequired: false, // System fields exist but values are optional
-			fieldType: 'longText', // Default to longText for all system fields
+			isSystemField: field.isSystemField,
+			isRequired: field.isRequired,
+			fieldType: field.fieldType,
 			options: undefined,
-			searchable: true, // Include in search
-			aiIndexed: true, // Include in AI context
+			searchable: field.searchable,
+			aiIndexed: field.aiIndexed,
 			createdAt: now,
 			createdByPersonId: personId,
 			updatedAt: now,

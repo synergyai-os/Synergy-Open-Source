@@ -13,7 +13,7 @@ import type { Id } from '../../_generated/dataModel';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { requireWorkspaceAdminOrOwner } from '../../core/workspaces/access';
-import { listWorkspacesForUser } from '../../core/people/queries';
+import { listWorkspacesForUser, findPersonByUserAndWorkspace } from '../../core/people/queries';
 
 export const updateBranding = mutation({
 	args: {
@@ -25,8 +25,9 @@ export const updateBranding = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
 		await ensureBrandingUpdatePermissions(ctx, args.workspaceId, userId);
-		await updateBrandingDetails(ctx, args, userId);
+		await updateBrandingDetails(ctx, args, person._id);
 		return { success: true };
 	}
 });
@@ -113,7 +114,7 @@ async function updateBrandingDetails(
 		logo?: string;
 		sessionId: string;
 	},
-	userId: Id<'users'>
+	personId: Id<'people'>
 ) {
 	validateColor(args.primaryColor, 'primaryColor');
 	validateColor(args.secondaryColor, 'secondaryColor');
@@ -124,7 +125,7 @@ async function updateBrandingDetails(
 			secondaryColor: args.secondaryColor,
 			logo: args.logo,
 			updatedAt: Date.now(),
-			updatedBy: userId
+			updatedByPersonId: personId
 		}
 	});
 }

@@ -70,7 +70,7 @@
 	// This prevents CSS loss when switching workspaces
 	const allOrgBrandingQuery =
 		browser && getSessionId()
-			? useQuery(api.features.workspaceBranding.getAllOrgBranding, () => {
+			? useQuery(api.features.workspaceBranding.index.getAllOrgBranding, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId, 'sessionId required');
 					return { sessionId };

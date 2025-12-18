@@ -12,7 +12,7 @@ export { validateCircleName, validateCircleNameUpdate } from './validation';
 
 // Export helper functions that are part of the public API
 export { getCircleMembers } from './circleMembers';
-export { createCoreRolesForCircle } from './circleCoreRoles';
+export { createCoreRolesForCircle } from './autoCreateRoles';
 
 export async function requireCircle(
 	ctx: QueryCtx | MutationCtx,

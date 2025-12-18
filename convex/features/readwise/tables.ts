@@ -2,16 +2,16 @@ import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export const authorsTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	name: v.string(),
 	displayName: v.string(),
 	createdAt: v.number()
 })
-	.index('by_user', ['userId'])
-	.index('by_user_name', ['userId', 'name']);
+	.index('by_person', ['personId'])
+	.index('by_person_name', ['personId', 'name']);
 
 export const sourcesTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	authorId: v.id('authors'),
 	title: v.string(),
 	category: v.string(),
@@ -32,11 +32,11 @@ export const sourcesTable = defineTable({
 		v.union(v.literal('user'), v.literal('workspace'), v.literal('circle'), v.literal('purchased'))
 	)
 })
-	.index('by_user', ['userId'])
+	.index('by_person', ['personId'])
 	.index('by_author', ['authorId'])
 	.index('by_external_id', ['externalId'])
-	.index('by_user_category', ['userId', 'category'])
-	.index('by_user_source_type', ['userId', 'sourceType'])
+	.index('by_person_category', ['personId', 'category'])
+	.index('by_person_source_type', ['personId', 'sourceType'])
 	.index('by_workspace', ['workspaceId'])
 	.index('by_circle', ['circleId']);
 
@@ -49,7 +49,7 @@ export const sourceAuthorsTable = defineTable({
 	.index('by_source_author', ['sourceId', 'authorId']);
 
 export const highlightsTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	sourceId: v.id('sources'),
 	text: v.string(),
 	location: v.optional(v.number()),
@@ -68,19 +68,19 @@ export const highlightsTable = defineTable({
 		v.union(v.literal('user'), v.literal('workspace'), v.literal('circle'), v.literal('purchased'))
 	)
 })
-	.index('by_user', ['userId'])
+	.index('by_person', ['personId'])
 	.index('by_source', ['sourceId'])
 	.index('by_external_id', ['externalId'])
-	.index('by_user_source', ['userId', 'sourceId'])
+	.index('by_person_source', ['personId', 'sourceId'])
 	.index('by_workspace', ['workspaceId'])
 	.index('by_circle', ['circleId']);
 
 export const syncProgressTable = defineTable({
-	userId: v.id('users'),
+	personId: v.id('people'),
 	step: v.string(),
 	current: v.number(),
 	total: v.optional(v.number()),
 	message: v.optional(v.string()),
 	startedAt: v.number(),
 	updatedAt: v.number()
-}).index('by_user', ['userId']);
+}).index('by_person', ['personId']);

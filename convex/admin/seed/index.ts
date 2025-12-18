@@ -15,6 +15,7 @@ import type { Id } from '../../_generated/dataModel';
 import { createSystemRoleTemplates } from './roleTemplates';
 import { createMinimumViableWorkspace } from './bootstrap';
 import { createSystemCustomFieldDefinitions } from './customFieldDefinitions';
+import { CIRCLE_TYPES } from '../../core/circles/constants';
 
 /**
  * Seed the database with system data

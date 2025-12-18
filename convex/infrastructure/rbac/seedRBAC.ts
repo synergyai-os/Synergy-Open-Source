@@ -1,25 +1,31 @@
 /**
- * RBAC Seed Data
+ * RBAC Seed Data - Minimal Set
  *
  * Populates initial roles, permissions, and role-permission mappings.
- * Run this once after deploying the schema.
+ * Based on SYOS-970 investigation - only includes actively used permissions.
  *
- * Usage: Call seedRBAC() mutation from Convex dashboard or via CLI:
- *   npx convex run rbac/seedRBAC:seedRBAC
+ * Run this once after deploying the schema:
+ *   npx convex run infrastructure/rbac/seedRBAC:seed
+ *
+ * Changes from previous version (SYOS-971):
+ * - Removed 9 unused permissions (see PermissionSlug type for details)
+ * - Added docs.view permission (previously created dynamically)
+ * - Kept all 6 roles (admin, manager, circle-lead, billing-admin, member, guest)
+ * - Updated role-permission mappings to only include kept permissions
  */
 
 import { internalMutation } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 
-export const seedRBAC = internalMutation({
+export const seed = internalMutation({
 	args: {},
 	handler: async (ctx) => {
 		const now = Date.now();
 
-		console.log('🌱 Seeding RBAC data...');
+		console.log('🌱 Seeding RBAC data (minimal set)...');
 
 		// ========================================================================
-		// Step 1: Create Roles (idempotent - check before insert)
+		// Step 1: Create Roles (6 roles - all kept)
 		// ========================================================================
 
 		console.log('Creating roles...');
@@ -53,13 +59,13 @@ export const seedRBAC = internalMutation({
 		const adminRole = await getOrCreateRole(
 			'admin',
 			'Admin',
-			'Full system access - can manage all users, teams, and settings'
+			'Full system access - can manage all users, circles, and settings'
 		);
 
 		const managerRole = await getOrCreateRole(
 			'manager',
 			'Manager',
-			'Can manage teams and invite users'
+			'Can manage circles and invite users'
 		);
 
 		const circleLeadRole = await getOrCreateRole(
@@ -86,10 +92,10 @@ export const seedRBAC = internalMutation({
 			'Limited access - specific resources only'
 		);
 
-		console.log(`✅ Roles ready (created or already existed)`);
+		console.log(`✅ Roles ready (6 roles created or already existed)`);
 
 		// ========================================================================
-		// Step 2: Create Permissions
+		// Step 2: Create Permissions (8 permissions - minimal set)
 		// ========================================================================
 
 		console.log('Creating permissions...');
@@ -124,29 +130,13 @@ export const seedRBAC = internalMutation({
 			});
 		};
 
-		// --- User Management Permissions (5) ---
-
-		const userViewPerm = await getOrCreatePermission(
-			'users.view',
-			'users',
-			'view',
-			'View user profiles and details',
-			false
-		);
+		// --- User Management Permissions (3 kept) ---
 
 		const userInvitePerm = await getOrCreatePermission(
 			'users.invite',
 			'users',
 			'invite',
 			'Invite new users to workspace',
-			false
-		);
-
-		const userRemovePerm = await getOrCreatePermission(
-			'users.remove',
-			'users',
-			'remove',
-			'Remove users from workspace',
 			false
 		);
 
@@ -166,9 +156,9 @@ export const seedRBAC = internalMutation({
 			false
 		);
 
-		// --- Circle Management Permissions (7) ---
+		// --- Circle Management Permissions (3 kept) ---
 
-		const teamViewPerm = await getOrCreatePermission(
+		const circlesViewPerm = await getOrCreatePermission(
 			'circles.view',
 			'circles',
 			'view',
@@ -176,7 +166,7 @@ export const seedRBAC = internalMutation({
 			true
 		);
 
-		const teamCreatePerm = await getOrCreatePermission(
+		const circlesCreatePerm = await getOrCreatePermission(
 			'circles.create',
 			'circles',
 			'create',
@@ -184,7 +174,7 @@ export const seedRBAC = internalMutation({
 			false
 		);
 
-		const teamUpdatePerm = await getOrCreatePermission(
+		const circlesUpdatePerm = await getOrCreatePermission(
 			'circles.update',
 			'circles',
 			'update',
@@ -192,57 +182,9 @@ export const seedRBAC = internalMutation({
 			true
 		);
 
-		const teamDeletePerm = await getOrCreatePermission(
-			'circles.delete',
-			'circles',
-			'delete',
-			'Delete circles',
-			true
-		);
+		// --- Workspace Settings Permissions (1 kept) ---
 
-		const teamAddMembersPerm = await getOrCreatePermission(
-			'circles.add-members',
-			'circles',
-			'add-members',
-			'Add members to circles',
-			true
-		);
-
-		const teamRemoveMembersPerm = await getOrCreatePermission(
-			'circles.remove-members',
-			'circles',
-			'remove-members',
-			'Remove members from circles',
-			true
-		);
-
-		const teamChangeRolesPerm = await getOrCreatePermission(
-			'circles.change-roles',
-			'circles',
-			'change-roles',
-			'Change member roles within circles',
-			true
-		);
-
-		// --- Organization Settings Permissions (3) ---
-
-		const orgViewSettingsPerm = await getOrCreatePermission(
-			'workspaces.view-settings',
-			'workspaces',
-			'view-settings',
-			'View workspace settings',
-			false
-		);
-
-		const orgUpdateSettingsPerm = await getOrCreatePermission(
-			'workspaces.update-settings',
-			'workspaces',
-			'update-settings',
-			'Update workspace settings',
-			false
-		);
-
-		const orgManageBillingPerm = await getOrCreatePermission(
+		const workspacesManageBillingPerm = await getOrCreatePermission(
 			'workspaces.manage-billing',
 			'workspaces',
 			'manage-billing',
@@ -250,7 +192,17 @@ export const seedRBAC = internalMutation({
 			false
 		);
 
-		console.log(`✅ Permissions ready (created or already existed)`);
+		// --- Documentation Permissions (1 added) ---
+
+		const docsViewPerm = await getOrCreatePermission(
+			'docs.view',
+			'docs',
+			'view',
+			'View documents',
+			false
+		);
+
+		console.log(`✅ Permissions ready (8 permissions created or already existed)`);
 
 		// ========================================================================
 		// Step 3: Create Role-Permission Mappings
@@ -264,40 +216,28 @@ export const seedRBAC = internalMutation({
 			scope: 'all' | 'own' | 'none';
 		}> = [];
 
-		// --- Admin Role: Full access (scope: "all") ---
+		// --- Admin Role: Full access to all 8 permissions (scope: "all") ---
 		const adminPermissions = [
-			userViewPerm,
 			userInvitePerm,
-			userRemovePerm,
 			userChangeRolesPerm,
 			userManageProfilePerm,
-			teamViewPerm,
-			teamCreatePerm,
-			teamUpdatePerm,
-			teamDeletePerm,
-			teamAddMembersPerm,
-			teamRemoveMembersPerm,
-			teamChangeRolesPerm,
-			orgViewSettingsPerm,
-			orgUpdateSettingsPerm,
-			orgManageBillingPerm
+			circlesViewPerm,
+			circlesCreatePerm,
+			circlesUpdatePerm,
+			workspacesManageBillingPerm,
+			docsViewPerm
 		];
 		for (const permId of adminPermissions) {
 			mappings.push({ roleId: adminRole, permissionId: permId, scope: 'all' });
 		}
 
-		// --- Manager Role: Circle management + user invites (scope: "all" for most) ---
+		// --- Manager Role: Circle management + user invites ---
 		const managerPermissions = [
-			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userInvitePerm, scope: 'all' as const },
 			{ id: userManageProfilePerm, scope: 'own' as const },
-			{ id: teamViewPerm, scope: 'all' as const },
-			{ id: teamCreatePerm, scope: 'all' as const },
-			{ id: teamUpdatePerm, scope: 'all' as const },
-			{ id: teamAddMembersPerm, scope: 'all' as const },
-			{ id: teamRemoveMembersPerm, scope: 'all' as const },
-			{ id: teamChangeRolesPerm, scope: 'all' as const },
-			{ id: orgViewSettingsPerm, scope: 'all' as const }
+			{ id: circlesViewPerm, scope: 'all' as const },
+			{ id: circlesCreatePerm, scope: 'all' as const },
+			{ id: circlesUpdatePerm, scope: 'all' as const }
 		];
 		for (const perm of managerPermissions) {
 			mappings.push({ roleId: managerRole, permissionId: perm.id, scope: perm.scope });
@@ -305,13 +245,9 @@ export const seedRBAC = internalMutation({
 
 		// --- Circle Lead Role: Manage their own circles only (scope: "own") ---
 		const circleLeadPermissions = [
-			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userManageProfilePerm, scope: 'own' as const },
-			{ id: teamViewPerm, scope: 'own' as const },
-			{ id: teamUpdatePerm, scope: 'own' as const },
-			{ id: teamAddMembersPerm, scope: 'own' as const },
-			{ id: teamRemoveMembersPerm, scope: 'own' as const },
-			{ id: orgViewSettingsPerm, scope: 'all' as const }
+			{ id: circlesViewPerm, scope: 'own' as const },
+			{ id: circlesUpdatePerm, scope: 'own' as const }
 		];
 		for (const perm of circleLeadPermissions) {
 			mappings.push({ roleId: circleLeadRole, permissionId: perm.id, scope: perm.scope });
@@ -319,10 +255,8 @@ export const seedRBAC = internalMutation({
 
 		// --- Billing Admin Role: Billing only ---
 		const billingAdminPermissions = [
-			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userManageProfilePerm, scope: 'own' as const },
-			{ id: orgViewSettingsPerm, scope: 'all' as const },
-			{ id: orgManageBillingPerm, scope: 'all' as const }
+			{ id: workspacesManageBillingPerm, scope: 'all' as const }
 		];
 		for (const perm of billingAdminPermissions) {
 			mappings.push({ roleId: billingAdminRole, permissionId: perm.id, scope: perm.scope });
@@ -330,17 +264,15 @@ export const seedRBAC = internalMutation({
 
 		// --- Member Role: View only + own profile ---
 		const memberPermissions = [
-			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userManageProfilePerm, scope: 'own' as const },
-			{ id: teamViewPerm, scope: 'all' as const },
-			{ id: orgViewSettingsPerm, scope: 'all' as const }
+			{ id: circlesViewPerm, scope: 'all' as const }
 		];
 		for (const perm of memberPermissions) {
 			mappings.push({ roleId: memberRole, permissionId: perm.id, scope: perm.scope });
 		}
 
 		// --- Guest Role: Very limited (specific resources only) ---
-		const guestPermissions = [{ id: teamViewPerm, scope: 'own' as const }];
+		const guestPermissions = [{ id: circlesViewPerm, scope: 'own' as const }];
 		for (const perm of guestPermissions) {
 			mappings.push({ roleId: guestRole, permissionId: perm.id, scope: perm.scope });
 		}
@@ -380,9 +312,16 @@ export const seedRBAC = internalMutation({
 			success: true,
 			summary: {
 				roles: 6,
-				permissions: 15,
-				mappings: mappings.length
+				permissions: 8,
+				mappings: mappings.length,
+				note: 'Minimal permission set based on SYOS-970 investigation'
 			}
 		};
 	}
 });
+
+/**
+ * Legacy export for backward compatibility
+ * @deprecated Use `seed` instead
+ */
+export const seedRBAC = seed;

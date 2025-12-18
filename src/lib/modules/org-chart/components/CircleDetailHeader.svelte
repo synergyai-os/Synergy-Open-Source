@@ -3,6 +3,7 @@
 	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { panelDetailHeaderRecipe } from '$lib/design-system/recipes';
+	import type { Snippet } from 'svelte';
 	import InlineEditText from './InlineEditText.svelte';
 	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 
@@ -17,6 +18,7 @@
 		editable?: boolean;
 		editReason?: string;
 		onNameChange?: (name: string) => Promise<void>;
+		titleBadges?: Snippet;
 		class?: string;
 	};
 
@@ -31,6 +33,7 @@
 		editable = false,
 		editReason,
 		onNameChange,
+		titleBadges,
 		class: className = ''
 	}: Props = $props();
 
@@ -69,6 +72,7 @@
 				{circleName}
 			</Heading>
 		{/if}
+		{@render titleBadges?.()}
 	</div>
 	<div class="gap-button flex items-center">
 		{#if addMenuItems.length > 0}

@@ -2,6 +2,7 @@ import type { Id } from '../../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../../_generated/server';
 import { recordUpdateHistory } from '../../history';
 import { requireActivePerson } from '../../people/rules';
+import { ROLE_TYPES } from '../constants';
 
 export async function isWorkspaceAdmin(
 	ctx: QueryCtx | MutationCtx,
@@ -23,7 +24,9 @@ export async function findLeadRoleTemplate(
 	const workspaceLeadTemplate = await ctx.db
 		.query('roleTemplates')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
-		.filter((q) => q.eq(q.field('roleType'), 'circle_lead').eq(q.field('archivedAt'), undefined))
+		.filter((q) =>
+			q.eq(q.field('roleType'), ROLE_TYPES.CIRCLE_LEAD).eq(q.field('archivedAt'), undefined)
+		)
 		.first();
 
 	if (workspaceLeadTemplate) {
@@ -33,7 +36,9 @@ export async function findLeadRoleTemplate(
 	const systemLeadTemplate = await ctx.db
 		.query('roleTemplates')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
-		.filter((q) => q.eq(q.field('roleType'), 'circle_lead').eq(q.field('archivedAt'), undefined))
+		.filter((q) =>
+			q.eq(q.field('roleType'), ROLE_TYPES.CIRCLE_LEAD).eq(q.field('archivedAt'), undefined)
+		)
 		.first();
 
 	return systemLeadTemplate?._id ?? null;
@@ -48,7 +53,7 @@ export async function updateLeadRolesFromTemplate(
 	personId: Id<'people'>
 ): Promise<void> {
 	const template = await ctx.db.get(templateId);
-	if (!template || template.roleType !== 'circle_lead') {
+	if (!template || template.roleType !== ROLE_TYPES.CIRCLE_LEAD) {
 		return;
 	}
 

@@ -7,7 +7,7 @@ import { normalizeStateString } from './state';
 import { attachTagsToFlashcard } from './tags';
 
 type CreateFlashcardArgs = {
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 	question: string;
 	answer: string;
 	sourceInboxItemId?: Id<'inboxItems'>;
@@ -23,7 +23,7 @@ export async function createFlashcardRecord(ctx: MutationCtx, args: CreateFlashc
 	const card = scheduling[Rating.Good].card;
 
 	const flashcardId = await ctx.db.insert('flashcards', {
-		userId: args.userId,
+		personId: args.personId,
 		question: args.question,
 		answer: args.answer,
 		sourceInboxItemId: args.sourceInboxItemId,
@@ -57,7 +57,7 @@ export async function createFlashcardsBatch(
 		const card = scheduling[Rating.Good].card;
 
 		const flashcardId = await ctx.db.insert('flashcards', {
-			userId: baseArgs.userId,
+			personId: baseArgs.personId,
 			question: flashcard.question,
 			answer: flashcard.answer,
 			sourceInboxItemId: baseArgs.sourceInboxItemId,

@@ -22,8 +22,8 @@ export async function attachTagsToFlashcard(
 export async function collectFlashcardTagsByIds(
 	ctx: Ctx,
 	tagIds: Id<'tags'>[] | undefined,
-	userId: Id<'users'>
+	personId: Id<'people'>
 ) {
 	if (!tagIds || tagIds.length === 0) return null;
-	return getTagDescendantsForTags(ctx, tagIds, userId);
+	return getTagDescendantsForTags(ctx, tagIds, personId);
 }

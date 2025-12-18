@@ -1,9 +1,11 @@
 # Circle Types & Organizational Roles Design v0.5
 
-**Status**: Draft  
+**Status**: ⚠️ SUPERSEDED - See `governance-design.md` for current design  
 **Last Updated**: 2025-12-15  
-**Parent Document**: governance-design.md  
+**Parent Document**: governance-design.md (canonical source)  
 **Related**: SYOS-670, SYOS-663, architecture.md
+
+> **Note**: This document contains the original design notes. The canonical, implemented design is in `governance-design.md`. This file is kept for historical reference only. Schema references below (defaultPurpose, defaultDecisionRights) are outdated - implementation uses `defaultFieldValues` per SYOS-960.
 
 ---
 

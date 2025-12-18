@@ -11,6 +11,7 @@ import type {
 	RoleFiller
 } from '$lib/infrastructure/organizational-model';
 import type { CoreModuleAPI } from '$lib/modules/core/api';
+import { useOrgChartViewport } from './useOrgChartViewport.svelte';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
@@ -30,6 +31,20 @@ type CircleRoleDetail = {
 
 /**
  * Composable for managing org chart state and interactions
+ *
+ * **Composition Pattern**: This composable composes smaller, focused composables:
+ * - `useOrgChartViewport` - Viewport state (zoom, pan, hover)
+ * - `useNavigationStack` (from core module) - Panel navigation breadcrumbs
+ *
+ * **Query Patterns Used**:
+ * - Pattern A (Direct ternary): Static workspace-scoped queries that never re-create
+ *   - `circlesQuery`, `rolesByWorkspaceQuery`, `roleTemplatesQuery`, `orgSettingsQuery`
+ * - Pattern B ($derived wrapper): Conditional queries that re-create when dependencies change
+ *   - `selectedRoleQuery` (re-creates when selectedRoleId changes)
+ * - Pattern C (Manual convexClient in $effect): Complex queries with race condition handling
+ *   - `selectedCircle`, `selectedCircleMembers`, `selectedCircleMembersWithoutRoles`, `selectedRoleFillers`
+ *
+ * Each pattern serves a specific purpose. See validation in SYOS-946.
  */
 export function useOrgChart(options: {
 	sessionId: () => string | undefined;
@@ -44,6 +59,9 @@ export function useOrgChart(options: {
 	// Navigation stack for hierarchical panel navigation
 	const navigationStack = coreAPI.useNavigationStack();
 
+	// Viewport state (zoom, pan, hover) - extracted for clarity
+	const viewport = useOrgChartViewport();
+
 	const state = $state({
 		// Selected circle for detail panel
 		selectedCircleId: null as Id<'circles'> | null,
@@ -51,12 +69,6 @@ export function useOrgChart(options: {
 		selectedRoleId: null as Id<'circleRoles'> | null,
 		// Source of role selection (for panel stacking)
 		selectionSource: null as 'chart' | 'circle-panel' | null,
-		// Zoom level
-		zoomLevel: 1,
-		// Pan offset
-		panOffset: { x: 0, y: 0 },
-		// Hover state
-		hoveredCircleId: null as Id<'circles'> | null,
 		// Query results (loaded via $effect)
 		selectedCircle: null as CircleSummary | null,
 		selectedCircleMembers: [] as CircleMember[],
@@ -120,7 +132,7 @@ export function useOrgChart(options: {
 	// CRITICAL: Always call useQuery when browser is true to ensure reactivity
 	// This prevents hydration errors - query throws when params not ready, Convex retries
 	const roleTemplatesQuery = browser
-		? useQuery(api.core.roles.templates.list, () => {
+		? useQuery(api.core.roles.templates.queries.list, () => {
 				const sessionId = getSessionId();
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
@@ -358,7 +370,7 @@ export function useOrgChart(options: {
 	// Load selected role details with reactive useQuery (matches CircleDetailPanel pattern)
 	// CRITICAL: Use $derived to make query creation reactive - when selectedRoleId changes, query re-creates
 	const selectedRoleQuery = $derived(
-		browser && state.selectedRoleId
+		browser && state.selectedRoleId && getSessionId()
 			? useQuery(api.core.roles.index.get, () => {
 					const sessionId = getSessionId();
 					invariant(sessionId && state.selectedRoleId, 'sessionId and selectedRoleId required');
@@ -371,7 +383,7 @@ export function useOrgChart(options: {
 	$effect(() => {
 		if (selectedRoleQuery) {
 			state.selectedRole = selectedRoleQuery.data ?? null;
-			state.selectedRoleIsLoading = selectedRoleQuery.isLoading ?? false;
+			state.selectedRoleIsLoading = selectedRoleQuery.data === undefined;
 			state.selectedRoleError = selectedRoleQuery.error ?? null;
 		} else {
 			state.selectedRole = null;
@@ -484,14 +496,15 @@ export function useOrgChart(options: {
 		get selectionSource() {
 			return state.selectionSource;
 		},
+		// Viewport state (delegated to viewport composable)
 		get zoomLevel() {
-			return state.zoomLevel;
+			return viewport.zoomLevel;
 		},
 		get panOffset() {
-			return state.panOffset;
+			return viewport.panOffset;
 		},
 		get hoveredCircleId() {
-			return state.hoveredCircleId;
+			return viewport.hoveredCircleId;
 		},
 		get isLoading() {
 			// If not in browser, always loading
@@ -616,18 +629,10 @@ export function useOrgChart(options: {
 			}
 		},
 
-		setZoom: (level: number) => {
-			state.zoomLevel = Math.max(0.5, Math.min(3, level));
-		},
-		setPan: (offset: { x: number; y: number }) => {
-			state.panOffset = offset;
-		},
-		setHover: (circleId: Id<'circles'> | null) => {
-			state.hoveredCircleId = circleId;
-		},
-		resetView: () => {
-			state.zoomLevel = 1;
-			state.panOffset = { x: 0, y: 0 };
-		}
+		// Viewport actions (delegated to viewport composable)
+		setZoom: viewport.setZoom,
+		setPan: viewport.setPan,
+		setHover: viewport.setHover,
+		resetView: viewport.resetView
 	};
 }

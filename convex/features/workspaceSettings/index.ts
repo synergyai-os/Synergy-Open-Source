@@ -192,10 +192,10 @@ export const saveClaudeApiKey = internalMutation({
 });
 
 /**
- * Mutation: Delete workspace Claude API key
- * Only admins can delete
+ * Mutation: Remove workspace Claude API key
+ * Only admins can remove
  */
-export const deleteOrganizationClaudeApiKey = mutation({
+export const removeOrganizationClaudeApiKey = mutation({
 	args: {
 		sessionId: v.string(),
 		workspaceId: v.id('workspaces')

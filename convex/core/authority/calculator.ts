@@ -11,12 +11,7 @@
 import { CIRCLE_TYPES, type CircleType } from '../circles';
 import { getPolicy } from './policies';
 import { isCircleLead, isCircleMember, isFacilitator } from './rules';
-import type {
-	Authority,
-	AuthorityContext,
-	AuthorityLevel,
-	CirclePolicy
-} from './types';
+import type { Authority, AuthorityContext, AuthorityLevel, CirclePolicy } from './types';
 
 /**
  * Calculate authority level from circle type

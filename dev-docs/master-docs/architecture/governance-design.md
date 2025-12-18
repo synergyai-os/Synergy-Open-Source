@@ -188,14 +188,16 @@ Custom roles have no template (`templateId: null`), so need their own `roleType:
 
 ### 6.4 Role Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | ✅ | Display name |
-| `roleType` | ✅ | System-determined classification |
-| `purpose` | ✅ | "Why does this role exist?" |
-| `decisionRights` | ✅ (min 1) | What this role can decide alone |
-| `accountabilities` | Optional | Ongoing activities |
-| `domains` | Optional | Exclusive control areas |
+**Note**: As of SYOS-960, descriptive fields (purpose, decisionRights, etc.) are stored in `customFieldValues`, not on the `circleRoles` schema. This enables flexible field definitions per workspace.
+
+| Field | Required | Storage Location | Description |
+|-------|----------|------------------|-------------|
+| `name` | ✅ | circleRoles schema | Display name |
+| `roleType` | ✅ | circleRoles schema | System-determined classification |
+| `purpose` | ✅ | customFieldValues | "Why does this role exist?" |
+| `decisionRights` | ✅ (min 1) | customFieldValues | What this role can decide alone |
+| `accountabilities` | Optional | customFieldValues | Ongoing activities |
+| `domains` | Optional | customFieldValues | Exclusive control areas |
 
 ### 6.5 Decision Rights Examples
 
@@ -216,7 +218,11 @@ Custom roles have no template (`templateId: null`), so need their own `roleType:
 1. Create circle record
 2. Read circleType
 3. Create roles per type (see 5.3)
-4. Each role gets: name, roleType, templateId, default purpose, default decisionRights
+4. For each role:
+   a. Create lean circleRole record (name, roleType, templateId only)
+   b. Create customFieldValues from template.defaultFieldValues
+      - One customFieldValues record per value (for searchability)
+      - Helper: infrastructure/customFields/helpers.ts
 ```
 
 ### 7.2 Trigger: Circle Type Change
@@ -367,13 +373,21 @@ Workspace starts in `design` phase. Creator can:
 
 **circleRoles table:**
 - `roleType`: `'circle_lead' | 'structural' | 'custom'` (required)
-- `decisionRights`: `string[]` (required, min 1)
-- `purpose`: `string` (required, was optional)
+- `templateId`: `Id<'roleTemplates'> | undefined` (links to template)
+- **Removed** (SYOS-960): `purpose`, `decisionRights` → now in `customFieldValues`
 
 **roleTemplates table:**
 - `roleType`: `'circle_lead' | 'structural' | 'custom'`
-- `defaultPurpose`: `string`
-- `defaultDecisionRights`: `string[]`
+- `defaultFieldValues`: `Array<{ systemKey: string, values: string[] }>` (flexible field system)
+- `appliesTo`: `'hierarchy' | 'empowered_team' | 'guild' | 'hybrid'` (single value, not array)
+- **Removed** (SYOS-960): `defaultPurpose`, `defaultDecisionRights` → now in `defaultFieldValues`
+
+**customFieldValues table:** (stores role descriptive fields)
+- `entityType`: `'circle' | 'role' | ...` (which type of entity)
+- `entityId`: `string` (the role/circle ID)
+- `definitionId`: `Id<'customFieldDefinitions'>` (which field, e.g., "purpose")
+- `value`: `string` (the actual value - one record per value)
+- `searchText`: `string` (indexed for search)
 
 **workspaces table:**
 - `phase`: `'design' | 'active'` (default: 'design')

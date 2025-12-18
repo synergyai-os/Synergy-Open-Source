@@ -112,3 +112,118 @@ if (hasDuplicateRoleName(trimmedName, existingRoles, currentRoleId)) {
 **Related**:
 - Authority module pattern (`convex/core/authority`)
 
+---
+
+## #L140: Infrastructure Importing from Core (Layer Violation) [🔴 CRITICAL]
+
+**Keywords**: architecture layers, infrastructure imports core, dependency violation, Principle #5, CIRCLE_TYPES, constants, layer boundaries, authority vs RBAC
+
+**Symptom**:
+- Infrastructure file (e.g., `infrastructure/rbac/orgChart.ts`) imports from Core (e.g., `core/circles`)
+- ESLint or type errors mentioning circular dependencies or layer violations
+- Hardcoded string literals used to avoid importing constants
+- Code in wrong architectural layer (e.g., organizational logic in RBAC infrastructure)
+
+**Root Cause**: Misunderstanding of layer responsibilities. Infrastructure is at the **bottom** of the dependency chain and cannot import from Core. The code is in the wrong layer because it needs Core domain concepts.
+
+**Architecture Principle #5**: `infrastructure/ ← core/ ← features/` — never reversed
+
+```
+Dependency Flow (allowed):
+  Application → Features → Core → Infrastructure
+              ↓          ↓      ↓
+          (can import)  (can import)  (bottom layer)
+
+Violation:
+  Infrastructure → Core  ❌ NOT ALLOWED
+```
+
+**Decision Framework**: Which layer does this code belong in?
+
+| Question | Infrastructure | Core | Features |
+|----------|---------------|------|----------|
+| Does it need domain constants? (e.g., `CIRCLE_TYPES`) | ❌ Move to Core | ✅ Belongs here | Maybe |
+| Is it about **organizational authority**? (who can do what in the org) | ❌ Move to Core | ✅ `core/authority/` | No |
+| Is it about **system capabilities**? (billing, admin features) | ✅ Belongs here | No | No |
+| Is it cross-cutting infrastructure? (auth, errors, session) | ✅ Belongs here | No | No |
+
+**Fix (Option 1 - Recommended)**: Move file to correct layer
+
+```bash
+# Example: Quick edit is authority, not RBAC
+mv convex/infrastructure/rbac/orgChart.ts convex/core/authority/quickEdit.ts
+mv convex/infrastructure/rbac/orgChart.test.ts convex/core/authority/quickEdit.test.ts
+
+# Update imports in consuming files
+# convex/core/circles/circleLifecycle.ts:
+- import { requireQuickEditPermissionForPerson } from '../../infrastructure/rbac/orgChart';
++ import { requireQuickEditPermissionForPerson } from '../authority/quickEdit';
+
+# Frontend API paths also change:
+- api.infrastructure.rbac.orgChart.getQuickEditStatusQuery
++ api.core.authority.quickEdit.getQuickEditStatusQuery
+```
+
+**Fix (Option 2 - If code truly belongs in infrastructure)**: Refactor to remove Core dependency
+
+Options:
+1. **Move constants to infrastructure** (rare - only if they're truly foundational)
+2. **Pass values as parameters** (dependency inversion - caller provides domain values)
+3. **Use string literals** (last resort, violates Principle #20 "no magic values")
+
+**Example (SYOS-971)**: `orgChart.ts` quick edit authority
+
+**Before** (❌ Architecture violation):
+```typescript
+// convex/infrastructure/rbac/orgChart.ts
+import { CIRCLE_TYPES } from '../../core/circles';  // ❌ Infrastructure importing Core
+
+export async function canQuickEdit(ctx, userId, circle) {
+  if (circle.circleType === CIRCLE_TYPES.GUILD) {  // Needs Core constant
+    return { allowed: false };
+  }
+}
+```
+
+**After** (✅ Fixed):
+```typescript
+// convex/core/authority/quickEdit.ts  ← Moved to Core
+import { CIRCLE_TYPES } from '../circles';  // ✅ Core can import Core
+
+export async function canQuickEdit(ctx, userId, circle) {
+  if (circle.circleType === CIRCLE_TYPES.GUILD) {  // Now allowed
+    return { allowed: false };
+  }
+}
+```
+
+**Why the move?**
+- Quick edit is an **authority decision** (organizational) not an **RBAC capability** (system)
+- "Can I edit this circle?" depends on org structure (circle type, workspace settings)
+- RBAC should handle system features (billing, admin access, workspace settings)
+- Authority belongs in Core where it can access domain concepts
+
+**Checklist**:
+1. Identify the violation: Is infrastructure importing from core?
+2. Ask: Is this organizational logic or system capability logic?
+3. If organizational → Move to `core/authority/` or appropriate core domain
+4. If system capability → Refactor to remove core dependency (parameters/constants)
+5. Update all imports in consuming files (backend + frontend)
+6. Update tests and move test files to match
+7. Verify: `npm run check` passes, no circular dependencies
+
+**Authority vs RBAC Quick Reference**:
+
+| Authority (Core) | RBAC (Infrastructure) |
+|------------------|----------------------|
+| Who can approve proposals | Who can access billing settings |
+| Who can assign roles in a circle | Who can invite users to workspace |
+| Who can edit circle structure | Who can manage workspace settings |
+| Organizational permissions | System capabilities |
+| Changes frequently (governance) | Changes rarely (admin action) |
+| Lives in `core/authority/` | Lives in `infrastructure/rbac/` |
+
+**Why it prevents recurrence**: Understanding the architecture layers and the distinction between organizational authority (Core) and system capabilities (Infrastructure) prevents placing code in the wrong layer. When code needs Core concepts, it belongs in Core.
+
+**Related Tickets**: SYOS-971
+

@@ -29,7 +29,7 @@ export const workspacesTable = defineTable({
 			secondaryColor: v.string(),
 			logo: v.optional(v.string()),
 			updatedAt: v.number(),
-			updatedBy: v.id('users')
+			updatedByPersonId: v.id('people')
 		})
 	)
 }).index('by_slug', ['slug']);

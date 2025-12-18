@@ -144,7 +144,7 @@
 					handleSkip();
 				}}
 				disabled={isCompleting}
-				class="text-on-solid bg-accent-primary px-button-x py-button-y rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+				class="text-on-solid bg-accent-primary px-button-x py-button-y cursor-pointer rounded-md text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{isCompleting ? 'Skipping...' : 'Skip for Now'}
 			</button>

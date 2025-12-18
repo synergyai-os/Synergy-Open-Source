@@ -6,9 +6,16 @@
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import { formInputRecipe } from '$lib/design-system/recipes';
-	import type { CircleItem } from '../composables/useCircleItems.svelte';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import { isSingleFieldCategory } from '$lib/infrastructure/organizational-model/constants';
+
+	export interface CircleItem {
+		itemId: Id<'circleItems'>;
+		content: string;
+		order: number;
+		createdAt: number;
+		updatedAt: number;
+	}
 
 	type Props = {
 		categoryName: string;

@@ -10,6 +10,7 @@
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
 import type { CircleType } from '../circles';
+import { ROLE_TYPES } from './constants';
 
 // ============================================================================
 // Governance Validation (GOV-02, GOV-03)
@@ -101,7 +102,11 @@ export function hasDuplicateRoleName(
 // ============================================================================
 
 export type RoleTemplate = {
-	roleType?: 'circle_lead' | 'structural' | 'custom' | null;
+	roleType?:
+		| typeof ROLE_TYPES.CIRCLE_LEAD
+		| typeof ROLE_TYPES.STRUCTURAL
+		| typeof ROLE_TYPES.CUSTOM
+		| null;
 };
 
 /**
@@ -109,7 +114,7 @@ export type RoleTemplate = {
  * A Lead role is any role with roleType: 'circle_lead'.
  */
 export function isLeadTemplate(template: RoleTemplate | null | undefined): boolean {
-	return template?.roleType === 'circle_lead';
+	return template?.roleType === ROLE_TYPES.CIRCLE_LEAD;
 }
 
 // ============================================================================

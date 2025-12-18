@@ -10,11 +10,11 @@ type ReviewInput = {
 	flashcardId: Id<'flashcards'>;
 	rating: 'again' | 'hard' | 'good' | 'easy';
 	reviewTime?: number;
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 };
 
 export async function reviewFlashcard(ctx: MutationCtx, input: ReviewInput) {
-	const flashcard = await requireOwnedFlashcard(ctx, input.flashcardId, input.userId);
+	const flashcard = await requireOwnedFlashcard(ctx, input.flashcardId, input.personId);
 
 	if (flashcard.algorithm !== 'fsrs') {
 		throw createError(
@@ -38,7 +38,7 @@ export async function reviewFlashcard(ctx: MutationCtx, input: ReviewInput) {
 
 	await ctx.db.insert('flashcardReviews', {
 		flashcardId: input.flashcardId,
-		userId: input.userId,
+		personId: input.personId,
 		rating: input.rating,
 		algorithm: flashcard.algorithm,
 		reviewTime: input.reviewTime,

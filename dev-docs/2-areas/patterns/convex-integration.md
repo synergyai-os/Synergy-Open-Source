@@ -520,3 +520,98 @@ assertHasEvolutions(evolutions ? 1 : 0, 'Proposal');
 
 **Last Updated**: 2025-12-06
 
+---
+
+## #L540: Database-Driven Configuration (Hardcoded → DB Query) [🟢 REFERENCE]
+
+**Keywords**: hardcoded constants, database query, async refactor, user-created fields, dynamic configuration, flexible system, CUSTOM_FIELD_SYSTEM_KEYS, isCustomField
+
+**Symptom**: 
+- System can't detect user-created configuration (e.g., custom fields, dynamic settings)
+- Hardcoded constant limits flexibility
+- Need to redeploy when adding new configuration values
+- Feature can't scale with user-defined data
+
+**Root Cause**: Using hardcoded constants for configuration that should be data-driven. System checks against a fixed list instead of querying the database.
+
+**Example of broken code**:
+```typescript
+// ❌ BROKEN: Hardcoded list of custom fields
+export const CUSTOM_FIELD_SYSTEM_KEYS = [
+  'purpose',
+  'decision_rights',
+  'accountabilities',
+  'domains'
+] as const;
+
+export function isCustomField(field: string): boolean {
+  return CUSTOM_FIELD_SYSTEM_KEYS.includes(field);
+}
+
+// Problem: User-created custom field "Team Agreements" won't be detected
+```
+
+**Fix**: Replace with database query, make function async:
+
+```typescript
+// ✅ CORRECT: Query database for configuration
+import type { QueryCtx, MutationCtx } from '../../_generated/server';
+
+export async function isCustomField(
+  ctx: { db: QueryCtx['db'] | MutationCtx['db'] },
+  workspaceId: Id<'workspaces'>,
+  field: string
+): Promise<boolean> {
+  const definition = await ctx.db
+    .query('customFieldDefinitions')
+    .withIndex('by_workspace_system_key', (q) =>
+      q.eq('workspaceId', workspaceId).eq('systemKey', field)
+    )
+    .first();
+
+  return definition !== null;
+}
+```
+
+**Update call sites to await**:
+```typescript
+// Before:
+if (isCustomField(field)) {
+  // handle custom field
+}
+
+// After:
+if (await isCustomField(ctx, args.workspaceId, field)) {
+  // handle custom field (including user-created ones)
+}
+```
+
+**Key Principles**:
+1. **Data-Driven > Hardcoded**: Configuration should live in the database, not code
+2. **Make it Async**: Database queries require async/await
+3. **Add Context**: Need `ctx` and `workspaceId` parameters for scoped queries
+4. **Proper Types**: Use `QueryCtx['db'] | MutationCtx['db']` instead of `any`
+5. **Update All Callers**: Every call site must await the async function
+
+**Architecture Note**: This follows Principle #20 "No hardcoded magic values". When configuration needs to be:
+- User-defined (custom fields, labels, settings)
+- Workspace-scoped (different per tenant)
+- Changeable without redeployment
+
+...it belongs in the database, not in code constants.
+
+**Performance**: One query per check is acceptable for non-hot paths (proposal creation, validation flows). For hot paths, consider caching or preloading.
+
+**Applies To**:
+- Custom field detection (SYOS-989)
+- Feature flag checks
+- User permissions/roles
+- Dynamic validation rules
+- Workspace-level configuration
+
+**Related**:
+- Principle #20: No hardcoded magic values
+- SYOS-989: Database-driven custom field detection
+
+**Last Updated**: 2025-12-18
+

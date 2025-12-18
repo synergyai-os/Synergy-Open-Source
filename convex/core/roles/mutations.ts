@@ -9,11 +9,16 @@ import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
-import { recordCreateHistory, recordUpdateHistory, recordArchiveHistory, recordRestoreHistory } from '../history';
-import { requireQuickEditPermissionForPerson } from '../../infrastructure/rbac/orgChart';
+import {
+	recordCreateHistory,
+	recordUpdateHistory,
+	recordArchiveHistory,
+	recordRestoreHistory
+} from '../history';
+import { requireQuickEditPermissionForPerson } from '../authority/quickEdit';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { hasDuplicateRoleName } from './rules';
-import { validateRolePurpose, validateRoleDecisionRights } from './rules';
+import { ROLE_TYPES } from './constants';
 import {
 	ensureCircleExists,
 	ensureWorkspaceMembership,
@@ -22,7 +27,12 @@ import {
 	requireWorkspacePersonById,
 	requireWorkspacePersonFromSession
 } from './roleAccess';
-import { handleUserCircleRoleCreated, handleUserCircleRoleRemoved, handleUserCircleRoleRestored } from './roleRbac';
+import {
+	handleUserCircleRoleCreated,
+	handleUserCircleRoleRemoved,
+	handleUserCircleRoleRestored
+} from './roleRbac';
+import { createCustomFieldValuesFromTemplate } from '../../infrastructure/customFields';
 
 // ============================================================================
 // Helper Functions
@@ -47,7 +57,7 @@ export async function archiveRoleHelper(
 	}
 
 	// GOV-04: Lead role cannot be deleted while circle exists
-	if (reason === 'direct' && role.roleType === 'circle_lead') {
+	if (reason === 'direct' && role.roleType === ROLE_TYPES.CIRCLE_LEAD) {
 		const circle = await ctx.db.get(role.circleId);
 		if (!circle || circle.archivedAt !== undefined) {
 			// Circle is archived or doesn't exist - allow archiving lead role
@@ -94,6 +104,9 @@ export async function archiveRoleHelper(
 
 /**
  * Update circle role helper
+ *
+ * Note (SYOS-960): purpose and decisionRights are now stored in customFieldValues.
+ * Use customFields mutations to update those fields.
  */
 async function updateCircleRole(
 	ctx: MutationCtx,
@@ -101,8 +114,6 @@ async function updateCircleRole(
 		sessionId: string;
 		circleRoleId: Id<'circleRoles'>;
 		name?: string;
-		purpose?: string;
-		decisionRights?: string[];
 		representsToParent?: boolean;
 	}
 ) {
@@ -132,8 +143,6 @@ async function updateCircleRole(
 
 	const updates: {
 		name?: string;
-		purpose?: string;
-		decisionRights?: string[];
 		representsToParent?: boolean;
 		updatedAt: number;
 		updatedByPersonId: Id<'people'>;
@@ -163,18 +172,6 @@ async function updateCircleRole(
 		updates.name = trimmedName;
 	}
 
-	if (args.purpose !== undefined) {
-		// GOV-02: Validate purpose is non-empty
-		validateRolePurpose(args.purpose);
-		updates.purpose = args.purpose;
-	}
-
-	if (args.decisionRights !== undefined) {
-		// GOV-03: Validate at least one decision right
-		validateRoleDecisionRights(args.decisionRights);
-		updates.decisionRights = args.decisionRights;
-	}
-
 	if (args.representsToParent !== undefined) {
 		updates.representsToParent = args.representsToParent;
 	}
@@ -191,6 +188,9 @@ async function updateCircleRole(
 
 /**
  * Update circle role inline helper
+ *
+ * Note (SYOS-960): purpose and decisionRights are now stored in customFieldValues.
+ * Use customFields mutations to update those fields.
  */
 async function updateInlineCircleRole(
 	ctx: MutationCtx,
@@ -199,8 +199,6 @@ async function updateInlineCircleRole(
 		circleRoleId: Id<'circleRoles'>;
 		updates: {
 			name?: string;
-			purpose?: string;
-			decisionRights?: string[];
 			representsToParent?: boolean;
 		};
 	}
@@ -252,18 +250,6 @@ async function updateInlineCircleRole(
 		}
 
 		updateData.name = trimmedName;
-	}
-
-	if (args.updates.purpose !== undefined) {
-		// GOV-02: Validate purpose is non-empty
-		validateRolePurpose(args.updates.purpose);
-		updateData.purpose = args.updates.purpose;
-	}
-
-	if (args.updates.decisionRights !== undefined) {
-		// GOV-03: Validate at least one decision right
-		validateRoleDecisionRights(args.updates.decisionRights);
-		updateData.decisionRights = args.updates.decisionRights;
 	}
 
 	if (args.updates.representsToParent !== undefined) {
@@ -542,8 +528,15 @@ export const create = mutation({
 		sessionId: v.string(),
 		circleId: v.id('circles'),
 		name: v.string(),
-		purpose: v.string(),
-		decisionRights: v.array(v.string()),
+		// SYOS-960: Accept field values array instead of purpose/decisionRights
+		fieldValues: v.optional(
+			v.array(
+				v.object({
+					systemKey: v.string(),
+					values: v.array(v.string())
+				})
+			)
+		),
 		roleType: v.optional(
 			v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom'))
 		)
@@ -558,12 +551,6 @@ export const create = mutation({
 			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Role name is required');
 		}
 
-		// GOV-02: Validate purpose is non-empty
-		validateRolePurpose(args.purpose);
-
-		// GOV-03: Validate at least one decision right
-		validateRoleDecisionRights(args.decisionRights);
-
 		const existingRoles = await ctx.db
 			.query('circleRoles')
 			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
@@ -577,22 +564,33 @@ export const create = mutation({
 		}
 
 		// Manually created roles default to 'custom' type
-		const roleType = args.roleType ?? 'custom';
+		const roleType = args.roleType ?? ROLE_TYPES.CUSTOM;
 
 		const now = Date.now();
+		// Create lean circleRole (no descriptive fields per SYOS-960)
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId: args.circleId,
 			workspaceId,
 			name: trimmedName,
 			roleType,
-			purpose: args.purpose,
-			decisionRights: args.decisionRights,
 			status: 'active',
 			isHiring: false,
 			createdAt: now,
 			updatedAt: now,
 			updatedByPersonId: personId
 		});
+
+		// Create customFieldValues if provided (SYOS-960)
+		// Validation (GOV-02, GOV-03) happens inside helper
+		if (args.fieldValues && args.fieldValues.length > 0) {
+			await createCustomFieldValuesFromTemplate(ctx, {
+				workspaceId,
+				entityType: 'role',
+				entityId: roleId,
+				templateDefaultFieldValues: args.fieldValues,
+				createdByPersonId: personId
+			});
+		}
 
 		const newRole = await ctx.db.get(roleId);
 		if (newRole) {
@@ -608,8 +606,6 @@ export const update = mutation({
 		sessionId: v.string(),
 		circleRoleId: v.id('circleRoles'),
 		name: v.optional(v.string()),
-		purpose: v.optional(v.string()),
-		decisionRights: v.optional(v.array(v.string())),
 		representsToParent: v.optional(v.boolean())
 	},
 	handler: async (ctx, args) => updateCircleRole(ctx, args)
@@ -621,8 +617,6 @@ export const updateInline = mutation({
 		circleRoleId: v.id('circleRoles'),
 		updates: v.object({
 			name: v.optional(v.string()),
-			purpose: v.optional(v.string()),
-			decisionRights: v.optional(v.array(v.string())),
 			representsToParent: v.optional(v.boolean())
 		})
 	},

@@ -69,6 +69,6 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 | `circleLifecycle.ts` | Lifecycle rules (activate/archive/restore)         |
 | `circleAccess.ts`    | Access control helpers for circle operations       |
 | `circleMembers.ts`   | Manage explicit circle membership                  |
-| `circleCoreRoles.ts` | Core Circle Lead role management                   |
+| `autoCreateRoles.ts` | Core Circle Lead role auto-creation                |
 | `validation.ts`      | Name/slug validation helpers                       |
 | `index.ts`           | Public exports                                     |

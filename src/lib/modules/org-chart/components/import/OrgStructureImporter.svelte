@@ -33,7 +33,7 @@
 	// Query core role templates for validation
 	const coreTemplatesQuery =
 		browser && workspaceId && $page.data.sessionId
-			? useQuery(api.core.roles.templates.list, () => {
+			? useQuery(api.core.roles.templates.queries.list, () => {
 					const sessionId = $page.data.sessionId;
 					invariant(sessionId, 'sessionId required');
 					return {

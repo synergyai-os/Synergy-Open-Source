@@ -1,9 +1,8 @@
 import { query, mutation } from '../../_generated/server';
 import { v } from 'convex/values';
-import type { Query } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 
-import { requireUserId } from './auth';
+import { requirePersonId } from './auth';
 import {
 	createFlashcardForUser,
 	createFlashcardsForUser,
@@ -61,8 +60,8 @@ export const updateFlashcardReview = mutation({
 		reviewTime: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx, args.sessionId);
-		return reviewFlashcard(ctx, { ...args, userId });
+		const personId = await requirePersonId(ctx, args.sessionId);
+		return reviewFlashcard(ctx, { ...args, personId });
 	}
 });
 
@@ -101,10 +100,10 @@ export const getDueFlashcards = query({
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx, args.sessionId);
+		const personId = await requirePersonId(ctx, args.sessionId);
 		const limit = args.limit ?? 10;
 		const algorithm = args.algorithm ?? 'fsrs';
-		return listDueFlashcards(ctx, userId, limit, algorithm, args.tagIds ?? undefined);
+		return listDueFlashcards(ctx, personId, limit, algorithm, args.tagIds ?? undefined);
 	}
 });
 
@@ -117,32 +116,23 @@ export const getUserFlashcards = query({
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await requireUserId(ctx, args.sessionId);
-		return listUserFlashcards(ctx, userId, args.tagIds ?? undefined);
+		const personId = await requirePersonId(ctx, args.sessionId);
+		return listUserFlashcards(ctx, personId, args.tagIds ?? undefined);
 	}
 });
 
 /**
  * Get flashcards grouped by collections (tags)
  */
-type FlashcardCollection = {
-	tagId: Id<'tags'>;
-	name: string;
-	color: string;
-	count: number;
-	dueCount: number;
-};
-
-export const listFlashcardsByCollection: Query<{ sessionId: string }, FlashcardCollection[]> =
-	query({
-		args: {
-			sessionId: v.string()
-		},
-		handler: async (ctx, args) => {
-			const userId = await requireUserId(ctx, args.sessionId);
-			return listCollections(ctx, userId);
-		}
-	});
+export const listFlashcardsByCollection = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const personId = await requirePersonId(ctx, args.sessionId);
+		return listCollections(ctx, personId);
+	}
+});
 
 /**
  * Get a single flashcard by ID

@@ -18,7 +18,7 @@ export async function findSyncProgressForPerson(
 
 	const progress = await ctx.db
 		.query('syncProgress')
-		.withIndex('by_user', (q) => q.eq('userId', linkedUser))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.first();
 
 	if (!progress) return null;

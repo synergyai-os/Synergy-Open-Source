@@ -123,13 +123,13 @@ export const archiveSourceBatch = internalMutation({
 // Internal mutation to delete a batch of authors
 export const archiveAuthorsBatch = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		limit: v.number()
 	},
 	handler: async (ctx, args) => {
 		const authors = await ctx.db
 			.query('authors')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_person', (q) => q.eq('personId', args.personId))
 			.take(args.limit);
 
 		for (const author of authors) {
@@ -146,13 +146,13 @@ export const archiveAuthorsBatch = internalMutation({
 // Internal mutation to delete a batch of tags
 export const archiveTagsBatch = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		limit: v.number()
 	},
 	handler: async (ctx, args) => {
 		const tags = await ctx.db
 			.query('tags')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_person', (q) => q.eq('personId', args.personId))
 			.take(args.limit);
 
 		for (const tag of tags) {
@@ -178,9 +178,27 @@ export const ensureCleanReadwiseData = action({
 			sessionId: args.sessionId
 		})) as { userId: Id<'users'> };
 
+		// Get personId - need workspaceId, so get first workspace for user
+		const workspaceIds = (await ctx.runQuery(
+			(internal as any).core.people.queries.listWorkspacesForUser,
+			{ userId }
+		)) as Id<'workspaces'>[];
+		if (workspaceIds.length === 0) {
+			throw new Error('User has no workspaces');
+		}
+		const workspaceId = workspaceIds[0];
+		const person = (await ctx.runQuery(
+			(internal as any).core.people.queries.findPersonByUserAndWorkspace,
+			{ userId, workspaceId }
+		)) as { _id: Id<'people'> } | null;
+		if (!person) {
+			throw new Error('Person not found for user and workspace');
+		}
+		const personId = person._id;
+
 		const cleanupApi = (internal as any).features.readwise.cleanup;
 
-		console.log(`[ensureCleanReadwiseData] Starting cleanup for user ${userId}`);
+		console.log(`[ensureCleanReadwiseData] Starting cleanup for person ${personId}`);
 
 		// Step 1: Delete inbox items in batches
 		console.log(`[ensureCleanReadwiseData] Deleting inbox items...`);
@@ -188,8 +206,8 @@ export const ensureCleanReadwiseData = action({
 		const batchSize = 10;
 
 		while (true) {
-			const inboxItems = (await ctx.runQuery(cleanupApi.fetchInboxItemsBatch, {
-				userId,
+			const inboxItems = (await ctx.runQuery(cleanupApi.listInboxItemsBatch, {
+				personId,
 				limit: batchSize
 			})) as Array<{ _id: Id<'inboxItems'> }>;
 
@@ -213,8 +231,8 @@ export const ensureCleanReadwiseData = action({
 		let batchCount = 0;
 
 		while (true) {
-			const highlights = (await ctx.runQuery(cleanupApi.fetchHighlightsBatch, {
-				userId,
+			const highlights = (await ctx.runQuery(cleanupApi.listHighlightsBatch, {
+				personId,
 				limit: 20 // Process 20 at a time
 			})) as Array<{ _id: Id<'highlights'>; sourceId: string }>;
 
@@ -257,8 +275,8 @@ export const ensureCleanReadwiseData = action({
 		let sourceBatchCount = 0;
 
 		while (true) {
-			const sources = (await ctx.runQuery(cleanupApi.fetchSourcesBatch, {
-				userId,
+			const sources = (await ctx.runQuery(cleanupApi.listSourcesBatch, {
+				personId,
 				limit: 20 // Process 20 at a time
 			})) as Array<{ _id: Id<'sources'>; authorId: string }>;
 
@@ -304,7 +322,7 @@ export const ensureCleanReadwiseData = action({
 		// Delete all authors in batches
 		while (true) {
 			const result = (await ctx.runMutation(cleanupApi.archiveAuthorsBatch, {
-				userId,
+				personId,
 				limit: cleanupBatchSize
 			})) as { deleted: number; hasMore: boolean };
 
@@ -322,7 +340,7 @@ export const ensureCleanReadwiseData = action({
 		// Delete all tags in batches (separate from authors)
 		while (true) {
 			const result = (await ctx.runMutation(cleanupApi.archiveTagsBatch, {
-				userId,
+				personId,
 				limit: cleanupBatchSize
 			})) as { deleted: number; hasMore: boolean };
 
@@ -365,42 +383,42 @@ export const ensureCleanReadwiseData = action({
 });
 
 // Internal queries to list items in batches
-export const fetchInboxItemsBatch = internalQuery({
+export const listInboxItemsBatch = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		limit: v.number()
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query('inboxItems')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_person', (q) => q.eq('personId', args.personId))
 			.filter((q) => q.eq(q.field('type'), 'readwise_highlight'))
 			.take(args.limit);
 	}
 });
 
-export const fetchHighlightsBatch = internalQuery({
+export const listHighlightsBatch = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		limit: v.number()
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query('highlights')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_person', (q) => q.eq('personId', args.personId))
 			.take(args.limit);
 	}
 });
 
-export const fetchSourcesBatch = internalQuery({
+export const listSourcesBatch = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		limit: v.number()
 	},
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query('sources')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.withIndex('by_person', (q) => q.eq('personId', args.personId))
 			.take(args.limit);
 	}
 });

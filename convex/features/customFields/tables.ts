@@ -22,6 +22,7 @@ export const customFieldEntityTypes = v.union(
 export const customFieldTypes = v.union(
 	v.literal('text'), // Single line text
 	v.literal('longText'), // Multi-line text (textarea)
+	v.literal('textList'), // Array of free-text items
 	v.literal('number'), // Numeric value
 	v.literal('boolean'), // True/false toggle
 	v.literal('date'), // Date picker

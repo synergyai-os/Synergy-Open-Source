@@ -21,6 +21,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | $derived, function call, TypeError, $.get is not a function, reactive values, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | $effect, infinite loop, freeze, frozen, bidirectional sync, two-way binding, form state, composable state, setField, formValues, untrack, controlled input | Bidirectional $effect Sync Causes Infinite Loop | `svelte-reactivity.md#L120` |
 | convex core, pure functions, lead detection, duplicate role name, template isRequired, archive guard | Core Domain Logic in convex/core (Pure + Tests) | `architecture-modularity.md#L70` |
+| architecture layers, infrastructure imports core, dependency violation, Principle #5, CIRCLE_TYPES, constants, layer boundaries, authority vs RBAC, organizational authority, system capabilities | Infrastructure Importing from Core (Layer Violation) | `architecture-modularity.md#L140` |
 | scroll, bottom, position, viewport, scrollTop | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | overflow, max-height, scroll, dropdown, full-page, parent height, h-full, Tabs.Root, height constraint | ScrollArea Max Height | `ui-patterns.md#L60` |
 | border, harsh, contrast, subtle, soft | Border Contrast | `design-system-patterns.md#L60` |
@@ -59,6 +60,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | useQuery, $derived, conditional query, null forever, ternary, circle selection, dependency changes, reactive query creation | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 | useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch, circles vs roles | Use Reactive useQuery Instead of Manual Queries for Auto-Refetch | `convex-integration.md#L340` |
 | proposals, state machine, transitions, terminal states, assertTransition, isTerminalState | Convex State Machine in Core | `convex-integration.md#L470` |
+| hardcoded constants, database query, async refactor, user-created fields, dynamic configuration, flexible system, CUSTOM_FIELD_SYSTEM_KEYS, isCustomField | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
 | cross-module imports, module api, context, dependency injection, createContext, setContext, getContext, lint, no-cross-module-imports | Module APIs via Context (No Cross-Module Imports) | `architecture-modularity.md#L10` |
 | StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
 
@@ -68,6 +70,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 | Symptom | Pattern | File |
 |---------|---------|------|
+| Infrastructure importing from Core, architecture layer violation | Infrastructure Importing from Core (Layer Violation) | `architecture-modularity.md#L140` |
 | Props not updating in composable/helper function | Composable Reactivity Break | `svelte-reactivity.md#L10` |
 | TypeError: $.get(...) is not a function, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | App freezes completely, must reload page, infinite loop with form/composable | Bidirectional $effect Sync Causes Infinite Loop | `svelte-reactivity.md#L120` |
@@ -81,6 +84,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 | Symptom | Pattern | File |
 |---------|---------|------|
+| Infrastructure file needs Core constants, hardcoded strings to avoid imports, code in wrong layer | Infrastructure Importing from Core (Layer Violation) | `architecture-modularity.md#L140` |
 | Domain logic mixed with Convex DB code; untestable rules; duplicate lead/dedup logic scattered | Core Domain Logic in convex/core (Pure + Tests) | `architecture-modularity.md#L70` |
 | Dropdown content overflows instead of scrolling | ScrollArea Max Height | `ui-patterns.md#L60` |
 | Full-page ScrollArea doesn't scroll (no scrollbar) | ScrollArea Max Height | `ui-patterns.md#L60` |
@@ -110,6 +114,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Component has multiple states, different actions per state, state-based styling | Component State Variants with Conditional Rendering | `design-system-patterns.md#L600` |
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 | Creating molecule component, molecule with recipe, component classification, molecule vs atom | Molecule Components with Recipes | `design-system-patterns.md#L650` |
+| Hardcoded constants limiting flexibility, user-created config not detected, need database-driven configuration | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
 | Redundant margin, gap vs margin, flex spacing, ml-fieldGroup redundant | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
 | Using raw button instead of Button component, design system compliance, accessibility | Always Use Design System Components | `design-system-patterns.md#L750` |
 | Badge font size, component font size variants, text-2xs text-xs text-sm | Size-Dependent Font Sizes in Recipes | `design-system-patterns.md#L800` |
@@ -140,8 +145,15 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-12-05
+**Last Updated**: 2025-12-18
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
+
+## Recent Additions (2025-12-18)
+
+| Pattern | File | Keywords |
+|---------|------|----------|
+| Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` | hardcoded constants, database query, async refactor, user-created fields, dynamic configuration, SYOS-989 |
+| Infrastructure Importing from Core (Layer Violation) | `architecture-modularity.md#L140` | architecture layers, infrastructure imports core, dependency violation, Principle #5, authority vs RBAC |
 
 ## Recent Additions (2025-12-05)
 

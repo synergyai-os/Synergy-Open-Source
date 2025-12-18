@@ -65,11 +65,11 @@
 					{ sessionId: string; theme: string },
 					Id<'userSettings'>
 				>,
-				deleteClaudeApiKey: makeFunctionReference(
-					'core/workspaces/settings:deleteClaudeApiKey'
+				removeClaudeApiKey: makeFunctionReference(
+					'core/workspaces/settings:removeClaudeApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
-				deleteReadwiseApiKey: makeFunctionReference(
-					'core/workspaces/settings:deleteReadwiseApiKey'
+				removeReadwiseApiKey: makeFunctionReference(
+					'core/workspaces/settings:removeReadwiseApiKey'
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>
 			}
 		: null;
@@ -114,8 +114,8 @@
 	let updateReadwiseApiKeyFn:
 		| ((args: { sessionId: string; apiKey: string }) => Promise<string>)
 		| null = $state(null);
-	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
-	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
+	let removeClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
+	let removeReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
 	// Initialize mutations and actions when ready
 	$effect(() => {
@@ -132,15 +132,15 @@
 				settingsApiFunctions.updateReadwiseApiKey,
 				args
 			)) as typeof updateReadwiseApiKeyFn;
-		// Delete functions are actions
-		deleteClaudeApiKeyFn = ((sessionId: string) =>
-			convexClient!.action(settingsApiFunctions.deleteClaudeApiKey, {
+		// Remove functions are actions
+		removeClaudeApiKeyFn = ((sessionId: string) =>
+			convexClient!.action(settingsApiFunctions.removeClaudeApiKey, {
 				sessionId
-			})) as typeof deleteClaudeApiKeyFn;
-		deleteReadwiseApiKeyFn = ((sessionId: string) =>
-			convexClient!.action(settingsApiFunctions.deleteReadwiseApiKey, {
+			})) as typeof removeClaudeApiKeyFn;
+		removeReadwiseApiKeyFn = ((sessionId: string) =>
+			convexClient!.action(settingsApiFunctions.removeReadwiseApiKey, {
 				sessionId
-			})) as typeof deleteReadwiseApiKeyFn;
+			})) as typeof removeReadwiseApiKeyFn;
 	});
 
 	// State for API keys (initialized from Convex)
@@ -289,12 +289,12 @@
 	}
 
 	// Delete API key handlers
-	async function handleDeleteClaudeKey() {
+	async function handleRemoveClaudeKey() {
 		const sessionId = data.sessionId;
-		if (!sessionId || !deleteClaudeApiKeyFn) return;
+		if (!sessionId || !removeClaudeApiKeyFn) return;
 
 		try {
-			await deleteClaudeApiKeyFn(sessionId);
+			await removeClaudeApiKeyFn(sessionId);
 			claudeApiKey = '';
 			claudeHasKey = false;
 			claudeShowCheckmark = false;
@@ -305,12 +305,12 @@
 		}
 	}
 
-	async function handleDeleteReadwiseKey() {
+	async function handleRemoveReadwiseKey() {
 		const sessionId = data.sessionId;
-		if (!sessionId || !deleteReadwiseApiKeyFn) return;
+		if (!sessionId || !removeReadwiseApiKeyFn) return;
 
 		try {
-			await deleteReadwiseApiKeyFn(sessionId);
+			await removeReadwiseApiKeyFn(sessionId);
 			readwiseApiKey = '';
 			readwiseHasKey = false;
 			readwiseShowCheckmark = false;
@@ -489,7 +489,7 @@
 										{:else if claudeHasKey}
 											<button
 												type="button"
-												onclick={handleDeleteClaudeKey}
+												onclick={handleRemoveClaudeKey}
 												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"
@@ -662,7 +662,7 @@
 										{:else if readwiseHasKey}
 											<button
 												type="button"
-												onclick={handleDeleteReadwiseKey}
+												onclick={handleRemoveReadwiseKey}
 												class="text-secondary hover:text-error absolute top-1/2 z-10 -translate-y-1/2 transition-colors"
 												style="right: var(--spacing-fieldGroup-gap);"
 												title="Remove API key"

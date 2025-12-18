@@ -205,9 +205,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
-	const userPermissions = await client.query(api.infrastructure.rbac.permissions.getUserPermissionsQuery, {
-		sessionId
-	});
+	const userPermissions = await client.query(
+		api.infrastructure.rbac.permissions.getUserPermissionsQuery,
+		{
+			sessionId
+		}
+	);
 
 	const hasDocsPermission = userPermissions.some((p) => p.permissionSlug === 'docs.view');
 	if (!hasDocsPermission) {

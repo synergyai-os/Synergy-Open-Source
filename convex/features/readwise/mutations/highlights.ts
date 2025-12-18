@@ -7,12 +7,12 @@ import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 export async function createHighlightIfMissingImpl(
 	ctx: MutationCtx,
 	args: {
-		userId: Id<'users'>;
+		personId: Id<'people'>;
 		sourceId: Id<'sources'>;
 		readwiseHighlight: ReadwiseHighlight;
 	}
 ) {
-	const { userId, sourceId, readwiseHighlight } = args;
+	const { personId, sourceId, readwiseHighlight } = args;
 	const externalId = String(readwiseHighlight.id);
 	const existing = await ctx.db
 		.query('highlights')
@@ -24,7 +24,7 @@ export async function createHighlightIfMissingImpl(
 	const highlightedAt = parseISODate(readwiseHighlight.highlighted_at);
 
 	const highlightData = {
-		userId,
+		personId,
 		sourceId,
 		text: readwiseHighlight.text,
 		location: readwiseHighlight.location || undefined,
@@ -49,20 +49,9 @@ export async function createHighlightIfMissingImpl(
 
 export async function createInboxItemIfMissingImpl(
 	ctx: MutationCtx,
-	args: { userId: Id<'users'>; workspaceId: Id<'workspaces'>; highlightId: Id<'highlights'> }
+	args: { personId: Id<'people'>; workspaceId: Id<'workspaces'>; highlightId: Id<'highlights'> }
 ) {
-	const { userId, workspaceId, highlightId } = args;
-	const person = await ctx.db
-		.query('people')
-		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
-		.first();
-
-	if (!person) {
-		throw createError(
-			ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
-			'User is not a member of workspace'
-		);
-	}
+	const { personId, workspaceId, highlightId } = args;
 
 	const existing = await ctx.db
 		.query('inboxItems')

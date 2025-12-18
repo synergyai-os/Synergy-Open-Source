@@ -32,7 +32,7 @@ import {
  */
 export const updateSyncProgressState = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		step: v.string(),
 		current: v.number(),
 		total: v.optional(v.number()),
@@ -46,9 +46,9 @@ export const updateSyncProgressState = internalMutation({
  */
 export const updateSyncProgress = internalMutation({
 	args: {
-		userId: v.id('users')
+		personId: v.id('people')
 	},
-	handler: (ctx, args) => clearSyncProgressImpl(ctx, args.userId)
+	handler: (ctx, args) => clearSyncProgressImpl(ctx, args.personId)
 });
 
 /**
@@ -56,7 +56,7 @@ export const updateSyncProgress = internalMutation({
  */
 export const createAuthorIfMissing = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		authorName: v.string()
 	},
 	handler: (ctx, args): Promise<Id<'authors'>> => createAuthorIfMissingImpl(ctx, args)
@@ -67,7 +67,7 @@ export const createAuthorIfMissing = internalMutation({
  */
 export const createSourceIfMissing = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		primaryAuthorId: v.id('authors'),
 		readwiseSource: v.any() // Readwise source object
 	},
@@ -90,7 +90,7 @@ export const createAuthorLink = internalMutation({
  */
 export const createTagIfMissing = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		workspaceId: v.id('workspaces'), // REQUIRED: Users always have at least one workspace
 		tagName: v.string(),
 		externalId: v.optional(v.number())
@@ -114,7 +114,7 @@ export const createTagLink = internalMutation({
  */
 export const createHighlightIfMissing = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		sourceId: v.id('sources'),
 		readwiseHighlight: v.any() // Readwise highlight object
 	},
@@ -126,7 +126,7 @@ export const createHighlightIfMissing = internalMutation({
  */
 export const createInboxItemIfMissing = internalMutation({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		workspaceId: v.id('workspaces'),
 		highlightId: v.id('highlights')
 	},
@@ -138,7 +138,7 @@ export const createInboxItemIfMissing = internalMutation({
  */
 export const hasHighlight = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		externalId: v.string()
 	},
 	handler: async (ctx, args): Promise<boolean> => {
@@ -152,7 +152,7 @@ export const hasHighlight = internalQuery({
  */
 export const findSourceIdByBookId = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		bookId: v.string() // Readwise book_id (externalId)
 	},
 	handler: (ctx, args): Promise<Id<'sources'> | null> => findSourceIdByBookIdImpl(ctx, args.bookId)
@@ -163,7 +163,7 @@ export const findSourceIdByBookId = internalQuery({
  */
 export const findHighlightIdByExternalId = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		externalId: v.string()
 	},
 	handler: (ctx, args): Promise<Id<'highlights'> | null> =>
@@ -175,14 +175,14 @@ export const findHighlightIdByExternalId = internalQuery({
  */
 export const hasInboxItem = internalQuery({
 	args: {
-		userId: v.id('users'),
+		personId: v.id('people'),
 		workspaceId: v.id('workspaces'),
 		highlightId: v.id('highlights')
 	},
 	handler: async (ctx, args): Promise<boolean> => {
 		const exists: boolean = await hasInboxItemImpl(
 			ctx,
-			args.userId,
+			args.personId,
 			args.workspaceId,
 			args.highlightId
 		);

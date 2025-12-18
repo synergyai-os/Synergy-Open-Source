@@ -2,7 +2,7 @@ import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 
-import { requireUserId } from './auth';
+import { requirePersonId } from './auth';
 import { createFlashcardRecord, createFlashcardsBatch } from './creation';
 import { getDefaultAlgorithm } from './settings';
 import { requireOwnedFlashcard, deleteFlashcard } from './repository';
@@ -18,10 +18,10 @@ type BaseArgs = {
 };
 
 export async function createFlashcardForUser(ctx: MutationCtx, args: BaseArgs) {
-	const userId = await requireUserId(ctx, args.sessionId);
-	const algorithm = await getDefaultAlgorithm(ctx, userId);
+	const personId = await requirePersonId(ctx, args.sessionId);
+	const algorithm = await getDefaultAlgorithm(ctx, personId);
 	return createFlashcardRecord(ctx, {
-		userId,
+		personId,
 		question: args.question ?? '',
 		answer: args.answer ?? '',
 		sourceInboxItemId: args.sourceInboxItemId,
@@ -36,17 +36,17 @@ export async function createFlashcardsForUser(
 	args: BaseArgs,
 	flashcards: Array<{ question: string; answer: string }>
 ) {
-	const userId = await requireUserId(ctx, args.sessionId);
-	const algorithm = await getDefaultAlgorithm(ctx, userId);
-	return createFlashcardsBatch(ctx, { ...args, userId, algorithm }, flashcards);
+	const personId = await requirePersonId(ctx, args.sessionId);
+	const algorithm = await getDefaultAlgorithm(ctx, personId);
+	return createFlashcardsBatch(ctx, { ...args, personId, algorithm }, flashcards);
 }
 
 export async function updateFlashcardContent(ctx: MutationCtx, args: BaseArgs) {
-	const userId = await requireUserId(ctx, args.sessionId);
+	const personId = await requirePersonId(ctx, args.sessionId);
 	if (!args.flashcardId) {
 		throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'flashcardId is required');
 	}
-	await requireOwnedFlashcard(ctx, args.flashcardId, userId);
+	await requireOwnedFlashcard(ctx, args.flashcardId, personId);
 	await ctx.db.patch(args.flashcardId, {
 		...(args.question !== undefined ? { question: args.question } : {}),
 		...(args.answer !== undefined ? { answer: args.answer } : {})
@@ -55,11 +55,11 @@ export async function updateFlashcardContent(ctx: MutationCtx, args: BaseArgs) {
 }
 
 export async function archiveFlashcardForUser(ctx: MutationCtx, args: BaseArgs) {
-	const userId = await requireUserId(ctx, args.sessionId);
+	const personId = await requirePersonId(ctx, args.sessionId);
 	if (!args.flashcardId) {
 		throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'flashcardId is required');
 	}
-	await requireOwnedFlashcard(ctx, args.flashcardId, userId);
+	await requireOwnedFlashcard(ctx, args.flashcardId, personId);
 	await deleteFlashcard(ctx, args.flashcardId);
 	return { success: true };
 }

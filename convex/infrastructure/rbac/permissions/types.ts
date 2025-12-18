@@ -1,23 +1,37 @@
 import type { Id } from '../../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../../_generated/server';
 
+/**
+ * Permission Slugs - Minimal Set (8 permissions)
+ *
+ * Based on SYOS-970 investigation, only these permissions are actively used:
+ * - users.invite: Invite new users to workspace
+ * - users.change-roles: Change user roles
+ * - users.manage-profile: Edit user profiles (own or others)
+ * - circles.view: View circle details and members
+ * - circles.create: Create new circles
+ * - circles.update: Edit circle settings and details
+ * - workspaces.manage-billing: Manage billing and subscriptions
+ * - docs.view: View documents (dynamically created, now seeded)
+ *
+ * Removed 9 unused permissions:
+ * - users.view (only in tests)
+ * - users.remove (never used)
+ * - circles.delete (never used)
+ * - circles.add-members (never used)
+ * - circles.remove-members (never used)
+ * - circles.change-roles (never used)
+ * - workspaces.view-settings (never used)
+ * - workspaces.update-settings (never used)
+ */
 export type PermissionSlug =
-	| 'users.view'
 	| 'users.invite'
-	| 'users.remove'
 	| 'users.change-roles'
 	| 'users.manage-profile'
 	| 'circles.view'
 	| 'circles.create'
 	| 'circles.update'
-	| 'circles.delete'
-	| 'circles.add-members'
-	| 'circles.remove-members'
-	| 'circles.change-roles'
-	| 'workspaces.view-settings'
-	| 'workspaces.update-settings'
 	| 'workspaces.manage-billing'
-	| 'org-chart.edit.quick'
 	| 'docs.view';
 
 export interface PermissionContext {

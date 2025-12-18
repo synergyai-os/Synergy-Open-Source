@@ -6,15 +6,18 @@ import { parseTagName } from '../utils';
 export async function createTagIfMissingImpl(
 	ctx: MutationCtx,
 	args: {
-		userId: Id<'users'>;
+		personId: Id<'people'>;
 		workspaceId: Id<'workspaces'>;
 		tagName: string;
 		externalId?: number;
 	}
 ) {
-	const { userId, workspaceId, tagName, externalId } = args;
+	const { personId, workspaceId, tagName, externalId } = args;
 	const normalizedName = parseTagName(tagName);
-	const person = await getPersonByUserAndWorkspace(ctx, userId, workspaceId);
+	const person = await ctx.db.get(personId);
+	if (!person) {
+		throw createError(ErrorCodes.PERSON_NOT_FOUND, 'Person not found');
+	}
 	const existing = await ctx.db
 		.query('tags')
 		.withIndex('by_workspace_name', (q) =>

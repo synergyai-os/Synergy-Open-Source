@@ -6,4 +6,3 @@ export type AccountLinkDoc = Doc<'accountLinks'>;
 export type AccountLinkId = Id<'accountLinks'>;
 export type UserSettingsDoc = Doc<'userSettings'>;
 export type UserSettingsId = Id<'userSettings'>;
-

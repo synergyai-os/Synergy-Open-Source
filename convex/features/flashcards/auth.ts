@@ -1,13 +1,13 @@
-import type { ActionCtx, MutationCtx, QueryCtx } from '../../_generated/server';
-import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import type { MutationCtx, QueryCtx } from '../../_generated/server';
+import { getPersonForSessionAndWorkspace } from '../../core/people/queries';
 
-type AnyCtx = MutationCtx | QueryCtx | ActionCtx;
+type AnyCtx = MutationCtx | QueryCtx;
 
-export async function requireUserId(ctx: AnyCtx, sessionId: string) {
-	const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
-	return userId;
+export async function requirePersonId(ctx: AnyCtx, sessionId: string) {
+	const { person } = await getPersonForSessionAndWorkspace(ctx, sessionId, null);
+	return person._id;
 }
 
-export async function getUserId(ctx: AnyCtx, sessionId: string) {
-	return requireUserId(ctx, sessionId);
+export async function getPersonId(ctx: AnyCtx, sessionId: string) {
+	return requirePersonId(ctx, sessionId);
 }

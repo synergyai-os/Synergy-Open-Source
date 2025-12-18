@@ -77,7 +77,10 @@ const checkRefs = [
 	internal.admin.invariants.crossDomain.checkXDOM02,
 	internal.admin.invariants.crossDomain.checkXDOM03,
 	internal.admin.invariants.crossDomain.checkXDOM04,
-	internal.admin.invariants.crossDomain.checkXDOM05
+	internal.admin.invariants.crossDomain.checkXDOM05,
+	// Governance (2) - SYOS-962: GOV-02, GOV-03 (check customFieldValues)
+	internal.admin.invariants.governance.checkGOV02,
+	internal.admin.invariants.governance.checkGOV03
 ];
 
 export const runAll = internalQuery({

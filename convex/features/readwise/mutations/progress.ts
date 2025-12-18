@@ -4,18 +4,18 @@ import type { Id } from '../../../_generated/dataModel';
 export async function updateSyncProgressStateImpl(
 	ctx: MutationCtx,
 	args: {
-		userId: Id<'users'>;
+		personId: Id<'people'>;
 		step: string;
 		current: number;
 		total?: number;
 		message?: string;
 	}
 ) {
-	const { userId, step, current, total, message } = args;
+	const { personId, step, current, total, message } = args;
 	const now = Date.now();
 	const existing = await ctx.db
 		.query('syncProgress')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.first();
 
 	if (existing) {
@@ -30,7 +30,7 @@ export async function updateSyncProgressStateImpl(
 	}
 
 	return ctx.db.insert('syncProgress', {
-		userId,
+		personId,
 		step,
 		current,
 		total,
@@ -40,10 +40,10 @@ export async function updateSyncProgressStateImpl(
 	});
 }
 
-export async function clearSyncProgressImpl(ctx: MutationCtx, userId: Id<'users'>) {
+export async function clearSyncProgressImpl(ctx: MutationCtx, personId: Id<'people'>) {
 	const existing = await ctx.db
 		.query('syncProgress')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.first();
 	if (existing) {
 		await ctx.db.delete(existing._id);

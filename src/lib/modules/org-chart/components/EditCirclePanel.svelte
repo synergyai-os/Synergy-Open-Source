@@ -6,7 +6,7 @@
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import { useEditCircle } from '../composables/useEditCircle.svelte';
 	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
-	import { useCircleItems } from '../composables/useCircleItems.svelte';
+	import { useCustomFields } from '../composables/useCustomFields.svelte';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import ConfirmDiscardDialog from './ConfirmDiscardDialog.svelte';
@@ -55,12 +55,109 @@
 		canQuickEdit: () => canQuickEdit
 	});
 
-	// Circle items composable for category items
-	const circleItems = useCircleItems({
+	// Custom fields composable for category items
+	const customFields = useCustomFields({
 		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
 		entityType: () => 'circle',
 		entityId: () => (circleId ? String(circleId) : null)
 	});
+
+	// Map category names to system keys
+	function getSystemKeyForCategory(categoryName: string): string | null {
+		const mapping: Record<string, string> = {
+			Domains: 'domains',
+			Accountabilities: 'accountabilities',
+			Policies: 'policies',
+			'Decision Rights': 'decision_rights',
+			Notes: 'notes'
+		};
+		return mapping[categoryName] ?? null;
+	}
+
+	// Helper: Get field value as array (for multi-item fields)
+	function getFieldValueAsArray(systemKey: string): string[] {
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field || !field.parsedValue) return [];
+		if (Array.isArray(field.parsedValue)) {
+			return field.parsedValue.map((v) => String(v));
+		}
+		return [];
+	}
+
+	// Helper: Convert array items to CircleItem format for CategoryItemsList
+	function getItemsForCategory(categoryName: string): Array<{
+		itemId: Id<'circleItems'>;
+		content: string;
+		order: number;
+		createdAt: number;
+		updatedAt: number;
+	}> {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return [];
+		const items = getFieldValueAsArray(systemKey);
+		return items.map((content, index) => ({
+			itemId: `${systemKey}-${index}` as Id<'circleItems'>, // Temporary ID format
+			content,
+			order: index,
+			createdAt: Date.now(),
+			updatedAt: Date.now()
+		}));
+	}
+
+	// Handler: Add item to multi-item field
+	async function handleAddMultiItemField(categoryName: string, content: string) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = [...currentItems, content];
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
+
+	// Handler: Update item in multi-item field
+	async function handleUpdateMultiItemField(
+		categoryName: string,
+		itemId: Id<'circleItems'>,
+		content: string
+	) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const index = parseInt(String(itemId).split('-')[1] ?? '0');
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = [...currentItems];
+		updatedItems[index] = content;
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
+
+	// Handler: Delete item from multi-item field
+	async function handleDeleteMultiItemField(categoryName: string, itemId: Id<'circleItems'>) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		const index = parseInt(String(itemId).split('-')[1] ?? '0');
+		const currentItems = getFieldValueAsArray(systemKey);
+		const updatedItems = currentItems.filter((_, i) => i !== index);
+		await customFields.setFieldValue(field.definition._id, updatedItems);
+	}
+
+	// Handler: Update single field (Notes)
+	async function handleUpdateSingleField(categoryName: string, content: string) {
+		const systemKey = getSystemKeyForCategory(categoryName);
+		if (!systemKey) return;
+		const field = customFields.getFieldBySystemKey(systemKey);
+		if (!field) return;
+		if (!content.trim()) {
+			// Delete if empty
+			await customFields.deleteFieldValue(field.definition._id);
+		} else {
+			await customFields.setFieldValue(field.definition._id, content);
+		}
+	}
 
 	// Load circle data when panel opens
 	$effect(() => {
@@ -333,12 +430,12 @@
 						</h4>
 						<CategoryItemsList
 							categoryName="Domains"
-							items={circleItems.getItemsByCategory('Domains')}
+							items={getItemsForCategory('Domains')}
 							canEdit={canQuickEdit}
 							{editReason}
-							onCreate={(content) => circleItems.createItem('Domains', content)}
-							onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-							onDelete={(itemId) => circleItems.deleteItem(itemId)}
+							onCreate={(content) => handleAddMultiItemField('Domains', content)}
+							onUpdate={(itemId, content) => handleUpdateMultiItemField('Domains', itemId, content)}
+							onDelete={(itemId) => handleDeleteMultiItemField('Domains', itemId)}
 							placeholder="What domains does this circle own?"
 						/>
 					</div>
@@ -350,12 +447,13 @@
 						</h4>
 						<CategoryItemsList
 							categoryName="Accountabilities"
-							items={circleItems.getItemsByCategory('Accountabilities')}
+							items={getItemsForCategory('Accountabilities')}
 							canEdit={canQuickEdit}
 							{editReason}
-							onCreate={(content) => circleItems.createItem('Accountabilities', content)}
-							onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-							onDelete={(itemId) => circleItems.deleteItem(itemId)}
+							onCreate={(content) => handleAddMultiItemField('Accountabilities', content)}
+							onUpdate={(itemId, content) =>
+								handleUpdateMultiItemField('Accountabilities', itemId, content)}
+							onDelete={(itemId) => handleDeleteMultiItemField('Accountabilities', itemId)}
 							placeholder="What is this circle accountable for?"
 						/>
 					</div>
@@ -367,12 +465,13 @@
 						</h4>
 						<CategoryItemsList
 							categoryName="Policies"
-							items={circleItems.getItemsByCategory('Policies')}
+							items={getItemsForCategory('Policies')}
 							canEdit={canQuickEdit}
 							{editReason}
-							onCreate={(content) => circleItems.createItem('Policies', content)}
-							onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-							onDelete={(itemId) => circleItems.deleteItem(itemId)}
+							onCreate={(content) => handleAddMultiItemField('Policies', content)}
+							onUpdate={(itemId, content) =>
+								handleUpdateMultiItemField('Policies', itemId, content)}
+							onDelete={(itemId) => handleDeleteMultiItemField('Policies', itemId)}
 							placeholder="What policies govern this circle?"
 						/>
 					</div>
@@ -384,12 +483,13 @@
 						</h4>
 						<CategoryItemsList
 							categoryName="Decision Rights"
-							items={circleItems.getItemsByCategory('Decision Rights')}
+							items={getItemsForCategory('Decision Rights')}
 							canEdit={canQuickEdit}
 							{editReason}
-							onCreate={(content) => circleItems.createItem('Decision Rights', content)}
-							onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-							onDelete={(itemId) => circleItems.deleteItem(itemId)}
+							onCreate={(content) => handleAddMultiItemField('Decision Rights', content)}
+							onUpdate={(itemId, content) =>
+								handleUpdateMultiItemField('Decision Rights', itemId, content)}
+							onDelete={(itemId) => handleDeleteMultiItemField('Decision Rights', itemId)}
 							placeholder="What decisions can this circle make?"
 						/>
 					</div>
@@ -401,12 +501,12 @@
 						</h4>
 						<CategoryItemsList
 							categoryName="Notes"
-							items={circleItems.getItemsByCategory('Notes')}
+							items={getItemsForCategory('Notes')}
 							canEdit={canQuickEdit}
 							{editReason}
-							onCreate={(content) => circleItems.createItem('Notes', content)}
-							onUpdate={(itemId, content) => circleItems.updateItem(itemId, content)}
-							onDelete={(itemId) => circleItems.deleteItem(itemId)}
+							onCreate={(content) => handleUpdateSingleField('Notes', content)}
+							onUpdate={(itemId, content) => handleUpdateSingleField('Notes', content)}
+							onDelete={(itemId) => handleUpdateSingleField('Notes', '')}
 							placeholder="Additional notes about this circle"
 						/>
 					</div>

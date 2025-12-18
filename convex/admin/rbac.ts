@@ -682,9 +682,9 @@ export const updateRole = mutation({
 });
 
 /**
- * Delete role
+ * Archive role
  */
-export const deleteRole = mutation({
+export const archiveRole = mutation({
 	args: {
 		sessionId: v.string(),
 		roleId: v.id('rbacRoles')
