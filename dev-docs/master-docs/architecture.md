@@ -1151,6 +1151,18 @@ App-wide reactive state lives in `src/lib/stores/`:
 
 These are distinct from module composables (feature-scoped) and shared composables (reusable utilities).
 
+### Composable Location Decision
+
+| Location | When to Use | Examples |
+|----------|-------------|----------|
+| `src/lib/composables/` | Reusable across multiple modules | `useCustomFields` (used by org-chart, projects, etc.) |
+| `src/lib/modules/{module}/composables/` | Specific to one module | `useOrgChart` (only used in org-chart module) |
+| `src/lib/stores/` | App-wide singleton state | Theme preference, activity tracking |
+
+**Key question:** "Will another module need this?" If yes → shared composable. If no → module composable.
+
+**Example:** `useCustomFields.svelte.ts` was moved from `modules/org-chart/composables/` to `lib/composables/` because custom fields are used by circles, roles, projects, and tasks — not just org-chart.
+
 ### Exporting State Across Modules
 
 State declared with `$state` cannot be directly exported if reassigned. Use one of these patterns:
@@ -1319,6 +1331,7 @@ $effect(() => {
 | Reactive logic embedded in components | Extract to composable |
 | Giant components with 50+ line functions | Extract to `utils/` |
 | Everything in one `.svelte.ts` file | Split reactive vs pure logic |
+| Hardcode field names/categories in templates | Iterate over `customFields.fields` from DB |
 
 ### Deep Reactivity Notes
 
@@ -1691,6 +1704,7 @@ These failures exist in test/development workspaces and do not affect production
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 4.2 | 2025-12-19 | **Composable Location Guidance.** Added: "Composable Location Decision" section with table distinguishing `src/lib/composables/` (shared) vs `src/lib/modules/{module}/composables/` (module-specific) vs `src/lib/stores/` (global state). Added anti-pattern: "Hardcode field names/categories in templates" → "Iterate over `customFields.fields` from DB". Implementation: SYOS-963, SYOS-964, SYOS-967. |
 | 4.1 | 2025-12-19 | **Placeholder People.** Added: People Status Lifecycle section documenting the four-status model (`placeholder` → `invited` → `active` → `archived`), timestamp semantics (`createdAt`, `invitedAt`, `joinedAt`), placeholder capabilities and limitations. Supports SYOS-999 (Placeholder People feature). |
 | 4.0 | 2025-12-16 | **Frontend Patterns section.** Added comprehensive Svelte 5 patterns documentation covering: `.svelte.ts` vs `.ts` file type decision matrix, composables pattern with code examples, state export patterns across modules, `$derived` vs `$derived.by` usage guidance, `$derived` vs `$effect` distinction (with official Svelte quote), deep reactivity notes, and anti-patterns table. Cross-referenced from Document Selection table. Addresses gap where backend (Convex) had extensive documentation but frontend (Svelte) had only three principles. |
 | 3.9 | 2025-01-XX | Error handling improvements. Updated: Error Codes section to document structured error format (`SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`), `createError()` function usage, auto-logging, and serialization-safe design. Follows Principle #11 (functions only, no classes). See `dev-docs/2-areas/patterns/error-handling-improvements.md` for details. |
