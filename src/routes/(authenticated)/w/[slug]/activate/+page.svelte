@@ -24,8 +24,8 @@
 	let isActivating = $state(false);
 	let isActivated = $state(false);
 
-	// Get shared navigation from context
-	const navigation = getStackedNavigation();
+	// Get shared navigation from context (used by CircleDetailPanel/RoleDetailPanel)
+	getStackedNavigation();
 
 	// Initialize org chart for panel navigation
 	const orgChart = browser
@@ -44,6 +44,7 @@
 			? useQuery(api.core.workspaces.index.getActivationIssues, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
+					// These throw statements are validated by outer check, just for TypeScript narrowing
 					if (!sessionId) throw new Error('sessionId required');
 					if (!workspaceId) throw new Error('workspaceId required');
 					return { sessionId, workspaceId };

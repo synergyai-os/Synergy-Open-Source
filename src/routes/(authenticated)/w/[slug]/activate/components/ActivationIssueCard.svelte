@@ -6,11 +6,11 @@
 		code: string;
 		message: string;
 		entityName: string;
-		actionUrl: string; // Kept for backward compatibility
+		actionUrl: string; // Kept for backward compatibility (not used in UI currently)
 		onFixClick: () => void; // New: callback for stacked navigation
 	}
 
-	let { code, message, entityName, actionUrl, onFixClick }: Props = $props();
+	let { code, message, entityName, actionUrl: _actionUrl, onFixClick }: Props = $props();
 
 	// Map issue codes to icons and colors
 	const iconMap: Record<string, { icon: string; color: 'error' | 'warning' }> = {
