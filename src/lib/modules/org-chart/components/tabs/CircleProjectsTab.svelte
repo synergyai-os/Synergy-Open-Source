@@ -9,8 +9,7 @@
 </script>
 
 <EmptyState
-	icon="folder"
+	icon="circles"
 	title="No projects yet"
 	description="Projects associated with this circle will appear here. This feature will be available in a future update."
 />
-

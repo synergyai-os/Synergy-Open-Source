@@ -8,6 +8,11 @@
 	import SuccessState from './components/SuccessState.svelte';
 	import { toast } from '$lib/utils/toast';
 	import type { PageData } from './$types';
+	import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
+	import { useOrgChart } from '$lib/modules/org-chart/composables/useOrgChart.svelte';
+	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
+	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
+	import type { Id } from '$lib/convex/_generated/dataModel';
 
 	interface Props {
 		data: PageData;
@@ -18,6 +23,17 @@
 	// State management
 	let isActivating = $state(false);
 	let isActivated = $state(false);
+
+	// Get shared navigation from context
+	const navigation = getStackedNavigation();
+
+	// Initialize org chart for panel navigation
+	const orgChart = browser
+		? useOrgChart({
+				sessionId: () => data.sessionId,
+				workspaceId: () => data.workspaceId
+			})
+		: null;
 
 	// Fetch activation issues
 	const getSessionId = () => data.sessionId;
@@ -54,6 +70,30 @@
 	const issues = $derived(issuesQuery?.data ?? []);
 	const hasIssues = $derived(issues.length > 0);
 	const isReady = $derived(!isLoading && !hasIssues && !isActivated);
+
+	// Navigation helpers
+	function handleFixIssue(issue: (typeof issues)[number]) {
+		if (!orgChart) return;
+
+		// Open appropriate panel based on action type
+		switch (issue.actionType) {
+			case 'edit_circle':
+				if (issue.circleId) {
+					orgChart.selectCircle(issue.circleId as Id<'circles'>);
+				}
+				break;
+			case 'edit_role':
+				if (issue.roleId) {
+					orgChart.selectRole(issue.roleId as Id<'circleRoles'>);
+				}
+				break;
+			case 'assign_lead':
+			case 'create_root':
+				// These actions don't open panels - keep fallback URL behavior
+				toast.info('This action requires manual setup. Please visit the org chart.');
+				break;
+		}
+	}
 
 	// Activate handler
 	async function handleActivate() {
@@ -147,6 +187,7 @@
 								message={issue.message}
 								entityName={issue.entityName}
 								actionUrl={issue.actionUrl}
+								onFixClick={() => handleFixIssue(issue)}
 							/>
 						{/each}
 					</div>
@@ -165,4 +206,10 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Stacked Panels for Issue Fixing -->
+	{#if orgChart}
+		<CircleDetailPanel {orgChart} />
+		<RoleDetailPanel {orgChart} />
+	{/if}
 </div>

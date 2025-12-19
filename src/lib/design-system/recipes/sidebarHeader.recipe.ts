@@ -29,4 +29,3 @@ export const sidebarHeaderRecipe = cva(
 );
 
 export type SidebarHeaderVariantProps = VariantProps<typeof sidebarHeaderRecipe>;
-

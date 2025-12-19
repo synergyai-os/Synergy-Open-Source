@@ -19,7 +19,7 @@
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import { ErrorState, TabbedPanel } from '$lib/components/molecules';
-	import { useDetailPanelNavigation } from '../composables/useDetailPanelNavigation.svelte';
+	import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 	import CircleTabContent from './CircleTabContent.svelte';
 	import {
 		handleQuickUpdateCircle as quickUpdateCircle,
@@ -37,8 +37,12 @@
 	if (!browser || !orgChart) {
 		// Component renders empty during SSR or when orgChart is null
 	}
+	// Get shared navigation from context
+	const navigation = getStackedNavigation();
+
 	const circle = $derived(orgChart?.selectedCircle ?? null),
-		isOpen = $derived((orgChart?.selectedCircleId ?? null) !== null),
+		selectedCircleId = $derived(orgChart?.selectedCircleId ?? null),
+		isOpen = $derived(navigation.isInStack('circle')),
 		isLoading = $derived(orgChart?.selectedCircleIsLoading ?? false),
 		error = $derived(orgChart?.selectedCircleError ?? null);
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces'),
@@ -68,17 +72,8 @@
 		);
 	let isEditMode = $state(false),
 		showDiscardDialog = $state(false);
-	const navigation = useDetailPanelNavigation({
-			orgChart: () => orgChart,
-			isEditMode: () => isEditMode,
-			isDirty: () => editCircle.isDirty,
-			onShowDiscardDialog: () => (showDiscardDialog = true),
-			resetEditMode: () => {
-				isEditMode = false;
-				editCircle.reset();
-			}
-		}),
-		editCircle = useEditCircle({
+
+	const editCircle = useEditCircle({
 			circleId: () => circle?.circleId ?? null,
 			sessionId: () => sessionId,
 			workspaceId: () => workspaceId(),
@@ -96,10 +91,7 @@
 			roleId: Id<'circleRoles'>,
 			updates: { name?: string; purpose?: string }
 		) => quickUpdateRole(convexClient, sessionId, roleId, updates);
-	const isTopmost = () =>
-		orgChart &&
-		orgChart.navigationStack.currentLayer?.type === 'circle' &&
-		orgChart.navigationStack.currentLayer?.id === orgChart.selectedCircleId;
+	const isTopmost = () => navigation.isTopmost('circle', selectedCircleId);
 	const childCircles = $derived(
 			orgChart?.selectedCircleId
 				? orgChart.circles.filter((c) => c.parentCircleId === orgChart.selectedCircleId)
@@ -143,16 +135,49 @@
 			editCircle,
 			orgChart,
 			circle: () => circle,
-			sessionId,
-			workspaceId,
+			sessionId: () => sessionId,
+			workspaceId: () => workspaceId(),
 			convexClient,
 			isEditMode: () => isEditMode,
 			setEditMode: (value) => (isEditMode = value),
 			setShowDiscardDialog: (value) => (showDiscardDialog = value)
 		}),
-		{ handleClose, handleBreadcrumbClick } = navigation,
-		handleRoleClick = (roleId: string) =>
-			orgChart?.selectRole(roleId as Id<'circleRoles'>, 'circle-panel'),
+		// Handle close with edit protection
+		handleClose = () => {
+			// Check edit protection before navigating
+			if (isEditMode && editCircle.isDirty) {
+				showDiscardDialog = true;
+				return;
+			}
+
+			// Reset edit mode if active
+			if (isEditMode) {
+				isEditMode = false;
+				editCircle.reset();
+			}
+
+			// Use shared navigation's close handler
+			navigation.handleClose();
+		},
+		// Handle breadcrumb click with edit protection
+		handleBreadcrumbClick = (index: number) => {
+			// Check edit protection before navigating
+			if (isEditMode && editCircle.isDirty) {
+				showDiscardDialog = true;
+				return;
+			}
+
+			// Reset edit mode if active
+			if (isEditMode) {
+				isEditMode = false;
+				editCircle.reset();
+			}
+
+			// Use shared navigation's breadcrumb handler
+			navigation.handleBreadcrumbClick(index);
+		},
+		handleRoleClick = (roleId: string, roleName: string) =>
+			orgChart?.selectRole(roleId as Id<'circleRoles'>, 'circle-panel', { roleName }),
 		handleChildCircleClick = (circleId: string) =>
 			orgChart?.selectCircle(circleId as Id<'circles'>),
 		renderBreadcrumbIcon = (layerType: string): IconType | null =>
@@ -175,7 +200,7 @@
 {#if orgChart}
 	<StackedPanel
 		{isOpen}
-		navigationStack={orgChart.navigationStack}
+		navigationStack={navigation}
 		onClose={handleClose}
 		onBreadcrumbClick={handleBreadcrumbClick}
 		{isTopmost}

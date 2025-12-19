@@ -1321,6 +1321,27 @@ $effect(() => {
 });
 ```
 
+### Stacked Navigation Pattern
+
+For hierarchical panel navigation (drilling into circles → roles → documents), use the shared stacked navigation composables.
+
+**Key files:**
+- `src/lib/composables/useStackedNavigation.svelte.ts` - Main contract
+- `src/lib/infrastructure/navigation/constants.ts` - Layer type mappings
+
+**Pattern documentation:** See `dev-docs/master-docs/architecture/stacked-navigation.md`
+
+**Core principle:** Selection is derived from stack, not separately managed. This eliminates sync bugs between navigation and selection state.
+
+```typescript
+// ✅ CORRECT: Derive selection from stack
+const navigation = getStackedNavigation();
+const selectedCircleId = $derived(navigation.getTopmostLayer('circle')?.id);
+
+// ❌ WRONG: Separate selection state
+let selectedCircleId = $state(null); // Can get out of sync!
+```
+
 ### Anti-Patterns
 
 | ❌ Don't | ✅ Do |
@@ -1332,6 +1353,7 @@ $effect(() => {
 | Giant components with 50+ line functions | Extract to `utils/` |
 | Everything in one `.svelte.ts` file | Split reactive vs pure logic |
 | Hardcode field names/categories in templates | Iterate over `customFields.fields` from DB |
+| Managing navigation selection separately | Derive from stacked navigation composable |
 
 ### Deep Reactivity Notes
 

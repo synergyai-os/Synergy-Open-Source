@@ -523,3 +523,28 @@ export const getMembersWithoutRoles = query({
 	},
 	handler: async (ctx, args) => listMembersWithoutRoles(ctx, args)
 });
+
+export const canAccess = query({
+	args: {
+		sessionId: v.string(),
+		roleId: v.id('circleRoles')
+	},
+	handler: async (ctx, args) => {
+		try {
+			const role = await ctx.db.get(args.roleId);
+			if (!role) {
+				return false;
+			}
+
+			const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+
+			// Check if user is a member of the workspace
+			const personId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
+			await ensureWorkspaceMembership(ctx, workspaceId, personId);
+
+			return true;
+		} catch {
+			return false;
+		}
+	}
+});

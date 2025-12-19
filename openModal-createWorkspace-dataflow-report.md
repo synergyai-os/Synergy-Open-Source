@@ -14,6 +14,7 @@ The `openModal('createWorkspace')` function is part of the **Workspaces Module**
 ## 1. Source of Truth: Modal State Definition
 
 ### Location
+
 `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts`
 
 ### Implementation
@@ -41,6 +42,7 @@ The `openModal('createWorkspace')` function is part of the **Workspaces Module**
 ```
 
 **Key Points**:
+
 - Modal state is stored in a reactive `$state` object
 - `ModalKey` type is `'createWorkspace' | 'joinOrganization'`
 - State is accessed via getter in the returned API object
@@ -66,6 +68,7 @@ The `openModal` function is exposed as part of the `WorkspacesModuleAPI` interfa
 ## 2. Context Provision: Where Workspaces Module is Initialized
 
 ### Primary Initialization Point
+
 `src/routes/(authenticated)/+layout.svelte`
 
 ```49:60:src/routes/(authenticated)/+layout.svelte
@@ -84,6 +87,7 @@ The `openModal` function is exposed as part of the `WorkspacesModuleAPI` interfa
 ```
 
 **Additional Context Set Locations**:
+
 - `src/routes/(authenticated)/w/[slug]/+layout.svelte` (line 70)
 - `src/routes/(authenticated)/onboarding/+layout.svelte` (line 28)
 
@@ -96,6 +100,7 @@ The `openModal` function is exposed as part of the `WorkspacesModuleAPI` interfa
 **File**: `src/lib/modules/core/components/Sidebar.svelte`
 
 **Location 1** (Line 526):
+
 ```525:527:src/lib/modules/core/components/Sidebar.svelte
 				onCreateWorkspace={() => {
 					workspaces?.openModal('createWorkspace');
@@ -103,6 +108,7 @@ The `openModal` function is exposed as part of the `WorkspacesModuleAPI` interfa
 ```
 
 **Location 2** (Line 907):
+
 ```906:908:src/lib/modules/core/components/Sidebar.svelte
 			onCreateWorkspace={() => {
 				workspaces?.openModal('createWorkspace');
@@ -116,6 +122,7 @@ The `openModal` function is exposed as part of the `WorkspacesModuleAPI` interfa
 **File**: `src/lib/modules/core/components/AppTopBar.svelte`
 
 **Location** (Line 85):
+
 ```85:86:src/lib/modules/core/components/AppTopBar.svelte
 				onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
 				onJoinOrganization={() => workspaces?.openModal('joinOrganization')}
@@ -144,6 +151,7 @@ This is an **inconsistency** - `SidebarHeader` should use the centralized modal 
 ## 4. Modal Rendering: Where the Dialog is Displayed
 
 ### Component Location
+
 `src/lib/infrastructure/workspaces/components/WorkspaceModals.svelte`
 
 ### Modal State Binding
@@ -156,6 +164,7 @@ This is an **inconsistency** - `SidebarHeader` should use the centralized modal 
 ```
 
 **Key Points**:
+
 - Uses Bits UI `Dialog.Root` component
 - Reactively watches `workspaces.modals.createWorkspace` (Svelte 5 reactivity)
 - Automatically closes modal when user clicks outside or presses Escape
@@ -174,6 +183,7 @@ This is an **inconsistency** - `SidebarHeader` should use the centralized modal 
 ```
 
 **Flow**:
+
 1. User enters workspace name in form
 2. Form submission calls `workspaces.createWorkspace({ name: ... })`
 3. On success, modal is closed (via `closeModal` in mutation handler)
@@ -194,6 +204,7 @@ This is an **inconsistency** - `SidebarHeader` should use the centralized modal 
 ```
 
 **Key Points**:
+
 - Rendered at the layout level (global scope)
 - Only renders if `workspaces` context exists
 - Single instance handles both `createWorkspace` and `joinOrganization` modals
@@ -294,6 +305,7 @@ This is an **inconsistency** - `SidebarHeader` should use the centralized modal 
 ```
 
 **Key Steps**:
+
 1. Validates input (trims name, checks userId/sessionId)
 2. Sets loading state (`loadingState.createWorkspace = true`)
 3. Shows loading overlay (if available)
@@ -393,6 +405,7 @@ async function createWorkspaceFlow(
 ```
 
 **Backend Steps**:
+
 1. Validates session and extracts userId
 2. Trims workspace name
 3. Generates slug from name (slugify)
@@ -603,23 +616,23 @@ The mutation is exported from the workspace module index and accessible via `api
 
 ### Frontend Files
 
-| File | Purpose | Key Lines |
-|------|---------|-----------|
-| `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts` | Modal state definition & `openModal` function | 72-77, 255-257, 301-303, 319-321 |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceMutations.svelte.ts` | Frontend mutation handler | 61-142 |
-| `src/lib/infrastructure/workspaces/components/WorkspaceModals.svelte` | Modal UI component | 19-25, 33-36 |
-| `src/lib/infrastructure/workspaces/api.ts` | TypeScript interface definitions | 16, 22, 80, 127, 140 |
-| `src/lib/modules/core/components/Sidebar.svelte` | Usage point #1 | 525-527, 906-908 |
-| `src/lib/modules/core/components/AppTopBar.svelte` | Usage point #2 | 85 |
-| `src/lib/modules/core/components/SidebarHeader.svelte` | **Inconsistency**: Uses local dialog instead | 140-142 |
-| `src/routes/(authenticated)/+layout.svelte` | Context provision & modal rendering | 49-60, 878-884 |
+| File                                                                            | Purpose                                       | Key Lines                        |
+| ------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------- |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts`         | Modal state definition & `openModal` function | 72-77, 255-257, 301-303, 319-321 |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceMutations.svelte.ts` | Frontend mutation handler                     | 61-142                           |
+| `src/lib/infrastructure/workspaces/components/WorkspaceModals.svelte`           | Modal UI component                            | 19-25, 33-36                     |
+| `src/lib/infrastructure/workspaces/api.ts`                                      | TypeScript interface definitions              | 16, 22, 80, 127, 140             |
+| `src/lib/modules/core/components/Sidebar.svelte`                                | Usage point #1                                | 525-527, 906-908                 |
+| `src/lib/modules/core/components/AppTopBar.svelte`                              | Usage point #2                                | 85                               |
+| `src/lib/modules/core/components/SidebarHeader.svelte`                          | **Inconsistency**: Uses local dialog instead  | 140-142                          |
+| `src/routes/(authenticated)/+layout.svelte`                                     | Context provision & modal rendering           | 49-60, 878-884                   |
 
 ### Backend Files
 
-| File | Purpose | Key Lines |
-|------|---------|-----------|
+| File                                  | Purpose                    | Key Lines        |
+| ------------------------------------- | -------------------------- | ---------------- |
 | `convex/core/workspaces/lifecycle.ts` | Convex mutation definition | 150-159, 224-281 |
-| `convex/core/workspaces/index.ts` | API export | 1-7 |
+| `convex/core/workspaces/index.ts`     | API export                 | 1-7              |
 
 ---
 
@@ -630,6 +643,7 @@ The mutation is exported from the workspace module index and accessible via `api
 **Issue**: `SidebarHeader.svelte` uses a local `StandardDialog` instead of the centralized modal system.
 
 **Current Implementation**:
+
 ```140:142:src/lib/modules/core/components/SidebarHeader.svelte
 				onCreateOrganization={() => {
 					showCreateWorkspaceDialog = true;
@@ -637,11 +651,13 @@ The mutation is exported from the workspace module index and accessible via `api
 ```
 
 **Expected Implementation**:
+
 ```typescript
 onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
 ```
 
-**Impact**: 
+**Impact**:
+
 - Duplicate dialog UI code
 - Inconsistent user experience
 - Modal state not managed centrally
@@ -654,10 +670,10 @@ onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
 
 ### Test Files
 
-| File | Purpose |
-|------|---------|
-| `src/lib/infrastructure/workspaces/composables/useWorkspaces.integration.svelte.test.ts` | Integration tests for modal state | Line 201: `composable.openModal('createWorkspace')` |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaces.characterization.svelte.test.ts` | Characterization tests | Line 106, 137 |
+| File                                                                                          | Purpose                           |
+| --------------------------------------------------------------------------------------------- | --------------------------------- | --------------------------------------------------- |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaces.integration.svelte.test.ts`      | Integration tests for modal state | Line 201: `composable.openModal('createWorkspace')` |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaces.characterization.svelte.test.ts` | Characterization tests            | Line 106, 137                                       |
 
 ---
 
@@ -724,6 +740,7 @@ type ModalKey = 'createWorkspace' | 'joinOrganization';
 ```
 
 **Defined in**:
+
 - `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts` (line 48)
 - `src/lib/infrastructure/workspaces/composables/useWorkspaceMutations.svelte.ts` (line 21)
 - `src/lib/infrastructure/workspaces/api.ts` (line 16)
@@ -732,11 +749,11 @@ type ModalKey = 'createWorkspace' | 'joinOrganization';
 
 ```typescript
 export interface WorkspacesModuleAPI {
-  get modals(): ModalState;
-  openModal(key: ModalKey): void;
-  closeModal(key: ModalKey): void;
-  createWorkspace(payload: { name: string }): Promise<void>;
-  // ... other methods
+	get modals(): ModalState;
+	openModal(key: ModalKey): void;
+	closeModal(key: ModalKey): void;
+	createWorkspace(payload: { name: string }): Promise<void>;
+	// ... other methods
 }
 ```
 
@@ -745,4 +762,3 @@ export interface WorkspacesModuleAPI {
 ---
 
 **End of Report**
-

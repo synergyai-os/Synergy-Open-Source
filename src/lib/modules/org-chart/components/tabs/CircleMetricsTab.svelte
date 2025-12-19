@@ -9,8 +9,7 @@
 </script>
 
 <EmptyState
-	icon="chart-bar"
+	icon="dashboard"
 	title="No metrics yet"
 	description="Performance metrics and analytics for this circle will appear here. This feature will be available in a future update."
 />
-

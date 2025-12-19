@@ -43,13 +43,13 @@
 				console.log('Create:', { name, type });
 			}}
 		>
-			<div class="flex flex-col gap-form">
+			<div class="gap-form flex flex-col">
 				<FormInput label="Name" bind:value={name} placeholder="Enter circle name" required />
 				<div class="flex flex-col gap-2">
 					<label class="text-label text-secondary">Circle Type</label>
 					<select
 						bind:value={type}
-						class="rounded-input border border-base bg-surface px-input py-input text-primary"
+						class="rounded-input border-base bg-surface px-input py-input text-primary border"
 					>
 						<option value="hierarchy">Hierarchy</option>
 						<option value="empowered_team">Empowered Team</option>
@@ -82,7 +82,7 @@
 			<p class="text-body text-secondary">
 				Are you sure you want to delete this circle? This will:
 			</p>
-			<ul class="ml-4 list-disc text-body text-secondary">
+			<ul class="text-body text-secondary ml-4 list-disc">
 				<li>Remove all roles in this circle</li>
 				<li>Unassign all members</li>
 				<li>Delete all proposals</li>
@@ -98,14 +98,13 @@
 		<Button onclick={() => (open = true)} variant="outline">About Circles</Button>
 
 		<StandardDialog bind:open title="About Circles" dismissible>
-			<div class="flex flex-col gap-content">
+			<div class="gap-content flex flex-col">
 				<p class="text-body text-primary">
-					<strong>Circles</strong> are organizational units that group related work and
-					responsibilities.
+					<strong>Circles</strong> are organizational units that group related work and responsibilities.
 				</p>
 				<p class="text-body text-secondary">
-					Each circle can have multiple roles, and members can be assigned to fill those roles. Circles
-					can be nested to create hierarchical organizational structures.
+					Each circle can have multiple roles, and members can be assigned to fill those roles.
+					Circles can be nested to create hierarchical organizational structures.
 				</p>
 				<p class="text-body text-secondary">
 					Circles operate with different governance models: Hierarchy, Empowered Team, Guild, or
@@ -129,7 +128,7 @@
 		<Button onclick={() => (open = true)}>Add Member</Button>
 
 		<StandardDialog bind:open title="Add member to Owner" closable>
-			<div class="flex flex-col gap-content">
+			<div class="gap-content flex flex-col">
 				<FormInput
 					type="search"
 					bind:value={search}
@@ -137,9 +136,11 @@
 					autocomplete="off"
 				/>
 				<div class="flex flex-col gap-2">
-					{#each members.filter((m) => m.name.toLowerCase().includes(search.toLowerCase())) as member (member.id)}
+					{#each members.filter((m) => m.name
+							.toLowerCase()
+							.includes(search.toLowerCase())) as member (member.id)}
 						<button
-							class="flex items-center justify-between rounded-button border border-base px-input py-input text-left hover:bg-hover"
+							class="rounded-button border-base px-input py-input hover:bg-hover flex items-center justify-between border text-left"
 							onclick={() => {
 								console.log('Add member:', member);
 								open = false;
@@ -230,4 +231,3 @@
 		</StandardDialog>
 	{/snippet}
 </Story>
-

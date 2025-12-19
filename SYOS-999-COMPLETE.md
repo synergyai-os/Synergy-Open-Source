@@ -10,29 +10,35 @@ Successfully implemented placeholder people status to support planning entities 
 ## What Was Implemented
 
 ### ✅ Schema Changes
+
 - Added `'placeholder'` status to people table
 - Made `invitedAt` optional (was required)
 - Added `createdAt` field (required for all statuses)
 
 ### ✅ Fallback Pattern Updates
+
 - Updated 5 locations with new fallback: `person.joinedAt ?? person.invitedAt ?? person.createdAt`
 - Ensures backward compatibility with existing records
 
 ### ✅ Person Creation Updates
+
 - Added `createdAt` to all 8 `db.insert('people', ...)` calls
 - Ensures all new records have creation timestamp
 
 ### ✅ Invariant Validation
+
 - Implemented IDENT-12 (critical): Placeholder people have displayName, no email, no userId
 - Implemented IDENT-13 (warning): Placeholder people do not have invitedAt set
 - Registered both checks in invariant runner
 
 ### ✅ Helper Functions
+
 - `createPlaceholder()` - Create placeholder with displayName only
 - `transitionPlaceholderToInvited()` - Transition placeholder to invited status
 - `isPersonPlaceholder()` - Check if person is placeholder
 
 ### ✅ Documentation
+
 - Updated `convex/core/people/README.md` with full lifecycle documentation
 - Added status comparison table and lifecycle diagram
 - Documented placeholder properties and timestamp semantics
@@ -45,16 +51,17 @@ placeholder → invited → active → archived
      └────────────┴─────────┴──────→ archived (direct archive allowed)
 ```
 
-| Status | email | userId | Can Log In | Purpose |
-|--------|-------|--------|------------|---------|
-| placeholder | ❌ | ❌ | ❌ | Planning entity (name only) |
-| invited | ✅ | ❌ | ❌ | Awaiting signup |
-| active | ❌ | ✅ | ✅ | Full access |
-| archived | preserved | preserved | ❌ | Audit trail |
+| Status      | email     | userId    | Can Log In | Purpose                     |
+| ----------- | --------- | --------- | ---------- | --------------------------- |
+| placeholder | ❌        | ❌        | ❌         | Planning entity (name only) |
+| invited     | ✅        | ❌        | ❌         | Awaiting signup             |
+| active      | ❌        | ✅        | ✅         | Full access                 |
+| archived    | preserved | preserved | ❌         | Audit trail                 |
 
 ## Key Features
 
 ### Placeholders Can:
+
 - ✅ Be assigned to roles via `assignments` table
 - ✅ Appear in org charts and authority displays
 - ✅ Have workspace roles (owner/admin/member)
@@ -62,6 +69,7 @@ placeholder → invited → active → archived
 - ✅ Be directly archived
 
 ### Placeholders Cannot:
+
 - ❌ Log in (no userId = no session)
 - ❌ Take actions (no session = no mutations)
 - ❌ Have email addresses (until transitioned to invited)
@@ -77,22 +85,26 @@ placeholder → invited → active → archived
 ## Files Changed (19 total)
 
 ### Core Implementation (4 files)
+
 - `convex/core/people/tables.ts` - Schema
 - `convex/core/people/mutations.ts` - Helper functions
 - `convex/core/people/rules.ts` - Status check
 - `convex/core/people/README.md` - Documentation
 
 ### Invariants (2 files)
+
 - `convex/admin/invariants/identity.ts` - IDENT-12/13
 - `convex/admin/invariants/index.ts` - Registration
 
 ### Fallback Updates (5 files)
+
 - `convex/core/workspaces/queries.ts`
 - `convex/core/users/queries.ts`
 - `convex/core/workspaces/members.ts`
 - `convex/admin/archived/syos814TestUtils.ts` (2 locations)
 
 ### Person Creation (8 files)
+
 - `convex/core/workspaces/members.ts`
 - `convex/core/workspaces/lifecycle.ts`
 - `convex/features/invites/helpers.ts`
@@ -105,6 +117,7 @@ placeholder → invited → active → archived
 ## Testing Checklist
 
 ### Unit Tests
+
 - [ ] Test `createPlaceholder()` with valid data
 - [ ] Test `createPlaceholder()` without displayName (should fail)
 - [ ] Test `transitionPlaceholderToInvited()` with valid placeholder
@@ -112,6 +125,7 @@ placeholder → invited → active → archived
 - [ ] Test `isPersonPlaceholder()` helper
 
 ### Integration Tests
+
 - [ ] Create placeholder and assign to role
 - [ ] Create placeholder and verify in org chart
 - [ ] Transition placeholder to invited
@@ -120,6 +134,7 @@ placeholder → invited → active → archived
 - [ ] Run invariant checks: `npx convex run admin/invariants:runAll --category IDENT`
 
 ### Manual Testing
+
 1. Create placeholder person
 2. Assign placeholder to a role in a circle
 3. View org chart - placeholder should appear
@@ -128,6 +143,7 @@ placeholder → invited → active → archived
 6. Verify timestamps are correct
 
 ### Expected Results
+
 - ✅ IDENT-12 passes (displayName set, no email/userId)
 - ✅ IDENT-13 passes (no invitedAt for placeholders)
 - ✅ Placeholders appear in org charts
@@ -138,34 +154,37 @@ placeholder → invited → active → archived
 ## API Usage Examples
 
 ### Create Placeholder
+
 ```typescript
 import { createPlaceholder } from 'convex/core/people';
 
 const personId = await createPlaceholder(ctx, {
-  workspaceId,
-  displayName: "Future Hire (Starting Q2)",
-  workspaceRole: "member",
-  createdByPersonId: actorPersonId
+	workspaceId,
+	displayName: 'Future Hire (Starting Q2)',
+	workspaceRole: 'member',
+	createdByPersonId: actorPersonId
 });
 ```
 
 ### Transition to Invited
+
 ```typescript
 import { transitionPlaceholderToInvited } from 'convex/core/people';
 
 await transitionPlaceholderToInvited(ctx, {
-  personId,
-  email: "newhire@company.com",
-  invitedByPersonId: actorPersonId
+	personId,
+	email: 'newhire@company.com',
+	invitedByPersonId: actorPersonId
 });
 ```
 
 ### Check Status
+
 ```typescript
 import { isPersonPlaceholder } from 'convex/core/people';
 
 if (isPersonPlaceholder(person)) {
-  // Handle placeholder-specific logic
+	// Handle placeholder-specific logic
 }
 ```
 
@@ -174,6 +193,7 @@ if (isPersonPlaceholder(person)) {
 ### None! ✅
 
 This is a backward-compatible addition:
+
 - New status value added to union type
 - Existing statuses unchanged
 - Fallback pattern handles old and new records
@@ -210,4 +230,3 @@ This is a backward-compatible addition:
 ---
 
 **Status**: Ready for deployment and testing! 🚀
-

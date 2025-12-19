@@ -9,6 +9,7 @@
 	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
 	import { useTaskForm } from '$lib/modules/projects/composables/useTaskForm.svelte';
+	import { useStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 
 	let { children, data } = $props();
 
@@ -34,6 +35,15 @@
 		useTasks,
 		useTaskForm
 	};
+
+	// Initialize stacked navigation with URL sync enabled
+	const stackedNavigation = useStackedNavigation({
+		onNavigate: () => {
+			// Org-chart and other modules handle their own selection sync via derived state
+			// This callback is intentionally empty - modules derive selection from stack
+		},
+		enableUrlSync: true
+	});
 
 	// Sync workspace from route to active workspace
 	// This ensures the workspace from the URL slug is set as active
@@ -69,6 +79,7 @@
 
 	setContext('workspaces', workspaces);
 	setContext('projects-api', projectsApi);
+	setContext('stacked-navigation', stackedNavigation);
 
 	// Reactive page title based on active workspace and current route
 	const activeWorkspace = $derived(workspaces?.activeWorkspace);

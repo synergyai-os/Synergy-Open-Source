@@ -9,8 +9,7 @@
 </script>
 
 <EmptyState
-	icon="users"
+	icon="members"
 	title="No members yet"
 	description="Members assigned to this circle will appear here. This feature will be available in a future update."
 />
-

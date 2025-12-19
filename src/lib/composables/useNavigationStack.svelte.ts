@@ -122,6 +122,25 @@ export function useNavigationStack() {
 		 */
 		getLayer: (index: number): NavigationLayer | null => {
 			return state.stack[index] || null;
+		},
+
+		/**
+		 * Update layer properties (e.g., name) after data loads
+		 * Useful for updating 'Loading...' placeholders from URL navigation
+		 *
+		 * @param index - 0-based index of layer to update
+		 * @param updates - Partial layer properties to update
+		 * @example
+		 * // Update layer name after data loads
+		 * updateLayer(0, { name: 'Engineering Circle' });
+		 */
+		updateLayer: (index: number, updates: Partial<Omit<NavigationLayer, 'zIndex'>>) => {
+			if (index >= 0 && index < state.stack.length) {
+				// Create new array to trigger Svelte reactivity
+				state.stack = state.stack.map((layer, i) =>
+					i === index ? { ...layer, ...updates } : layer
+				);
+			}
 		}
 	};
 }

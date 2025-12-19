@@ -13,4 +13,3 @@
 	title="No documents yet"
 	description="Documents related to this circle will appear here. This feature will be available in a future update."
 />
-

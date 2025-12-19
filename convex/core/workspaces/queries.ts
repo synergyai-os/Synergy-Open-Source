@@ -209,7 +209,10 @@ export const getActivationIssues = query({
 				v.literal('assign_lead'),
 				v.literal('create_root')
 			),
-			actionUrl: v.string()
+			actionUrl: v.string(),
+			// Structured navigation data (SYOS-1022)
+			circleId: v.optional(v.string()),
+			roleId: v.optional(v.string())
 		})
 	),
 	handler: async (ctx, args) => {

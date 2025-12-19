@@ -13,4 +13,3 @@
 	title="No activities yet"
 	description="Recent activities and updates for this circle will appear here. This feature will be available in a future update."
 />
-

@@ -18,9 +18,9 @@ Successfully replaced the single-use `ConfirmDiscardDialog` component with the m
 - Added conditional rendering around the body section (lines 125-129):
   ```svelte
   {#if children}
-    <div class={bodyClasses}>
-      {@render children()}
-    </div>
+  	<div class={bodyClasses}>
+  		{@render children()}
+  	</div>
   {/if}
   ```
 
@@ -34,13 +34,13 @@ This allows `StandardDialog` to be used for simple confirmations where only the 
 - Replaced dialog usage (lines 940-946):
   ```svelte
   <StandardDialog
-    bind:open={showDiscardDialog}
-    title="Discard unsaved changes?"
-    description="You have unsaved changes. Are you sure you want to discard them?"
-    submitLabel="Discard"
-    cancelLabel="Keep Editing"
-    variant="danger"
-    onsubmit={handleConfirmDiscard}
+  	bind:open={showDiscardDialog}
+  	title="Discard unsaved changes?"
+  	description="You have unsaved changes. Are you sure you want to discard them?"
+  	submitLabel="Discard"
+  	cancelLabel="Keep Editing"
+  	variant="danger"
+  	onsubmit={handleConfirmDiscard}
   />
   ```
 
@@ -61,12 +61,14 @@ This allows `StandardDialog` to be used for simple confirmations where only the 
 ## Verification
 
 ### Type Checking ✅
+
 ```bash
 npm run check
 # Result: svelte-check found 0 errors and 0 warnings
 ```
 
 ### Code Search ✅
+
 ```bash
 grep -r "ConfirmDiscardDialog" src/
 # Result: No matches found
@@ -138,4 +140,3 @@ To manually test the changes:
 - Architecture: `dev-docs/master-docs/architecture.md` (component patterns)
 - Design system: `dev-docs/master-docs/design-system.md` (recipes, dialog patterns)
 - StandardDialog implementation: `SYOS-990-IMPLEMENTATION-SUMMARY.md`
-

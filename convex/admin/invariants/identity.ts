@@ -274,7 +274,9 @@ export const checkIDENT12 = internalQuery({
 			.collect();
 
 		const violations = placeholders
-			.filter((person) => !person.displayName || person.email !== undefined || person.userId !== undefined)
+			.filter(
+				(person) => !person.displayName || person.email !== undefined || person.userId !== undefined
+			)
 			.map((person) => person._id);
 
 		return makeResult({

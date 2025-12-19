@@ -3,15 +3,14 @@ import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { SvelteMap } from 'svelte/reactivity';
 import type { CircleNode } from '../utils/orgChartTransform';
-import { getContext } from 'svelte';
 import { invariant } from '$lib/utils/invariant';
 import type {
 	CircleSummary,
 	CircleMember,
 	RoleFiller
 } from '$lib/infrastructure/organizational-model';
-import type { CoreModuleAPI } from '$lib/modules/core/api';
 import { useOrgChartViewport } from './useOrgChartViewport.svelte';
+import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
@@ -53,22 +52,22 @@ export function useOrgChart(options: {
 	const getSessionId = options.sessionId;
 	const getWorkspaceId = options.workspaceId;
 
-	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
-	invariant(coreAPI?.useNavigationStack, 'Core navigation stack API unavailable');
-
-	// Navigation stack for hierarchical panel navigation
-	const navigationStack = coreAPI.useNavigationStack();
+	// Get shared navigation from context (provided by workspace layout)
+	const navigation = getStackedNavigation();
 
 	// Viewport state (zoom, pan, hover) - extracted for clarity
 	const viewport = useOrgChartViewport();
 
+	// Derive selection state from navigation stack (fixes stuck panel bug)
+	// Selection is now a derived view of the stack, not separately managed state
+	const selectedCircleId = $derived(
+		navigation.getTopmostLayer('circle')?.id as Id<'circles'> | null
+	);
+	const selectedRoleId = $derived(
+		navigation.getTopmostLayer('role')?.id as Id<'circleRoles'> | null
+	);
+
 	const state = $state({
-		// Selected circle for detail panel
-		selectedCircleId: null as Id<'circles'> | null,
-		// Selected role for detail panel
-		selectedRoleId: null as Id<'circleRoles'> | null,
-		// Source of role selection (for panel stacking)
-		selectionSource: null as 'chart' | 'circle-panel' | null,
 		// Query results (loaded via $effect)
 		selectedCircle: null as CircleSummary | null,
 		selectedCircleMembers: [] as CircleMember[],
@@ -186,7 +185,7 @@ export function useOrgChart(options: {
 
 	// Load selected circle details with $effect pattern (proven pattern from useSelectedItem)
 	$effect(() => {
-		if (!browser || !convexClient || !state.selectedCircleId) {
+		if (!browser || !convexClient || !selectedCircleId) {
 			state.selectedCircle = null;
 			state.selectedCircleIsLoading = false;
 			state.selectedCircleError = null;
@@ -204,7 +203,7 @@ export function useOrgChart(options: {
 		}
 
 		// Generate unique ID for this query
-		const queryId = state.selectedCircleId;
+		const queryId = selectedCircleId;
 		currentCircleQueryId = queryId;
 		state.selectedCircleIsLoading = true;
 		state.selectedCircleError = null;
@@ -213,7 +212,7 @@ export function useOrgChart(options: {
 		convexClient
 			.query(api.core.circles.index.get, {
 				sessionId,
-				circleId: state.selectedCircleId
+				circleId: selectedCircleId
 			})
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
@@ -243,7 +242,7 @@ export function useOrgChart(options: {
 
 	// Load selected circle members with $effect pattern
 	$effect(() => {
-		if (!browser || !convexClient || !state.selectedCircleId) {
+		if (!browser || !convexClient || !selectedCircleId) {
 			state.selectedCircleMembers = [];
 			state.selectedCircleMembersIsLoading = false;
 			state.selectedCircleMembersError = null;
@@ -261,7 +260,7 @@ export function useOrgChart(options: {
 		}
 
 		// Generate unique ID for this query
-		const queryId = state.selectedCircleId;
+		const queryId = selectedCircleId;
 		currentCircleMembersQueryId = queryId;
 		state.selectedCircleMembersIsLoading = true;
 		state.selectedCircleMembersError = null;
@@ -270,7 +269,7 @@ export function useOrgChart(options: {
 		convexClient
 			.query(api.core.circles.index.getMembers, {
 				sessionId,
-				circleId: state.selectedCircleId
+				circleId: selectedCircleId
 			})
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
@@ -300,7 +299,7 @@ export function useOrgChart(options: {
 
 	// Load selected circle members without roles with $effect pattern
 	$effect(() => {
-		if (!browser || !convexClient || !state.selectedCircleId) {
+		if (!browser || !convexClient || !selectedCircleId) {
 			state.selectedCircleMembersWithoutRoles = [];
 			state.selectedCircleMembersWithoutRolesIsLoading = false;
 			state.selectedCircleMembersWithoutRolesError = null;
@@ -318,7 +317,7 @@ export function useOrgChart(options: {
 		}
 
 		// Generate unique ID for this query
-		const queryId = state.selectedCircleId;
+		const queryId = selectedCircleId;
 		currentCircleMembersWithoutRolesQueryId = queryId;
 		state.selectedCircleMembersWithoutRolesIsLoading = true;
 		state.selectedCircleMembersWithoutRolesError = null;
@@ -327,7 +326,7 @@ export function useOrgChart(options: {
 		convexClient
 			.query(api.core.roles.index.getMembersWithoutRoles, {
 				sessionId,
-				circleId: state.selectedCircleId
+				circleId: selectedCircleId
 			})
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
@@ -358,11 +357,11 @@ export function useOrgChart(options: {
 	// Load selected role details with reactive useQuery (matches CircleDetailPanel pattern)
 	// CRITICAL: Use $derived to make query creation reactive - when selectedRoleId changes, query re-creates
 	const selectedRoleQuery = $derived(
-		browser && state.selectedRoleId && getSessionId()
+		browser && selectedRoleId && getSessionId()
 			? useQuery(api.core.roles.index.get, () => {
 					const sessionId = getSessionId();
-					invariant(sessionId && state.selectedRoleId, 'sessionId and selectedRoleId required');
-					return { sessionId, roleId: state.selectedRoleId };
+					invariant(sessionId && selectedRoleId, 'sessionId and selectedRoleId required');
+					return { sessionId, roleId: selectedRoleId };
 				})
 			: null
 	);
@@ -382,7 +381,7 @@ export function useOrgChart(options: {
 
 	// Load selected role fillers with $effect pattern
 	$effect(() => {
-		if (!browser || !convexClient || !state.selectedRoleId) {
+		if (!browser || !convexClient || !selectedRoleId) {
 			state.selectedRoleFillers = [];
 			state.selectedRoleFillersIsLoading = false;
 			state.selectedRoleFillersError = null;
@@ -400,7 +399,7 @@ export function useOrgChart(options: {
 		}
 
 		// Generate unique ID for this query
-		const queryId = state.selectedRoleId;
+		const queryId = selectedRoleId;
 		currentRoleFillersQueryId = queryId;
 		state.selectedRoleFillersIsLoading = true;
 		state.selectedRoleFillersError = null;
@@ -409,7 +408,7 @@ export function useOrgChart(options: {
 		convexClient
 			.query(api.core.roles.index.getRoleFillers, {
 				sessionId,
-				circleRoleId: state.selectedRoleId
+				circleRoleId: selectedRoleId
 			})
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
@@ -435,6 +434,56 @@ export function useOrgChart(options: {
 				currentRoleFillersQueryId = null;
 			}
 		};
+	});
+
+	// Update navigation layer names when circle/role data loads (fixes breadcrumb 'Loading...' on direct URL navigation)
+	// This loads names for ALL layers in the stack, not just the selected one
+	$effect(() => {
+		if (!browser || !convexClient) return;
+
+		const sessionId = getSessionId();
+		if (!sessionId) return;
+
+		// Get all layers that need names loaded (circles and roles with 'Loading...')
+		const stack = navigation.stack;
+		const layersNeedingNames = stack.filter((layer) => layer.name === 'Loading...');
+
+		if (layersNeedingNames.length === 0) return;
+
+		// Load names for all circles and roles in parallel
+		layersNeedingNames.forEach((layer) => {
+			const actualIndex = stack.indexOf(layer);
+
+			if (layer.type === 'circle') {
+				convexClient
+					.query(api.core.circles.index.get, {
+						sessionId,
+						circleId: layer.id as Id<'circles'>
+					})
+					.then((circle) => {
+						if (circle && navigation.stack[actualIndex]?.id === layer.id) {
+							navigation.updateLayer(actualIndex, { name: circle.name });
+						}
+					})
+					.catch((error) => {
+						console.error('[useOrgChart] Failed to load circle name:', error);
+					});
+			} else if (layer.type === 'role') {
+				convexClient
+					.query(api.core.roles.index.get, {
+						sessionId,
+						roleId: layer.id as Id<'circleRoles'>
+					})
+					.then((role) => {
+						if (role && navigation.stack[actualIndex]?.id === layer.id) {
+							navigation.updateLayer(actualIndex, { name: role.name });
+						}
+					})
+					.catch((error) => {
+						console.error('[useOrgChart] Failed to load role name:', error);
+					});
+			}
+		});
 	});
 
 	return {
@@ -464,7 +513,7 @@ export function useOrgChart(options: {
 			return state.selectedCircleMembersWithoutRolesError;
 		},
 		get selectedCircleId() {
-			return state.selectedCircleId;
+			return selectedCircleId;
 		},
 		get selectedRole() {
 			return state.selectedRole;
@@ -479,10 +528,7 @@ export function useOrgChart(options: {
 			return state.selectedRoleFillers;
 		},
 		get selectedRoleId() {
-			return state.selectedRoleId;
-		},
-		get selectionSource() {
-			return state.selectionSource;
+			return selectedRoleId;
 		},
 		// Viewport state (delegated to viewport composable)
 		get zoomLevel() {
@@ -538,27 +584,50 @@ export function useOrgChart(options: {
 			return template?.isCore === true;
 		},
 
-		// Navigation stack - hierarchical panel navigation
+		// Navigation stack - hierarchical panel navigation (readonly access)
 		get navigationStack() {
-			return navigationStack;
+			return navigation;
 		},
 
-		// Actions
-		selectCircle: (circleId: Id<'circles'> | null, options?: { skipStackPush?: boolean }) => {
-			state.selectedCircleId = circleId;
+		// Actions - Navigation-based (selection state derived from stack)
+		openCircle: (circleId: Id<'circles'>, circleName: string) => {
+			navigation.push({ type: 'circle', id: circleId, name: circleName });
+		},
 
-			// Update navigation stack (unless explicitly skipped for breadcrumb navigation)
+		openRoleFromCircle: (roleId: Id<'circleRoles'>, roleName: string) => {
+			// Adds to stack (circle stays visible)
+			navigation.push({ type: 'role', id: roleId, name: roleName });
+		},
+
+		openRoleFromChart: (roleId: Id<'circleRoles'>, roleName: string) => {
+			// Replaces stack (circle closes)
+			navigation.pushAndReplace({ type: 'role', id: roleId, name: roleName });
+		},
+
+		// Legacy methods for backward compatibility during migration
+		// TODO: Remove these once all call sites are updated
+		selectCircle: (circleId: Id<'circles'> | null, options?: { skipStackPush?: boolean }) => {
 			if (circleId && !options?.skipStackPush) {
-				// Find circle name for breadcrumb
 				const circle = circlesQuery?.data?.find((c) => c.circleId === circleId);
 				const circleName = circle?.name || 'Unknown';
+				navigation.push({ type: 'circle', id: circleId, name: circleName });
+			}
+		},
 
-				// Add to navigation stack
-				navigationStack.push({
-					type: 'circle',
-					id: circleId,
-					name: circleName
-				});
+		selectRole: (
+			roleId: Id<'circleRoles'> | null,
+			source: 'chart' | 'circle-panel' | null,
+			options?: { skipStackPush?: boolean; roleName?: string }
+		) => {
+			if (roleId && !options?.skipStackPush) {
+				const roleName = options?.roleName || 'Loading...';
+				if (source === 'chart') {
+					// From chart: replace stack (circle closes)
+					navigation.pushAndReplace({ type: 'role', id: roleId, name: roleName });
+				} else {
+					// From circle panel: add to stack (circle stays visible)
+					navigation.push({ type: 'role', id: roleId, name: roleName });
+				}
 			}
 		},
 
@@ -566,7 +635,7 @@ export function useOrgChart(options: {
 		openEditCircle: (circleId: Id<'circles'>) => {
 			const circle = circlesQuery?.data?.find((c) => c.circleId === circleId);
 			const circleName = circle?.name || 'Unknown';
-			navigationStack.push({
+			navigation.push({
 				type: 'edit-circle',
 				id: circleId,
 				name: `Edit ${circleName}`
@@ -575,37 +644,11 @@ export function useOrgChart(options: {
 
 		openEditRole: (roleId: Id<'circleRoles'>) => {
 			// Role name will be loaded asynchronously, use placeholder for now
-			navigationStack.push({
+			navigation.push({
 				type: 'edit-role',
 				id: roleId,
 				name: 'Edit Role' // Will update when role data loads
 			});
-		},
-
-		selectRole: (
-			roleId: Id<'circleRoles'> | null,
-			source: 'chart' | 'circle-panel' | null,
-			options?: { skipStackPush?: boolean }
-		) => {
-			state.selectedRoleId = roleId;
-			state.selectionSource = source;
-
-			// Update navigation stack (unless explicitly skipped for breadcrumb navigation)
-			if (roleId && !options?.skipStackPush) {
-				// Role name will be loaded asynchronously
-				// For now, use placeholder (will update when role data loads)
-				navigationStack.push({
-					type: 'role',
-					id: roleId,
-					name: 'Loading...'
-				});
-			}
-
-			// When role opens from chart, hide circle panel
-			// When role opens from circle panel, keep circle panel visible
-			if (source === 'chart' && roleId !== null) {
-				state.selectedCircleId = null;
-			}
 		},
 
 		// Viewport actions (delegated to viewport composable)

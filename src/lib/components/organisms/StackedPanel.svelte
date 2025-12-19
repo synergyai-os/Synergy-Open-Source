@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+	import type { UseNavigationStack } from '$lib/composables/useNavigationStack.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import { PanelBreadcrumbs } from '$lib/components/molecules';
 	import {

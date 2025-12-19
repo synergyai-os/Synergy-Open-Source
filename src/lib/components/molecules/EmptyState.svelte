@@ -32,9 +32,7 @@
 	// Map size prop to icon size
 	// EmptyState 'md' = Icon 'xl' (matches existing pattern: size-icon-xl)
 	// EmptyState 'sm' = Icon 'lg', EmptyState 'lg' = Icon 'xxl'
-	const iconSize = $derived(
-		size === 'sm' ? 'lg' : size === 'md' ? 'xl' : 'xxl'
-	);
+	const iconSize = $derived(size === 'sm' ? 'lg' : size === 'md' ? 'xl' : 'xxl');
 </script>
 
 <div class="py-page text-center">
@@ -53,4 +51,3 @@
 		</div>
 	{/if}
 </div>
-

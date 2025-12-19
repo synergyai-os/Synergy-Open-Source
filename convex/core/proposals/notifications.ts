@@ -1,6 +1,6 @@
 /**
  * Proposal notification placeholders
- * 
+ *
  * When proposals are created or auto-approved, affected parties should be notified.
  * For MVP, this is just a placeholder that will be replaced with real inbox items later.
  */
@@ -36,4 +36,3 @@ export async function notifyProposalRejected(
 	console.log(`[PLACEHOLDER] Proposal rejected: ${proposalId}`);
 	console.log(`[PLACEHOLDER] Notify proposal creator`);
 }
-

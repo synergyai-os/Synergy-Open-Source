@@ -11,11 +11,13 @@ Successfully refactored `RoleDetailPanel.svelte` to use shared components (Empty
 ## Results
 
 ### File Size Reduction
+
 - **Before**: 1023 lines
 - **After**: 725 lines
 - **Reduction**: 298 lines (29% smaller) ✅
 
 ### Target Achievement
+
 - **Target**: ~250-350 lines focused on role-specific concerns
 - **Achieved**: 725 lines
 - **Note**: While we didn't hit the exact target, we achieved a 29% reduction by extracting all shared UI patterns. The remaining 725 lines are role-specific business logic and content that cannot be extracted without losing functionality.
@@ -33,63 +35,73 @@ import Loading from '$lib/components/atoms/Loading.svelte';
 ### 2. Navigation Refactored ✅
 
 **Removed** (67 lines):
+
 - `handleClose()` function
 - `handleBreadcrumbClick()` function
 
 **Added**:
+
 ```typescript
 const navigation = useDetailPanelNavigation({
-  orgChart: () => orgChart,
-  isEditMode: () => isEditMode,
-  isDirty: () => editRole.isDirty,
-  onShowDiscardDialog: () => { showDiscardDialog = true; },
-  resetEditMode: () => {
-    isEditMode = false;
-    editRole.reset();
-  }
+	orgChart: () => orgChart,
+	isEditMode: () => isEditMode,
+	isDirty: () => editRole.isDirty,
+	onShowDiscardDialog: () => {
+		showDiscardDialog = true;
+	},
+	resetEditMode: () => {
+		isEditMode = false;
+		editRole.reset();
+	}
 });
 ```
 
 **Updated**:
+
 - `StackedPanel` now uses `navigation.handleClose` and `navigation.handleBreadcrumbClick`
 - `DetailHeader` now uses `navigation.handleClose`
 
 ### 3. Tab Structure Refactored ✅
 
 **Added ROLE_TABS constant**:
+
 ```typescript
 const ROLE_TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'members', label: 'Members', showCount: true },
-  { id: 'documents', label: 'Documents', showCount: true },
-  { id: 'activities', label: 'Activities', showCount: true },
-  { id: 'metrics', label: 'Metrics', showCount: true },
-  { id: 'checklists', label: 'Checklists', showCount: true },
-  { id: 'projects', label: 'Projects', showCount: true }
+	{ id: 'overview', label: 'Overview' },
+	{ id: 'members', label: 'Members', showCount: true },
+	{ id: 'documents', label: 'Documents', showCount: true },
+	{ id: 'activities', label: 'Activities', showCount: true },
+	{ id: 'metrics', label: 'Metrics', showCount: true },
+	{ id: 'checklists', label: 'Checklists', showCount: true },
+	{ id: 'projects', label: 'Projects', showCount: true }
 ];
 ```
 
 **Replaced** (100+ lines):
+
 - Manual `Tabs.Root` structure
 - Manual `Tabs.List` with 7 `Tabs.Trigger` components
 - Manual `Tabs.Content` wrappers
 
 **With**:
+
 ```svelte
 <TabbedPanel
-  tabs={ROLE_TABS}
-  bind:activeTab
-  onTabChange={(tab) => { activeTab = tab; }}
-  {tabCounts}
+	tabs={ROLE_TABS}
+	bind:activeTab
+	onTabChange={(tab) => {
+		activeTab = tab;
+	}}
+	{tabCounts}
 >
-  {#snippet content(tabId)}
-    {#if tabId === 'overview'}
-      <!-- Overview content -->
-    {:else if tabId === 'members'}
-      <EmptyState icon="users" title="No members yet" ... />
-    <!-- ... other tabs -->
-    {/if}
-  {/snippet}
+	{#snippet content(tabId)}
+		{#if tabId === 'overview'}
+			<!-- Overview content -->
+		{:else if tabId === 'members'}
+			<EmptyState icon="users" title="No members yet" ... />
+			<!-- ... other tabs -->
+		{/if}
+	{/snippet}
 </TabbedPanel>
 ```
 
@@ -97,44 +109,60 @@ const ROLE_TABS = [
 
 **Replaced 6 inline SVG empty states** (~120 lines) with `EmptyState` components:
 
-| Tab | Icon | Lines Saved |
-|-----|------|-------------|
-| Members | `users` | ~20 |
-| Documents | `file-text` | ~20 |
-| Activities | `clock` | ~20 |
-| Metrics | `bar-chart` | ~20 |
-| Checklists | `check-square` | ~20 |
-| Projects | `briefcase` | ~20 |
+| Tab        | Icon           | Lines Saved |
+| ---------- | -------------- | ----------- |
+| Members    | `users`        | ~20         |
+| Documents  | `file-text`    | ~20         |
+| Activities | `clock`        | ~20         |
+| Metrics    | `bar-chart`    | ~20         |
+| Checklists | `check-square` | ~20         |
+| Projects   | `briefcase`    | ~20         |
 
 **Before**:
+
 ```svelte
 <div class="py-page text-center">
-  <svg class="size-icon-xl text-tertiary mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-  </svg>
-  <p class="text-button text-primary mb-header font-medium">No members yet</p>
-  <p class="text-button text-secondary mb-header">Members assigned to this role will appear here...</p>
+	<svg
+		class="size-icon-xl text-tertiary mx-auto"
+		fill="none"
+		viewBox="0 0 24 24"
+		stroke="currentColor"
+	>
+		<path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			stroke-width="2"
+			d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+		/>
+	</svg>
+	<p class="text-button text-primary mb-header font-medium">No members yet</p>
+	<p class="text-button text-secondary mb-header">
+		Members assigned to this role will appear here...
+	</p>
 </div>
 ```
 
 **After**:
+
 ```svelte
 <EmptyState
-  icon="users"
-  title="No members yet"
-  description="Members assigned to this role will appear here..."
+	icon="users"
+	title="No members yet"
+	description="Members assigned to this role will appear here..."
 />
 ```
 
 ### 5. Error/Loading States Refactored ✅
 
 **Loading State** (~30 lines → 1 line):
+
 ```svelte
 <!-- Before: Inline spinner SVG + text -->
 <Loading message="Loading role details..." />
 ```
 
 **Error State** (~20 lines → 1 line):
+
 ```svelte
 <!-- Before: Inline error UI -->
 <ErrorState title="Failed to load role" message={String(error)} />
@@ -261,4 +289,3 @@ The remaining code is **role-specific business logic** that cannot be extracted:
 The refactoring successfully achieved the goal of reducing code duplication and improving maintainability. While the file is 725 lines instead of the target 250-350 lines, this is because the target was too aggressive - the remaining code is essential role-specific business logic that cannot be extracted without losing functionality.
 
 The 29% reduction (298 lines) represents all the shared UI patterns that could be extracted, and the file is now much more maintainable and consistent with other detail panels in the codebase.
-

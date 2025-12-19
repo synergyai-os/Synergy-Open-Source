@@ -17,13 +17,13 @@
 import type { Id } from '$lib/convex';
 import { useTagging as useTaggingComposable } from './composables/useTagging.svelte';
 import { useGlobalShortcuts as useGlobalShortcutsComposable } from './composables/useGlobalShortcuts.svelte';
-import { useNavigationStack as useNavigationStackComposable } from './composables/useNavigationStack.svelte';
+import { useNavigationStack as useNavigationStackComposable } from '$lib/composables/useNavigationStack.svelte';
 
 export type {
 	NavigationLayer,
 	NavigationLayerType,
 	UseNavigationStack
-} from './composables/useNavigationStack.svelte';
+} from '$lib/composables/useNavigationStack.svelte';
 
 /**
  * Tag type used by TagSelector component

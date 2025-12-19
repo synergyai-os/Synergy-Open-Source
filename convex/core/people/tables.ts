@@ -15,7 +15,7 @@ export const peopleTable = defineTable({
 	workspaceRole: v.union(v.literal('owner'), v.literal('admin'), v.literal('member')),
 
 	// Lifecycle
- 	status: v.union(
+	status: v.union(
 		v.literal('placeholder'),
 		v.literal('invited'),
 		v.literal('active'),

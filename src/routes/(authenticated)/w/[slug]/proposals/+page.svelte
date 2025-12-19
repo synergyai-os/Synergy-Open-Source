@@ -24,7 +24,7 @@
 		scrollAreaScrollbarRecipe,
 		scrollAreaThumbRecipe
 	} from '$lib/design-system/recipes';
-	import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+	import { useNavigationStack } from '$lib/composables/useNavigationStack.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type {
 		Proposal,

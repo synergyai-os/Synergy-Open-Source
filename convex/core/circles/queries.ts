@@ -135,3 +135,30 @@ export const getMyAuthority = query({
 		};
 	}
 });
+
+export const canAccess = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		try {
+			const circle = await ctx.db.get(args.circleId);
+			if (!circle) {
+				return false;
+			}
+
+			// Check if user is a member of the workspace
+			const personId = await requireWorkspacePersonFromSession(
+				ctx,
+				args.sessionId,
+				circle.workspaceId
+			);
+			await ensureWorkspaceMembership(ctx, circle.workspaceId, personId);
+
+			return true;
+		} catch {
+			return false;
+		}
+	}
+});

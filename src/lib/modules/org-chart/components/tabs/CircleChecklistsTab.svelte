@@ -13,4 +13,3 @@
 	title="No checklists yet"
 	description="Checklists and task lists for this circle will appear here. This feature will be available in a future update."
 />
-

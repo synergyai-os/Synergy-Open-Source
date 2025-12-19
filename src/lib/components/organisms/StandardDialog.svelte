@@ -40,9 +40,9 @@
 		oncancel?: () => void;
 		onclose?: () => void; // Called on any close (X, cancel, escape)
 
-	// Slot
-	children?: Snippet; // Optional - if omitted, only description shows
-};
+		// Slot
+		children?: Snippet; // Optional - if omitted, only description shows
+	};
 
 	let {
 		open = $bindable(false),
@@ -121,12 +121,12 @@
 				{/if}
 			</div>
 
-		<!-- Body -->
-		{#if children}
-			<div class={bodyClasses}>
-				{@render children()}
-			</div>
-		{/if}
+			<!-- Body -->
+			{#if children}
+				<div class={bodyClasses}>
+					{@render children()}
+				</div>
+			{/if}
 
 			<!-- Footer (conditional) -->
 			{#if showFooter}

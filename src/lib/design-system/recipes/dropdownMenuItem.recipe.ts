@@ -30,4 +30,3 @@ export const dropdownMenuItemRecipe = cva(
 );
 
 export type DropdownMenuItemVariantProps = VariantProps<typeof dropdownMenuItemRecipe>;
-

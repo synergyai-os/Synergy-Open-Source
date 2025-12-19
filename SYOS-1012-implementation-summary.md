@@ -17,18 +17,20 @@ Successfully refactored `CircleDetailPanel.svelte` from 1,225 lines to 959 lines
 ### 1. ✅ Replaced Inline Loading State
 
 **Before** (23 lines of inline SVG + markup):
+
 ```svelte
 <div class="flex h-full items-center justify-center">
-  <div class="text-center">
-    <svg class="size-icon-xl text-tertiary mx-auto animate-spin" ...>
-      <!-- 10+ lines of SVG paths -->
-    </svg>
-    <p class="text-button text-secondary mb-header">Loading circle details...</p>
-  </div>
+	<div class="text-center">
+		<svg class="size-icon-xl text-tertiary mx-auto animate-spin" ...>
+			<!-- 10+ lines of SVG paths -->
+		</svg>
+		<p class="text-button text-secondary mb-header">Loading circle details...</p>
+	</div>
 </div>
 ```
 
 **After** (1 line):
+
 ```svelte
 <Loading message="Loading circle details..." size="md" fullHeight={true} />
 ```
@@ -36,16 +38,18 @@ Successfully refactored `CircleDetailPanel.svelte` from 1,225 lines to 959 lines
 ### 2. ✅ Replaced Inline Error State
 
 **Before** (7 lines):
+
 ```svelte
 <div class="flex h-full items-center justify-center">
-  <div class="text-center">
-    <p class="text-button text-error font-medium">Failed to load circle</p>
-    <p class="text-button text-secondary mb-header">{String(error)}</p>
-  </div>
+	<div class="text-center">
+		<p class="text-button text-error font-medium">Failed to load circle</p>
+		<p class="text-button text-secondary mb-header">{String(error)}</p>
+	</div>
 </div>
 ```
 
 **After** (1 line):
+
 ```svelte
 <ErrorState title="Failed to load circle" message={String(error)} />
 ```
@@ -53,39 +57,43 @@ Successfully refactored `CircleDetailPanel.svelte` from 1,225 lines to 959 lines
 ### 3. ✅ Added Navigation Composable
 
 **Before** (60+ lines of duplicated navigation logic):
+
 ```typescript
 function handleClose() {
-  if (!orgChart) return;
-  // Check edit mode with unsaved changes
-  if (isEditMode && editCircle.isDirty) {
-    showDiscardDialog = true;
-    return;
-  }
-  // Exit edit mode if active
-  if (isEditMode) {
-    isEditMode = false;
-    editCircle.reset();
-  }
-  // ESC goes back one level...
-  // 30+ more lines
+	if (!orgChart) return;
+	// Check edit mode with unsaved changes
+	if (isEditMode && editCircle.isDirty) {
+		showDiscardDialog = true;
+		return;
+	}
+	// Exit edit mode if active
+	if (isEditMode) {
+		isEditMode = false;
+		editCircle.reset();
+	}
+	// ESC goes back one level...
+	// 30+ more lines
 }
 
 function handleBreadcrumbClick(index: number) {
-  // Similar 30+ lines of navigation logic
+	// Similar 30+ lines of navigation logic
 }
 ```
 
 **After** (12 lines setup + 2 line handlers):
+
 ```typescript
 const navigation = useDetailPanelNavigation({
-  orgChart: () => orgChart,
-  isEditMode: () => isEditMode,
-  isDirty: () => editCircle.isDirty,
-  onShowDiscardDialog: () => { showDiscardDialog = true; },
-  resetEditMode: () => {
-    isEditMode = false;
-    editCircle.reset();
-  }
+	orgChart: () => orgChart,
+	isEditMode: () => isEditMode,
+	isDirty: () => editCircle.isDirty,
+	onShowDiscardDialog: () => {
+		showDiscardDialog = true;
+	},
+	resetEditMode: () => {
+		isEditMode = false;
+		editCircle.reset();
+	}
 });
 
 const handleClose = navigation.handleClose;
@@ -95,31 +103,39 @@ const handleBreadcrumbClick = navigation.handleBreadcrumbClick;
 ### 4. ✅ Replaced Tab Structure with TabbedPanel
 
 **Before** (90+ lines of tab markup):
+
 ```svelte
 <Tabs.Root bind:value={activeTab}>
-  <div class="bg-surface px-page sticky top-0 z-10">
-    <Tabs.List class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}>
-      <Tabs.Trigger value="overview" class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}>
-        Overview
-      </Tabs.Trigger>
-      <Tabs.Trigger value="members" class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}>
-        <span class="gap-button flex items-center">
-          <span>Members</span>
-          {#if tabCounts.members > 0}
-            <span class="text-label text-tertiary">({tabCounts.members})</span>
-          {/if}
-        </span>
-      </Tabs.Trigger>
-      <!-- 5 more similar triggers... -->
-    </Tabs.List>
-  </div>
-  <div class="px-page py-page flex-1 overflow-y-auto">
-    <!-- Tab content... -->
-  </div>
+	<div class="bg-surface px-page sticky top-0 z-10">
+		<Tabs.List class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}>
+			<Tabs.Trigger
+				value="overview"
+				class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}
+			>
+				Overview
+			</Tabs.Trigger>
+			<Tabs.Trigger
+				value="members"
+				class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}
+			>
+				<span class="gap-button flex items-center">
+					<span>Members</span>
+					{#if tabCounts.members > 0}
+						<span class="text-label text-tertiary">({tabCounts.members})</span>
+					{/if}
+				</span>
+			</Tabs.Trigger>
+			<!-- 5 more similar triggers... -->
+		</Tabs.List>
+	</div>
+	<div class="px-page py-page flex-1 overflow-y-auto">
+		<!-- Tab content... -->
+	</div>
 </Tabs.Root>
 ```
 
 **After** (20 lines total):
+
 ```svelte
 const CIRCLE_TABS = [
   { id: 'overview', label: 'Overview' },
@@ -150,22 +166,29 @@ const CIRCLE_TABS = [
 ### 5. ✅ Replaced All Empty States with EmptyState Component
 
 **Before** (18 lines per empty state × 6 tabs = 108 lines):
+
 ```svelte
 <Tabs.Content value="members" class={tabsContentRecipe()}>
-  <div class="py-page text-center">
-    <svg class="size-icon-xl text-tertiary mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2..." />
-    </svg>
-    <p class="text-button text-primary mb-header font-medium">No members yet</p>
-    <p class="text-button text-secondary mb-header">
-      Members assigned to this circle will appear here...
-    </p>
-  </div>
+	<div class="py-page text-center">
+		<svg
+			class="size-icon-xl text-tertiary mx-auto"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2..." />
+		</svg>
+		<p class="text-button text-primary mb-header font-medium">No members yet</p>
+		<p class="text-button text-secondary mb-header">
+			Members assigned to this circle will appear here...
+		</p>
+	</div>
 </Tabs.Content>
 <!-- Repeated 5 more times for other tabs -->
 ```
 
 **After** (4 lines per empty state × 6 tabs = 24 lines):
+
 ```svelte
 {:else if tabId === 'members'}
   <EmptyState icon="users" title="No members yet" description="Members assigned to this circle will appear here..." />
@@ -186,14 +209,14 @@ const CIRCLE_TABS = [
 
 ### File Size Reduction
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| **Total Lines** | 1,225 | 959 | **-266 lines (-21.7%)** |
-| **Loading State** | 23 lines | 1 line | -22 lines |
-| **Error State** | 7 lines | 1 line | -6 lines |
-| **Navigation Logic** | 60+ lines | 14 lines | -46+ lines |
-| **Tab Structure** | 90+ lines | 20 lines | -70+ lines |
-| **Empty States** | 108 lines | 24 lines | -84 lines |
+| Metric               | Before    | After    | Change                  |
+| -------------------- | --------- | -------- | ----------------------- |
+| **Total Lines**      | 1,225     | 959      | **-266 lines (-21.7%)** |
+| **Loading State**    | 23 lines  | 1 line   | -22 lines               |
+| **Error State**      | 7 lines   | 1 line   | -6 lines                |
+| **Navigation Logic** | 60+ lines | 14 lines | -46+ lines              |
+| **Tab Structure**    | 90+ lines | 20 lines | -70+ lines              |
+| **Empty States**     | 108 lines | 24 lines | -84 lines               |
 
 ### Code Quality
 
@@ -261,7 +284,6 @@ To reach the original ~300-400 line target, the following extractions could be d
 - **`CircleOverviewContent.svelte`** (~200 lines)
   - Purpose field
   - Custom fields (Domains, Accountabilities, etc.)
-  
 - **`CircleRolesSection.svelte`** (~150 lines)
   - Core roles rendering
   - Regular roles rendering
@@ -284,6 +306,7 @@ To reach the original ~300-400 line target, the following extractions could be d
 ### Recommendation
 
 The current 959-line file is **maintainable and well-structured**. Further extraction should only be done if:
+
 1. Overview content needs to be reused elsewhere
 2. Custom fields logic becomes more complex
 3. Team decides 959 lines is still too large
@@ -302,6 +325,7 @@ All shared components from completed tickets:
 6. **SYOS-1011**: `DetailHeader` (unified header) ✅
 
 Plus existing atoms:
+
 - `Loading` component
 - `Button`, `Text`, `Icon` atoms
 
@@ -387,4 +411,3 @@ Test the following to verify all functionality works:
 - **Parent**: SYOS-1006 (Detail Panel Refactoring Epic)
 - **Dependencies**: SYOS-1007, SYOS-1008, SYOS-1009, SYOS-1010, SYOS-1011, SYOS-1015
 - **Next**: SYOS-1013 (Refactor RoleDetailPanel - same patterns)
-

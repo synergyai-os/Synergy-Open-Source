@@ -178,7 +178,9 @@ async function checkRootCircleType(
 				entityName: rootCircle.name,
 				message: `Root circle "${rootCircle.name}" cannot be type 'guild'`,
 				actionType: 'edit_circle',
-				actionUrl: `/w/${context.workspaceSlug}/chart`
+				actionUrl: `/w/${context.workspaceSlug}/chart`,
+				// Structured navigation data (SYOS-1022)
+				circleId: rootCircle._id
 			}
 		];
 	}
@@ -222,7 +224,9 @@ async function checkCircleLeadRoles(
 				entityName: circle.name,
 				message: `Circle "${circle.name}" is missing a Circle Lead role`,
 				actionType: 'edit_circle',
-				actionUrl: `/w/${context.workspaceSlug}/chart`
+				actionUrl: `/w/${context.workspaceSlug}/chart`,
+				// Structured navigation data (SYOS-1022)
+				circleId: circle._id
 			});
 		}
 	}
@@ -307,7 +311,10 @@ async function checkRolePurposes(
 					entityName: role.name,
 					message: `Role "${role.name}" in circle "${circle.name}" is missing a purpose`,
 					actionType: 'edit_role',
-					actionUrl: `/w/${context.workspaceSlug}/chart`
+					actionUrl: `/w/${context.workspaceSlug}/chart`,
+					// Structured navigation data (SYOS-1022)
+					circleId: circle._id,
+					roleId: role._id
 				});
 			}
 		}
@@ -395,7 +402,10 @@ async function checkRoleDecisionRights(
 					entityName: role.name,
 					message: `Role "${role.name}" in circle "${circle.name}" is missing decision rights`,
 					actionType: 'edit_role',
-					actionUrl: `/w/${context.workspaceSlug}/chart`
+					actionUrl: `/w/${context.workspaceSlug}/chart`,
+					// Structured navigation data (SYOS-1022)
+					circleId: circle._id,
+					roleId: role._id
 				});
 			}
 		}

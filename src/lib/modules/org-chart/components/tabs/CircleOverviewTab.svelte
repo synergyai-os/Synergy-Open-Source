@@ -32,7 +32,7 @@
 			name: string;
 			email: string | null;
 		}>;
-		onRoleClick?: (roleId: Id<'circleRoles'>) => void;
+		onRoleClick?: (roleId: Id<'circleRoles'>, roleName: string) => void;
 		onChildCircleClick?: (circleId: Id<'circles'>) => void;
 		onQuickUpdateRole?: (
 			roleId: Id<'circleRoles'>,
@@ -116,7 +116,7 @@
 							{editReason}
 							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
 							onPurposeChange={(purpose) => onQuickUpdateRole?.(role.roleId, { purpose })}
-							onClick={() => onRoleClick?.(role.roleId)}
+							onClick={() => onRoleClick?.(role.roleId, role.name)}
 							onEdit={() => {
 								/* TODO: Implement edit role */
 							}}
@@ -161,7 +161,7 @@
 							{editReason}
 							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
 							onPurposeChange={(purpose) => onQuickUpdateRole?.(role.roleId, { purpose })}
-							onClick={() => onRoleClick?.(role.roleId)}
+							onClick={() => onRoleClick?.(role.roleId, role.name)}
 							onEdit={() => {
 								/* TODO: Implement edit role */
 							}}

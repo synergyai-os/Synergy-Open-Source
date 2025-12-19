@@ -43,6 +43,7 @@ export * as Collapsible from './Collapsible.svelte';
 export * as Toolbar from './Toolbar.svelte';
 export { default as StackedPanel } from './StackedPanel.svelte';
 export type { PanelContext } from './StackedPanel.svelte';
+export { default as PermissionGate } from './PermissionGate.svelte';
 
 // Banner Organisms
 export { default as DesignModeBanner } from './DesignModeBanner.svelte';

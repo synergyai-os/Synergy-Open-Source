@@ -146,8 +146,8 @@
 	<DropdownMenu.Trigger
 		type="button"
 		class={showLabels
-			? 'flex w-full cursor-pointer items-center gap-button rounded-button text-left transition-colors duration-200 hover:bg-component-sidebar-itemHover'
-			: 'flex w-full cursor-pointer items-center rounded-button text-left transition-colors duration-200 hover:bg-component-sidebar-itemHover'}
+			? 'gap-button rounded-button hover:bg-component-sidebar-itemHover flex w-full cursor-pointer items-center text-left transition-colors duration-200'
+			: 'rounded-button hover:bg-component-sidebar-itemHover flex w-full cursor-pointer items-center text-left transition-colors duration-200'}
 		style="padding-inline: var(--spacing-2); padding-block: calc(var(--spacing-2) * 0.75);"
 	>
 		<WorkspaceSelector
@@ -225,17 +225,17 @@
 
 					<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 
-				<!-- Add account -->
-				<DropdownMenu.Item
-					class={menuItemClasses}
-					textValue="Add account"
-					onSelect={() => {
-						onAddAccount?.();
-						mainMenuOpen = false;
-					}}
-				>
-					<Text variant="body" size="sm" color="secondary" as="span">Add an account…</Text>
-				</DropdownMenu.Item>
+					<!-- Add account -->
+					<DropdownMenu.Item
+						class={menuItemClasses}
+						textValue="Add account"
+						onSelect={() => {
+							onAddAccount?.();
+							mainMenuOpen = false;
+						}}
+					>
+						<Text variant="body" size="sm" color="secondary" as="span">Add an account…</Text>
+					</DropdownMenu.Item>
 
 					<!-- Linked Accounts Sections -->
 					{#each linkedAccountsWithOrgs as account (account.userId)}

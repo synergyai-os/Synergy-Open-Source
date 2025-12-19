@@ -29,4 +29,3 @@ export const sidebarIconButtonRecipe = cva(
 );
 
 export type SidebarIconButtonVariantProps = VariantProps<typeof sidebarIconButtonRecipe>;
-

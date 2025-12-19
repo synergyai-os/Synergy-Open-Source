@@ -13,7 +13,7 @@
 </script>
 
 <div class="flex h-full items-center justify-center">
-	<div class="flex flex-col items-center gap-content text-center">
+	<div class="gap-content flex flex-col items-center text-center">
 		<Icon type="alert-circle" size="lg" color="error" />
 		<Text variant="body" size="md" color="error" weight="medium" as="p">
 			{title}
@@ -22,10 +22,7 @@
 			{message}
 		</Text>
 		{#if onRetry}
-			<Button variant="primary" size="md" onclick={onRetry} class="mt-fieldGroup">
-				Retry
-			</Button>
+			<Button variant="primary" size="md" onclick={onRetry} class="mt-fieldGroup">Retry</Button>
 		{/if}
 	</div>
 </div>
-

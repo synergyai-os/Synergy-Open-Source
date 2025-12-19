@@ -6,10 +6,11 @@
 		code: string;
 		message: string;
 		entityName: string;
-		actionUrl: string;
+		actionUrl: string; // Kept for backward compatibility
+		onFixClick: () => void; // New: callback for stacked navigation
 	}
 
-	let { code, message, entityName, actionUrl }: Props = $props();
+	let { code, message, entityName, actionUrl, onFixClick }: Props = $props();
 
 	// Map issue codes to icons and colors
 	const iconMap: Record<string, { icon: string; color: 'error' | 'warning' }> = {
@@ -55,6 +56,6 @@
 		</div>
 
 		<!-- Right: Action Button -->
-		<Button variant="secondary" size="sm" href={actionUrl}>Fix →</Button>
+		<Button variant="secondary" size="sm" onclick={onFixClick}>Fix →</Button>
 	</div>
 </div>

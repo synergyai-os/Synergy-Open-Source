@@ -19,16 +19,18 @@ Implemented placeholder people status to support planning entities (new hires, c
 - Added `createdAt` field as required `v.number()`
 
 **Status values**:
+
 ```typescript
 status: v.union(
-  v.literal('placeholder'),  // NEW
-  v.literal('invited'),
-  v.literal('active'),
-  v.literal('archived')
-)
+	v.literal('placeholder'), // NEW
+	v.literal('invited'),
+	v.literal('active'),
+	v.literal('archived')
+);
 ```
 
 **Timestamp fields**:
+
 ```typescript
 createdAt: v.number(),              // NEW - When person record was created (all statuses)
 invitedAt: v.optional(v.number()),  // CHANGED - When invite was sent (invited status and beyond)
@@ -41,6 +43,7 @@ Updated all `joinedAt` fallback patterns to include `createdAt`:
 **Pattern**: `person.joinedAt ?? person.invitedAt ?? person.createdAt`
 
 **Files updated** (5 locations):
+
 - `convex/core/workspaces/queries.ts` (line 107)
 - `convex/core/users/queries.ts` (line 77)
 - `convex/core/workspaces/members.ts` (line 134)
@@ -51,6 +54,7 @@ Updated all `joinedAt` fallback patterns to include `createdAt`:
 Added `createdAt` field to all `db.insert('people', ...)` calls:
 
 **Files updated** (8 locations):
+
 - `convex/core/workspaces/members.ts` - Direct member addition
 - `convex/core/workspaces/lifecycle.ts` - Workspace owner creation
 - `convex/features/invites/helpers.ts` - Invite acceptance
@@ -67,18 +71,20 @@ Added `createdAt` field to all `db.insert('people', ...)` calls:
 Added two new invariant checks:
 
 #### IDENT-12 (Critical)
+
 ```typescript
 export const checkIDENT12 = internalQuery({
-  // Validates: Placeholder people have displayName, no email, no userId
-  // Severity: critical
+	// Validates: Placeholder people have displayName, no email, no userId
+	// Severity: critical
 });
 ```
 
 #### IDENT-13 (Warning)
+
 ```typescript
 export const checkIDENT13 = internalQuery({
-  // Validates: Placeholder people do not have invitedAt set
-  // Severity: warning
+	// Validates: Placeholder people do not have invitedAt set
+	// Severity: warning
 });
 ```
 
@@ -94,11 +100,12 @@ export const checkIDENT13 = internalQuery({
 Added two new mutation functions:
 
 #### `createPlaceholder()`
+
 ```typescript
 export async function createPlaceholder(
-  ctx: MutationCtx,
-  args: CreatePlaceholderArgs
-): Promise<Id<'people'>>
+	ctx: MutationCtx,
+	args: CreatePlaceholderArgs
+): Promise<Id<'people'>>;
 ```
 
 - Creates a placeholder person with `displayName` only
@@ -108,11 +115,12 @@ export async function createPlaceholder(
 - Validates workspace exists and permissions
 
 #### `transitionPlaceholderToInvited()`
+
 ```typescript
 export async function transitionPlaceholderToInvited(
-  ctx: MutationCtx,
-  args: TransitionPlaceholderToInvitedArgs
-): Promise<PersonDoc>
+	ctx: MutationCtx,
+	args: TransitionPlaceholderToInvitedArgs
+): Promise<PersonDoc>;
 ```
 
 - Transitions a placeholder to invited status
@@ -126,7 +134,7 @@ Added helper function:
 
 ```typescript
 export function isPersonPlaceholder(person: PersonDoc): boolean {
-  return person.status === 'placeholder';
+	return person.status === 'placeholder';
 }
 ```
 
@@ -144,6 +152,7 @@ export function isPersonPlaceholder(person: PersonDoc): boolean {
 - Added IDENT-12 and IDENT-13 to Invariants table
 
 **Files already updated** (from investigation):
+
 - `convex/admin/invariants/INVARIANTS.md` - IDENT-12/13 definitions added
 - `dev-docs/master-docs/architecture.md` - Placeholder lifecycle documented
 
@@ -155,12 +164,12 @@ placeholder → invited → active → archived
      └────────────┴─────────┴──────→ archived (direct archive allowed)
 ```
 
-| Status | Has `email` | Has `userId` | Can Log In | Purpose |
-|--------|-------------|--------------|------------|---------|
-| `placeholder` | ❌ | ❌ | ❌ | Planning entity — name only, represents future participant |
-| `invited` | ✅ | ❌ | ❌ | Invited via email, awaiting signup |
-| `active` | ❌ (use users.email) | ✅ | ✅ | Linked to auth identity, full access |
-| `archived` | preserved | preserved | ❌ | Soft-deleted, kept for audit trail |
+| Status        | Has `email`          | Has `userId` | Can Log In | Purpose                                                    |
+| ------------- | -------------------- | ------------ | ---------- | ---------------------------------------------------------- |
+| `placeholder` | ❌                   | ❌           | ❌         | Planning entity — name only, represents future participant |
+| `invited`     | ✅                   | ❌           | ❌         | Invited via email, awaiting signup                         |
+| `active`      | ❌ (use users.email) | ✅           | ✅         | Linked to auth identity, full access                       |
+| `archived`    | preserved            | preserved    | ❌         | Soft-deleted, kept for audit trail                         |
 
 ## Placeholder Properties
 
@@ -181,11 +190,13 @@ placeholder → invited → active → archived
 ### Schema Migration Required
 
 **Breaking**: The `people` table schema has changed:
+
 - `status` field now includes `'placeholder'` value
 - `invitedAt` is now optional (was required)
 - `createdAt` is now required (new field)
 
 **Migration strategy**: No migration needed for existing records:
+
 - Existing records have `invitedAt` set (all were created as `invited` or `active`)
 - New records will have `createdAt` set
 - Fallback pattern handles both: `person.joinedAt ?? person.invitedAt ?? person.createdAt`
@@ -193,6 +204,7 @@ placeholder → invited → active → archived
 ### API Changes
 
 **New exports** from `convex/core/people/`:
+
 - `createPlaceholder()` - Create placeholder person
 - `transitionPlaceholderToInvited()` - Transition placeholder to invited
 - `isPersonPlaceholder()` - Check if person is placeholder
@@ -201,41 +213,44 @@ placeholder → invited → active → archived
 
 ## Invariants Added
 
-| ID | Invariant | Severity |
-|----|-----------|----------|
-| IDENT-12 | Placeholder people have `displayName`, no `email`, no `userId` | critical |
-| IDENT-13 | Placeholder people do not have `invitedAt` set (use `createdAt`) | warning |
+| ID       | Invariant                                                        | Severity |
+| -------- | ---------------------------------------------------------------- | -------- |
+| IDENT-12 | Placeholder people have `displayName`, no `email`, no `userId`   | critical |
+| IDENT-13 | Placeholder people do not have `invitedAt` set (use `createdAt`) | warning  |
 
 ## Testing
 
 ### Manual Testing Required
 
 1. **Create placeholder**:
+
    ```typescript
    const personId = await createPlaceholder(ctx, {
-     workspaceId,
-     displayName: "Future Hire",
-     workspaceRole: "member",
-     createdByPersonId: actorPersonId
+   	workspaceId,
+   	displayName: 'Future Hire',
+   	workspaceRole: 'member',
+   	createdByPersonId: actorPersonId
    });
    ```
 
 2. **Assign placeholder to role**:
+
    ```typescript
    // Should work - placeholders can hold roles
    await assignPersonToRole(ctx, {
-     personId,
-     roleId,
-     circleId
+   	personId,
+   	roleId,
+   	circleId
    });
    ```
 
 3. **Transition to invited**:
+
    ```typescript
    await transitionPlaceholderToInvited(ctx, {
-     personId,
-     email: "hire@example.com",
-     invitedByPersonId: actorPersonId
+   	personId,
+   	email: 'hire@example.com',
+   	invitedByPersonId: actorPersonId
    });
    ```
 
@@ -256,22 +271,26 @@ placeholder → invited → active → archived
 ## Files Changed
 
 ### Schema & Core Logic (4 files)
+
 - `convex/core/people/tables.ts` - Schema changes
 - `convex/core/people/mutations.ts` - Helper functions
 - `convex/core/people/rules.ts` - Status check helper
 - `convex/core/people/README.md` - Documentation
 
 ### Invariants (2 files)
+
 - `convex/admin/invariants/identity.ts` - IDENT-12/13 checks
 - `convex/admin/invariants/index.ts` - Register new checks
 
 ### Fallback Updates (5 files)
+
 - `convex/core/workspaces/queries.ts`
 - `convex/core/users/queries.ts`
 - `convex/core/workspaces/members.ts`
 - `convex/admin/archived/syos814TestUtils.ts`
 
 ### Person Creation Updates (8 files)
+
 - `convex/core/workspaces/members.ts`
 - `convex/core/workspaces/lifecycle.ts`
 - `convex/features/invites/helpers.ts`
@@ -306,4 +325,3 @@ placeholder → invited → active → archived
 - **Architecture**: `dev-docs/master-docs/architecture.md` (Identity Architecture section)
 - **Invariants**: `convex/admin/invariants/INVARIANTS.md` (IDENT-12/13)
 - **Domain docs**: `convex/core/people/README.md`
-

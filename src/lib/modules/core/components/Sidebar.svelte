@@ -720,16 +720,16 @@
 						{/if}
 
 						<div class="space-y-form-field-gap">
-						<!-- Circles -->
-						<NavItem
-							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
-							)}
-							iconType="circles"
-							label="Circles"
-							title="Circles"
-							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-						/>
+							<!-- Circles -->
+							<NavItem
+								href={resolveRoute(
+									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
+								)}
+								iconType="circles"
+								label="Circles"
+								title="Circles"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
 
 							<!-- Flashcards -->
 							<NavItem

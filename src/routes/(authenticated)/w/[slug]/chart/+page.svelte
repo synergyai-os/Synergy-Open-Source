@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
-	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { resolveRoute } from '$lib/utils/navigation';
 	import { invariant } from '$lib/utils/invariant';
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
@@ -36,18 +34,6 @@
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	const getWorkspaceId = () => workspaceId();
 
-	// DEBUG: Log workspace loading state
-	$effect(() => {
-		if (browser) {
-			console.log('📊 [CHART] Workspace state:', {
-				sessionId: getSessionId(),
-				workspaceId: getWorkspaceId(),
-				workspaces: workspaces?.workspaces?.length ?? 0,
-				activeWorkspaceId: workspaces?.activeWorkspaceId
-			});
-		}
-	});
-
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
 	// CRITICAL: Only create orgChart when sessionId AND workspaceId are available
 	// Pattern matches meetings module (check all required params in outer condition)
@@ -63,12 +49,6 @@
 			: null;
 
 	const isLoading = $derived(!orgChart || orgChart.isLoading);
-
-	// CRITICAL: Use $derived for navigation stack's currentLayer to ensure reactivity
-	// Using {@const} in the template would not re-evaluate when the stack changes,
-	// because the containing {#if} block's condition (browser && orgChart) doesn't change.
-	// This caused edit panels to get stuck and not close properly.
-	const currentLayer = $derived(orgChart?.navigationStack.currentLayer ?? null);
 </script>
 
 <div class="bg-base flex h-full flex-col">
@@ -109,12 +89,8 @@
 </div>
 
 <!-- Detail Panels - Client-only (require browser context, sessionId, and orgChart) -->
+<!-- Selection state is now derived from the shared stacked navigation context -->
 {#if browser && orgChart}
 	<CircleDetailPanel {orgChart} />
 	<RoleDetailPanel {orgChart} />
-
-	<!-- Edit Panels - Conditionally rendered based on navigation stack -->
-	<!-- Note: currentLayer is defined as $derived in script for proper reactivity -->
-	<!-- Note: EditCirclePanel removed - edit mode now handled directly in CircleDetailPanel -->
-	<!-- Note: EditRolePanel removed - inline editing will be added in SYOS-978-D -->
 {/if}

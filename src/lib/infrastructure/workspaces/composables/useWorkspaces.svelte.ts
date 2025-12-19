@@ -66,7 +66,6 @@ export function useWorkspaces(options?: {
 	const initialActiveId = browser ? getStoredActiveId(storageKey) : null;
 	const cachedOrgDetails = browser && initialActiveId ? loadCachedOrg(storageDetailsKey) : null;
 
-
 	// Initialize workspace state composable first (needs initial data)
 	// orgState will access queries reactively via functions, so we can initialize it first
 	let orgState: ReturnType<typeof useWorkspaceState>;

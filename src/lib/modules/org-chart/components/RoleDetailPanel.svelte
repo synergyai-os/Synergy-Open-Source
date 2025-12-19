@@ -28,7 +28,7 @@
 		TabbedPanel,
 		CustomFieldSection
 	} from '$lib/components/molecules';
-	import { useDetailPanelNavigation } from '../composables/useDetailPanelNavigation.svelte';
+	import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import {
 		getLeadAuthorityLevel,
@@ -45,10 +45,13 @@
 		// This prevents accessing properties on null during hydration
 	}
 
+	// Get shared navigation from context
+	const navigation = getStackedNavigation();
+
 	const role = $derived(orgChart?.selectedRole ?? null);
 	const fillers = $derived(orgChart?.selectedRoleFillers ?? []);
-	const isOpen = $derived((orgChart?.selectedRoleId ?? null) !== null);
-	const _selectionSource = $derived(orgChart?.selectionSource ?? null);
+	const selectedRoleId = $derived(orgChart?.selectedRoleId ?? null);
+	const isOpen = $derived(navigation.isInStack('role'));
 	const error = $derived(orgChart?.selectedRoleError ?? null);
 	const isLoading = $derived(orgChart?.selectedRoleIsLoading ?? false);
 
@@ -128,20 +131,6 @@
 	let isEditMode = $state(false);
 	let showDiscardDialog = $state(false);
 
-	// Navigation composable for shared navigation logic
-	const navigation = useDetailPanelNavigation({
-		orgChart: () => orgChart,
-		isEditMode: () => isEditMode,
-		isDirty: () => editRole.isDirty,
-		onShowDiscardDialog: () => {
-			showDiscardDialog = true;
-		},
-		resetEditMode: () => {
-			isEditMode = false;
-			editRole.reset();
-		}
-	});
-
 	// Edit role composable (only used in edit mode)
 	// In design phase, direct save is allowed. In active phase, Phase 4 will handle proposal routing.
 	const editRole = useEditRole({
@@ -177,11 +166,7 @@
 	}
 
 	// Check if this role panel is the topmost layer
-	const isTopmost = () => {
-		if (!orgChart) return false;
-		const currentLayer = orgChart.navigationStack.currentLayer;
-		return currentLayer?.type === 'role' && currentLayer?.id === orgChart.selectedRoleId;
-	};
+	const isTopmost = () => navigation.isTopmost('role', selectedRoleId);
 
 	// Role-specific tabs configuration
 	const ROLE_TABS = [
@@ -245,6 +230,42 @@
 		}
 	}
 
+	// Handle close with edit protection
+	function handleClose() {
+		// Check edit protection before navigating
+		if (isEditMode && editRole.isDirty) {
+			showDiscardDialog = true;
+			return;
+		}
+
+		// Reset edit mode if active
+		if (isEditMode) {
+			isEditMode = false;
+			editRole.reset();
+		}
+
+		// Use shared navigation's close handler
+		navigation.handleClose();
+	}
+
+	// Handle breadcrumb click with edit protection
+	function handleBreadcrumbClick(index: number) {
+		// Check edit protection before navigating
+		if (isEditMode && editRole.isDirty) {
+			showDiscardDialog = true;
+			return;
+		}
+
+		// Reset edit mode if active
+		if (isEditMode) {
+			isEditMode = false;
+			editRole.reset();
+		}
+
+		// Use shared navigation's breadcrumb handler
+		navigation.handleBreadcrumbClick(index);
+	}
+
 	// Icon renderer for breadcrumbs - modules define their own icons
 	// Returns IconType for rendering with Icon component (secure, no HTML injection)
 	function renderBreadcrumbIcon(layerType: string): IconType | null {
@@ -260,9 +281,9 @@
 {#if orgChart}
 	<StackedPanel
 		{isOpen}
-		navigationStack={orgChart.navigationStack}
-		onClose={navigation.handleClose}
-		onBreadcrumbClick={navigation.handleBreadcrumbClick}
+		navigationStack={navigation}
+		onClose={handleClose}
+		onBreadcrumbClick={handleBreadcrumbClick}
 		{isTopmost}
 		iconRenderer={renderBreadcrumbIcon}
 	>
@@ -277,7 +298,7 @@
 				<!-- Header -->
 				<DetailHeader
 					entityName={isEditMode ? editRole.formValues.name : role.name}
-					onClose={navigation.handleClose}
+					onClose={handleClose}
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
 					onEdit={isEditMode ? undefined : handleEditClick}

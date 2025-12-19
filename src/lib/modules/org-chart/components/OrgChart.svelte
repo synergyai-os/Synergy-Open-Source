@@ -252,7 +252,7 @@
 
 		if (isParentActive) {
 			// Role is in active circle → open role modal
-			orgChart.selectRole(role.roleId, 'chart');
+			orgChart.selectRole(role.roleId, 'chart', { roleName: role.name });
 		} else {
 			// Role is in non-active circle → make parent active and zoom to it
 			if (parentCircleNode.depth === 0) {

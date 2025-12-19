@@ -6,6 +6,7 @@ import { v } from 'convex/values';
  * Represents a validation issue that blocks workspace activation (design → active phase).
  *
  * @see SYOS-997: Activation validation query and mutation
+ * @see SYOS-1022: Add structured action data for stacked navigation
  */
 export const ActivationIssueValidator = v.object({
 	id: v.string(), // Unique ID for React keys
@@ -21,7 +22,10 @@ export const ActivationIssueValidator = v.object({
 		v.literal('assign_lead'),
 		v.literal('create_root')
 	),
-	actionUrl: v.string() // Direct link to fix the issue
+	actionUrl: v.string(), // Fallback URL (deprecated, use circleId/roleId for stacked navigation)
+	// Structured action data for stacked navigation (SYOS-1022)
+	circleId: v.optional(v.string()), // Circle ID for navigation stack
+	roleId: v.optional(v.string()) // Role ID for navigation stack
 });
 
 export type ActivationIssue = {
@@ -34,4 +38,7 @@ export type ActivationIssue = {
 	message: string;
 	actionType: 'edit_role' | 'edit_circle' | 'assign_lead' | 'create_root';
 	actionUrl: string;
+	// Structured action data for stacked navigation (SYOS-1022)
+	circleId?: string;
+	roleId?: string;
 };
