@@ -11,7 +11,6 @@ import { createCoreRolesForCircle, transformLeadRoleOnCircleTypeChange } from '.
 import { slugifyName } from './slug';
 import { validateCircleName, validateCircleNameUpdate } from './validation';
 import { CIRCLE_TYPES, DECISION_MODELS, type CircleType, type DecisionModel } from './constants';
-import { requireQuickEditPermissionForPerson } from '../authority/quickEdit';
 import { createSystemCustomFieldDefinitions } from '../../admin/seed/customFieldDefinitions';
 import { seedWorkspaceResources } from '../../admin/seed/workspaceSeed';
 
@@ -272,13 +271,26 @@ export async function updateInlineCircle(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
+	// Get workspace and check phase
+	const workspace = await ctx.db.get(circle.workspaceId);
+	if (!workspace) {
+		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
+	}
+
+	// Phase check - design only
+	if (workspace.phase !== 'design') {
+		throw createError(
+			ErrorCodes.INVALID_OPERATION,
+			'Direct edits only allowed in design phase. Use proposals in active phase.'
+		);
+	}
+
+	// Simple workspace membership check
 	const actorPersonId = await requireWorkspacePersonFromSession(
 		ctx,
 		args.sessionId,
 		circle.workspaceId
 	);
-
-	await requireQuickEditPermissionForPerson(ctx, actorPersonId, circle);
 
 	const beforeDoc = { ...circle };
 

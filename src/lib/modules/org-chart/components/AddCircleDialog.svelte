@@ -2,10 +2,8 @@
 	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import * as Dialog from '$lib/components/organisms/Dialog.svelte';
-	import DialogContent from '$lib/components/organisms/Dialog.svelte';
+	import { StandardDialog } from '$lib/components/organisms';
 	import { FormInput, FormTextarea, FormSelect } from '$lib/components/atoms';
-	import { Button } from '$lib/components/atoms';
 	import { toast } from 'svelte-sonner';
 	import {
 		CIRCLE_TYPES,
@@ -56,9 +54,7 @@
 		}
 	];
 
-	async function handleSubmit(e: SubmitEvent) {
-		e.preventDefault();
-
+	async function handleSubmit() {
 		if (!name.trim()) {
 			toast.error('Circle name is required');
 			return;
@@ -100,56 +96,47 @@
 		}
 	}
 
-	function handleOpenChange(newOpen: boolean) {
-		if (!newOpen && !isSubmitting) {
+	function handleClose() {
+		if (!isSubmitting) {
 			name = '';
 			purpose = '';
 			circleType = CIRCLE_TYPES.HIERARCHY;
 		}
-		open = newOpen;
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={handleOpenChange}>
-	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-		<DialogContent variant="default">
-			<Dialog.Title>Add Sub-Circle to {parentCircleName}</Dialog.Title>
-			<Dialog.Description>Create a new sub-circle within this circle.</Dialog.Description>
+<StandardDialog
+	bind:open
+	title="Add Sub-Circle to {parentCircleName}"
+	description="Create a new sub-circle within this circle."
+	submitLabel="Create Circle"
+	disabled={!name.trim()}
+	loading={isSubmitting}
+	onsubmit={handleSubmit}
+	onclose={handleClose}
+>
+	<div class="gap-form flex flex-col">
+		<FormInput
+			label="Name"
+			placeholder="e.g., Engineering"
+			bind:value={name}
+			required
+			disabled={isSubmitting}
+		/>
 
-			<form onsubmit={handleSubmit} class="mt-section gap-form flex flex-col">
-				<FormInput
-					label="Name"
-					placeholder="e.g., Engineering"
-					bind:value={name}
-					required
-					disabled={isSubmitting}
-				/>
+		<FormSelect
+			label="Circle Type"
+			bind:value={circleType}
+			options={circleTypeOptions}
+			disabled={isSubmitting}
+		/>
 
-				<FormSelect
-					label="Circle Type"
-					bind:value={circleType}
-					options={circleTypeOptions}
-					disabled={isSubmitting}
-				/>
-
-				<FormTextarea
-					label="Purpose (optional)"
-					placeholder="Describe the circle's purpose..."
-					bind:value={purpose}
-					rows={3}
-					disabled={isSubmitting}
-				/>
-
-				<div class="mt-section gap-button flex items-center justify-end">
-					<Dialog.Close asChild>
-						<Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
-					</Dialog.Close>
-					<Button type="submit" disabled={isSubmitting || !name.trim()}>
-						{isSubmitting ? 'Creating...' : 'Create Circle'}
-					</Button>
-				</div>
-			</form>
-		</DialogContent>
-	</Dialog.Portal>
-</Dialog.Root>
+		<FormTextarea
+			label="Purpose (optional)"
+			placeholder="Describe the circle's purpose..."
+			bind:value={purpose}
+			rows={3}
+			disabled={isSubmitting}
+		/>
+	</div>
+</StandardDialog>

@@ -11,20 +11,55 @@ Workspace-scoped organizational identity for humans participating in a workspace
 ## Key Concepts
 
 - Identity chain: `sessionId → userId → personId → workspaceId`.
+- Status lifecycle: `placeholder → invited → active → archived` (direct archive allowed from any status).
+- Placeholders: Planning entities with `displayName` only — no email, no userId, can't log in.
 - Invite lifecycle: email only while invited; email moves to `users` after signup.
 - Workspace role (`owner/admin/member`) lives on people and gates workspace-level actions.
 - `personId` is the only identifier allowed in core domains (not `userId`).
 
 ## Identity Model
 
-| Field           | Type                                  | Usage                                       |
-| --------------- | ------------------------------------- | ------------------------------------------- |
-| `personId`      | `Id<'people'>`                        | Primary identifier per workspace            |
-| `workspaceId`   | `Id<'workspaces'>`                    | Scope boundary for the person               |
-| `userId`        | `Id<'users'> \| null`                 | Links to global auth identity (active only) |
-| `email`         | `string \| null`                      | Invite-only identifier before signup        |
-| `workspaceRole` | `'owner' \| 'admin' \| 'member'`      | Workspace-level RBAC                        |
-| `status`        | `'invited' \| 'active' \| 'archived'` | Lifecycle for the person record             |
+| Field           | Type                                                     | Usage                                       |
+| --------------- | -------------------------------------------------------- | ------------------------------------------- |
+| `personId`      | `Id<'people'>`                                           | Primary identifier per workspace            |
+| `workspaceId`   | `Id<'workspaces'>`                                       | Scope boundary for the person               |
+| `userId`        | `Id<'users'> \| null`                                    | Links to global auth identity (active only) |
+| `email`         | `string \| null`                                         | Invite-only identifier before signup        |
+| `displayName`   | `string \| null`                                         | Workspace-specific name (required for placeholders) |
+| `workspaceRole` | `'owner' \| 'admin' \| 'member'`                         | Workspace-level RBAC                        |
+| `status`        | `'placeholder' \| 'invited' \| 'active' \| 'archived'`   | Lifecycle for the person record             |
+| `createdAt`     | `number`                                                 | When person record was created (all statuses) |
+| `invitedAt`     | `number \| null`                                         | When invite was sent (invited status and beyond) |
+| `joinedAt`      | `number \| null`                                         | When user accepted and linked account (active only) |
+
+## Status Lifecycle
+
+| Status | Has `email` | Has `userId` | Can Log In | Purpose |
+|--------|-------------|--------------|------------|---------|
+| `placeholder` | ❌ | ❌ | ❌ | Planning entity — name only, represents future participant |
+| `invited` | ✅ | ❌ | ❌ | Invited via email, awaiting signup |
+| `active` | ❌ (use users.email) | ✅ | ✅ | Linked to auth identity, full access |
+| `archived` | preserved | preserved | ❌ | Soft-deleted, kept for audit trail |
+
+**Lifecycle transitions:**
+```
+placeholder → invited → active → archived
+     ↓            ↓         ↓
+     └────────────┴─────────┴──────→ archived (direct archive allowed)
+```
+
+**Placeholders** represent known future participants (new hires, consultants, board members) who should appear in the org chart and hold roles before they have system accounts. Key properties:
+
+- Created with `displayName` only — no email, no userId
+- Can be assigned to roles via `assignments` table
+- Appear in org charts and authority displays
+- Cannot log in or take actions (no session possible)
+- Persist into active workspaces as a normal planning mechanism
+
+**Timestamps:**
+- `createdAt` — when the person record was created (all statuses)
+- `invitedAt` — when invite was sent (only for `invited` status and beyond)
+- `joinedAt` — when user accepted and linked their account (only for `active`)
 
 ## Invariants
 
@@ -40,6 +75,8 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 | IDENT-06 | No duplicate `(workspaceId, userId)` for active people   |
 | IDENT-07 | No duplicate `(workspaceId, email)` for invited people   |
 | IDENT-08 | Archived people with history preserve `userId`           |
+| IDENT-12 | Placeholder people have `displayName`, no `email`, no `userId` |
+| IDENT-13 | Placeholder people do not have `invitedAt` set (use `createdAt`) |
 | XDOM-02  | Audit fields use `personId`, not `userId`                |
 
 ## Relationship to Other Domains

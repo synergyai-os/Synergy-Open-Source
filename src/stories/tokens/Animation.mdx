@@ -10,29 +10,29 @@ Visual reference for all animation tokens in the SynergyOS design system.
 
 ## Duration Reference
 
-| Token                          | Value | Usage                         |
-| ------------------------------ | ----- | ----------------------------- |
-| `--animation-duration-instant` | 0ms   | No animation                  |
-| `--animation-duration-fastest` | 50ms  | Imperceptible                 |
-| `--animation-duration-faster`  | 100ms | Very quick                    |
-| `--animation-duration-fast`    | 150ms | Quick - Hovers                |
-| `--animation-duration-normal`  | 200ms | Default - Most transitions    |
-| `--animation-duration-slow`    | 300ms | Noticeable - Modals opening   |
-| `--animation-duration-slower`  | 400ms | Deliberate - Page transitions |
-| `--animation-duration-slowest` | 500ms | Slow - Hero animations        |
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--animation-duration-instant` | 0ms | No animation |
+| `--animation-duration-fastest` | 50ms | Imperceptible |
+| `--animation-duration-faster` | 100ms | Very quick |
+| `--animation-duration-fast` | 150ms | Quick - Hovers |
+| `--animation-duration-normal` | 200ms | Default - Most transitions |
+| `--animation-duration-slow` | 300ms | Noticeable - Modals opening |
+| `--animation-duration-slower` | 400ms | Deliberate - Page transitions |
+| `--animation-duration-slowest` | 500ms | Slow - Hero animations |
 
 ---
 
 ## Easing Curves
 
-| Token                       | Value                                     | Usage                  |
-| --------------------------- | ----------------------------------------- | ---------------------- |
-| `--animation-easing-linear` | `linear`                                  | Constant speed         |
-| `--animation-easing-in`     | `cubic-bezier(0.4, 0, 1, 1)`              | Accelerate - Exits     |
-| `--animation-easing-out`    | `cubic-bezier(0, 0, 0.2, 1)`              | Decelerate - Entrances |
-| `--animation-easing-inOut`  | `cubic-bezier(0.4, 0, 0.2, 1)`            | Smooth - Default       |
-| `--animation-easing-bounce` | `cubic-bezier(0.34, 1.56, 0.64, 1)`       | Overshoot - Playful    |
-| `--animation-easing-spring` | `cubic-bezier(0.175, 0.885, 0.32, 1.275)` | Spring - Elastic       |
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--animation-easing-linear` | `linear` | Constant speed |
+| `--animation-easing-in` | `cubic-bezier(0.4, 0, 1, 1)` | Accelerate - Exits |
+| `--animation-easing-out` | `cubic-bezier(0, 0, 0.2, 1)` | Decelerate - Entrances |
+| `--animation-easing-inOut` | `cubic-bezier(0.4, 0, 0.2, 1)` | Smooth - Default |
+| `--animation-easing-bounce` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Overshoot - Playful |
+| `--animation-easing-spring` | `cubic-bezier(0.175, 0.885, 0.32, 1.275)` | Spring - Elastic |
 
 ---
 
@@ -41,22 +41,22 @@ Visual reference for all animation tokens in the SynergyOS design system.
 ```css
 /* Transition shorthand */
 .button {
-	transition: all var(--animation-duration-normal) var(--animation-easing-inOut);
+  transition: all var(--animation-duration-normal) var(--animation-easing-inOut);
 }
 
 /* Hover animation */
 .card:hover {
-	transform: translateY(-2px);
-	transition: transform var(--animation-duration-fast) var(--animation-easing-out);
+  transform: translateY(-2px);
+  transition: transform var(--animation-duration-fast) var(--animation-easing-out);
 }
 
 /* Modal entrance */
 .modal {
-	animation: fadeIn var(--animation-duration-slow) var(--animation-easing-out);
+  animation: fadeIn var(--animation-duration-slow) var(--animation-easing-out);
 }
 ```
 
 ---
 
 **Source**: `design-tokens-base.json`  
-**Last Generated**: 2025-12-12T13:34:31.377Z
+**Last Generated**: 2025-12-18T12:34:06.277Z

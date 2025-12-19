@@ -181,10 +181,13 @@ Extract from the ticket description:
 
 | If ticket involves... | Read these docs |
 |-----------------------|-----------------|
-| Any backend work | `architecture.md` (always) |
-| Core domain (circles, roles, people, etc.) | `architecture.md` — check FROZEN/STABLE status |
-| UI components | `design-system.md` |
-| Permissions/access | `convex/infrastructure/rbac/README.md` |
+| Any backend work | `dev-docs/master-docs/architecture.md` (always) |
+| Core domain (circles, roles, people, etc.) | `dev-docs/master-docs/architecture.md` — check FROZEN/STABLE status |
+| UI components, styling, tokens | `dev-docs/master-docs/design-system.md` |
+| Frontend reactive patterns, composables, Svelte 5 | `dev-docs/master-docs/architecture.md` → Frontend Patterns section |
+| Debugging, fixing issues | `dev-docs/2-areas/patterns/INDEX.md` |
+| Permissions/access (RBAC) | `convex/infrastructure/rbac/README.md` |
+| Governance models, circle types | `dev-docs/master-docs/architecture/governance-design.md` |
 | Data integrity | `convex/admin/invariants/INVARIANTS.md` |
 | Feature flags | `convex/infrastructure/featureFlags/README.md` |
 
@@ -475,6 +478,24 @@ Report results:
 
 ## Architecture Quick Reference
 
+**Full details:** See `dev-docs/master-docs/architecture.md`
+
+### The 25 Principles (Summary)
+
+Architecture.md defines 25 numbered principles covering:
+- **Foundation (1-4):** Core domains, circle lead authority, authority calculation
+- **Dependencies (5-7):** Layer rules (infrastructure ← core ← features), explicit interfaces
+- **Convex Patterns (8-11):** Queries, mutations, business logic in Convex, functions only
+- **Svelte Patterns (12-14):** Thin components, runes usage, `.svelte.ts` for reactive state
+- **Domain Language (15-16):** Practitioner terminology (circles, roles, tensions, etc.)
+- **Code Quality (17-20):** Pure functions, appropriate abstraction, no magic values
+- **Testing (21-24):** Co-located tests, independence, full core coverage
+- **Immutability (25):** Organizational history is immutable and auditable
+
+**When principles conflict:** See Trade-off Guidance section below.
+
+**Full principle list:** `dev-docs/master-docs/architecture.md#the-25-principles`
+
 ### Identity Model (Critical — Memorize This)
 
 ```
@@ -575,6 +596,27 @@ Application (src/) → Features (convex/features/) → Core (convex/core/) → I
 
 **Exception:** "user" is valid in auth context (users domain, userId for auth).
 
+### Function Naming Conventions (from architecture.md)
+
+| Prefix | Returns | Use When |
+|--------|---------|----------|
+| `find___` | `T \| null` | Lookup that may return nothing |
+| `get___` | `T` (throws if missing) | Lookup that must succeed |
+| `list___` | `T[]` (non-null) | Return a collection |
+| `is___` / `has___` / `can___` | `boolean` | State/existence/permission checks |
+| `create___` | `Id` | Create entity, return ID |
+| `update___` | `void` or `T` | Modify existing entity |
+| `archive___` / `restore___` | `void` | Soft delete / un-archive |
+| `require___` | `T` (throws if invalid) | Fetch-or-throw validation |
+| `ensure___` | `void` (throws if invalid) | Validate condition |
+| `fetch___` | External data | External API call |
+| `parse___` | Parsed value | Parsing operations |
+| `with___` | Wrapped handler | Wraps a callback |
+
+**Modifier:** `my___` scopes to the authenticated user (e.g., `myCircles`, `myRoles`).
+
+**Do not introduce unknown prefixes** (e.g., `delete___`, `upsert___`). Rename to match the table above.
+
 ### Test Cases Required (per mutation)
 
 | Case | Expected Error |
@@ -609,5 +651,6 @@ Application (src/) → Features (convex/features/) → Core (convex/core/) → I
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.1 | 2025-12-17 | Aligned with architecture.md v4.0. Updated document paths to use `dev-docs/master-docs/` structure. Added Frontend Patterns reference for Svelte 5 composables. Added governance-design.md reference. |
 | 2.0 | 2025-12-14 | Aligned with architecture.md v3.5. Added docs-first principle, gap detection, identity chain fix, RBAC scopes, trade-off guidance. |
 | 1.0 | 2025-12-07 | Original version |

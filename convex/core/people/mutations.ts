@@ -37,6 +37,19 @@ type LinkPersonArgs = {
 	userId: Id<'users'>;
 };
 
+type CreatePlaceholderArgs = {
+	workspaceId: Id<'workspaces'>;
+	displayName: string;
+	workspaceRole: PersonDoc['workspaceRole'];
+	createdByPersonId?: Id<'people'> | null;
+};
+
+type TransitionPlaceholderToInvitedArgs = {
+	personId: Id<'people'>;
+	email: string;
+	invitedByPersonId?: Id<'people'> | null;
+};
+
 export async function invitePerson(ctx: MutationCtx, args: InviteArgs): Promise<Id<'people'>> {
 	const normalizedEmail = getNormalizedEmail(args.email);
 
@@ -106,6 +119,7 @@ export async function invitePerson(ctx: MutationCtx, args: InviteArgs): Promise<
 		}
 	}
 
+	const now = Date.now();
 	return ctx.db.insert('people', {
 		workspaceId: args.workspaceId,
 		userId: args.userId ?? undefined,
@@ -113,7 +127,8 @@ export async function invitePerson(ctx: MutationCtx, args: InviteArgs): Promise<
 		displayName: args.displayName ?? undefined,
 		workspaceRole: args.workspaceRole,
 		status: 'invited',
-		invitedAt: Date.now(),
+		createdAt: now,
+		invitedAt: now,
 		invitedBy: args.invitedByPersonId ?? undefined,
 		joinedAt: undefined,
 		archivedAt: undefined,
@@ -267,4 +282,110 @@ async function getActiveOwnerCount(
 		.collect();
 
 	return activePeople.filter((p) => p.workspaceRole === 'owner').length;
+}
+
+/**
+ * Create a placeholder person (planning entity with name only).
+ * Placeholders represent known future participants (new hires, consultants, board members)
+ * who should appear in org charts and can hold roles before they have system accounts.
+ *
+ * @param ctx - Mutation context
+ * @param args - Placeholder creation arguments
+ * @returns personId of the created placeholder
+ */
+export async function createPlaceholder(
+	ctx: MutationCtx,
+	args: CreatePlaceholderArgs
+): Promise<Id<'people'>> {
+	const workspace = await ctx.db.get(args.workspaceId);
+	if (!workspace) {
+		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
+	}
+
+	if (!args.displayName || args.displayName.trim() === '') {
+		throw createError(ErrorCodes.WORKSPACE_NAME_REQUIRED, 'Placeholder must have a displayName');
+	}
+
+	if (args.createdByPersonId) {
+		const canInvite = await canInvitePeople(ctx, args.createdByPersonId);
+		if (!canInvite) {
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'User does not have permission to create placeholders'
+			);
+		}
+	}
+
+	const now = Date.now();
+	return ctx.db.insert('people', {
+		workspaceId: args.workspaceId,
+		userId: undefined,
+		email: undefined,
+		displayName: args.displayName.trim(),
+		workspaceRole: args.workspaceRole,
+		status: 'placeholder',
+		createdAt: now,
+		invitedAt: undefined, // Placeholders don't have invitedAt (IDENT-13)
+		invitedBy: args.createdByPersonId ?? undefined,
+		joinedAt: undefined,
+		archivedAt: undefined,
+		archivedBy: undefined
+	});
+}
+
+/**
+ * Transition a placeholder person to invited status by adding email.
+ * This is the first step in converting a planning entity into a real participant.
+ *
+ * @param ctx - Mutation context
+ * @param args - Transition arguments
+ * @returns Updated person document
+ */
+export async function transitionPlaceholderToInvited(
+	ctx: MutationCtx,
+	args: TransitionPlaceholderToInvitedArgs
+): Promise<PersonDoc> {
+	const person = await requirePerson(ctx, args.personId);
+
+	if (person.status !== 'placeholder') {
+		throw createError(
+			ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED,
+			'Person must be a placeholder to transition to invited'
+		);
+	}
+
+	const normalizedEmail = getNormalizedEmail(args.email);
+
+	// Check for duplicate email in workspace
+	const existingByEmail = await findPersonByEmailAndWorkspace(
+		ctx,
+		person.workspaceId,
+		normalizedEmail
+	);
+	if (existingByEmail && existingByEmail._id !== args.personId) {
+		throw createError(
+			ErrorCodes.WORKSPACE_ALREADY_MEMBER,
+			'Email already associated with another person in this workspace'
+		);
+	}
+
+	if (args.invitedByPersonId) {
+		const canInvite = await canInvitePeople(ctx, args.invitedByPersonId);
+		if (!canInvite) {
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'User does not have permission to send invites'
+			);
+		}
+	}
+
+	const now = Date.now();
+	await ctx.db.patch(args.personId, {
+		email: normalizedEmail,
+		status: 'invited',
+		invitedAt: now,
+		invitedBy: args.invitedByPersonId ?? person.invitedBy
+	});
+
+	return requirePerson(ctx, args.personId);
 }

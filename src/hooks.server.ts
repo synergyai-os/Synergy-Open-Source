@@ -57,7 +57,17 @@ const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
 
 // Resolve server-side session for each request
 const sessionHandle: Handle = async ({ event, resolve }) => {
-	await resolveRequestSession(event);
+	try {
+		await resolveRequestSession(event);
+	} catch (error) {
+		// If session resolution fails, clear auth state and continue
+		// This prevents 500 errors from session lookup failures (e.g., Convex connection issues)
+		console.error('Failed to resolve session in hooks.server.ts:', error);
+		event.locals.auth = {
+			sessionId: undefined,
+			user: null
+		};
+	}
 	return resolve(event);
 };
 

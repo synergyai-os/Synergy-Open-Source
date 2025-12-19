@@ -930,6 +930,24 @@
 				"$description": "Margin below major sections (24px - compact, Linear-inspired)"
 			}
 		},
+		"modal": {
+			"gap": {
+				"$value": "{spacing.9}",
+				"$description": "Gap between modal/dialog sections (36px - spacious for visual hierarchy)"
+			},
+			"x": {
+				"$value": "{spacing.6}",
+				"$description": "Modal horizontal padding (24px)"
+			},
+			"pt": {
+				"$value": "{spacing.4}",
+				"$description": "Modal top padding (16px)"
+			},
+			"pb": {
+				"$value": "{spacing.6}",
+				"$description": "Modal bottom padding (24px)"
+			}
+		},
 		"form": {
 			"gap": {
 				"$value": "{spacing.3}",

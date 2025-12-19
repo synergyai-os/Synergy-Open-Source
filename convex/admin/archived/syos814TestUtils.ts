@@ -185,7 +185,7 @@ export const verifyPeopleRecord = query({
 						workspaceRole: person.workspaceRole,
 						status: person.status,
 						displayName: person.displayName,
-						joinedAt: person.joinedAt ?? person.invitedAt
+						joinedAt: person.joinedAt ?? person.invitedAt ?? person.createdAt
 					}
 				: null,
 			verification: {
@@ -291,8 +291,8 @@ export const verifyWorkspaceRecords = query({
 						workspaceRole: person.workspaceRole,
 						status: person.status,
 						displayName: person.displayName,
-						createdAt: person.invitedAt,
-						joinedAt: person.joinedAt ?? person.invitedAt
+						createdAt: person.createdAt,
+						joinedAt: person.joinedAt ?? person.invitedAt ?? person.createdAt
 					}
 				: null,
 			verification: {

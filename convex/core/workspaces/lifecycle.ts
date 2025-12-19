@@ -241,7 +241,8 @@ async function createWorkspaceFlow(
 		slug,
 		createdAt: now,
 		updatedAt: now,
-		plan: 'starter'
+		plan: 'starter',
+		phase: 'design' // Start in design phase - no governance overhead
 	});
 
 	// Create people record (organizational identity) - SYOS-814 Phase 1
@@ -260,6 +261,7 @@ async function createWorkspaceFlow(
 		email: undefined, // Email comes from user lookup, not stored per people/README.md
 		workspaceRole: 'owner',
 		status: 'active',
+		createdAt: now,
 		invitedAt: now,
 		invitedBy: undefined, // Self-created workspace, no inviter
 		joinedAt: now,

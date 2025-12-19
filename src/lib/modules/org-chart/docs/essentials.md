@@ -20,9 +20,9 @@
   - Access is limited to their workspace and assigned circles
   - Permissions are controlled via RBAC
 
-- **Org Designer** - User with permission to make quick edits to org structure
-  - Can edit circles and roles directly (when workspace setting allows)
-  - Must have `org-chart.edit.quick` RBAC permission
+- **Org Designer** - User with permission to make quick edits to org structure (in design phase)
+  - Can edit circles and roles directly during design phase
+  - Quick edit capability determined by workspace phase (design vs active)
   - Anyone can still create proposals regardless of this role
 
 ## Glossary
@@ -49,7 +49,7 @@
 | **IDM**                  | Integrative Decision Making - consent-based decision process where proposals pass if no valid objections exist.                                                               |
 | **Objection**            | A concern raised during proposal processing in a governance meeting. Must be integrated or dismissed before approval.                                                         |
 | **Proposal**             | A suggested change to a circle or role that goes through governance meeting approval. Any workspace member can create proposals.                                              |
-| **Quick Edit Mode**      | Direct inline editing of circles/roles with auto-save. Requires Org Designer role + `allowQuickChanges` workspace setting enabled.                                            |
+| **Quick Edit Mode**      | Direct inline editing of circles/roles with auto-save. Available during design phase for all workspace members. In active phase, changes go through proposals.                |
 
 ## Data Entities
 
@@ -202,13 +202,11 @@
 
 ### Quick Edit vs Proposals
 
-- **Quick Edit**: Requires `org-chart.edit.quick` RBAC permission + `allowQuickChanges` workspace setting enabled
-- **Proposals**: Always available to all workspace members (no permission required)
-- **Circle Type Impact**: Quick edits may be restricted based on circle operating mode:
-  - `hierarchy`: Only Circle Lead/Manager can quick edit
-  - `empowered_team`: All circle members can quick edit (if permitted)
-  - `guild`: No quick edits (coordination only - must create proposal in home circle)
-  - `hybrid`: Circle members can quick edit (if permitted)
+- **Quick Edit**: Available during design phase for all workspace members
+- **Proposals**: Required during active phase (or always available in design phase)
+- **Phase-Based Logic**: Edit permissions determined by workspace phase:
+  - `design`: All workspace members can edit directly
+  - `active`: Changes must go through proposal workflow (circle members can propose)
 - **Version History**: Both quick edits and approved proposals capture full version history
 
 ## UI Components
@@ -244,7 +242,6 @@
   - `requireCircleLeadRole`: (Deprecated) Use `leadRequirementByCircleType` instead
   - `leadRequirementByCircleType`: Per-type override for Lead role requirement (hierarchy: true, empowered_team: false, guild: false, hybrid: true)
   - `coreRoleTemplateIds`: Which role templates auto-create roles in new circles
-  - `allowQuickChanges`: Whether Org Designers can use quick edit mode (default: false)
 - **Defaults**: System provides sensible defaults, workspace admin can override
 
 ### Circle/Role Item Categories

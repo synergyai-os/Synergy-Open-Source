@@ -38,7 +38,7 @@ type CircleRoleDetail = {
  *
  * **Query Patterns Used**:
  * - Pattern A (Direct ternary): Static workspace-scoped queries that never re-create
- *   - `circlesQuery`, `rolesByWorkspaceQuery`, `roleTemplatesQuery`, `orgSettingsQuery`
+ *   - `circlesQuery`, `rolesByWorkspaceQuery`, `roleTemplatesQuery`
  * - Pattern B ($derived wrapper): Conditional queries that re-create when dependencies change
  *   - `selectedRoleQuery` (re-creates when selectedRoleId changes)
  * - Pattern C (Manual convexClient in $effect): Complex queries with race condition handling
@@ -137,18 +137,6 @@ export function useOrgChart(options: {
 				const workspaceId = getWorkspaceId();
 				// Throw error when dependencies aren't ready - Convex handles this gracefully
 				// Query will retry reactively when workspaceId becomes available
-				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
-				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
-			})
-		: null;
-
-	// Query workspace org settings (includes allowQuickChanges for quick edit permission)
-	// Loaded once per workspace - provides instant "quick edits disabled" check
-	// SYOS-855: Workspace settings moved to features/workspace-settings/
-	const orgSettingsQuery = browser
-		? useQuery(api.features.workspaceSettings.index.getOrgSettings, () => {
-				const sessionId = getSessionId();
-				const workspaceId = getWorkspaceId();
 				invariant(sessionId && workspaceId, 'sessionId and workspaceId required');
 				return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 			})
@@ -553,15 +541,6 @@ export function useOrgChart(options: {
 		// Navigation stack - hierarchical panel navigation
 		get navigationStack() {
 			return navigationStack;
-		},
-
-		// Workspace org settings - includes allowQuickChanges
-		// Used for instant "quick edits disabled" determination (avoids backend round-trip)
-		get allowQuickChanges() {
-			return orgSettingsQuery?.data?.allowQuickChanges ?? false;
-		},
-		get orgSettingsLoading() {
-			return orgSettingsQuery?.isLoading ?? true;
 		},
 
 		// Actions

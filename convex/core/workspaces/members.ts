@@ -131,7 +131,7 @@ async function getMemberFromPerson(ctx: MutationCtx | QueryCtx, person: Doc<'peo
 		email: email ?? '',
 		name: name ?? '',
 		role: person.workspaceRole,
-		joinedAt: person.joinedAt ?? person.invitedAt
+		joinedAt: person.joinedAt ?? person.invitedAt ?? person.createdAt
 	};
 }
 
@@ -170,6 +170,7 @@ async function createMemberWithoutInvite(
 		email: undefined, // Email comes from user lookup, not stored per people/README.md
 		workspaceRole: args.role,
 		status: 'active',
+		createdAt: now,
 		invitedAt: now,
 		invitedBy: undefined, // Direct add, no inviter
 		joinedAt: now,

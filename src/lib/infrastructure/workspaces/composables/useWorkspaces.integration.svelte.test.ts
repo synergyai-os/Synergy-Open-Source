@@ -177,42 +177,8 @@ describe('useWorkspaces - Integration Tests', () => {
 			expect(composable.activeWorkspace?.workspaceId).toBe('org-2');
 		});
 
-		it('should reactively update modals when openModal/closeModal is called', async () => {
-			const mockOrgs = createMockOrganizations();
-			const mockClient = createMockConvexClient();
-			setupConvexMocks(mockClient, {
-				workspaces: createMockQueryResult(mockOrgs, false, null)
-			});
-			setupBrowserMocks();
-
-			const screen = render(TestComponent, {
-				sessionId: () => 'test-session-id',
-				userId: () => 'test-user-id'
-			});
-
-			const composable = (
-				screen.component as unknown as TestComponentInstance
-			).getComposableInstance();
-
-			// Initially closed
-			expect(composable.modals.createWorkspace).toBe(false);
-
-			// Open modal
-			composable.openModal('createWorkspace');
-
-			// Wait for reactivity
-			await new Promise((resolve) => setTimeout(resolve, 50));
-
-			expect(composable.modals.createWorkspace).toBe(true);
-
-			// Close modal
-			composable.closeModal('createWorkspace');
-
-			// Wait for reactivity
-			await new Promise((resolve) => setTimeout(resolve, 50));
-
-			expect(composable.modals.createWorkspace).toBe(false);
-		});
+		// Note: Modal state management has been moved to individual components using StandardDialog
+		// Modal tests are no longer needed as modals are handled locally
 	});
 
 	describe('Multiple Component Instances', () => {

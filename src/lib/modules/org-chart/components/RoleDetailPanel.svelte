@@ -1,27 +1,39 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { getContext } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
-	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { useCustomFields } from '../composables/useCustomFields.svelte';
-	import RoleDetailHeader from './RoleDetailHeader.svelte';
+	import { useCanEdit } from '../composables/useCanEdit.svelte';
+	import { useEditRole } from '../composables/useEditRole.svelte';
+	import DetailHeader from './DetailHeader.svelte';
+	import { Badge } from '$lib/components/atoms';
+	import * as Tooltip from '$lib/components/atoms/Tooltip.svelte';
+	import { tooltipContentRecipe, tooltipArrowRecipe } from '$lib/design-system/recipes';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import InlineEditText from './InlineEditText.svelte';
 	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
 	import CategoryItemsList from './CategoryItemsList.svelte';
-	import { Avatar, Badge } from '$lib/components/atoms';
+	import StandardDialog from '$lib/components/organisms/StandardDialog.svelte';
+	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
+	import Button from '$lib/components/atoms/Button.svelte';
+	import { Avatar } from '$lib/components/atoms';
 	import Text from '$lib/components/atoms/Text.svelte';
-	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
-	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
+	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Loading from '$lib/components/atoms/Loading.svelte';
 	import StackedPanel, { type PanelContext } from '$lib/components/organisms/StackedPanel.svelte';
+	import { EmptyState, ErrorState, TabbedPanel } from '$lib/components/molecules';
+	import { useDetailPanelNavigation } from '../composables/useDetailPanelNavigation.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import {
 		getLeadAuthorityLevel,
-		getAuthorityUI
+		getAuthorityUI,
+		getLeadDescription
 	} from '$lib/infrastructure/organizational-model/constants';
 	import { invariant } from '$lib/utils/invariant';
 
@@ -43,6 +55,13 @@
 	// Convex client for mutations
 	const convexClient = browser ? useConvexClient() : null;
 	const sessionId = $derived($page.data.sessionId);
+
+	// Get workspaceId from context (same pattern as CircleDetailPanel)
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
+	});
 
 	// Query circle for permission checking (roles belong to circles)
 	const circleQuery = $derived(
@@ -80,34 +99,62 @@
 	);
 	const authorityUI = $derived(authorityLevel ? getAuthorityUI(authorityLevel) : null);
 
-	// Check quick edit permission using composable (only if not Lead role)
-	const quickEditPermission = useQuickEditPermission({
-		circle: () => circle,
-		sessionId: () => sessionId,
-		allowQuickChanges: () => orgChart?.allowQuickChanges ?? false
+	// Phase-based edit permissions (SYOS-982)
+	const editPermission = useCanEdit({
+		sessionId: () => sessionId ?? null,
+		workspaceId: () => workspaceId() ?? null,
+		circleId: () => role?.circleId ?? null
 	});
 
-	// Combine permission checks: Lead roles are always blocked, otherwise use quickEditPermission
-	const canEdit = $derived(
-		isLeadRole
-			? false
-			: circleQueryError
-				? false // If circle query failed, don't allow editing
-				: quickEditPermission.canEdit
-	);
+	// Lead roles cannot be edited regardless of permissions
+	const canEdit = $derived(isLeadRole ? false : editPermission.canEdit);
+	const isDesignPhase = $derived(editPermission.isDesignPhase);
 
-	const editReason = $derived(
-		isLeadRole
-			? 'Lead roles cannot be edited directly. Edit the Lead role template instead to update all Lead roles across all circles.'
-			: circleQueryError
-				? 'Unable to verify edit permissions. Please refresh the page.'
-				: quickEditPermission.editReason
-	);
+	// Edit reason for tooltip display when canEdit is false
+	const editReason = $derived.by(() => {
+		if (isLeadRole) {
+			return 'Lead roles cannot be edited directly. Edit the Lead role template instead to update all Lead roles across all circles.';
+		}
+		if (circleQueryError) {
+			return 'Unable to verify edit permissions. Please refresh the page.';
+		}
+		if (!canEdit && !isDesignPhase) {
+			return 'Only circle members can propose changes in active workspaces';
+		}
+		return undefined;
+	});
+
+	// Edit mode state
+	let isEditMode = $state(false);
+	let showDiscardDialog = $state(false);
+
+	// Navigation composable for shared navigation logic
+	const navigation = useDetailPanelNavigation({
+		orgChart: () => orgChart,
+		isEditMode: () => isEditMode,
+		isDirty: () => editRole.isDirty,
+		onShowDiscardDialog: () => {
+			showDiscardDialog = true;
+		},
+		resetEditMode: () => {
+			isEditMode = false;
+			editRole.reset();
+		}
+	});
+
+	// Edit role composable (only used in edit mode)
+	// In design phase, direct save is allowed. In active phase, Phase 4 will handle proposal routing.
+	const editRole = useEditRole({
+		roleId: () => role?.roleId ?? null,
+		sessionId: () => sessionId,
+		workspaceId: () => workspaceId() ?? null,
+		canQuickEdit: () => isDesignPhase
+	});
 
 	// Custom fields composable for roles
 	const customFields = useCustomFields({
 		sessionId: () => sessionId,
-		workspaceId: () => role?.workspaceId ?? undefined,
+		workspaceId: () => workspaceId() ?? undefined,
 		entityType: () => 'role',
 		entityId: () => role?.roleId ?? null
 	});
@@ -215,17 +262,19 @@
 		return currentLayer?.type === 'role' && currentLayer?.id === orgChart.selectedRoleId;
 	};
 
+	// Role-specific tabs configuration
+	const ROLE_TABS = [
+		{ id: 'overview', label: 'Overview' },
+		{ id: 'members', label: 'Members', showCount: true },
+		{ id: 'documents', label: 'Documents', showCount: true },
+		{ id: 'activities', label: 'Activities', showCount: true },
+		{ id: 'metrics', label: 'Metrics', showCount: true },
+		{ id: 'checklists', label: 'Checklists', showCount: true },
+		{ id: 'projects', label: 'Projects', showCount: true }
+	];
+
 	// Tab state with dummy counts
-	let activeTab = $state(
-		'overview' as
-			| 'overview'
-			| 'members'
-			| 'documents'
-			| 'activities'
-			| 'metrics'
-			| 'checklists'
-			| 'projects'
-	);
+	let activeTab = $state('overview' as string);
 	const tabCounts = $state({
 		overview: 0,
 		members: 0,
@@ -236,58 +285,6 @@
 		projects: 0
 	});
 
-	function handleClose() {
-		if (!orgChart) return;
-		// ESC goes back one level (not all the way)
-		const previousLayer = orgChart.navigationStack.previousLayer;
-
-		if (previousLayer) {
-			// Pop current layer
-			orgChart.navigationStack.pop();
-
-			// Navigate to previous layer WITHOUT pushing (we're already there after pop)
-			if (previousLayer.type === 'circle') {
-				orgChart.selectCircle(previousLayer.id as Id<'circles'>, { skipStackPush: true });
-				// Close role panel when going back to circle
-				orgChart.selectRole(null, null);
-			} else if (previousLayer.type === 'role') {
-				orgChart.selectRole(previousLayer.id as Id<'circleRoles'>, 'circle-panel', {
-					skipStackPush: true
-				});
-			}
-		} else {
-			// No previous layer - close everything
-			orgChart.navigationStack.pop();
-			orgChart.selectRole(null, null);
-
-			// If opened from chart (not circle panel), also close circle panel
-			if (selectionSource === 'chart') {
-				orgChart.selectCircle(null);
-			}
-		}
-	}
-
-	function handleBreadcrumbClick(index: number) {
-		if (!orgChart) return;
-		// Get the target layer to navigate to
-		const targetLayer = orgChart.navigationStack.getLayer(index);
-		if (!targetLayer) return;
-
-		// Jump to that layer in the stack (this already positions us at the right layer)
-		orgChart.navigationStack.jumpTo(index);
-
-		// Re-open the panel for that layer WITHOUT pushing to stack (we're already there)
-		if (targetLayer.type === 'circle') {
-			orgChart.selectCircle(targetLayer.id as Id<'circles'>, { skipStackPush: true });
-			// Close role panel when jumping to circle
-			orgChart.selectRole(null, null);
-		} else if (targetLayer.type === 'role') {
-			orgChart.selectRole(targetLayer.id as Id<'circleRoles'>, 'circle-panel', {
-				skipStackPush: true
-			});
-		}
-	}
-
 	function getInitials(name: string): string {
 		return name
 			.split(' ')
@@ -297,9 +294,33 @@
 			.slice(0, 2);
 	}
 
-	function handleEditRole() {
+	function handleEditClick() {
+		if (!role) return;
+		isEditMode = true;
+		editRole.loadRole();
+	}
+
+	function handleCancelEdit() {
+		if (editRole.isDirty) {
+			showDiscardDialog = true;
+		} else {
+			isEditMode = false;
+			editRole.reset();
+		}
+	}
+
+	function handleConfirmDiscard() {
+		editRole.reset();
+		isEditMode = false;
+		showDiscardDialog = false;
+	}
+
+	async function handleSaveDirectly() {
+		await editRole.saveDirectly();
+		isEditMode = false;
+		// Refresh role data by re-selecting
 		if (orgChart && role) {
-			orgChart.openEditRole(role.roleId);
+			orgChart.selectRole(role.roleId, 'circle-panel', { skipStackPush: true });
 		}
 	}
 
@@ -319,192 +340,95 @@
 	<StackedPanel
 		{isOpen}
 		navigationStack={orgChart.navigationStack}
-		onClose={handleClose}
-		onBreadcrumbClick={handleBreadcrumbClick}
+		onClose={navigation.handleClose}
+		onBreadcrumbClick={navigation.handleBreadcrumbClick}
 		{isTopmost}
 		iconRenderer={renderBreadcrumbIcon}
 	>
 		{#snippet children(panelContext)}
 			{#if isLoading}
 				<!-- Loading State -->
-				<div class="flex h-full items-center justify-center">
-					<div class="text-center">
-						<svg
-							class="size-icon-xl text-tertiary mx-auto animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-						>
-							<circle
-								class="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								stroke-width="4"
-							></circle>
-							<path
-								class="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							></path>
-						</svg>
-						<p class="mt-content-section text-button text-secondary">Loading role details...</p>
-						{#if orgChart.selectedRoleId}
-							<p class="text-label text-tertiary mt-fieldGroup">
-								Role ID: {orgChart.selectedRoleId}
-							</p>
-						{/if}
-					</div>
-				</div>
+				<Loading message="Loading role details..." />
 			{:else if error}
 				<!-- Error State -->
-				<div class="px-page flex h-full items-center justify-center">
-					<div class="text-center">
-						<p class="text-button text-error font-medium">Failed to load role</p>
-						<p class="text-button text-secondary mt-fieldGroup">{String(error)}</p>
-						{#if orgChart.selectedRoleId}
-							<p class="text-label text-tertiary mt-fieldGroup">
-								Role ID: {orgChart.selectedRoleId}
-							</p>
-						{/if}
-					</div>
-				</div>
+				<ErrorState title="Failed to load role" message={String(error)} />
 			{:else if role}
-				<div class="flex h-full flex-col">
-					<!-- Header -->
-					<RoleDetailHeader
-						roleName={role.name}
-						{canEdit}
-						{editReason}
-						onNameChange={handleQuickUpdateRoleName}
-						onClose={handleClose}
-						onBack={panelContext.onBack}
-						showBackButton={panelContext.isMobile && panelContext.canGoBack}
-						onEdit={handleEditRole}
-						addMenuItems={[
-							{ label: 'Add filler', onclick: () => {} },
-							{ label: 'Add accountability', onclick: () => {} },
-							{ label: 'Add domain', onclick: () => {} }
-						]}
-						headerMenuItems={[
-							{ label: 'Copy URL', onclick: () => {} },
-							{ label: 'Export to PDF', onclick: () => {} },
-							{ label: 'Export to spreadsheet', onclick: () => {} },
-							{ label: 'Convert role to circle', onclick: () => {} },
-							{ label: 'Move role', onclick: () => {} },
-							{ label: 'Notifications', onclick: () => {} },
-							{ label: 'Settings', onclick: () => {} },
-							{ label: 'Delete role', onclick: () => {}, danger: true }
-						]}
-					/>
+				<!-- Header -->
+				<DetailHeader
+					entityName={isEditMode ? editRole.formValues.name : role.name}
+					onClose={navigation.handleClose}
+					onBack={panelContext.onBack}
+					showBackButton={panelContext.isMobile && panelContext.canGoBack}
+					onEdit={isEditMode ? undefined : handleEditClick}
+					canEdit={!isEditMode && canEdit}
+					{editReason}
+					onNameChange={!isEditMode ? handleQuickUpdateRoleName : undefined}
+					addMenuItems={[
+						{ label: 'Add filler', onclick: () => {} },
+						{ label: 'Add accountability', onclick: () => {} },
+						{ label: 'Add domain', onclick: () => {} }
+					]}
+					headerMenuItems={[
+						{ label: 'Copy URL', onclick: () => {} },
+						{ label: 'Export to PDF', onclick: () => {} },
+						{ label: 'Export to spreadsheet', onclick: () => {} },
+						{ label: 'Convert role to circle', onclick: () => {} },
+						{ label: 'Move role', onclick: () => {} },
+						{ label: 'Notifications', onclick: () => {} },
+						{ label: 'Settings', onclick: () => {} },
+						{ label: 'Delete role', onclick: () => {}, danger: true }
+					]}
+				>
+					{#snippet authorityBadge()}
+						{#if isLeadRole && authorityUI && circle}
+							<Tooltip.Provider>
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										{#snippet child({ props })}
+											<span {...props} class="inline-block">
+												<Badge variant="default" size="md">
+													{authorityUI.badge}
+												</Badge>
+											</span>
+										{/snippet}
+									</Tooltip.Trigger>
+									<Tooltip.Portal>
+										<Tooltip.Content class={tooltipContentRecipe()}>
+											<p class="text-button text-primary">
+												{getLeadDescription(circle.circleType)}
+											</p>
+											<Tooltip.Arrow class={tooltipArrowRecipe()} />
+										</Tooltip.Content>
+									</Tooltip.Portal>
+								</Tooltip.Root>
+							</Tooltip.Provider>
+						{/if}
+					{/snippet}
+				</DetailHeader>
 
+				<!-- Edit Mode Indicator Bar -->
+				{#if isEditMode}
+					<div
+						class="border-base bg-surface-subtle py-header gap-button px-page flex items-center border-b"
+					>
+						<Icon type="edit" size="sm" />
+						<Text variant="body" size="sm" color="primary" class="font-medium">Edit mode</Text>
+					</div>
+				{/if}
+
+				<div class="flex h-full flex-col">
 					<!-- Content -->
 					<div class="flex-1 overflow-y-auto">
-						<Tabs.Root bind:value={activeTab}>
-							<!-- Navigation Tabs - Sticky at top -->
-							<div class="bg-surface px-page sticky top-0 z-10">
-								<Tabs.List
-									class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}
-								>
-									<Tabs.Trigger
-										value="overview"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'overview' }),
-											'flex-shrink-0'
-										]}
-									>
-										Overview
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="members"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'members' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Members</span>
-											{#if tabCounts.members > 0}
-												<span class="text-label text-tertiary">({tabCounts.members})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="documents"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'documents' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Documents</span>
-											{#if tabCounts.documents > 0}
-												<span class="text-label text-tertiary">({tabCounts.documents})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="activities"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'activities' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Activities</span>
-											{#if tabCounts.activities > 0}
-												<span class="text-label text-tertiary">({tabCounts.activities})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="metrics"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'metrics' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Metrics</span>
-											{#if tabCounts.metrics > 0}
-												<span class="text-label text-tertiary">({tabCounts.metrics})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="checklists"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'checklists' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Checklists</span>
-											{#if tabCounts.checklists > 0}
-												<span class="text-label text-tertiary">({tabCounts.checklists})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-									<Tabs.Trigger
-										value="projects"
-										class={[
-											tabsTriggerRecipe({ active: activeTab === 'projects' }),
-											'flex-shrink-0'
-										]}
-									>
-										<span class="gap-button flex items-center">
-											<span>Projects</span>
-											{#if tabCounts.projects > 0}
-												<span class="text-label text-tertiary">({tabCounts.projects})</span>
-											{/if}
-										</span>
-									</Tabs.Trigger>
-								</Tabs.List>
-							</div>
-
-							<!-- Tab Content -->
-							<div class="px-page py-page flex-1 overflow-y-auto">
-								<Tabs.Content value="overview" class={tabsContentRecipe()}>
+						<TabbedPanel
+							tabs={ROLE_TABS}
+							bind:activeTab
+							onTabChange={(tab) => {
+								activeTab = tab;
+							}}
+							{tabCounts}
+						>
+							{#snippet content(tabId)}
+								{#if tabId === 'overview'}
 									<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
 									<div
 										class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
@@ -522,7 +446,15 @@
 													>
 														{purposeField.definition.name}
 													</h4>
-													{#if canEdit}
+													{#if isEditMode}
+														<FormTextarea
+															label=""
+															placeholder="What's the purpose of this role?"
+															value={editRole.formValues.purpose}
+															oninput={(e) => editRole.setField('purpose', e.currentTarget.value)}
+															rows={4}
+														/>
+													{:else if canEdit}
 														<InlineEditText
 															value={purposeValue}
 															onSave={async (value) =>
@@ -552,36 +484,6 @@
 												</div>
 											{/if}
 
-											<!-- Authority Badge (SYOS-672) -->
-											{#if isLeadRole && authorityUI}
-												<div>
-													<h4
-														class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-													>
-														Authority
-													</h4>
-													<div class="gap-button flex items-center">
-														<span class="text-button">{authorityUI.emoji}</span>
-														<Badge variant="default" size="md">
-															{authorityUI.badge}
-														</Badge>
-													</div>
-													{#if authorityLevel === 'authority'}
-														<p class="text-label text-secondary mt-fieldGroup">
-															This role makes final decisions for this circle.
-														</p>
-													{:else if authorityLevel === 'facilitative'}
-														<p class="text-label text-secondary mt-fieldGroup">
-															This role coordinates the team. Team decides together using consent.
-														</p>
-													{:else if authorityLevel === 'convening'}
-														<p class="text-label text-secondary mt-fieldGroup">
-															This role schedules meetings. Decisions are made in home circles.
-														</p>
-													{/if}
-												</div>
-											{/if}
-
 											<!-- Dynamically render all custom fields -->
 											{#each customFields.fields as field (field.definition._id)}
 												{@const systemKey = field.definition.systemKey}
@@ -602,10 +504,11 @@
 														{#if isMultiItem}
 															<!-- Multi-item field (textList type: Domains, Accountabilities, etc.) -->
 															{@const items = getItemsForCategory(systemKey ?? '')}
+															{@const canEditField = isEditMode || canEdit}
 															<CategoryItemsList
 																categoryName={field.definition.name}
 																{items}
-																{canEdit}
+																canEdit={canEditField}
 																{editReason}
 																onCreate={async (content) => {
 																	if (systemKey) await handleAddMultiItemField(systemKey, content);
@@ -627,7 +530,8 @@
 														{:else if isSingleField}
 															<!-- Single-field (text or longText type: Notes, etc.) -->
 															{@const value = getFieldValueAsString(systemKey ?? '')}
-															{#if canEdit}
+															{@const canEditField = isEditMode || canEdit}
+															{#if canEditField}
 																<InlineEditText
 																	{value}
 																	onSave={async (content) => {
@@ -709,154 +613,90 @@
 											</div>
 										</div>
 									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="members" class={tabsContentRecipe()}>
-									<!-- Empty State: Members -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No members yet</p>
-										<p class="text-button text-secondary mb-header">
-											Members assigned to this role will appear here. This feature will be available
-											in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="documents" class={tabsContentRecipe()}>
-									<!-- Empty State: Documents -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No documents yet</p>
-										<p class="text-button text-secondary mb-header">
-											Documents related to this role will appear here. This feature will be
-											available in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="activities" class={tabsContentRecipe()}>
-									<!-- Empty State: Activities -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No activities yet</p>
-										<p class="text-button text-secondary mb-header">
-											Recent activities and updates for this role will appear here. This feature
-											will be available in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="metrics" class={tabsContentRecipe()}>
-									<!-- Empty State: Metrics -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No metrics yet</p>
-										<p class="text-button text-secondary mb-header">
-											Performance metrics and analytics for this role will appear here. This feature
-											will be available in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="checklists" class={tabsContentRecipe()}>
-									<!-- Empty State: Checklists -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No checklists yet</p>
-										<p class="text-button text-secondary mb-header">
-											Checklists and task lists for this role will appear here. This feature will be
-											available in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-
-								<Tabs.Content value="projects" class={tabsContentRecipe()}>
-									<!-- Empty State: Projects -->
-									<div class="py-page text-center">
-										<svg
-											class="size-icon-xl text-tertiary mx-auto"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-											/>
-										</svg>
-										<p class="text-button text-primary mb-header font-medium">No projects yet</p>
-										<p class="text-button text-secondary mb-header">
-											Projects associated with this role will appear here. This feature will be
-											available in a future update.
-										</p>
-									</div>
-								</Tabs.Content>
-							</div>
-						</Tabs.Root>
+								{:else if tabId === 'members'}
+									<EmptyState
+										icon="users"
+										title="No members yet"
+										description="Members assigned to this role will appear here. This feature will be available in a future update."
+									/>
+								{:else if tabId === 'documents'}
+									<EmptyState
+										icon="file-text"
+										title="No documents yet"
+										description="Documents related to this role will appear here. This feature will be available in a future update."
+									/>
+								{:else if tabId === 'activities'}
+									<EmptyState
+										icon="clock"
+										title="No activities yet"
+										description="Recent activities and updates for this role will appear here. This feature will be available in a future update."
+									/>
+								{:else if tabId === 'metrics'}
+									<EmptyState
+										icon="bar-chart"
+										title="No metrics yet"
+										description="Performance metrics and analytics for this role will appear here. This feature will be available in a future update."
+									/>
+								{:else if tabId === 'checklists'}
+									<EmptyState
+										icon="check-square"
+										title="No checklists yet"
+										description="Checklists and task lists for this role will appear here. This feature will be available in a future update."
+									/>
+								{:else if tabId === 'projects'}
+									<EmptyState
+										icon="briefcase"
+										title="No projects yet"
+										description="Projects associated with this role will appear here. This feature will be available in a future update."
+									/>
+								{/if}
+							{/snippet}
+						</TabbedPanel>
 					</div>
+
+					<!-- Footer with Save Actions (Edit Mode Only) -->
+					{#if isEditMode}
+						<div
+							class="border-base py-header gap-button bg-surface px-page sticky bottom-0 z-20 flex items-center justify-end border-t"
+						>
+							{#if editRole.error}
+								<div class="mr-auto">
+									<Text variant="body" size="sm" color="error">{editRole.error}</Text>
+								</div>
+							{/if}
+							<Button variant="outline" onclick={handleCancelEdit} disabled={editRole.isSaving}>
+								Cancel
+							</Button>
+
+							{#if isDesignPhase}
+								<!-- Design phase: Direct save for all members -->
+								<Button
+									variant="primary"
+									onclick={handleSaveDirectly}
+									disabled={editRole.isSaving || !editRole.isDirty}
+								>
+									{editRole.isSaving ? 'Saving...' : 'Save'}
+								</Button>
+							{:else}
+								<!-- Active phase: Propose Change flow (or disabled if not member) -->
+								{#if !canEdit}
+									<div class="mr-auto">
+										<Text variant="body" size="sm" color="tertiary">
+											Only circle members can propose changes in active workspaces
+										</Text>
+									</div>
+								{:else}
+									<Button
+										variant="primary"
+										onclick={handleSaveDirectly}
+										disabled={editRole.isSaving || !editRole.isDirty}
+									>
+										{editRole.isSaving ? 'Proposing...' : 'Propose Change'}
+									</Button>
+								{/if}
+							{/if}
+						</div>
+					{/if}
 				</div>
 			{:else}
 				<!-- Empty State - Panel open but no role data -->
@@ -868,4 +708,15 @@
 			{/if}
 		{/snippet}
 	</StackedPanel>
+
+	<!-- Confirm Discard Dialog -->
+	<StandardDialog
+		bind:open={showDiscardDialog}
+		title="Discard unsaved changes?"
+		description="You have unsaved changes. Are you sure you want to discard them?"
+		submitLabel="Discard"
+		cancelLabel="Keep Editing"
+		variant="danger"
+		onsubmit={handleConfirmDiscard}
+	/>
 {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import { Icon, Text } from '$lib/components/atoms';
+	import { dropdownMenuItemRecipe } from '$lib/design-system/recipes';
 
 	type Props = {
 		onCreateWorkspace?: () => void;
@@ -17,11 +18,14 @@
 		onClose,
 		class: className = ''
 	}: Props = $props();
+
+	// Apply dropdown menu item recipe
+	const menuItemClasses = $derived([dropdownMenuItemRecipe(), className]);
 </script>
 
 <!-- New workspace -->
 <DropdownMenu.Item
-	class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none {className}"
+	class={menuItemClasses}
 	textValue="New workspace"
 	onSelect={() => {
 		onCreateWorkspace?.();
@@ -36,7 +40,7 @@
 
 <!-- Create workspace -->
 <DropdownMenu.Item
-	class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none {className}"
+	class={menuItemClasses}
 	textValue="Create workspace"
 	onSelect={() => {
 		onCreateOrganization?.();
@@ -51,7 +55,7 @@
 
 <!-- Join workspace -->
 <DropdownMenu.Item
-	class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none {className}"
+	class={menuItemClasses}
 	textValue="Join workspace"
 	onSelect={() => {
 		onJoinOrganization?.();

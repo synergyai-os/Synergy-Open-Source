@@ -70,7 +70,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 					(w) => w.workspaceId === activeOrgId
 				);
 				if (workspace) {
-					throw redirect(302, `/w/${workspace.slug}/circles`);
+					throw redirect(302, `/w/${workspace.slug}/chart`);
 				}
 			}
 		} catch (error) {

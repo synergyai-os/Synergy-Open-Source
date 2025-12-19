@@ -75,14 +75,29 @@
 				}
 			);
 
-			// Redirect to workspace page
-			const redirectUrl = resolveRoute(`/org/circles?org=${result.workspaceId}`);
+			// Get workspace slug from workspaceId
+			const workspace = (await convexClient.query(api.core.workspaces.index.findById, {
+				sessionId,
+				workspaceId: result.workspaceId
+			})) as { slug?: string } | null;
 
-			// Use window.location for hard redirect (prevents any page state issues)
-			if (browser) {
-				window.location.href = redirectUrl;
+			if (workspace?.slug) {
+				// Redirect to org chart page
+				const redirectUrl = resolveRoute(`/w/${workspace.slug}/chart`);
+				// Use window.location for hard redirect (prevents any page state issues)
+				if (browser) {
+					window.location.href = redirectUrl;
+				} else {
+					goto(redirectUrl);
+				}
 			} else {
-				goto(redirectUrl);
+				// Fallback: redirect to auth redirect handler
+				const redirectUrl = resolveRoute('/auth/redirect');
+				if (browser) {
+					window.location.href = redirectUrl;
+				} else {
+					goto(redirectUrl);
+				}
 			}
 		} catch (err) {
 			acceptError = err instanceof Error ? err.message : 'Failed to accept invite';

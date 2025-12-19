@@ -231,7 +231,7 @@ export const removeOrganizationClaudeApiKey = mutation({
 
 /**
  * Query: Get workspace org chart settings
- * Returns org chart settings (allowQuickChanges, requireCircleLeadRole, etc.)
+ * Returns org chart settings (requireCircleLeadRole, leadRequirementByCircleType, etc.)
  */
 export const getOrgSettings = query({
 	args: {
@@ -276,7 +276,6 @@ export const getOrgSettings = query({
 				requireCircleLeadRole: true, // Deprecated, kept for backward compat
 				leadRequirementByCircleType: defaultLeadRequirement,
 				coreRoleTemplateIds: [],
-				allowQuickChanges: false,
 				isAdmin: person.workspaceRole === 'owner' || person.workspaceRole === 'admin'
 			};
 		}
@@ -305,7 +304,6 @@ export const updateOrgSettings = mutation({
 	args: {
 		sessionId: v.string(),
 		workspaceId: v.id('workspaces'),
-		allowQuickChanges: v.optional(v.boolean()),
 		requireCircleLeadRole: v.optional(v.boolean()), // Deprecated, kept for backward compat
 		leadRequirementByCircleType: v.optional(
 			v.object({
@@ -337,7 +335,6 @@ export const updateOrgSettings = mutation({
 
 		const now = Date.now();
 		const updateData: {
-			allowQuickChanges?: boolean;
 			requireCircleLeadRole?: boolean;
 			leadRequirementByCircleType?: {
 				hierarchy: boolean;
@@ -351,9 +348,6 @@ export const updateOrgSettings = mutation({
 			updatedAt: now
 		};
 
-		if (args.allowQuickChanges !== undefined) {
-			updateData.allowQuickChanges = args.allowQuickChanges;
-		}
 		if (args.requireCircleLeadRole !== undefined) {
 			updateData.requireCircleLeadRole = args.requireCircleLeadRole;
 		}
@@ -383,7 +377,6 @@ export const updateOrgSettings = mutation({
 				requireCircleLeadRole: args.requireCircleLeadRole ?? true,
 				leadRequirementByCircleType: args.leadRequirementByCircleType ?? defaultLeadRequirement,
 				coreRoleTemplateIds: args.coreRoleTemplateIds ?? [],
-				allowQuickChanges: args.allowQuickChanges ?? false,
 				createdAt: now,
 				updatedAt: now
 			});

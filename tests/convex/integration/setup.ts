@@ -171,6 +171,7 @@ export async function createTestOrganizationMember(
 			displayName: (user as any)?.name ?? 'Test User',
 			workspaceRole: role,
 			status: 'active',
+			createdAt: now,
 			invitedAt: now,
 			invitedBy: undefined,
 			joinedAt: now,

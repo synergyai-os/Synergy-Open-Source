@@ -15,10 +15,16 @@ export const peopleTable = defineTable({
 	workspaceRole: v.union(v.literal('owner'), v.literal('admin'), v.literal('member')),
 
 	// Lifecycle
-	status: v.union(v.literal('invited'), v.literal('active'), v.literal('archived')),
+ 	status: v.union(
+		v.literal('placeholder'),
+		v.literal('invited'),
+		v.literal('active'),
+		v.literal('archived')
+	),
 
 	// Timestamps
-	invitedAt: v.number(), // When first invited/created
+	createdAt: v.number(), // When person record was created (all statuses)
+	invitedAt: v.optional(v.number()), // When invite was sent (invited status and beyond)
 	invitedBy: v.optional(v.id('people')), // Who invited them (personId, not userId). Can be null for initial owner seeding.
 	joinedAt: v.optional(v.number()), // When they accepted/signed up
 	archivedAt: v.optional(v.number()), // When archived

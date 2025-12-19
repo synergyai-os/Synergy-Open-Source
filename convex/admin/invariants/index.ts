@@ -9,7 +9,7 @@ import type { InvariantResult } from './types';
  * Keep in sync with INVARIANTS.md (SYOS-803).
  */
 const checkRefs = [
-	// Identity (9)
+	// Identity (11)
 	internal.admin.invariants.identity.checkIDENT01,
 	internal.admin.invariants.identity.checkIDENT02,
 	internal.admin.invariants.identity.checkIDENT03,
@@ -19,6 +19,8 @@ const checkRefs = [
 	internal.admin.invariants.identity.checkIDENT07,
 	internal.admin.invariants.identity.checkIDENT08,
 	internal.admin.invariants.identity.checkIDENT09,
+	internal.admin.invariants.identity.checkIDENT12,
+	internal.admin.invariants.identity.checkIDENT13,
 	// Organization (9)
 	internal.admin.invariants.organization.checkORG01,
 	internal.admin.invariants.organization.checkORG02,

@@ -4,6 +4,7 @@ import { makeResult, type InvariantResult } from './types';
 const ACTIVE_STATUS = 'active';
 const INVITED_STATUS = 'invited';
 const ARCHIVED_STATUS = 'archived';
+const PLACEHOLDER_STATUS = 'placeholder';
 
 export const checkIDENT01 = internalQuery({
 	args: {},
@@ -260,6 +261,56 @@ export const checkIDENT09 = internalQuery({
 				violations.length === 0
 					? 'All users have unique emails'
 					: `${violations.length} duplicate email(s) detected among active users`
+		});
+	}
+});
+
+export const checkIDENT12 = internalQuery({
+	args: {},
+	handler: async (ctx): Promise<InvariantResult> => {
+		const placeholders = await ctx.db
+			.query('people')
+			.filter((q) => q.eq(q.field('status'), PLACEHOLDER_STATUS))
+			.collect();
+
+		const violations = placeholders
+			.filter((person) => !person.displayName || person.email !== undefined || person.userId !== undefined)
+			.map((person) => person._id);
+
+		return makeResult({
+			id: 'IDENT-12',
+			name: 'Placeholder people have displayName, no email, no userId',
+			severity: 'critical',
+			violations,
+			message:
+				violations.length === 0
+					? 'All placeholder people have correct fields'
+					: `${violations.length} placeholder people with invalid fields (missing displayName or have email/userId)`
+		});
+	}
+});
+
+export const checkIDENT13 = internalQuery({
+	args: {},
+	handler: async (ctx): Promise<InvariantResult> => {
+		const placeholders = await ctx.db
+			.query('people')
+			.filter((q) => q.eq(q.field('status'), PLACEHOLDER_STATUS))
+			.collect();
+
+		const violations = placeholders
+			.filter((person) => person.invitedAt !== undefined)
+			.map((person) => person._id);
+
+		return makeResult({
+			id: 'IDENT-13',
+			name: 'Placeholder people do not have invitedAt set',
+			severity: 'warning',
+			violations,
+			message:
+				violations.length === 0
+					? 'All placeholder people use createdAt only'
+					: `${violations.length} placeholder people have invitedAt set (should use createdAt)`
 		});
 	}
 });

@@ -30,6 +30,11 @@ export const ErrorCodes = {
 	WORKSPACE_ALREADY_MEMBER: 'WORKSPACE_ALREADY_MEMBER',
 
 	// ============================================
+	// SYSTEM - System-level errors
+	// ============================================
+	SYS_FIELD_DEFINITIONS_MISSING: 'SYS_FIELD_DEFINITIONS_MISSING',
+
+	// ============================================
 	// PROPOSAL - Proposal domain errors
 	// ============================================
 	PROPOSAL_INVALID_STATE: 'PROPOSAL_INVALID_STATE',

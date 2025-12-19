@@ -61,7 +61,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	// If workspace setup is complete, redirect to workspace
 	// (This shouldn't happen due to route guards, but handle it gracefully)
 	if (workspaceOnboardingState.workspaceSetupComplete && firstWorkspace.slug) {
-		throw redirect(302, `/w/${firstWorkspace.slug}/circles`);
+		throw redirect(302, `/w/${firstWorkspace.slug}/chart`);
 	}
 
 	// Workspace exists but setup incomplete - find next step and redirect

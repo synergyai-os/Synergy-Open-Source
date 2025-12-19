@@ -11,7 +11,7 @@
  * 
  * See: dev-docs/master-docs/design-system.md Section 1.5 (AI Development Guardrails)
  * 
- * Generated: 2025-12-12T13:34:31.233Z
+ * Generated: 2025-12-18T12:34:05.999Z
  */
 @theme {
 	--spacing-0: 0; /* 0px */
@@ -63,6 +63,10 @@
 	--spacing-card-gap: var(--spacing-4); /* Gap between card elements (16px - compact) */
 	--spacing-section-gap: var(--spacing-6); /* Gap between major sections (24px - compact, Linear-inspired) */
 	--spacing-section-mb: var(--spacing-6); /* Margin below major sections (24px - compact, Linear-inspired) */
+	--spacing-modal-gap: var(--spacing-9); /* Gap between modal/dialog sections (36px - spacious for visual hierarchy) */
+	--spacing-modal-x: var(--spacing-6); /* Modal horizontal padding (24px) */
+	--spacing-modal-pt: var(--spacing-4); /* Modal top padding (16px) */
+	--spacing-modal-pb: var(--spacing-6); /* Modal bottom padding (24px) */
 	--spacing-form-gap: var(--spacing-3); /* Gap between form fields (12px - compact, Linear-inspired) */
 	--spacing-form-sectionGap: var(--spacing-4); /* Gap between form sections (16px - compact) */
 	--spacing-content-gap: var(--spacing-3); /* Gap between content elements (12px - compact) */

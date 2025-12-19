@@ -98,7 +98,7 @@ export async function listSystemRoles(ctx: Ctx, userId: Id<'users'>): Promise<Sy
  * These roles use personId because the same user can have different
  * roles in different workspaces.
  */
-export type WorkspaceRole = 'billing_admin' | 'workspace_admin' | 'member';
+export type WorkspaceRole = 'billing_admin' | 'workspace_admin' | 'member' | 'org_designer';
 
 /**
  * Check if a person has a workspace-level role.

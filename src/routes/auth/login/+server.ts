@@ -232,26 +232,42 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 			console.log('🔍 User logged in from invite link, accepting invite:', inviteCode);
 
 			try {
-				// Get invite details (organization invites only)
-				const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+				// Get invite details (workspace invites only)
+				const inviteDetails = await convex.query(api.core.workspaces.index.findInviteByCode, {
+					sessionId,
 					code: inviteCode
 				});
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
 					redirectTo = undefined;
-				} else if (inviteDetails.type === 'organization') {
-					// Accept organization invite
-					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
-						sessionId: event.locals.auth.sessionId!,
-						code: inviteCode
-					});
+				} else if (inviteDetails.type === 'workspace') {
+					// Accept workspace invite
+					const acceptResult = await convex.mutation(
+						api.core.workspaces.index.acceptOrganizationInvite,
+						{
+							sessionId,
+							code: inviteCode
+						}
+					);
 
 					console.log(
-						'✅ Organization invite accepted, redirecting to organization:',
-						acceptResult.organizationId
+						'✅ Workspace invite accepted, redirecting to workspace:',
+						acceptResult.workspaceId
 					);
-					redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
+
+					// Get workspace slug from workspaceId
+					const workspace = (await convex.query(api.core.workspaces.index.findById, {
+						sessionId,
+						workspaceId: acceptResult.workspaceId
+					})) as { slug?: string } | null;
+
+					if (workspace?.slug) {
+						redirectTo = `/w/${workspace.slug}/chart`;
+					} else {
+						// Fallback: redirect to auth redirect handler
+						redirectTo = '/auth/redirect';
+					}
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);

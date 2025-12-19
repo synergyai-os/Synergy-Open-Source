@@ -209,3 +209,28 @@ export const SYSTEM_FIELD_DEFINITIONS = [
  * Extracted from the SYSTEM_FIELD_DEFINITIONS array.
  */
 export type SystemFieldDefinition = (typeof SYSTEM_FIELD_DEFINITIONS)[number];
+
+// ============================================================================
+// History Tracking Configuration
+// ============================================================================
+
+/**
+ * Entity types that have governance history tracking enabled.
+ * These entities will have custom field changes recorded in the history system.
+ *
+ * Note: History tracking implementation is pending - this constant establishes
+ * the foundation for future history feature (SYOS-994).
+ */
+export const HISTORY_TRACKED_ENTITY_TYPES = ['circle', 'role'] as const;
+
+/**
+ * Check if an entity type has history tracking enabled.
+ *
+ * @param entityType - The entity type to check
+ * @returns True if history tracking is enabled for this entity type
+ */
+export function isHistoryTracked(entityType: string): boolean {
+	return HISTORY_TRACKED_ENTITY_TYPES.includes(
+		entityType as (typeof HISTORY_TRACKED_ENTITY_TYPES)[number]
+	);
+}

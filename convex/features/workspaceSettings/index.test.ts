@@ -59,7 +59,7 @@ describe('workspaceSettings auth', () => {
 			updateOrgSettings(ctx, {
 				sessionId: 's1',
 				workspaceId: 'w1' as any,
-				allowQuickChanges: true
+				requireCircleLeadRole: true
 			})
 		).rejects.toThrow(
 			`${ErrorCodes.WORKSPACE_ACCESS_DENIED}: Only workspace admins can update org chart settings`

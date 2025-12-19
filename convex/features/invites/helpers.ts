@@ -176,6 +176,7 @@ export async function acceptWorkspaceInvite(
 			email: null, // Email comes from user lookup, not stored per people/README.md
 			workspaceRole: invite.role,
 			status: 'active',
+			createdAt: invite.createdAt, // Use invite creation time as person creation time
 			invitedAt: invite.createdAt,
 			invitedBy: invite.invitedByPersonId,
 			joinedAt: now,

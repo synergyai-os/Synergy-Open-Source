@@ -4,6 +4,8 @@ import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
 import { listCircles } from './circleList';
 import { getCircleMembers } from './circleMembers';
+import { getAuthorityContext } from '../authority/context';
+import { isCircleLead, isCircleMember } from '../authority/rules';
 
 export const list = query({
 	args: {
@@ -52,7 +54,6 @@ export const get = query({
 			workspaceId: circle.workspaceId,
 			name: circle.name,
 			slug: circle.slug,
-			purpose: circle.purpose,
 			parentCircleId: circle.parentCircleId,
 			parentName,
 			memberCount: members.length,
@@ -73,5 +74,64 @@ export const getMembers = query({
 	},
 	handler: async (ctx, args) => {
 		return getCircleMembers(ctx, args);
+	}
+});
+
+export const isMember = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			return false;
+		}
+
+		const personId = await requireWorkspacePersonFromSession(
+			ctx,
+			args.sessionId,
+			circle.workspaceId
+		);
+
+		const membership = await ctx.db
+			.query('circleMembers')
+			.withIndex('by_circle_person', (q) =>
+				q.eq('circleId', args.circleId).eq('personId', personId)
+			)
+			.first();
+
+		return !!membership;
+	}
+});
+
+export const getMyAuthority = query({
+	args: {
+		sessionId: v.string(),
+		circleId: v.id('circles')
+	},
+	handler: async (ctx, args) => {
+		const circle = await ctx.db.get(args.circleId);
+		if (!circle) {
+			return null;
+		}
+
+		const personId = await requireWorkspacePersonFromSession(
+			ctx,
+			args.sessionId,
+			circle.workspaceId
+		);
+
+		// Get authority context to check if user is circle lead
+		const authorityContext = await getAuthorityContext(ctx, {
+			personId,
+			circleId: args.circleId
+		});
+
+		return {
+			isCircleLead: isCircleLead(authorityContext),
+			isMember: isCircleMember(authorityContext),
+			circleType: circle.circleType
+		};
 	}
 });

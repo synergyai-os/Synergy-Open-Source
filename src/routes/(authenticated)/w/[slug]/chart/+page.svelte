@@ -8,7 +8,6 @@
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
 	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
-	import EditRolePanel from '$lib/modules/org-chart/components/EditRolePanel.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
 	import type { Id } from '$lib/convex/_generated/dataModel';
@@ -81,21 +80,6 @@
 			<h1 class="text-button text-secondary font-normal">Org Chart</h1>
 			<p class="text-label text-tertiary">{organizationName}</p>
 		</div>
-		<div class="flex items-center gap-2">
-			<button
-				class="py-nav-item text-button hover:bg-hover-solid rounded-button text-secondary hover:text-primary px-2"
-				onclick={() => {
-					const slug = workspaceSlug();
-					if (slug) {
-						goto(resolveRoute(`/w/${slug}/circles`));
-					} else {
-						goto(resolveRoute('/auth/redirect'));
-					}
-				}}
-			>
-				← Back to Circles
-			</button>
-		</div>
 	</header>
 
 	<!-- Content -->
@@ -132,7 +116,5 @@
 	<!-- Edit Panels - Conditionally rendered based on navigation stack -->
 	<!-- Note: currentLayer is defined as $derived in script for proper reactivity -->
 	<!-- Note: EditCirclePanel removed - edit mode now handled directly in CircleDetailPanel -->
-	{#if currentLayer?.type === 'edit-role'}
-		<EditRolePanel {orgChart} roleId={currentLayer.id as Id<'circleRoles'>} />
-	{/if}
+	<!-- Note: EditRolePanel removed - inline editing will be added in SYOS-978-D -->
 {/if}

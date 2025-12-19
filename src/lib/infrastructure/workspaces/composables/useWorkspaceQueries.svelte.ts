@@ -71,6 +71,7 @@ export function useWorkspaceQueries(
 					initials: string;
 					slug: string;
 					plan: string;
+					phase?: 'design' | 'active';
 					role: 'owner' | 'admin' | 'member';
 					joinedAt: number;
 					memberCount: number;
@@ -81,6 +82,7 @@ export function useWorkspaceQueries(
 				initials: org.initials,
 				slug: org.slug,
 				plan: org.plan,
+				phase: org.phase,
 				role: org.role,
 				joinedAt: org.joinedAt,
 				memberCount: org.memberCount,

@@ -112,7 +112,7 @@
 			// Redirect to workspace
 			const slug = activeWorkspace.slug;
 			if (slug) {
-				goto(resolveRoute(`/w/${slug}/circles`));
+				goto(resolveRoute(`/w/${slug}/chart`));
 			}
 		} catch (error) {
 			console.error('Failed to complete setup:', error);

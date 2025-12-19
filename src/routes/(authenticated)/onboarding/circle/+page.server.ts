@@ -42,7 +42,7 @@ export const load: PageServerLoad = async ({ locals, parent }) => {
 	if (nextStep.isComplete) {
 		const workspace = workspaces[0];
 		if (workspace.slug) {
-			throw redirect(302, `/w/${workspace.slug}/circles`);
+			throw redirect(302, `/w/${workspace.slug}/chart`);
 		}
 		throw redirect(302, '/onboarding/complete');
 	}

@@ -18,15 +18,13 @@ import type { Id } from '$lib/convex';
 import type { ConvexClient } from 'convex/browser';
 import { invariant } from '$lib/utils/invariant';
 
-export type ModalKey = 'createWorkspace' | 'joinOrganization';
-
 export interface UseOrganizationMutationsOptions {
 	convexClient: ConvexClient | null;
 	getSessionId: () => string | undefined;
 	getUserId: () => string | undefined;
 	activeWorkspaceId: () => string | null; // Reactive function to get active org ID
 	setActiveWorkspace: (workspaceId: string | null) => void;
-	closeModal: (key: ModalKey) => void;
+	closeModal: () => void; // No-op callback for backward compatibility
 }
 
 export interface UseOrganizationMutationsReturn {
@@ -109,8 +107,7 @@ export function useWorkspaceMutations(
 					}
 				}
 
-				// Close modal on success
-				closeModal('createWorkspace');
+				// Modal is now handled locally by components, no need to close here
 
 				// Hide overlay after a short delay (workspace switch overlay will take over)
 				if (loadingOverlay && browser) {
@@ -160,7 +157,7 @@ export function useWorkspaceMutations(
 				setActiveWorkspace(result.workspaceId);
 			}
 		} finally {
-			closeModal('joinOrganization');
+			closeModal(); // Modal is now handled locally by components
 		}
 	}
 

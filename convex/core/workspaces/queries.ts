@@ -11,6 +11,8 @@ import {
 	findPersonByUserAndWorkspace,
 	listPeopleInWorkspace
 } from '../people/queries';
+// SYOS-1006: Import validation rules (static import required by Convex)
+import { runActivationValidation } from './rules';
 
 type WorkspaceSummary = {
 	workspaceId: Id<'workspaces'>;
@@ -18,6 +20,7 @@ type WorkspaceSummary = {
 	initials: string;
 	slug: string;
 	plan: string;
+	phase?: 'design' | 'active'; // Optional: undefined treated as 'active' for backwards compat
 	createdAt: number;
 	updatedAt: number;
 	role: string;
@@ -97,10 +100,11 @@ async function getWorkspaceSummaryFromPerson(
 		initials: calculateInitialsFromName(workspace.name),
 		slug: workspace.slug,
 		plan: workspace.plan,
+		phase: workspace.phase,
 		createdAt: workspace.createdAt,
 		updatedAt: workspace.updatedAt,
 		role: person.workspaceRole,
-		joinedAt: person.joinedAt ?? person.invitedAt,
+		joinedAt: person.joinedAt ?? person.invitedAt ?? person.createdAt,
 		memberCount: activePeople.length
 	};
 }
@@ -162,5 +166,67 @@ export const getAliasBySlug = query({
 			slug: alias.slug,
 			createdAt: alias.createdAt
 		};
+	}
+});
+
+// ============================================================================
+// Activation Validation (SYOS-997, SYOS-1006)
+// ============================================================================
+
+/**
+ * Get activation issues for a workspace
+ *
+ * Returns a list of validation issues that block activation (design → active phase).
+ * Empty array means workspace is ready to activate.
+ *
+ * Validation checks:
+ * - ORG-01: Workspace has exactly one root circle
+ * - ORG-10: Root circle type ≠ guild
+ * - GOV-01: Every circle has role with roleType: 'circle_lead'
+ * - GOV-02: Every role has a purpose (customFieldValue)
+ * - GOV-03: Every role has ≥1 decision_right (customFieldValue)
+ *
+ * @see SYOS-997: Activation validation query and mutation
+ * @see SYOS-1006: Refactored to use rules.ts registry pattern
+ */
+export const getActivationIssues = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	returns: v.array(
+		v.object({
+			id: v.string(),
+			code: v.string(),
+			severity: v.literal('error'),
+			entityType: v.union(v.literal('circle'), v.literal('role'), v.literal('workspace')),
+			entityId: v.string(),
+			entityName: v.string(),
+			message: v.string(),
+			actionType: v.union(
+				v.literal('edit_role'),
+				v.literal('edit_circle'),
+				v.literal('assign_lead'),
+				v.literal('create_root')
+			),
+			actionUrl: v.string()
+		})
+	),
+	handler: async (ctx, args) => {
+		// Auth check: verify user has access to workspace
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+		if (!person || person.status !== 'active') {
+			throw new Error('AUTHZ_NOT_WORKSPACE_MEMBER: You do not have access to this workspace');
+		}
+
+		// Get workspace
+		const workspace = await ctx.db.get(args.workspaceId);
+		if (!workspace || workspace.archivedAt) {
+			throw new Error('WORKSPACE_NOT_FOUND: Workspace not found');
+		}
+
+		// Delegate to shared validation rules (SYOS-1006)
+		return runActivationValidation(ctx, args.workspaceId, workspace.slug);
 	}
 });

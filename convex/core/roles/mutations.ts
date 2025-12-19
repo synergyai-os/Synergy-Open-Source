@@ -581,14 +581,16 @@ export const create = mutation({
 		});
 
 		// Create customFieldValues if provided (SYOS-960)
-		// Validation (GOV-02, GOV-03) happens inside helper
+		// Validation (GOV-02, GOV-03) happens inside helper (phase-aware - SYOS-996)
 		if (args.fieldValues && args.fieldValues.length > 0) {
+			const workspace = await ctx.db.get(workspaceId);
 			await createCustomFieldValuesFromTemplate(ctx, {
 				workspaceId,
 				entityType: 'role',
 				entityId: roleId,
 				templateDefaultFieldValues: args.fieldValues,
-				createdByPersonId: personId
+				createdByPersonId: personId,
+				workspacePhase: workspace?.phase
 			});
 		}
 

@@ -23,7 +23,7 @@ Explicit, testable statements about what must be true for CORE to be sound.
 
 | Domain                   | Invariant IDs          | Count  |
 | ------------------------ | ---------------------- | ------ |
-| Identity Chain           | IDENT-01 to IDENT-11   | 11     |
+| Identity Chain           | IDENT-01 to IDENT-13   | 13     |
 | Organizational Structure | ORG-01 to ORG-10       | 10     |
 | Circle Membership        | CMEM-01 to CMEM-04     | 4      |
 | Role Definitions         | ROLE-01 to ROLE-06     | 6      |
@@ -36,7 +36,7 @@ Explicit, testable statements about what must be true for CORE to be sound.
 | Guest Access             | GUEST-01 to GUEST-05   | 5      |
 | RBAC                     | RBAC-01 to RBAC-06     | 6      |
 | Cross-Domain             | XDOM-01 to XDOM-05     | 5      |
-| **Total**                |                        | **80** |
+| **Total**                |                        | **82** |
 
 ### Legacy Invariants (Retire After Migration)
 
@@ -53,19 +53,21 @@ Explicit, testable statements about what must be true for CORE to be sound.
 The identity chain (`sessionId → userId → personId → workspaceId`) is foundational.
 Changing how identity works breaks every other domain.
 
-| ID       | Invariant                                                   | Why                               | Check                                                       | Severity |
-| -------- | ----------------------------------------------------------- | --------------------------------- | ----------------------------------------------------------- | -------- |
-| IDENT-01 | Active people (`status=active`) must have `userId` set      | Can't link to auth identity       | `people.status='active' AND userId IS NULL` → 0 rows        | critical |
-| IDENT-02 | Invited people (`status=invited`) must have `email` set     | Can't identify for signup         | `people.status='invited' AND email IS NULL` → 0 rows        | critical |
-| IDENT-03 | Active people should NOT have `email` set (use users.email) | Denormalization, stale data risk  | `people.status='active' AND email IS NOT NULL` → 0 rows     | warning  |
-| IDENT-04 | Every `person.workspaceId` points to existing workspace     | Orphaned person, security risk    | All `people.workspaceId` resolve via `db.get()`             | critical |
-| IDENT-05 | Every `person.userId` (when set) points to existing user    | Broken identity chain             | All `people.userId` resolve via `db.get()`                  | critical |
-| IDENT-06 | No duplicate `(workspaceId, userId)` pairs in active people | Identity confusion                | `by_workspace_user` index returns max 1 active per pair     | critical |
-| IDENT-07 | No duplicate `(workspaceId, email)` pairs in invited people | Invite confusion                  | `by_workspace_email` index returns max 1 invited per pair   | critical |
-| IDENT-08 | Previously-active archived people preserve `userId`         | History integrity                 | Archived people with activity evidence must retain `userId` | warning  |
-| IDENT-09 | Every `user.email` is unique                                | Auth identity uniqueness          | `users.by_email` index is unique                            | critical |
-| IDENT-10 | Guest people (`isGuest=true`) should have `guestExpiry` set | Guests need defined access period | `people.isGuest=true AND guestExpiry IS NULL` → 0 rows      | warning  |
-| IDENT-11 | Expired guests (`guestExpiry < now`) should be deactivated  | Stale access risk                 | Periodic check for expired guests still active              | warning  |
+| ID       | Invariant                                                                               | Why                                   | Check                                                                                | Severity |
+| -------- | --------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------ | -------- |
+| IDENT-01 | Active people (`status=active`) must have `userId` set                                  | Can't link to auth identity           | `people.status='active' AND userId IS NULL` → 0 rows                                 | critical |
+| IDENT-02 | Invited people (`status=invited`) must have `email` set                                 | Can't identify for signup             | `people.status='invited' AND email IS NULL` → 0 rows                                 | critical |
+| IDENT-03 | Active people should NOT have `email` set (use users.email)                             | Denormalization, stale data risk      | `people.status='active' AND email IS NOT NULL` → 0 rows                              | warning  |
+| IDENT-04 | Every `person.workspaceId` points to existing workspace                                 | Orphaned person, security risk        | All `people.workspaceId` resolve via `db.get()`                                      | critical |
+| IDENT-05 | Every `person.userId` (when set) points to existing user                                | Broken identity chain                 | All `people.userId` resolve via `db.get()`                                           | critical |
+| IDENT-06 | No duplicate `(workspaceId, userId)` pairs in active people                             | Identity confusion                    | `by_workspace_user` index returns max 1 active per pair                              | critical |
+| IDENT-07 | No duplicate `(workspaceId, email)` pairs in invited people                             | Invite confusion                      | `by_workspace_email` index returns max 1 invited per pair                            | critical |
+| IDENT-08 | Previously-active archived people preserve `userId`                                     | History integrity                     | Archived people with activity evidence must retain `userId`                          | warning  |
+| IDENT-09 | Every `user.email` is unique                                                            | Auth identity uniqueness              | `users.by_email` index is unique                                                     | critical |
+| IDENT-10 | Guest people (`isGuest=true`) should have `guestExpiry` set                             | Guests need defined access period     | `people.isGuest=true AND guestExpiry IS NULL` → 0 rows                               | warning  |
+| IDENT-11 | Expired guests (`guestExpiry < now`) should be deactivated                              | Stale access risk                     | Periodic check for expired guests still active                                       | warning  |
+| IDENT-12 | Placeholder people (`status='placeholder'`) have `displayName`, no `email`, no `userId` | Ensures placeholder state consistency | `people.status='placeholder' AND (email IS NOT NULL OR userId IS NOT NULL)` → 0 rows | critical |
+| IDENT-13 | Placeholder people do not have `invitedAt` set                                          | Semantic clarity (use `createdAt`)    | `people.status='placeholder' AND invitedAt IS NOT NULL` → 0 rows                     | warning  |
 
 > **IDENT-06 & IDENT-08 Interaction (Rejoin Scenario)**:
 > When a user leaves and rejoins a workspace, the old person is archived (keeps `userId` for audit trail),
@@ -78,6 +80,12 @@ Changing how identity works breaks every other domain.
 > **IDENT-10 & IDENT-11 (Guest Access)**:
 > Guests are people with `isGuest=true`. They have limited, time-bound access to specific resources.
 > See GUEST-\* invariants for resource-level access rules.
+>
+> **IDENT-12 & IDENT-13 (Placeholder People)**:
+> Placeholders are planning entities representing known future participants (new hires, consultants, board members).
+> They have `displayName` only — no `email` (not yet invited) and no `userId` (can't log in).
+> Use `createdAt` for creation timestamp; `invitedAt` is set only when transitioning to `invited` status.
+> Placeholders can be assigned to roles and appear in org charts, but cannot take actions.
 
 ---
 
@@ -474,6 +482,7 @@ Invariants are validated at two levels:
 | 1.4     | 2025-12-11 | Add ROLE-06, clarify role soft delete model                                                                                                                                                                                                                                                                                                                              |
 | 1.5     | 2025-12-13 | Add schema vs data validation clarification (SYOS-842)                                                                                                                                                                                                                                                                                                                   |
 | 2.0     | 2025-12-14 | Aligned with architecture.md v3.6. Added: IDENT-10/11 for guest identity, GUEST-01 to GUEST-05 for guest access, RBAC-01 to RBAC-06 for two-scope RBAC model. Updated: Known Exceptions to reflect `systemRoles`/`workspaceRoles` split, deprecated `userRoles`. Added: XDOM-05 for customFields, policies domain placeholder. Total invariants: 71 (+ 4 legacy UCROLE). |
+| 2.1     | 2025-12-19 | Added IDENT-12/13 for placeholder people status. Placeholders are planning entities with `displayName` only (no email, no userId). Documents lifecycle: `placeholder` → `invited` → `active` → `archived`. Total invariants: 82 (+ 4 legacy UCROLE). SYOS-999.                                                                                                           |
 
 ---
 

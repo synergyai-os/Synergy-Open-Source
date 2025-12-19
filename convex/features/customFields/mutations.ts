@@ -16,7 +16,10 @@ import {
 	canSetValue,
 	validateFieldType,
 	validateSelectOptions,
-	extractSearchText
+	requireActiveDefinition,
+	assertEntityTypeMatch,
+	upsertTextListValues,
+	upsertSingleValue
 } from './rules';
 import type { CustomFieldEntityType as _CustomFieldEntityType } from './schema';
 
@@ -42,6 +45,7 @@ export const createDefinition = mutation({
 		fieldType: v.union(
 			v.literal('text'),
 			v.literal('longText'),
+			v.literal('textList'),
 			v.literal('number'),
 			v.literal('boolean'),
 			v.literal('date'),
@@ -97,14 +101,7 @@ export const updateDefinition = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		const definition = await ctx.db.get(args.definitionId);
-		if (!definition) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Custom field definition not found');
-		}
-
-		if (definition.archivedAt) {
-			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Cannot update archived definition');
-		}
+		const definition = await requireActiveDefinition(ctx, args.definitionId);
 
 		await canDefineField(ctx, userId, definition.workspaceId);
 		const person = await getPersonByUserAndWorkspace(ctx, userId, definition.workspaceId);
@@ -130,10 +127,7 @@ export const archiveDefinition = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		const definition = await ctx.db.get(args.definitionId);
-		if (!definition) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Custom field definition not found');
-		}
+		const definition = await requireActiveDefinition(ctx, args.definitionId);
 
 		if (definition.isSystemField) {
 			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Cannot archive system field');
@@ -168,61 +162,21 @@ export const setValue = mutation({
 		entityId: v.string(),
 		value: v.any() // JSON-encoded value
 	},
-	handler: async (ctx, args) => {
+	handler: async (ctx, args): Promise<Id<'customFieldValues'> | null> => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		const definition = await ctx.db.get(args.definitionId);
-		if (!definition) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Custom field definition not found');
-		}
+		const definition = await requireActiveDefinition(ctx, args.definitionId);
 
-		if (definition.archivedAt) {
-			throw createError(
-				ErrorCodes.VALIDATION_INVALID_FORMAT,
-				'Cannot set value for archived definition'
-			);
-		}
-
-		if (definition.entityType !== args.entityType) {
-			throw createError(ErrorCodes.VALIDATION_INVALID_FORMAT, 'Entity type mismatch');
-		}
-
+		assertEntityTypeMatch(definition.entityType, args.entityType);
 		await canSetValue(ctx, userId, definition.workspaceId, args.entityType, args.entityId);
 		validateFieldType(args.value, definition.fieldType);
 		validateSelectOptions(args.value, definition.fieldType, definition.options);
 
 		const person = await getPersonByUserAndWorkspace(ctx, userId, definition.workspaceId);
-		const searchText = extractSearchText(args.value, definition.fieldType);
 
-		// Check if value already exists
-		const existing = await ctx.db
-			.query('customFieldValues')
-			.withIndex('by_definition_entity', (q) =>
-				q.eq('definitionId', args.definitionId).eq('entityId', args.entityId)
-			)
-			.first();
-
-		const now = Date.now();
-		const valueData = {
-			workspaceId: definition.workspaceId,
-			definitionId: args.definitionId,
-			entityType: args.entityType,
-			entityId: args.entityId,
-			value: String(args.value), // Plain string - no JSON encoding needed (SYOS-963)
-			searchText,
-			updatedAt: now,
-			updatedByPersonId: person._id
-		};
-
-		if (existing) {
-			await ctx.db.patch(existing._id, valueData);
-			return existing._id;
-		} else {
-			return await ctx.db.insert('customFieldValues', {
-				...valueData,
-				createdAt: now,
-				createdByPersonId: person._id
-			});
+		if (definition.fieldType === 'textList') {
+			return await upsertTextListValues(ctx, definition, args.entityId, args.value, person._id);
 		}
+		return await upsertSingleValue(ctx, definition, args.entityId, args.value, person._id);
 	}
 });
 
@@ -234,10 +188,7 @@ export const archiveValue = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		const definition = await ctx.db.get(args.definitionId);
-		if (!definition) {
-			throw createError(ErrorCodes.GENERIC_ERROR, 'Custom field definition not found');
-		}
+		const definition = await requireActiveDefinition(ctx, args.definitionId);
 
 		if (definition.isRequired) {
 			throw createError(
@@ -248,14 +199,15 @@ export const archiveValue = mutation({
 
 		await canSetValue(ctx, userId, definition.workspaceId, definition.entityType, args.entityId);
 
-		const value = await ctx.db
+		// Delete all values for this definition + entity (handles both single-value and textList)
+		const values = await ctx.db
 			.query('customFieldValues')
 			.withIndex('by_definition_entity', (q) =>
 				q.eq('definitionId', args.definitionId).eq('entityId', args.entityId)
 			)
-			.first();
+			.collect();
 
-		if (value) {
+		for (const value of values) {
 			await ctx.db.delete(value._id);
 		}
 	}

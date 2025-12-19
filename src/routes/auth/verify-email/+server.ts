@@ -166,7 +166,19 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 						'✅ Organization invite accepted, redirecting to workspace:',
 						acceptResult.workspaceId
 					);
-					redirectTo = `/org/circles?org=${acceptResult.workspaceId}`;
+
+					// Get workspace slug from workspaceId
+					const workspace = await convex.query(api.core.workspaces.index.findById, {
+						sessionId,
+						workspaceId: acceptResult.workspaceId
+					});
+
+					if (workspace?.slug) {
+						redirectTo = `/w/${workspace.slug}/chart`;
+					} else {
+						// Fallback: redirect to auth redirect handler
+						redirectTo = '/auth/redirect';
+					}
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);

@@ -1,0 +1,168 @@
+<script lang="ts">
+	import { browser } from '$app/environment';
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import { LoadingOverlay, Text } from '$lib/components/atoms';
+	import ActivationIssueCard from './components/ActivationIssueCard.svelte';
+	import ReadyState from './components/ReadyState.svelte';
+	import SuccessState from './components/SuccessState.svelte';
+	import { toast } from '$lib/utils/toast';
+	import type { PageData } from './$types';
+
+	interface Props {
+		data: PageData;
+	}
+
+	let { data }: Props = $props();
+
+	// State management
+	let isActivating = $state(false);
+	let isActivated = $state(false);
+
+	// Fetch activation issues
+	const getSessionId = () => data.sessionId;
+	const getWorkspaceId = () => data.workspaceId;
+
+	const issuesQuery =
+		browser && getSessionId() && getWorkspaceId()
+			? useQuery(api.core.workspaces.index.getActivationIssues, () => {
+					const sessionId = getSessionId();
+					const workspaceId = getWorkspaceId();
+					if (!sessionId) throw new Error('sessionId required');
+					if (!workspaceId) throw new Error('workspaceId required');
+					return { sessionId, workspaceId };
+				})
+			: null;
+
+	// DEBUG: Log issues query state for troubleshooting
+	$effect(() => {
+		console.log('🔍 Activation Issues Query Debug:', {
+			isLoading: issuesQuery?.isLoading,
+			data: issuesQuery?.data,
+			error: issuesQuery?.error,
+			sessionId: data.sessionId,
+			workspaceId: data.workspaceId,
+			workspaceSlug: data.workspaceSlug
+		});
+	});
+
+	// Convex client for mutations
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Derived states
+	const isLoading = $derived(issuesQuery?.isLoading ?? true);
+	const issues = $derived(issuesQuery?.data ?? []);
+	const hasIssues = $derived(issues.length > 0);
+	const isReady = $derived(!isLoading && !hasIssues && !isActivated);
+
+	// Activate handler
+	async function handleActivate() {
+		if (!convexClient) {
+			toast.error('Convex client not available');
+			return;
+		}
+
+		const sessionId = getSessionId();
+		const workspaceId = getWorkspaceId();
+
+		if (!sessionId || !workspaceId) {
+			toast.error('Missing session or workspace ID');
+			return;
+		}
+
+		isActivating = true;
+
+		try {
+			await convexClient.mutation(api.core.workspaces.index.activate, {
+				sessionId,
+				workspaceId
+			});
+			isActivated = true;
+			toast.success('Workspace activated successfully!');
+		} catch (error) {
+			console.error('Activation failed:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Failed to activate workspace';
+			toast.error(errorMessage);
+		} finally {
+			isActivating = false;
+		}
+	}
+</script>
+
+<svelte:head>
+	<title>Activate Workspace - {data.workspaceSlug}</title>
+</svelte:head>
+
+<div class="bg-base flex h-full flex-col overflow-auto">
+	<!-- Page Header -->
+	<div
+		class="border-subtle bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
+		style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
+	>
+		<Text variant="label" size="sm" color="secondary" weight="normal" as="h2">
+			Workspace Activation
+		</Text>
+	</div>
+
+	<!-- Content Area -->
+	<div class="flex-1 overflow-auto" style="padding: var(--spacing-6);">
+		<div class="mx-auto" style="max-width: 800px;">
+			{#if isLoading}
+				<!-- Loading State -->
+				<div class="flex items-center justify-center" style="padding: var(--spacing-16);">
+					<LoadingOverlay visible={true} message="Checking activation requirements..." />
+				</div>
+			{:else if isActivated}
+				<!-- Success State -->
+				<SuccessState workspaceSlug={data.workspaceSlug} />
+			{:else if isReady}
+				<!-- Ready State (no issues) -->
+				<ReadyState onActivate={handleActivate} {isActivating} />
+			{:else if hasIssues}
+				<!-- Has Issues State -->
+				<div class="gap-section flex flex-col">
+					<!-- Header -->
+					<div class="gap-fieldGroup flex flex-col">
+						<Text
+							variant="heading"
+							size="lg"
+							color="default"
+							weight="semibold"
+							as="h1"
+							class="text-center"
+						>
+							Resolve Issues to Activate
+						</Text>
+						<Text variant="body" size="md" color="secondary" as="p" class="text-center">
+							Fix the following issues before activating your workspace. Each issue blocks the
+							transition from design mode to active mode.
+						</Text>
+					</div>
+
+					<!-- Issues List -->
+					<div class="gap-form flex flex-col">
+						{#each issues as issue (issue.id)}
+							<ActivationIssueCard
+								code={issue.code}
+								message={issue.message}
+								entityName={issue.entityName}
+								actionUrl={issue.actionUrl}
+							/>
+						{/each}
+					</div>
+
+					<!-- Help Text -->
+					<div class="border-subtle border-t" style="padding-top: var(--spacing-4);">
+						<Text variant="body" size="sm" color="secondary" as="p" class="text-center">
+							Need help? Check our
+							<a href="/docs/activation" class="text-accent-primary hover:underline">
+								activation guide
+							</a>
+							for more information.
+						</Text>
+					</div>
+				</div>
+			{/if}
+		</div>
+	</div>
+</div>

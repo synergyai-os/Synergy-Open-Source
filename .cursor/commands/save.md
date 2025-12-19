@@ -9,21 +9,25 @@ Capture learnings from work session. Update patterns or rules.
 ## Document Hierarchy
 
 ```
-ARCHITECTURE.md          → Principles, structure (rarely changes)
-DESIGN-SYSTEM.md         → Styling, tokens, recipes (rarely changes)
+dev-docs/master-docs/
+├── architecture.md          → 25 principles, structure (rarely changes)
+├── design-system.md         → Styling, tokens, recipes (rarely changes)
+└── architecture/
+    └── governance-design.md → Governance models (rarely changes)
         ↓
-Patterns (patterns/)     → Solved problems (grows over time)
-Rules (.cursor/rules/)   → Proactive constraints (grows slowly)
+dev-docs/2-areas/patterns/   → Solved problems (grows over time)
+.cursor/rules/               → Proactive constraints (grows slowly)
 ```
 
 **When to update what:**
 
 | Learning Type | Update |
 |---------------|--------|
-| New architectural principle | architecture.md (rare, needs review) |
-| New design system pattern | design-system.md (rare, needs review) |
-| Solved a bug/problem | patterns/ (common) |
-| Preventing repeated mistakes | rules/ (when 2+ occurrences) |
+| New architectural principle | `dev-docs/master-docs/architecture.md` (rare, needs review) |
+| New design system pattern | `dev-docs/master-docs/design-system.md` (rare, needs review) |
+| New governance pattern | `dev-docs/master-docs/architecture/governance-design.md` (rare, needs review) |
+| Solved a bug/problem | `dev-docs/2-areas/patterns/` (common) |
+| Preventing repeated mistakes | `.cursor/rules/` (when 2+ occurrences) |
 
 ---
 
@@ -189,7 +193,15 @@ After saving:
 
 ## Related
 
-- **Patterns**: `dev-docs/2-areas/patterns/INDEX.md`
-- **Rules**: `.cursor/rules/`
-- **Architecture**: `dev-docs/master-docs/architecture.md`
-- **Design System**: `dev-docs/master-docs/design-system.md`
+- **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` — Pattern index and lookup
+- **Rules**: `.cursor/rules/` — Proactive constraints
+- **Architecture**: `dev-docs/master-docs/architecture.md` — 25 principles, identity model, auth patterns
+- **Design System**: `dev-docs/master-docs/design-system.md` — Tokens, recipes, styling patterns
+- **Governance**: `dev-docs/master-docs/architecture/governance-design.md` — Circle types, role templates
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.1 | 2025-12-17 | Aligned with architecture.md v4.0. Updated document paths, added governance reference, clarified document hierarchy. |
+| 1.0 | 2025-12-07 | Original version |

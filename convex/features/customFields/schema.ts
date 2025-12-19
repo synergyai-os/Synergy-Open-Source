@@ -100,6 +100,7 @@ export type SystemFieldKey = CircleSystemFieldKey | RoleSystemFieldKey;
  */
 export type TextValue = string;
 export type LongTextValue = string;
+export type TextListValue = string[];
 export type NumberValue = number;
 export type BooleanValue = boolean;
 export type DateValue = string; // ISO 8601 date string
@@ -114,6 +115,7 @@ export type EmailValue = string;
 export type CustomFieldValue =
 	| TextValue
 	| LongTextValue
+	| TextListValue
 	| NumberValue
 	| BooleanValue
 	| DateValue

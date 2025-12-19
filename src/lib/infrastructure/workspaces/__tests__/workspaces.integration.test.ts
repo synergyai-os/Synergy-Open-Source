@@ -142,6 +142,7 @@ describe('Organizations Integration Tests', () => {
 				displayName: inviteeUser?.name ?? 'Test User',
 				workspaceRole: invite.role,
 				status: 'active',
+				createdAt: now,
 				invitedAt: now,
 				invitedBy: undefined,
 				joinedAt: now,

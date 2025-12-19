@@ -40,50 +40,18 @@
 	};
 
 	// Derived values from orgSettings
-	const allowQuickChangesValue = $derived(orgSettings?.allowQuickChanges ?? false);
 	const leadRequirementByCircleTypeValue = $derived<Record<CircleType, boolean>>(
 		orgSettings?.leadRequirementByCircleType ?? defaultLeadRequirement
 	);
 
 	// Local state for optimistic updates (initialized with defaults)
-	let allowQuickChanges = $state(false);
 	let leadRequirementByCircleType = $state<Record<CircleType, boolean>>(defaultLeadRequirement);
 	let isSaving = $state(false);
 
 	// Sync with query data
 	$effect(() => {
-		allowQuickChanges = allowQuickChangesValue;
 		leadRequirementByCircleType = leadRequirementByCircleTypeValue;
 	});
-
-	async function handleToggleAllowQuickChanges() {
-		if (!convexClient || !data.sessionId || !data.workspaceId || isSaving) return;
-
-		const newValue = !allowQuickChanges;
-		isSaving = true;
-
-		try {
-			await convexClient.mutation(api.features.workspaceSettings.index.updateOrgSettings, {
-				sessionId: data.sessionId,
-				workspaceId: data.workspaceId as Id<'workspaces'>,
-				allowQuickChanges: newValue
-			});
-
-			allowQuickChanges = newValue;
-			toast.success(
-				newValue
-					? 'Quick edits enabled for Org Designers'
-					: 'Quick edits disabled. All changes require proposals.'
-			);
-		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Failed to update settings';
-			toast.error(message);
-			// Revert on error
-			allowQuickChanges = !newValue;
-		} finally {
-			isSaving = false;
-		}
-	}
 
 	async function handleToggleLeadRequirement(circleType: CircleType) {
 		if (!convexClient || !data.sessionId || !data.workspaceId || isSaving) return;
@@ -131,37 +99,6 @@
 		</div>
 	{:else if orgSettings}
 		<div class="gap-section flex flex-col">
-			<!-- Allow Quick Changes Toggle -->
-			<div class="rounded-card border-default bg-surface p-card-padding border">
-				<div class="gap-button flex items-start justify-between">
-					<div class="flex-1">
-						<div class="mb-fieldGroup gap-fieldGroup flex items-center">
-							<Switch.Root
-								class={switchRootRecipe({ checked: allowQuickChanges, disabled: isSaving })}
-								checked={allowQuickChanges}
-								onCheckedChange={handleToggleAllowQuickChanges}
-								disabled={isSaving}
-							>
-								<Switch.Thumb class={switchThumbRecipe()} />
-							</Switch.Root>
-							<label for="allow-quick-changes" class="text-button text-primary font-medium">
-								Allow Quick Changes
-							</label>
-						</div>
-						<Text
-							variant="body"
-							size="sm"
-							color="secondary"
-							class="ml-[calc(var(--spacing-button)+var(--spacing-fieldGroup))]"
-						>
-							When enabled, users with the Org Designer role can edit circles and roles inline
-							without creating proposals. When disabled, all changes must go through the proposal
-							workflow.
-						</Text>
-					</div>
-				</div>
-			</div>
-
 			<!-- Lead Requirement by Circle Type -->
 			<div class="rounded-card border-default bg-surface p-card-padding border">
 				<Heading level={2} color="primary" class="mb-header">

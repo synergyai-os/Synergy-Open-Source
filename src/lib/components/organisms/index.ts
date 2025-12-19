@@ -15,6 +15,7 @@
 // Dialog Organisms
 export * as Dialog from './Dialog.svelte';
 export * as AlertDialog from './AlertDialog.svelte';
+export { default as StandardDialog } from './StandardDialog.svelte';
 
 // Navigation Organisms
 export * as NavigationMenu from './NavigationMenu.svelte';
@@ -42,3 +43,6 @@ export * as Collapsible from './Collapsible.svelte';
 export * as Toolbar from './Toolbar.svelte';
 export { default as StackedPanel } from './StackedPanel.svelte';
 export type { PanelContext } from './StackedPanel.svelte';
+
+// Banner Organisms
+export { default as DesignModeBanner } from './DesignModeBanner.svelte';

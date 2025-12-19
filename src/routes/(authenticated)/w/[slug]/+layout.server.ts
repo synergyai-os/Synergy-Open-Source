@@ -9,7 +9,7 @@ import type { Id } from '$lib/convex';
  * Workspace-scoped route layout
  * Resolves workspace slug from URL path and validates user access
  *
- * Pattern: /w/[slug]/circles, /w/[slug]/members, etc.
+ * Pattern: /w/[slug]/chart, /w/[slug]/members, etc.
  *
  * Resolution order:
  * 1. Try as current slug → serve page

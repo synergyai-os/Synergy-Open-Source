@@ -37,7 +37,7 @@ org-chart/
 └── manifest.ts        # Module registration
 ```
 
-**Note**: Core data composables (`useCircles`, `useCircleMembers`, `useCircleRoles`) and `CreateCircleModal` have been moved to `$lib/infrastructure/organizational-model`.
+**Note**: Core data composables (`useCircles`, `useCircleMembers`, `useCircleRoles`) have been moved to `$lib/infrastructure/organizational-model`.
 
 ## API Contract
 

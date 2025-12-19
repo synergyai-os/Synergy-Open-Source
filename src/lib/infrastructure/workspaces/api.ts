@@ -11,19 +11,6 @@
 import type { WorkspaceSummary, WorkspaceInvite } from './composables/useWorkspaces.svelte';
 
 /**
- * Modal keys for workspace modals
- */
-export type ModalKey = 'createWorkspace' | 'joinOrganization';
-
-/**
- * Modal state object
- */
-export type ModalState = {
-	createWorkspace: boolean;
-	joinOrganization: boolean;
-};
-
-/**
  * Public API contract for the Organizations module
  *
  * This interface defines the public surface that other modules can depend on.
@@ -67,11 +54,6 @@ export interface WorkspacesModuleAPI {
 	 * List of pending workspace invites for the user
 	 */
 	get workspaceInvites(): WorkspaceInvite[];
-
-	/**
-	 * Modal state (which modals are open)
-	 */
-	get modals(): ModalState;
 
 	/**
 	 * Loading state for each mutation operation
@@ -119,18 +101,6 @@ export interface WorkspacesModuleAPI {
 	 * Passing `null` will default to the first workspace in the list, not a personal workspace.
 	 */
 	setActiveWorkspace(workspaceId: string | null): void;
-
-	/**
-	 * Open a modal dialog
-	 * @param key - Modal key to open
-	 */
-	openModal(key: ModalKey): void;
-
-	/**
-	 * Close a modal dialog
-	 * @param key - Modal key to close
-	 */
-	closeModal(key: ModalKey): void;
 
 	/**
 	 * Create a new workspace

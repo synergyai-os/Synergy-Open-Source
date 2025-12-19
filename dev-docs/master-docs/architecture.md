@@ -2,8 +2,8 @@
 
 **Single Source of Truth** for all architectural principles, coding standards, and design decisions.
 
-**Version**: 4.0  
-**Last Updated**: 2025-12-16  
+**Version**: 4.1  
+**Last Updated**: 2025-12-19  
 **Optimization Target**: AI-native development with domain cohesion
 
 ---
@@ -447,6 +447,37 @@ await ctx.db.patch(circleId, {
 | `findPersonByUserAndWorkspace(ctx, userId, workspaceId)` | Person \| null | Checking if person exists |
 | `getMyPerson(ctx, sessionId, workspaceId)` | Person (throws if not found) | Getting current user's person |
 | `validateSessionAndGetUserId(ctx, sessionId)` | `{ userId, session }` | Auth validation |
+
+### People Status Lifecycle
+
+The `people` table uses a status field with four values representing the identity lifecycle:
+
+| Status | Has `email` | Has `userId` | Can Log In | Purpose |
+|--------|-------------|--------------|------------|---------|
+| `placeholder` | ❌ | ❌ | ❌ | Planning entity — name only, represents future participant |
+| `invited` | ✅ | ❌ | ❌ | Invited via email, awaiting signup |
+| `active` | ❌ (use users.email) | ✅ | ✅ | Linked to auth identity, full access |
+| `archived` | preserved | preserved | ❌ | Soft-deleted, kept for audit trail |
+
+**Lifecycle transitions:**
+```
+placeholder → invited → active → archived
+     ↓            ↓         ↓
+     └────────────┴─────────┴──────→ archived (direct archive allowed)
+```
+
+**Placeholders** represent known future participants (new hires, consultants, board members) who should appear in the org chart and hold roles before they have system accounts. Key properties:
+
+- Created with `displayName` only — no email, no userId
+- Can be assigned to roles via `assignments` table
+- Appear in org charts and authority displays
+- Cannot log in or take actions (no session possible)
+- Persist into active workspaces as a normal planning mechanism
+
+**Timestamps:**
+- `createdAt` — when the person record was created (all statuses)
+- `invitedAt` — when invite was sent (only for `invited` status and beyond)
+- `joinedAt` — when user accepted and linked their account (only for `active`)
 
 ### Guest Access Model
 
@@ -1422,7 +1453,7 @@ Explicit, testable statements about what must be true for CORE to be sound. They
 
 | Domain | Invariants | Critical Count |
 |--------|------------|----------------|
-| Identity Chain (IDENT-*) | 11 | 9 |
+| Identity Chain (IDENT-*) | 13 | 10 |
 | Organizational Structure (ORG-*) | 10 | 9 |
 | Circle Membership (CMEM-*) | 4 | 3 |
 | Role Definitions (ROLE-*) | 6 | 4 |
@@ -1436,7 +1467,7 @@ Explicit, testable statements about what must be true for CORE to be sound. They
 | Guest Access (GUEST-*) | 5 | 3 |
 | RBAC (RBAC-*) | 6 | 4 |
 | Cross-Domain (XDOM-*) | 5 | 3 |
-| **Total** | **84** | **63 critical** |
+| **Total** | **86** | **64 critical** |
 
 ### Running Invariant Checks
 
@@ -1660,6 +1691,7 @@ These failures exist in test/development workspaces and do not affect production
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 4.1 | 2025-12-19 | **Placeholder People.** Added: People Status Lifecycle section documenting the four-status model (`placeholder` → `invited` → `active` → `archived`), timestamp semantics (`createdAt`, `invitedAt`, `joinedAt`), placeholder capabilities and limitations. Supports SYOS-999 (Placeholder People feature). |
 | 4.0 | 2025-12-16 | **Frontend Patterns section.** Added comprehensive Svelte 5 patterns documentation covering: `.svelte.ts` vs `.ts` file type decision matrix, composables pattern with code examples, state export patterns across modules, `$derived` vs `$derived.by` usage guidance, `$derived` vs `$effect` distinction (with official Svelte quote), deep reactivity notes, and anti-patterns table. Cross-referenced from Document Selection table. Addresses gap where backend (Convex) had extensive documentation but frontend (Svelte) had only three principles. |
 | 3.9 | 2025-01-XX | Error handling improvements. Updated: Error Codes section to document structured error format (`SYNERGYOS_ERROR|CODE|USER_MESSAGE|TECHNICAL_DETAILS`), `createError()` function usage, auto-logging, and serialization-safe design. Follows Principle #11 (functions only, no classes). See `dev-docs/2-areas/patterns/error-handling-improvements.md` for details. |
 | 3.8 | 2025-12-15 | Constants pattern documentation. Added: `constants.ts` as OPTIONAL file in domain structure, tables.ts vs schema.ts vs constants.ts comparison, Frontend/Backend Constant Sync section. Updated: Domain File Structure to include constants.ts, schema.ts examples to show re-export pattern from constants.ts. Rationale: Separation of runtime constants (for iteration/validation) vs compile-time types. |

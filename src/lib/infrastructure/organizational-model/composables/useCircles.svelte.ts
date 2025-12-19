@@ -261,14 +261,24 @@ export function useCircles(options: {
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
-			state.loading.createRole = true;
-			try {
-				const result = await convexClient.mutation(api.core.roles.index.create, {
-					sessionId,
-					circleId: args.circleId as Id<'circles'>,
-					name: args.name,
-					purpose: args.purpose
-				});
+		state.loading.createRole = true;
+		try {
+			// Convert purpose to fieldValues format (SYOS-960)
+			const fieldValues = args.purpose
+				? [
+						{
+							systemKey: 'purpose',
+							values: [args.purpose]
+						}
+					]
+				: undefined;
+
+			const result = await convexClient.mutation(api.core.roles.index.create, {
+				sessionId,
+				circleId: args.circleId as Id<'circles'>,
+				name: args.name,
+				fieldValues
+			});
 
 				toast.success(`Role "${args.name}" created`);
 				state.modals.createRole = false;

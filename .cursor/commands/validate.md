@@ -1,12 +1,12 @@
 # validate
 
-Verify completed work against ticket criteria, architecture.md, and constraints. Read actual code. No assumptions.
+Verify completed work against ticket criteria, architecture.md v4.0, and constraints. Read actual code. No assumptions.
 
 ---
 
 ## Foundational Principle: Docs Lead, Code Follows
 
-**Architecture.md is the source of truth. Validation checks alignment with docs, not just "does the code work."**
+**`dev-docs/master-docs/architecture.md` is the source of truth. Validation checks alignment with docs, not just "does the code work."**
 
 A validation can fail for two reasons:
 1. **Code doesn't meet ticket criteria** — Fix the code
@@ -16,7 +16,7 @@ When you find code that contradicts architecture.md:
 ```markdown
 > ⚠️ **Architecture Misalignment Detected:**
 > 
-> **Architecture.md says:** [quote with section reference]
+> **Architecture.md v4.0 says:** [quote with section reference]
 > **Code implements:** [what you found]
 > 
 > **This is a validation failure** unless:
@@ -148,15 +148,17 @@ Display what was found:
 Before checking code, refresh on relevant architecture sections:
 
 ```bash
-view architecture.md
+view dev-docs/master-docs/architecture.md
 ```
 
 Note the current:
-- Identity chain pattern
-- Auth helper name
-- Domain terminology rules
-- Layer dependency direction
-- RBAC scope model (if RBAC-related)
+- Identity chain pattern (sessionId → userId → personId)
+- Auth helper name (validateSessionAndGetUserId)
+- Domain terminology rules (circle/role/person, not team/job/member)
+- Layer dependency direction (infrastructure ← core ← features)
+- RBAC scope model (systemRoles uses userId, workspaceRoles uses personId)
+- Function naming conventions (get___, find___, list___, create___, update___, etc.)
+- Frontend patterns if UI work (`.svelte.ts` for reactive state, `.ts` for pure functions)
 
 ### Step 4: Read Files and Check Architecture Alignment
 
@@ -395,6 +397,8 @@ Only after user says "confirm" AND validation passed:
 
 ## Architecture Principle Reference
 
+**Full details**: `dev-docs/master-docs/architecture.md` v4.0
+
 ### Always Blocking (From architecture.md)
 
 | ID | Principle | Check Method |
@@ -403,9 +407,24 @@ Only after user says "confirm" AND validation passed:
 | #8 | Queries pure | No writes in query handlers |
 | #9 | Auth before write | Line number comparison |
 | #11 | No classes | grep for class declarations |
+| #14a | `.svelte.ts` for reactive state, `.ts` for pure | File extension check |
 | #15-16 | Domain terminology | grep for forbidden terms |
 | #33 | Error format | grep + manual check |
 | XDOM-01 | personId in audit fields | View schema/mutations |
+
+### Function Naming (Always Check)
+
+Per architecture.md Code Standards → Function Naming Conventions:
+
+| Prefix | Returns | Required Pattern |
+|--------|---------|------------------|
+| `find___` | `T \| null` | May return nothing |
+| `get___` | `T` (throws) | Must succeed |
+| `list___` | `T[]` | Non-null array |
+| `create___` | `Id` | Create entity |
+| `update___` | `void` or `T` | Modify entity |
+
+**Do not allow**: `delete___`, `upsert___`, or other non-standard prefixes.
 
 ### Identity Chain (Critical)
 
@@ -488,5 +507,6 @@ Using wrong identifier for scope is a blocking issue.
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.1 | 2025-12-17 | Aligned with architecture.md v4.0. Updated document paths, added principle 14a (.svelte.ts vs .ts), added function naming conventions check, clarified Frontend Patterns reference, expanded architecture.md reading checklist. |
 | 2.0 | 2025-12-14 | Aligned with architecture.md v3.5. Added docs-first validation, architecture alignment checks, identity chain validation, RBAC scope checks, corrected terminology rules, clarified blocking vs guideline per Trade-off Guidance. |
 | 1.0 | 2025-12-07 | Original version |

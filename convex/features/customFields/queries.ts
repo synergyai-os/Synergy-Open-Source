@@ -93,7 +93,8 @@ export const listValues = query({
 			await requireWorkspaceMembership(ctx, values[0].workspaceId, userId);
 		}
 
-		return values;
+		// Sort by order field for textList items (default to 0 for legacy records)
+		return values.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 	}
 });
 
@@ -112,6 +113,20 @@ export const getValue = query({
 
 		await requireWorkspaceMembership(ctx, definition.workspaceId, userId);
 
+		// For textList fields, return all values sorted by order
+		if (definition.fieldType === 'textList') {
+			const values = await ctx.db
+				.query('customFieldValues')
+				.withIndex('by_definition_entity', (q) =>
+					q.eq('definitionId', args.definitionId).eq('entityId', args.entityId)
+				)
+				.collect();
+
+			// Sort by order field (default to 0 for legacy records without order)
+			return values.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+		}
+
+		// For single-value fields, return first record
 		const value = await ctx.db
 			.query('customFieldValues')
 			.withIndex('by_definition_entity', (q) =>

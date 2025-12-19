@@ -252,6 +252,14 @@ function transformTailwindUtility(token) {
 		} else if (/-y(?=$|-)/.test(spacingName)) {
 			utilityName = `py-${spacingName.replace(/-y(?=$|-)/, '')}`;
 			cssProperty = 'padding-block';
+		} else if (/-pt(?=$|-)/.test(spacingName)) {
+			// Padding-top utility: modal-pt → pt-modal
+			utilityName = `pt-${spacingName.replace(/-pt(?=$|-)/, '')}`;
+			cssProperty = 'padding-top';
+		} else if (/-pb(?=$|-)/.test(spacingName)) {
+			// Padding-bottom utility: modal-pb → pb-modal
+			utilityName = `pb-${spacingName.replace(/-pb(?=$|-)/, '')}`;
+			cssProperty = 'padding-bottom';
 		} else if (/-pr(?=$|-)/.test(spacingName)) {
 			utilityName = `pr-${spacingName.replace(/-pr(?=$|-)/, '')}`;
 			cssProperty = 'padding-right';

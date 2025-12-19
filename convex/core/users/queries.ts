@@ -74,7 +74,7 @@ export async function listOrgLinksForUser(ctx: QueryCtx, userId: Id<'users'>): P
 			return {
 				workspaceId,
 				role: person.workspaceRole,
-				joinedAt: person.joinedAt ?? person.invitedAt
+				joinedAt: person.joinedAt ?? person.invitedAt ?? person.createdAt
 			};
 		})
 	);

@@ -9,9 +9,6 @@
  * - `useCircleMembers` - Query workspace members available for circles
  * - `useCircleRoles` - Query role fillers and available users
  *
- * Components:
- * - `CreateCircleModal` - Modal for creating new circles
- *
  * @see dev-docs/master-docs/core-data-architecture-audit.md
  */
 
@@ -31,6 +28,3 @@ export type {
 
 export type { UseCircleMembers } from './composables/useCircleMembers.svelte';
 export type { UseCircleRoles } from './composables/useCircleRoles.svelte';
-
-// Export components
-export { default as CreateCircleModal } from './components/CreateCircleModal.svelte';

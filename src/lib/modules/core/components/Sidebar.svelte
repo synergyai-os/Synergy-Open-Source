@@ -20,6 +20,8 @@
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { NavItem, ThemeToggle } from '$lib/components/molecules';
+	import { StandardDialog } from '$lib/components/organisms';
+	import { FormInput } from '$lib/components/atoms';
 	import { sidebarRecipe } from '$lib/design-system/recipes';
 	import type {
 		WorkspacesModuleAPI,
@@ -93,6 +95,22 @@
 		if (!workspaces) return null;
 		return workspaces.activeWorkspace?.slug ?? null;
 	});
+
+	// Create workspace dialog state
+	let showCreateWorkspaceDialog = $state(false);
+	let newWorkspaceName = $state('');
+
+	const handleCreateWorkspace = async () => {
+		if (!workspaces || !newWorkspaceName.trim()) return;
+		try {
+			await workspaces.createWorkspace({ name: newWorkspaceName.trim() });
+			showCreateWorkspaceDialog = false;
+			newWorkspaceName = '';
+		} catch (error) {
+			// Error handling is done in the mutation handler (toast shown)
+			// Keep dialog open so user can retry
+		}
+	};
 
 	// Core features (circles, meetings) are always enabled
 
@@ -523,7 +541,7 @@
 					// Switch workspace functionality
 				}}
 				onCreateWorkspace={() => {
-					workspaces?.openModal('createWorkspace');
+					showCreateWorkspaceDialog = true;
 				}}
 				onCreateWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open create modal
@@ -702,16 +720,16 @@
 						{/if}
 
 						<div class="space-y-form-field-gap">
-							<!-- Circles -->
-							<NavItem
-								href={resolveRoute(
-									activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
-								)}
-								iconType="circles"
-								label="Circles"
-								title="Circles"
-								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-							/>
+						<!-- Circles -->
+						<NavItem
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
+							)}
+							iconType="circles"
+							label="Circles"
+							title="Circles"
+							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+						/>
 
 							<!-- Flashcards -->
 							<NavItem
@@ -904,7 +922,7 @@
 				console.log('Switch workspace menu selected');
 			}}
 			onCreateWorkspace={() => {
-				workspaces?.openModal('createWorkspace');
+				showCreateWorkspaceDialog = true;
 			}}
 			onCreateWorkspaceForAccount={async (targetUserId) => {
 				// Switch to the target account and redirect to open create modal
@@ -1082,7 +1100,7 @@
 						<!-- Circles -->
 						<NavItem
 							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/auth/redirect'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/auth/redirect'
 							)}
 							iconType="circles"
 							label="Circles"
@@ -1215,6 +1233,29 @@
 {#if accountSwitchOverlay.show}
 	<LoadingOverlay show={true} flow="workspace-switching" subtitle="account" />
 {/if}
+
+<!-- Create Workspace Dialog -->
+<StandardDialog
+	bind:open={showCreateWorkspaceDialog}
+	title="Create workspace"
+	description="Spin up a new workspace for another company or product team."
+	submitLabel="Create"
+	loading={workspaces?.loading.createWorkspace ?? false}
+	onsubmit={handleCreateWorkspace}
+	onclose={() => {
+		newWorkspaceName = '';
+	}}
+>
+	<div class="gap-form flex flex-col">
+		<FormInput
+			label="Organization name"
+			bind:value={newWorkspaceName}
+			placeholder="e.g. SynergyOS Labs"
+			required
+			min="2"
+		/>
+	</div>
+</StandardDialog>
 
 <style>
 	aside {

@@ -11,7 +11,7 @@
  * 
  * See: dev-docs/master-docs/design-system.md Section 1.5 (AI Development Guardrails)
  * 
- * Generated: 2025-12-12T13:34:31.264Z
+ * Generated: 2025-12-18T12:34:06.047Z
  */
 @utility px {
 	padding: var(--spacing-px);
@@ -87,6 +87,22 @@
 
 @utility mb-section {
 	margin-block-end: var(--spacing-section-mb);
+}
+
+@utility gap-modal {
+	gap: var(--spacing-modal-gap);
+}
+
+@utility px-modal {
+	padding-inline: var(--spacing-modal-x);
+}
+
+@utility pt-modal {
+	padding-top: var(--spacing-modal-pt);
+}
+
+@utility pb-modal {
+	padding-bottom: var(--spacing-modal-pb);
 }
 
 @utility gap-form {

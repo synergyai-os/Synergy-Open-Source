@@ -39,6 +39,7 @@ export default internalMutation({
 			displayName: displayName ?? undefined,
 			workspaceRole: 'member',
 			status: 'active',
+			createdAt: now,
 			invitedAt: now,
 			joinedAt: now
 		});

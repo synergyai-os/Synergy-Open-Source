@@ -3,8 +3,8 @@
 	// TODO: Re-enable when page is needed
 	// import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
-	import WorkspaceModals from '$lib/infrastructure/workspaces/components/WorkspaceModals.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { invariant } from '$lib/utils/invariant';
@@ -28,6 +28,7 @@
 	import { generateHoverColor } from '$lib/utils/color-conversion';
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 	import { getPlatform } from '$lib/utils/platform';
+	import { DesignModeBanner } from '$lib/components/organisms';
 
 	let { children, data } = $props();
 
@@ -41,6 +42,9 @@
 	const isOnboardingRoute = $derived(
 		browser ? $page.url.pathname.startsWith('/onboarding') : false
 	);
+
+	// Check if we're on a workspace route
+	const isWorkspaceRoute = $derived(browser ? $page.url.pathname.startsWith('/w/') : false);
 
 	// Initialize workspaces composable with sessionId and server-side preloaded data
 	// Returns WorkspacesModuleAPI interface (enables loose coupling - see SYOS-295)
@@ -748,6 +752,22 @@
 			window.location.href = resolveRoute('/login');
 		}
 	});
+
+	// Design mode banner state (SYOS-910)
+	// Show banner when on workspace route AND workspace is in design phase
+	const isDesignMode = $derived(
+		isWorkspaceRoute && workspaces?.activeWorkspace?.phase === 'design'
+	);
+
+	// Navigate to activation page (SYOS-998)
+	function handleActivateClick() {
+		const workspaceSlug = workspaces?.activeWorkspace?.slug;
+		if (!workspaceSlug) {
+			toast.error('No active workspace');
+			return;
+		}
+		goto(resolveRoute(`/w/${workspaceSlug}/activate`));
+	}
 </script>
 
 <!-- Inject org branding CSS (SSR-rendered, no FOUC) -->
@@ -764,7 +784,12 @@
 		- Outer shell: base background (darkest) with subtle brand gradient
 		- Inner content: floating elevated card with rounded corners, border, shadow
 	-->
-	<div class="bg-base relative flex h-screen overflow-hidden">
+	<div
+		class="bg-base relative flex h-screen overflow-hidden"
+		style="padding-top: {isDesignMode && !isSettingsRoute && !isOnboardingRoute
+			? 'var(--spacing-11)'
+			: '0'};"
+	>
 		<!--
 			Shell Background Gradient
 			- Uses brand hue (195) at 3% opacity for subtle depth
@@ -774,6 +799,13 @@
 			class="pointer-events-none absolute inset-0 bg-radial-[at_0%_0%] from-[var(--gradient-overlay-subtle-from)] via-transparent to-transparent"
 			aria-hidden="true"
 		></div>
+
+		<!-- Design Mode Banner (SYOS-910) - Fixed at top of viewport, spans full width -->
+		{#if !isSettingsRoute && !isOnboardingRoute}
+			<div class="fixed top-0 right-0 left-0" style="z-index: var(--zIndex-banner);">
+				<DesignModeBanner {isDesignMode} onActivate={handleActivateClick} />
+			</div>
+		{/if}
 
 		<!-- Shared Sidebar Component - Hidden on settings and onboarding routes -->
 		{#if !isSettingsRoute && !isOnboardingRoute}
@@ -852,14 +884,6 @@
 			workspaceId={workspaces?.activeWorkspaceId ?? null}
 			initialTags={data.tags}
 		/>
-
-		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->
-		{#if workspaces}
-			<WorkspaceModals
-				{workspaces}
-				activeOrganizationName={workspaces.activeWorkspace?.name ?? null}
-			/>
-		{/if}
 
 		<!-- Loading Overlay (workspace switching, account operations, etc.) -->
 		<!-- Single continuous overlay that transitions from "Switching account" to "Loading workspace" -->

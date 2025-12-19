@@ -27,6 +27,7 @@ export type WorkspaceSummary = {
 	initials: string;
 	slug: string;
 	plan: string;
+	phase?: 'design' | 'active'; // Optional: undefined treated as 'active' for backwards compat
 	role: OrganizationRole;
 	joinedAt: number;
 	memberCount: number;
@@ -43,8 +44,6 @@ export type WorkspaceInvite = {
 	code: string;
 	createdAt: number;
 };
-
-type ModalKey = 'createWorkspace' | 'joinOrganization';
 
 export type UseOrganizations = ReturnType<typeof useWorkspaces>;
 
@@ -67,13 +66,6 @@ export function useWorkspaces(options?: {
 	const initialActiveId = browser ? getStoredActiveId(storageKey) : null;
 	const cachedOrgDetails = browser && initialActiveId ? loadCachedOrg(storageDetailsKey) : null;
 
-	// Modal state (simple local state, no need to extract)
-	const state = $state({
-		modals: {
-			createWorkspace: false,
-			joinOrganization: false
-		}
-	});
 
 	// Initialize workspace state composable first (needs initial data)
 	// orgState will access queries reactively via functions, so we can initialize it first
@@ -251,14 +243,6 @@ export function useWorkspaces(options?: {
 		analytics.setActiveWorkspace(workspaceId);
 	}
 
-	function openModal(key: ModalKey) {
-		state.modals[key] = true;
-	}
-
-	function closeModal(key: ModalKey) {
-		state.modals[key] = false;
-	}
-
 	// Initialize mutations composable
 	const mutations = useWorkspaceMutations({
 		convexClient,
@@ -266,7 +250,7 @@ export function useWorkspaces(options?: {
 		getUserId,
 		activeWorkspaceId: () => orgState.activeWorkspaceId,
 		setActiveWorkspace,
-		closeModal
+		closeModal: () => {} // No-op since modals are now handled locally
 	});
 
 	// Return value implements WorkspacesModuleAPI interface
@@ -297,9 +281,6 @@ export function useWorkspaces(options?: {
 		get workspaceInvites() {
 			return queries.workspaceInvites;
 		},
-		get modals() {
-			return state.modals;
-		},
 		get loading() {
 			return mutations.loading;
 		},
@@ -316,8 +297,6 @@ export function useWorkspaces(options?: {
 			return orgState.switchingToType;
 		},
 		setActiveWorkspace,
-		openModal,
-		closeModal,
 		createWorkspace: mutations.createWorkspace,
 		joinOrganization: mutations.joinOrganization,
 		acceptOrganizationInvite: mutations.acceptOrganizationInvite,

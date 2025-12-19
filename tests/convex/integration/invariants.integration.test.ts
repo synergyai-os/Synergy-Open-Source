@@ -51,6 +51,7 @@ describe('Admin invariants runner', () => {
 				displayName: 'Invariant Owner',
 				workspaceRole: 'owner',
 				status: 'active',
+				createdAt: now,
 				invitedAt: now,
 				invitedBy: undefined,
 				joinedAt: now,

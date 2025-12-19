@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import WorkspaceSwitcher from '$lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte';
+	import { Icon, FormInput } from '$lib/components/atoms';
+	import { StandardDialog } from '$lib/components/organisms';
+	import { sidebarHeaderRecipe, sidebarIconButtonRecipe } from '$lib/design-system/recipes';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	type OrganizationInfo = {
@@ -61,7 +64,9 @@
 		sidebarCollapsed = false,
 		isHovered = false
 	}: Props = $props();
+
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228, svelte-reactivity.md#L910 for full pattern documentation
@@ -87,11 +92,37 @@
 		if (!workspaces) return false;
 		return workspaces.isLoading ?? false;
 	});
+
+	// Apply recipes for styling
+	const headerClasses = $derived(sidebarHeaderRecipe());
+	const iconButtonClasses = $derived(sidebarIconButtonRecipe({ size: 'md' }));
+
+	// Create workspace dialog state
+	let showCreateWorkspaceDialog = $state(false);
+	let newWorkspaceName = $state('');
+
+	const handleCreateWorkspace = async () => {
+		if (!workspaces || !newWorkspaceName.trim()) return;
+		try {
+			await workspaces.createWorkspace({ name: newWorkspaceName.trim() });
+			showCreateWorkspaceDialog = false;
+			newWorkspaceName = '';
+		} catch (error) {
+			// Error handling is done in the mutation handler (toast shown)
+			// Keep dialog open so user can retry
+		}
+	};
 </script>
 
-<!-- Sticky Header - Compact, no border, aligned with nav items -->
+<!--
+	Sticky Header - Compact, no border, aligned with nav items
+	
+	WORKAROUND: Inline padding since no semantic token exists for sidebar-header-padding yet
+	Using --spacing-2 (8px) to match original design and keep compact sidebar aesthetic
+	TODO: Add semantic token (e.g., spacing.sidebar.header) when expanding token system
+-->
 <div
-	class="bg-sidebar sticky top-0 z-10 flex flex-shrink-0 items-center justify-between gap-2"
+	class={headerClasses}
 	style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 >
 	{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
@@ -109,14 +140,20 @@
 				variant="sidebar"
 				isLoading={isLoading()}
 				onSelectOrganization={(workspaceId) => workspaces?.setActiveWorkspace(workspaceId)}
-				onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
-				onJoinOrganization={() => workspaces?.openModal('joinOrganization')}
+				onCreateOrganization={() => {
+					showCreateWorkspaceDialog = true;
+				}}
+				onCreateWorkspace={() => {
+					showCreateWorkspaceDialog = true;
+				}}
+				onJoinOrganization={() => {
+					// TODO: Implement join workspace dialog
+				}}
 				onAcceptOrganizationInvite={(code) => workspaces?.acceptOrganizationInvite(code)}
 				onDeclineOrganizationInvite={(inviteId) => workspaces?.declineOrganizationInvite(inviteId)}
 				onSettings={() => onSettings?.()}
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}
-				onCreateWorkspace={() => onCreateWorkspace?.()}
 				onCreateWorkspaceForAccount={(targetUserId) => onCreateWorkspaceForAccount?.(targetUserId)}
 				onJoinWorkspaceForAccount={(targetUserId) => onJoinWorkspaceForAccount?.(targetUserId)}
 				onAddAccount={() => onAddAccount?.()}
@@ -127,53 +164,41 @@
 		</div>
 
 		<!-- Action Icons (Search and Edit) - Always on the right -->
-		<div class="flex flex-shrink-0 items-center gap-0.5">
+		<div class="gap-fieldGroup flex flex-shrink-0 items-center">
 			<button
 				type="button"
 				onclick={() => onSearch?.()}
-				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
+				class={iconButtonClasses}
 				aria-label="Search"
 			>
-				<svg
-					class="size-icon-sm"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-					/>
-				</svg>
+				<Icon type="search" size="sm" color="secondary" />
 			</button>
-			<button
-				type="button"
-				onclick={() => onEdit?.()}
-				class="rounded-button text-secondary hover:bg-subtle hover:text-primary p-1.5 transition-all duration-200"
-				aria-label="Edit"
-			>
-				<svg
-					class="size-icon-sm"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-					xmlns="http://www.w3.org/2000/svg"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-					/>
-				</svg>
+			<button type="button" onclick={() => onEdit?.()} class={iconButtonClasses} aria-label="Edit">
+				<Icon type="edit" size="sm" color="secondary" />
 			</button>
 		</div>
 	{/if}
 </div>
 
-<style>
-	/* Sticky positioning is handled by the sticky class */
-</style>
+<!-- Create Workspace Dialog -->
+<StandardDialog
+	bind:open={showCreateWorkspaceDialog}
+	title="Create workspace"
+	description="Spin up a new workspace for another company or product team."
+	submitLabel="Create"
+	loading={workspaces?.loading.createWorkspace ?? false}
+	onsubmit={handleCreateWorkspace}
+	onclose={() => {
+		newWorkspaceName = '';
+	}}
+>
+	<div class="gap-form flex flex-col">
+		<FormInput
+			label="Organization name"
+			bind:value={newWorkspaceName}
+			placeholder="e.g. SynergyOS Labs"
+			required
+			min="2"
+		/>
+	</div>
+</StandardDialog>

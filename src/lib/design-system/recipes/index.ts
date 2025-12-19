@@ -253,3 +253,28 @@ export {
 	type ContextMenuItemVariantProps,
 	type ContextMenuSeparatorVariantProps
 } from './contextMenu.recipe';
+export {
+	dropdownMenuItemRecipe,
+	type DropdownMenuItemVariantProps
+} from './dropdownMenuItem.recipe';
+export { sidebarHeaderRecipe, type SidebarHeaderVariantProps } from './sidebarHeader.recipe';
+export {
+	sidebarIconButtonRecipe,
+	type SidebarIconButtonVariantProps
+} from './sidebarIconButton.recipe';
+export {
+	dialogOverlayRecipe,
+	dialogContentRecipe,
+	dialogHeaderRecipe,
+	dialogTitleRecipe,
+	dialogDescriptionRecipe,
+	dialogBodyRecipe,
+	dialogFooterRecipe,
+	type DialogOverlayVariantProps,
+	type DialogContentVariantProps,
+	type DialogHeaderVariantProps,
+	type DialogTitleVariantProps,
+	type DialogDescriptionVariantProps,
+	type DialogBodyVariantProps,
+	type DialogFooterVariantProps
+} from './dialog.recipe';

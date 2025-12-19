@@ -125,6 +125,9 @@ export async function createCoreRolesForCircle(
 		`[createCoreRolesForCircle] Creating core roles for circle ${circleId} with type ${circleType}`
 	);
 
+	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
+	const workspace = await ctx.db.get(workspaceId);
+
 	// Dynamically fetch all templates for this circle type
 	const allTemplates = await getAllSystemTemplatesForCircleType(ctx, circleType);
 
@@ -185,13 +188,14 @@ export async function createCoreRolesForCircle(
 		});
 
 		// Create customFieldValues from template defaults (SYOS-960)
-		// This also validates required fields (GOV-02, GOV-03)
+		// This also validates required fields (GOV-02, GOV-03) - phase-aware (SYOS-996)
 		await createCustomFieldValuesFromTemplate(ctx, {
 			workspaceId,
 			entityType: 'role',
 			entityId: roleId,
 			templateDefaultFieldValues: template.defaultFieldValues,
-			createdByPersonId: personId
+			createdByPersonId: personId,
+			workspacePhase: workspace?.phase
 		});
 
 		// Capture version history for role creation
@@ -294,6 +298,9 @@ export async function transformLeadRoleOnCircleTypeChange(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
+	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
+	const workspace = await ctx.db.get(circle.workspaceId);
+
 	// Transform lead role in-place (don't delete + create) - SYOS-960
 	const now = Date.now();
 	await ctx.db.patch(leadRole._id, {
@@ -312,13 +319,14 @@ export async function transformLeadRoleOnCircleTypeChange(
 		await ctx.db.delete(value._id);
 	}
 
-	// Create new customFieldValues from new template (SYOS-960)
+	// Create new customFieldValues from new template (SYOS-960) - phase-aware (SYOS-996)
 	await createCustomFieldValuesFromTemplate(ctx, {
 		workspaceId: circle.workspaceId,
 		entityType: 'role',
 		entityId: leadRole._id,
 		templateDefaultFieldValues: targetTemplate.defaultFieldValues,
-		createdByPersonId: personId
+		createdByPersonId: personId,
+		workspacePhase: workspace?.phase
 	});
 
 	// Handle structural role changes
@@ -362,6 +370,9 @@ async function handleStructuralRoleChange(
 		return;
 	}
 
+	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
+	const workspace = await ctx.db.get(circle.workspaceId);
+
 	// Get existing roles by template ID to avoid duplicates
 	const existingRoles = await ctx.db
 		.query('circleRoles')
@@ -395,14 +406,15 @@ async function handleStructuralRoleChange(
 			updatedByPersonId: personId
 		});
 
-		// Create customFieldValues from template defaults (SYOS-960)
+		// Create customFieldValues from template defaults (SYOS-960) - phase-aware (SYOS-996)
 		// This also validates required fields (GOV-02, GOV-03)
 		await createCustomFieldValuesFromTemplate(ctx, {
 			workspaceId: circle.workspaceId,
 			entityType: 'role',
 			entityId: roleId,
 			templateDefaultFieldValues: template.defaultFieldValues,
-			createdByPersonId: personId
+			createdByPersonId: personId,
+			workspacePhase: workspace?.phase
 		});
 
 		// Capture version history for role creation

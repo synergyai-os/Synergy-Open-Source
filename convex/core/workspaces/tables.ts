@@ -61,7 +61,6 @@ export const workspaceOrgSettingsTable = defineTable({
 		})
 	),
 	coreRoleTemplateIds: v.array(v.id('roleTemplates')),
-	allowQuickChanges: v.boolean(),
 	createdAt: v.number(),
 	updatedAt: v.number()
 }).index('by_workspace', ['workspaceId']);

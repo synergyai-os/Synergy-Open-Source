@@ -119,6 +119,7 @@ export const customFieldValuesTable = defineTable({
 	// Value storage
 	value: v.string(), // JSON-encoded value
 	searchText: v.optional(v.string()), // Extracted text for search indexing
+	order: v.optional(v.number()), // For textList items; undefined for single-value fields
 
 	// Audit fields (using personId per XDOM-01 invariant)
 	createdAt: v.number(),

@@ -217,7 +217,8 @@ export async function archiveCustomFieldValueBySystemKey(
  * @param args.entityId - Entity ID (role or circle ID as string)
  * @param args.templateDefaultFieldValues - Array of { systemKey, values } from template
  * @param args.createdByPersonId - Person creating the entity
- * @throws {Error} If required fields are missing for roles (GOV-02, GOV-03)
+ * @param args.workspacePhase - Workspace phase ('design' | 'active') - validation skipped in design phase (SYOS-996)
+ * @throws {Error} If required fields are missing for roles (GOV-02, GOV-03) in active phase
  */
 export async function createCustomFieldValuesFromTemplate(
 	ctx: { db: { query: any; insert: any } },
@@ -227,6 +228,7 @@ export async function createCustomFieldValuesFromTemplate(
 		entityId: string;
 		templateDefaultFieldValues: Array<{ systemKey: string; values: string[] }>;
 		createdByPersonId: Id<'people'>;
+		workspacePhase?: 'design' | 'active';
 	}
 ): Promise<void> {
 	const now = Date.now();
@@ -281,7 +283,8 @@ export async function createCustomFieldValuesFromTemplate(
 	}
 
 	// Validate required fields for roles (GOV-02, GOV-03)
-	if (args.entityType === 'role') {
+	// Only enforce during active phase - design phase allows incomplete roles (SYOS-996)
+	if (args.entityType === 'role' && args.workspacePhase !== 'design') {
 		if (!hasRequiredFields.purpose) {
 			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'GOV-02: Role purpose is required');
 		}

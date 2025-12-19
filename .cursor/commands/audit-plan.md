@@ -4,7 +4,7 @@ Evaluate a proposed change against architecture principles BEFORE implementation
 
 **Approach**: Skeptical senior architect. Read actual code. Separate symptom from root cause.
 
-**Reference**: `dev-docs/master-docs/architecture.md` (Architecture principles + Code Hygiene #26–33, source of truth)
+**Reference**: `dev-docs/master-docs/architecture.md` v4.0 (25 Architecture principles + Code Hygiene #26–33, source of truth)
 
 ---
 
@@ -67,11 +67,13 @@ If vague, ask for clarification.
 - [file]: [why relevant]
 ```
 
-**Appendix references** (consult when relevant):
-- Appendix A (Rules Scope) — pure vs contextual rules, entity fetcher patterns
-- Appendix C (Error Codes) — valid codes, format requirements
-- Appendix F (Common AI Mistakes) — known failure patterns to watch for
-- Appendix H (Module Export Contract) — what index.ts should/shouldn't export
+**Architecture.md sections to consult:**
+- Identity Architecture — three-layer identity chain (sessionId → userId → personId)
+- Authority vs Access Control (RBAC) — two separate systems with two scopes
+- Governance Foundation — workspace lifecycle, role auto-creation, circle types
+- Frontend Patterns — Svelte 5 composables, runes, `.svelte.ts` vs `.ts`
+- Core Domains — FROZEN vs STABLE status, domain file structure
+- Common AI Mistakes — known failure patterns to watch for
 
 ### Step 4: Principle Check
 
@@ -121,8 +123,11 @@ Per architecture.md, authorization follows this exact sequence:
 | 12 | `svelte-thin-components` Components are thin and presentational | ✅/⚠️/❌/N/A | |
 | 13 | `svelte-delegate` Components delegate to Convex for all logic | ✅/⚠️/❌/N/A | |
 | 14 | `svelte-runes` Svelte 5 runes used correctly ($state, $derived, $effect) | ✅/⚠️/❌/N/A | |
+| 14a | `.svelte.ts` for reactive state, `.ts` for pure functions | ✅/⚠️/❌/N/A | |
 | — | Recipe usage (no hardcoded Tailwind for variants) | ✅/⚠️/❌/N/A | |
 | — | Semantic tokens (no hardcoded colors/spacing) | ✅/⚠️/❌/N/A | |
+
+**See also**: `dev-docs/master-docs/architecture.md` → Frontend Patterns section for detailed Svelte 5 patterns, composables, and reactive state management.
 
 #### Domain Language
 
@@ -474,6 +479,16 @@ Patterns that indicate a proposal needs more thought:
 | 31 | `hygiene-archive-helper` | Archive via helper |
 | 32 | `hygiene-file-size` | File ≤ 300 lines |
 | 33 | `err-code-format` | Error format |
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 2.1 | 2025-12-17 | Aligned with architecture.md v4.0. Added principle 14a (.svelte.ts vs .ts), Frontend Patterns reference, updated architecture section references, clarified document paths. |
+| 2.0 | 2025-12-14 | Aligned with architecture.md v3.5. Added semantic IDs, authorization flow check, red flags verification. |
+| 1.0 | 2025-12-07 | Original version |
 
 ---
 

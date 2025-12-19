@@ -8,20 +8,20 @@
 
 ## Tables
 
-| Table                  | Purpose                                                                                         |
-| ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `workspaceSettings`    | Stores workspace settings (Claude API key, etc.)                                                |
-| `workspaceOrgSettings` | Stores org chart settings (allowQuickChanges, leadRequirementByCircleType, coreRoleTemplateIds) |
+| Table                  | Purpose                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `workspaceSettings`    | Stores workspace settings (Claude API key, etc.)                             |
+| `workspaceOrgSettings` | Stores org chart settings (leadRequirementByCircleType, coreRoleTemplateIds) |
 
 ## Key Functions
 
-| Function                         | Purpose                                                                    |
-| -------------------------------- | -------------------------------------------------------------------------- |
-| `getOrganizationSettings`        | Gets workspace settings with encrypted key flags (hasClaudeKey)            |
-| `updateOrganizationClaudeApiKey` | Validates and saves Claude API key (admin only, validates via HTTP)        |
-| `removeOrganizationClaudeApiKey` | Removes Claude API key from workspace settings                             |
-| `getOrgSettings`                 | Gets org chart settings (lead requirements, quick changes, role templates) |
-| `updateOrgSettings`              | Updates org chart settings (admin only)                                    |
+| Function                         | Purpose                                                             |
+| -------------------------------- | ------------------------------------------------------------------- |
+| `getOrganizationSettings`        | Gets workspace settings with encrypted key flags (hasClaudeKey)     |
+| `updateOrganizationClaudeApiKey` | Validates and saves Claude API key (admin only, validates via HTTP) |
+| `removeOrganizationClaudeApiKey` | Removes Claude API key from workspace settings                      |
+| `getOrgSettings`                 | Gets org chart settings (lead requirements, role templates)         |
+| `updateOrgSettings`              | Updates org chart settings (admin only)                             |
 
 ## Dependencies
 

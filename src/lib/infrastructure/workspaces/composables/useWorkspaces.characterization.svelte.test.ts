@@ -66,10 +66,7 @@ describe('useWorkspaces - Public API Characterization', () => {
 		expect(composable.workspaceInvites).toBeDefined();
 		expect(Array.isArray(composable.workspaceInvites)).toBe(true);
 
-		expect(composable.modals).toBeDefined();
-		expect(typeof composable.modals).toBe('object');
-		expect(composable.modals.createWorkspace).toBeDefined();
-		expect(composable.modals.joinOrganization).toBeDefined();
+		// Note: Modal state has been removed - modals are now handled locally by components using StandardDialog
 
 		expect(composable.loading).toBeDefined();
 		expect(typeof composable.loading).toBe('object');
@@ -103,8 +100,6 @@ describe('useWorkspaces - Public API Characterization', () => {
 
 		// Verify all methods exist and are callable
 		expect(typeof composable.setActiveWorkspace).toBe('function');
-		expect(typeof composable.openModal).toBe('function');
-		expect(typeof composable.closeModal).toBe('function');
 		expect(typeof composable.createWorkspace).toBe('function');
 		expect(typeof composable.joinOrganization).toBe('function');
 		expect(typeof composable.acceptOrganizationInvite).toBe('function');
@@ -127,15 +122,12 @@ describe('useWorkspaces - Public API Characterization', () => {
 			'activeWorkspaceId',
 			'activeWorkspace',
 			'workspaceInvites',
-			'modals',
 			'loading',
 			'isLoading',
 			'isSwitching',
 			'switchingTo',
 			'switchingToType',
 			'setActiveWorkspace',
-			'openModal',
-			'closeModal',
 			'createWorkspace',
 			'joinOrganization',
 			'acceptOrganizationInvite',
@@ -165,9 +157,6 @@ describe('useWorkspaces - Public API Characterization', () => {
 		).getComposableInstance();
 
 		// Verify initial state
-		expect(composable.modals.createWorkspace).toBe(false);
-		expect(composable.modals.joinOrganization).toBe(false);
-
 		expect(composable.loading.createWorkspace).toBe(false);
 		expect(composable.loading.joinOrganization).toBe(false);
 

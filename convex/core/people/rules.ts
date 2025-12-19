@@ -29,6 +29,10 @@ export function isPersonInvited(person: PersonDoc): boolean {
 	return person.status === 'invited';
 }
 
+export function isPersonPlaceholder(person: PersonDoc): boolean {
+	return person.status === 'placeholder';
+}
+
 export function canPersonBeArchived(person: PersonDoc): boolean {
 	return person.status !== 'archived';
 }

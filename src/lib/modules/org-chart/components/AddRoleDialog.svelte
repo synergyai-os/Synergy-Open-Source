@@ -2,10 +2,8 @@
 	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import * as Dialog from '$lib/components/organisms/Dialog.svelte';
-	import DialogContent from '$lib/components/organisms/Dialog.svelte';
+	import { StandardDialog } from '$lib/components/organisms';
 	import { FormInput, FormTextarea } from '$lib/components/atoms';
-	import { Button } from '$lib/components/atoms';
 	import { toast } from 'svelte-sonner';
 
 	type Props = {
@@ -30,9 +28,7 @@
 	let purpose = $state('');
 	let isSubmitting = $state(false);
 
-	async function handleSubmit(e: SubmitEvent) {
-		e.preventDefault();
-
+	async function handleSubmit() {
 		if (!name.trim()) {
 			toast.error('Role name is required');
 			return;
@@ -51,11 +47,21 @@
 
 		isSubmitting = true;
 		try {
+			// Convert purpose to fieldValues format (SYOS-960)
+			const fieldValues = purpose.trim()
+				? [
+						{
+							systemKey: 'purpose',
+							values: [purpose.trim()]
+						}
+					]
+				: undefined;
+
 			await convexClient.mutation(api.core.roles.index.create, {
 				sessionId,
 				circleId,
 				name: name.trim(),
-				purpose: purpose.trim() || undefined
+				fieldValues
 			});
 
 			toast.success(`Role "${name.trim()}" created`);
@@ -71,48 +77,39 @@
 		}
 	}
 
-	function handleOpenChange(newOpen: boolean) {
-		if (!newOpen && !isSubmitting) {
+	function handleClose() {
+		if (!isSubmitting) {
 			name = '';
 			purpose = '';
 		}
-		open = newOpen;
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={handleOpenChange}>
-	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-		<DialogContent variant="default">
-			<Dialog.Title>Add Role to {circleName}</Dialog.Title>
-			<Dialog.Description>Create a new role in this circle.</Dialog.Description>
+<StandardDialog
+	bind:open
+	title="Add Role to {circleName}"
+	description="Create a new role in this circle."
+	submitLabel="Create Role"
+	disabled={!name.trim()}
+	loading={isSubmitting}
+	onsubmit={handleSubmit}
+	onclose={handleClose}
+>
+	<div class="gap-form flex flex-col">
+		<FormInput
+			label="Name"
+			placeholder="e.g., Senior Engineer"
+			bind:value={name}
+			required
+			disabled={isSubmitting}
+		/>
 
-			<form onsubmit={handleSubmit} class="mt-section gap-form flex flex-col">
-				<FormInput
-					label="Name"
-					placeholder="e.g., Senior Engineer"
-					bind:value={name}
-					required
-					disabled={isSubmitting}
-				/>
-
-				<FormTextarea
-					label="Purpose (optional)"
-					placeholder="Describe the role's purpose..."
-					bind:value={purpose}
-					rows={3}
-					disabled={isSubmitting}
-				/>
-
-				<div class="mt-section gap-button flex items-center justify-end">
-					<Dialog.Close asChild>
-						<Button variant="outline" type="button" disabled={isSubmitting}>Cancel</Button>
-					</Dialog.Close>
-					<Button type="submit" disabled={isSubmitting || !name.trim()}>
-						{isSubmitting ? 'Creating...' : 'Create Role'}
-					</Button>
-				</div>
-			</form>
-		</DialogContent>
-	</Dialog.Portal>
-</Dialog.Root>
+		<FormTextarea
+			label="Purpose (optional)"
+			placeholder="Describe the role's purpose..."
+			bind:value={purpose}
+			rows={3}
+			disabled={isSubmitting}
+		/>
+	</div>
+</StandardDialog>

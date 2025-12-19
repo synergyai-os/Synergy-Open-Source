@@ -1,6 +1,8 @@
 <script lang="ts">
 	import WorkspaceSwitcher from '$lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+	import { StandardDialog } from '$lib/components/organisms';
+	import { FormInput } from '$lib/components/atoms';
 
 	let {
 		workspaces,
@@ -51,6 +53,22 @@
 	if (!onSidebarToggle) {
 		onSidebarToggle = () => {};
 	}
+
+	// Create workspace dialog state
+	let showCreateWorkspaceDialog = $state(false);
+	let newWorkspaceName = $state('');
+
+	const handleCreateWorkspace = async () => {
+		if (!workspaces || !newWorkspaceName.trim()) return;
+		try {
+			await workspaces.createWorkspace({ name: newWorkspaceName.trim() });
+			showCreateWorkspaceDialog = false;
+			newWorkspaceName = '';
+		} catch (error) {
+			// Error handling is done in the mutation handler (toast shown)
+			// Keep dialog open so user can retry
+		}
+	};
 </script>
 
 {#if isMobile}
@@ -82,8 +100,12 @@
 				{accountName}
 				{accountEmail}
 				onSelectOrganization={(workspaceId) => workspaces?.setActiveWorkspace(workspaceId)}
-				onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
-				onJoinOrganization={() => workspaces?.openModal('joinOrganization')}
+				onCreateOrganization={() => {
+					showCreateWorkspaceDialog = true;
+				}}
+				onJoinOrganization={() => {
+					// TODO: Implement join workspace dialog
+				}}
 				onAcceptOrganizationInvite={(code) => workspaces?.acceptOrganizationInvite(code)}
 				onDeclineOrganizationInvite={(inviteId) => workspaces?.declineOrganizationInvite(inviteId)}
 				onSettings={() => onSettings?.()}
@@ -111,3 +133,26 @@
 		</div>
 	</header>
 {/if}
+
+<!-- Create Workspace Dialog -->
+<StandardDialog
+	bind:open={showCreateWorkspaceDialog}
+	title="Create workspace"
+	description="Spin up a new workspace for another company or product team."
+	submitLabel="Create"
+	loading={workspaces?.loading.createWorkspace ?? false}
+	onsubmit={handleCreateWorkspace}
+	onclose={() => {
+		newWorkspaceName = '';
+	}}
+>
+	<div class="gap-form flex flex-col">
+		<FormInput
+			label="Organization name"
+			bind:value={newWorkspaceName}
+			placeholder="e.g. SynergyOS Labs"
+			required
+			min="2"
+		/>
+	</div>
+</StandardDialog>

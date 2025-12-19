@@ -1,31 +1,37 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { useConvexClient } from 'convex-svelte';
+	import { getContext, setContext } from 'svelte';
+	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
-	import { useQuickEditPermission } from '../composables/useQuickEditPermission.svelte';
 	import { useCustomFields } from '../composables/useCustomFields.svelte';
 	import { useEditCircle } from '../composables/useEditCircle.svelte';
-	import CircleDetailHeader from './CircleDetailHeader.svelte';
-	import CategoryHeader from './CategoryHeader.svelte';
-	import RoleCard from './RoleCard.svelte';
-	import InlineEditText from './InlineEditText.svelte';
-	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
-	import CategoryItemsList from './CategoryItemsList.svelte';
+	import { useCanEdit } from '../composables/useCanEdit.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
+	import { CIRCLE_DETAIL_KEY, type CircleDetailContext } from './CircleDetailContext.svelte';
+	import DetailHeader from './DetailHeader.svelte';
 	import CircleTypeBadge from './CircleTypeBadge.svelte';
 	import DecisionModelBadge from './DecisionModelBadge.svelte';
 	import AssignUserDialog from './AssignUserDialog.svelte';
-	import ConfirmDiscardDialog from './ConfirmDiscardDialog.svelte';
-	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
+	import StandardDialog from '$lib/components/organisms/StandardDialog.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
-	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
-	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
+	import Loading from '$lib/components/atoms/Loading.svelte';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
+	import { ErrorState, TabbedPanel } from '$lib/components/molecules';
+	import { useDetailPanelNavigation } from '../composables/useDetailPanelNavigation.svelte';
+	import { toast } from '$lib/utils/toast';
+	import CircleOverviewTab from './tabs/CircleOverviewTab.svelte';
+	import CircleMembersTab from './tabs/CircleMembersTab.svelte';
+	import CircleDocumentsTab from './tabs/CircleDocumentsTab.svelte';
+	import CircleActivitiesTab from './tabs/CircleActivitiesTab.svelte';
+	import CircleMetricsTab from './tabs/CircleMetricsTab.svelte';
+	import CircleChecklistsTab from './tabs/CircleChecklistsTab.svelte';
+	import CircleProjectsTab from './tabs/CircleProjectsTab.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -40,41 +46,83 @@
 	const isLoading = $derived(orgChart?.selectedCircleIsLoading ?? false);
 	const error = $derived(orgChart?.selectedCircleError ?? null);
 
+	// Get workspaceId from context (same pattern as page components)
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
+	});
+
 	// Convex client for mutations
 	const convexClient = browser ? useConvexClient() : null;
 	const sessionId = $derived($page.data.sessionId);
 
-	// Check quick edit permission using composable
-	// Pattern: Move query to composable for proper reactivity (matches usePermissions pattern)
-	// Composable uses function parameters which makes the condition reactive
-	// OPTIMIZATION: Pass allowQuickChanges for instant "no edit" determination
-	// If workspace disables quick edits, we don't need a backend call
-	const quickEditPermission = useQuickEditPermission({
-		circle: () => orgChart?.selectedCircle ?? null,
-		sessionId: () => $page.data.sessionId,
-		allowQuickChanges: () => orgChart?.allowQuickChanges ?? false
+	// Phase-based edit permissions (SYOS-981)
+	const editPermission = useCanEdit({
+		sessionId: () => sessionId ?? null,
+		workspaceId: () => workspaceId() ?? null,
+		circleId: () => circle?.circleId ?? null
 	});
 
-	const canEdit = $derived(quickEditPermission.canEdit);
-	const editReason = $derived(quickEditPermission.editReason);
+	const canEdit = $derived(editPermission.canEdit);
+	const isDesignPhase = $derived(editPermission.isDesignPhase);
+
+	// Query user's authority in this circle (SYOS-986)
+	const getSessionId = () => sessionId;
+	const authorityQuery =
+		browser && circle && sessionId
+			? useQuery(api.core.circles.index.getMyAuthority, () => {
+					const sid = getSessionId();
+					const cid = circle?.circleId;
+					if (!sid || !cid) throw new Error('sessionId and circleId required');
+					return { sessionId: sid, circleId: cid };
+				})
+			: null;
+
+	const myAuthority = $derived(authorityQuery?.data ?? null);
+	const isCircleLead = $derived(myAuthority?.isCircleLead ?? false);
+	const circleType = $derived(circle?.circleType ?? 'hierarchy');
+
+	// Edit reason for tooltip display when canEdit is false
+	const editReason = $derived.by(() => {
+		if (canEdit) return undefined;
+		if (!isDesignPhase) {
+			return 'Only circle members can propose changes in active workspaces';
+		}
+		return undefined;
+	});
 
 	// Edit mode state
 	let isEditMode = $state(false);
 	let showDiscardDialog = $state(false);
-	const workspaceId = $derived($page.data.workspaceId as Id<'workspaces'> | undefined);
+
+	// Navigation composable for shared navigation logic
+	const navigation = useDetailPanelNavigation({
+		orgChart: () => orgChart,
+		isEditMode: () => isEditMode,
+		isDirty: () => editCircle.isDirty,
+		onShowDiscardDialog: () => {
+			showDiscardDialog = true;
+		},
+		resetEditMode: () => {
+			isEditMode = false;
+			editCircle.reset();
+		}
+	});
 
 	// Edit circle composable (only used in edit mode)
+	// In design phase, direct save is allowed. In active phase, Phase 4 will handle proposal routing.
 	const editCircle = useEditCircle({
 		circleId: () => circle?.circleId ?? null,
 		sessionId: () => sessionId,
-		workspaceId: () => workspaceId,
-		canQuickEdit: () => canEdit
+		workspaceId: () => workspaceId(),
+		canQuickEdit: () => isDesignPhase
 	});
 
 	// Custom fields composable
 	const customFields = useCustomFields({
 		sessionId: () => sessionId,
-		workspaceId: () => workspaceId,
+		workspaceId: () => workspaceId(),
 		entityType: () => 'circle',
 		entityId: () => circle?.circleId ?? null
 	});
@@ -238,17 +286,19 @@
 			: []
 	);
 
-	// Tab state with dummy counts
-	let activeTab = $state(
-		'overview' as
-			| 'overview'
-			| 'members'
-			| 'documents'
-			| 'activities'
-			| 'metrics'
-			| 'checklists'
-			| 'projects'
-	);
+	// Circle-specific tabs configuration
+	const CIRCLE_TABS = [
+		{ id: 'overview', label: 'Overview' },
+		{ id: 'members', label: 'Members', showCount: true },
+		{ id: 'documents', label: 'Documents', showCount: true },
+		{ id: 'activities', label: 'Activities', showCount: true },
+		{ id: 'metrics', label: 'Metrics', showCount: true },
+		{ id: 'checklists', label: 'Checklists', showCount: true },
+		{ id: 'projects', label: 'Projects', showCount: true }
+	];
+
+	// Tab state
+	let activeTab = $state('overview');
 	const tabCounts = $state({
 		overview: 0,
 		members: 0,
@@ -284,42 +334,8 @@
 		}
 	}
 
-	function handleClose() {
-		if (!orgChart) return;
-
-		// Check if in edit mode with unsaved changes
-		if (isEditMode && editCircle.isDirty) {
-			showDiscardDialog = true;
-			return;
-		}
-
-		// Exit edit mode if active
-		if (isEditMode) {
-			isEditMode = false;
-			editCircle.reset();
-		}
-
-		// ESC goes back one level (not all the way)
-		const previousLayer = orgChart.navigationStack.previousLayer;
-
-		if (previousLayer) {
-			// Pop current layer
-			orgChart.navigationStack.pop();
-
-			// Navigate to previous layer WITHOUT pushing (we're already there after pop)
-			if (previousLayer.type === 'circle') {
-				orgChart.selectCircle(previousLayer.id as Id<'circles'>, { skipStackPush: true });
-			} else if (previousLayer.type === 'role') {
-				orgChart.selectRole(previousLayer.id as Id<'circleRoles'>, 'circle-panel', {
-					skipStackPush: true
-				});
-			}
-		} else {
-			// No previous layer - close everything
-			orgChart.navigationStack.pop();
-			orgChart.selectCircle(null);
-		}
-	}
+	// Use navigation composable for close handler
+	const handleClose = navigation.handleClose;
 
 	function handleEditClick() {
 		if (!circle) return;
@@ -351,51 +367,64 @@
 		}
 	}
 
-	async function handleSaveAsProposal() {
-		// For MVP, use simple title/description
-		// TODO: In future, could show a dialog to enter title/description
-		const title = `Update ${editCircle.formValues.name}`;
-		const description = `Proposed changes to circle "${editCircle.formValues.name}"`;
+	async function handleAutoApprove() {
+		const wsId = workspaceId();
+		if (!convexClient || !circle || !sessionId || !wsId) return;
 
-		await editCircle.saveAsProposal(title, description);
-		isEditMode = false;
-		// Refresh circle data by re-selecting
-		if (orgChart && circle) {
-			orgChart.selectCircle(circle.circleId, { skipStackPush: true });
-		}
-	}
-
-	function handleBreadcrumbClick(index: number) {
-		if (!orgChart) return;
-
-		// Check if in edit mode with unsaved changes
-		if (isEditMode && editCircle.isDirty) {
-			showDiscardDialog = true;
-			return;
-		}
-
-		// Exit edit mode if active
-		if (isEditMode) {
-			isEditMode = false;
-			editCircle.reset();
-		}
-
-		// Get the target layer to navigate to
-		const targetLayer = orgChart.navigationStack.getLayer(index);
-		if (!targetLayer) return;
-
-		// Jump to that layer in the stack (this already positions us at the right layer)
-		orgChart.navigationStack.jumpTo(index);
-
-		// Re-open the panel for that layer WITHOUT pushing to stack (we're already there)
-		if (targetLayer.type === 'circle') {
-			orgChart.selectCircle(targetLayer.id as Id<'circles'>, { skipStackPush: true });
-		} else if (targetLayer.type === 'role') {
-			orgChart.selectRole(targetLayer.id as Id<'circleRoles'>, 'circle-panel', {
-				skipStackPush: true
+		try {
+			await convexClient.mutation(api.core.proposals.index.saveAndApprove, {
+				sessionId,
+				workspaceId: wsId,
+				entityType: 'circle',
+				entityId: circle.circleId,
+				title: `Update ${editCircle.formValues.name}`,
+				description: 'Proposed changes to circle',
+				editedValues: {
+					name: editCircle.formValues.name,
+					purpose: editCircle.formValues.purpose || undefined,
+					circleType: editCircle.formValues.circleType,
+					decisionModel: editCircle.formValues.decisionModel
+				}
 			});
+
+			toast.success('Changes saved and auto-approved');
+			isEditMode = false;
+
+			// Refresh circle data by re-selecting
+			if (orgChart) {
+				orgChart.selectCircle(circle.circleId, { skipStackPush: true });
+			}
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Failed to save changes';
+			toast.error(message);
+			console.error('[CircleDetailPanel] Auto-approve failed:', err);
 		}
 	}
+
+	async function handleProposeChange() {
+		if (!circle) return;
+
+		try {
+			await editCircle.saveAsProposal(
+				`Update ${editCircle.formValues.name}`,
+				'Proposed changes to circle'
+			);
+
+			toast.success('Proposal created. It will be reviewed in the next governance meeting.');
+			isEditMode = false;
+
+			// Refresh circle data by re-selecting
+			if (orgChart) {
+				orgChart.selectCircle(circle.circleId, { skipStackPush: true });
+			}
+		} catch (err) {
+			// Error is already handled in editCircle.saveAsProposal
+			console.error('[CircleDetailPanel] Propose change failed:', err);
+		}
+	}
+
+	// Use navigation composable for breadcrumb handler
+	const handleBreadcrumbClick = navigation.handleBreadcrumbClick;
 
 	function handleRoleClick(roleId: string) {
 		if (!orgChart) return;
@@ -417,6 +446,35 @@
 		}
 		return null;
 	}
+
+	// Set up context for tab components
+	setContext<CircleDetailContext>(CIRCLE_DETAIL_KEY, {
+		// Core Data (reactive getters)
+		circle: () => circle,
+
+		// Composables
+		customFields,
+		editCircle,
+
+		// Permissions
+		canEdit: () => canEdit,
+		editReason: () => editReason,
+		isEditMode: () => isEditMode,
+		isDesignPhase: () => isDesignPhase,
+		isCircleLead: () => isCircleLead,
+
+		// Handlers
+		handleQuickUpdateCircle,
+		handleAddMultiItemField,
+		handleUpdateMultiItemField,
+		handleDeleteMultiItemField,
+		handleUpdateSingleField,
+
+		// Helper Functions
+		getFieldValueAsArray,
+		getFieldValueAsString,
+		getItemsForCategory
+	});
 </script>
 
 {#if orgChart}
@@ -430,48 +488,18 @@
 	>
 		{#snippet children(panelContext)}
 			{#if isLoading}
-				<!-- Loading State -->
-				<div class="flex h-full items-center justify-center">
-					<div class="text-center">
-						<svg
-							class="size-icon-xl text-tertiary mx-auto animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-						>
-							<circle
-								class="opacity-25"
-								cx="12"
-								cy="12"
-								r="10"
-								stroke="currentColor"
-								stroke-width="4"
-							></circle>
-							<path
-								class="opacity-75"
-								fill="currentColor"
-								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-							></path>
-						</svg>
-						<p class="text-button text-secondary mb-header">Loading circle details...</p>
-					</div>
-				</div>
+				<Loading message="Loading circle details..." size="md" fullHeight={true} />
 			{:else if error}
-				<!-- Error State -->
-				<div class="flex h-full items-center justify-center">
-					<div class="text-center">
-						<p class="text-button text-error font-medium">Failed to load circle</p>
-						<p class="text-button text-secondary mb-header">{String(error)}</p>
-					</div>
-				</div>
+				<ErrorState title="Failed to load circle" message={String(error)} />
 			{:else if circle}
 				<!-- Header -->
-				<CircleDetailHeader
-					circleName={isEditMode ? editCircle.formValues.name : circle.name}
+				<DetailHeader
+					entityName={isEditMode ? editCircle.formValues.name : circle.name}
 					onClose={handleClose}
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
 					onEdit={isEditMode ? undefined : handleEditClick}
-					editable={!isEditMode && canEdit}
+					canEdit={!isEditMode && canEdit}
 					{editReason}
 					onNameChange={!isEditMode ? (name) => handleQuickUpdateCircle({ name }) : undefined}
 					addMenuItems={[
@@ -502,7 +530,7 @@
 							/>
 						</div>
 					{/snippet}
-				</CircleDetailHeader>
+				</DetailHeader>
 
 				<!-- Edit Mode Indicator Bar -->
 				{#if isEditMode}
@@ -516,577 +544,41 @@
 
 				<!-- Content -->
 				<div class="flex-1 overflow-y-auto">
-					<Tabs.Root bind:value={activeTab}>
-						<!-- Navigation Tabs - Sticky at top -->
-						<div class="bg-surface px-page sticky top-0 z-10">
-							<Tabs.List class={[tabsListRecipe(), 'gap-form flex flex-shrink-0 overflow-x-auto']}>
-								<Tabs.Trigger
-									value="overview"
-									class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}
-								>
-									Overview
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="members"
-									class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}
-								>
-									<span class="gap-button flex items-center">
-										<span>Members</span>
-										{#if tabCounts.members > 0}
-											<span class="text-label text-tertiary">({tabCounts.members})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="documents"
-									class={[
-										tabsTriggerRecipe({ active: activeTab === 'documents' }),
-										'flex-shrink-0'
-									]}
-								>
-									<span class="gap-button flex items-center">
-										<span>Documents</span>
-										{#if tabCounts.documents > 0}
-											<span class="text-label text-tertiary">({tabCounts.documents})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="activities"
-									class={[
-										tabsTriggerRecipe({ active: activeTab === 'activities' }),
-										'flex-shrink-0'
-									]}
-								>
-									<span class="gap-button flex items-center">
-										<span>Activities</span>
-										{#if tabCounts.activities > 0}
-											<span class="text-label text-tertiary">({tabCounts.activities})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="metrics"
-									class={[tabsTriggerRecipe({ active: activeTab === 'metrics' }), 'flex-shrink-0']}
-								>
-									<span class="gap-button flex items-center">
-										<span>Metrics</span>
-										{#if tabCounts.metrics > 0}
-											<span class="text-label text-tertiary">({tabCounts.metrics})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="checklists"
-									class={[
-										tabsTriggerRecipe({ active: activeTab === 'checklists' }),
-										'flex-shrink-0'
-									]}
-								>
-									<span class="gap-button flex items-center">
-										<span>Checklists</span>
-										{#if tabCounts.checklists > 0}
-											<span class="text-label text-tertiary">({tabCounts.checklists})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-								<Tabs.Trigger
-									value="projects"
-									class={[tabsTriggerRecipe({ active: activeTab === 'projects' }), 'flex-shrink-0']}
-								>
-									<span class="gap-button flex items-center">
-										<span>Projects</span>
-										{#if tabCounts.projects > 0}
-											<span class="text-label text-tertiary">({tabCounts.projects})</span>
-										{/if}
-									</span>
-								</Tabs.Trigger>
-							</Tabs.List>
-						</div>
-
-						<!-- Tab Content -->
-						<div class="px-page py-page flex-1 overflow-y-auto">
-							<Tabs.Content value="overview" class={tabsContentRecipe()}>
-								<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-								<div
-									class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
-									style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
-								>
-									<!-- Left Column: Overview Details -->
-									<div class="gap-section flex min-w-0 flex-col overflow-hidden">
-										<!-- Purpose - from customFields only (SYOS-964) -->
-										{#if customFields.getFieldBySystemKey('purpose')}
-											{@const purposeField = customFields.getFieldBySystemKey('purpose')}
-											{@const purposeValue = getFieldValueAsString('purpose')}
-											<div>
-												<h4
-													class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-												>
-													{purposeField.definition.name}
-												</h4>
-												{#if isEditMode}
-													<FormTextarea
-														label=""
-														placeholder="What's the purpose of this circle?"
-														value={editCircle.formValues.purpose}
-														oninput={(e) => editCircle.setField('purpose', e.currentTarget.value)}
-														rows={4}
-													/>
-												{:else if canEdit}
-													<InlineEditText
-														value={purposeValue}
-														onSave={(purpose) => handleQuickUpdateCircle({ purpose })}
-														multiline={true}
-														placeholder="What's the purpose of this circle?"
-														maxRows={4}
-														size="md"
-													/>
-												{:else if editReason}
-													<EditPermissionTooltip reason={editReason}>
-														<div class="text-button text-secondary leading-relaxed break-words">
-															{#if purposeValue}
-																{purposeValue}
-															{:else}
-																<Text variant="body" size="md" color="tertiary">No purpose set</Text
-																>
-															{/if}
-														</div>
-													</EditPermissionTooltip>
-												{:else}
-													<p class="text-button text-secondary leading-relaxed break-words">
-														{purposeValue || 'No purpose set'}
-													</p>
-												{/if}
-											</div>
-										{/if}
-
-										<!-- Domains -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Domains
-											</h4>
-											<CategoryItemsList
-												categoryName="Domains"
-												items={getItemsForCategory('Domains')}
-												{canEdit}
-												{editReason}
-												onCreate={(content) => handleAddMultiItemField('Domains', content)}
-												onUpdate={(itemId, content) =>
-													handleUpdateMultiItemField('Domains', itemId, content)}
-												onDelete={(itemId) => handleDeleteMultiItemField('Domains', itemId)}
-												placeholder="What domains does this circle own?"
-											/>
-										</div>
-
-										<!-- Accountabilities -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Accountabilities
-											</h4>
-											<CategoryItemsList
-												categoryName="Accountabilities"
-												items={getItemsForCategory('Accountabilities')}
-												{canEdit}
-												{editReason}
-												onCreate={(content) => handleAddMultiItemField('Accountabilities', content)}
-												onUpdate={(itemId, content) =>
-													handleUpdateMultiItemField('Accountabilities', itemId, content)}
-												onDelete={(itemId) =>
-													handleDeleteMultiItemField('Accountabilities', itemId)}
-												placeholder="What is this circle accountable for?"
-											/>
-										</div>
-
-										<!-- Policies -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Policies
-											</h4>
-											<CategoryItemsList
-												categoryName="Policies"
-												items={getItemsForCategory('Policies')}
-												{canEdit}
-												{editReason}
-												onCreate={(content) => handleAddMultiItemField('Policies', content)}
-												onUpdate={(itemId, content) =>
-													handleUpdateMultiItemField('Policies', itemId, content)}
-												onDelete={(itemId) => handleDeleteMultiItemField('Policies', itemId)}
-												placeholder="What policies govern this circle?"
-											/>
-										</div>
-
-										<!-- Decision Rights -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Decision Rights
-											</h4>
-											<CategoryItemsList
-												categoryName="Decision Rights"
-												items={getItemsForCategory('Decision Rights')}
-												{canEdit}
-												{editReason}
-												onCreate={(content) => handleAddMultiItemField('Decision Rights', content)}
-												onUpdate={(itemId, content) =>
-													handleUpdateMultiItemField('Decision Rights', itemId, content)}
-												onDelete={(itemId) => handleDeleteMultiItemField('Decision Rights', itemId)}
-												placeholder="What decisions can this circle make?"
-											/>
-										</div>
-
-										<!-- Notes -->
-										<div>
-											<h4
-												class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-											>
-												Notes
-											</h4>
-											<CategoryItemsList
-												categoryName="Notes"
-												items={getItemsForCategory('Notes')}
-												{canEdit}
-												{editReason}
-												onCreate={(content) => handleUpdateSingleField('Notes', content)}
-												onUpdate={(itemId, content) => handleUpdateSingleField('Notes', content)}
-												onDelete={(itemId) => handleUpdateSingleField('Notes', '')}
-												placeholder="Additional notes about this circle"
-											/>
-										</div>
-									</div>
-
-									<!-- Right Column: Roles & Circles -->
-									<div
-										class="gap-section flex flex-col"
-										style="padding-right: var(--spacing-page-x);"
-									>
-										<!-- Core Roles Section -->
-										{#if coreRoles.length > 0}
-											<div>
-												<CategoryHeader
-													variant="plain"
-													title="Core Roles"
-													count={coreRoles.length}
-													onEdit={() => {
-														/* TODO: Implement edit roles */
-													}}
-													onAdd={() => {
-														/* TODO: Implement add role */
-													}}
-												/>
-												<div class="gap-content mb-section flex flex-col">
-													{#each coreRoles as role (role.roleId)}
-														{@const roleStatus =
-															role.status === 'draft'
-																? 'draft'
-																: role.isHiring
-																	? 'hiring'
-																	: undefined}
-														<RoleCard
-															name={role.name}
-															purpose={role.purpose}
-															status={roleStatus}
-															roleId={role.roleId}
-															circleId={circle.circleId}
-															{canEdit}
-															{editReason}
-															onNameChange={(name) => handleQuickUpdateRole(role.roleId, { name })}
-															onPurposeChange={(purpose) =>
-																handleQuickUpdateRole(role.roleId, { purpose })}
-															onClick={() => handleRoleClick(role.roleId)}
-															onEdit={() => {
-																/* TODO: Implement edit role */
-															}}
-															onAddMember={() => {
-																openAssignUserDialog('role', role.roleId, role.name);
-															}}
-															menuItems={[
-																{ label: 'Edit role', onclick: () => {} },
-																{ label: 'Remove', onclick: () => {}, danger: true }
-															]}
-														/>
-													{/each}
-												</div>
-											</div>
-										{/if}
-
-										<!-- Regular Roles Section -->
-										{#if regularRoles.length > 0}
-											<div>
-												<CategoryHeader
-													variant="plain"
-													title="Roles"
-													count={regularRoles.length}
-													onEdit={() => {
-														/* TODO: Implement edit roles */
-													}}
-													onAdd={() => {
-														/* TODO: Implement add role */
-													}}
-												/>
-												<div class="gap-content mb-section flex flex-col">
-													{#each regularRoles as role (role.roleId)}
-														{@const roleStatus =
-															role.status === 'draft'
-																? 'draft'
-																: role.isHiring
-																	? 'hiring'
-																	: undefined}
-														<RoleCard
-															name={role.name}
-															purpose={role.purpose}
-															status={roleStatus}
-															roleId={role.roleId}
-															circleId={circle.circleId}
-															{canEdit}
-															{editReason}
-															onNameChange={(name) => handleQuickUpdateRole(role.roleId, { name })}
-															onPurposeChange={(purpose) =>
-																handleQuickUpdateRole(role.roleId, { purpose })}
-															onClick={() => handleRoleClick(role.roleId)}
-															onEdit={() => {
-																/* TODO: Implement edit role */
-															}}
-															onAddMember={() => {
-																openAssignUserDialog('role', role.roleId, role.name);
-															}}
-															menuItems={[
-																{ label: 'Edit role', onclick: () => {} },
-																{ label: 'Remove', onclick: () => {}, danger: true }
-															]}
-														/>
-													{/each}
-												</div>
-											</div>
-										{/if}
-
-										<!-- Child Circles Section -->
-										{#if childCircles.length > 0}
-											<div>
-												<CategoryHeader
-													variant="plain"
-													title="Circles"
-													count={childCircles.length}
-													onAdd={() => {
-														/* TODO: Implement add circle */
-													}}
-												/>
-												<div class="gap-content mb-section flex flex-col">
-													{#each childCircles as childCircle (childCircle.circleId)}
-														<RoleCard
-															name={childCircle.name}
-															purpose={childCircle.purpose}
-															isCircle={true}
-															onClick={() => handleChildCircleClick(childCircle.circleId)}
-															onEdit={() => {
-																/* TODO: Implement edit circle */
-															}}
-															onAddMember={() => {
-																openAssignUserDialog(
-																	'circle',
-																	childCircle.circleId,
-																	childCircle.name
-																);
-															}}
-															menuItems={[
-																{ label: 'Edit circle', onclick: () => {} },
-																{ label: 'Remove', onclick: () => {}, danger: true }
-															]}
-														/>
-													{/each}
-												</div>
-											</div>
-										{/if}
-
-										<!-- Members Without Roles Section -->
-										<div>
-											<CategoryHeader
-												variant="plain"
-												title="Members without role"
-												count={membersWithoutRoles.length}
-												onAdd={() => {
-													/* TODO: Implement add member */
-												}}
-											/>
-											{#if membersWithoutRoles.length > 0}
-												<div class="gap-content mb-section flex flex-col">
-													<RoleCard
-														name="Members without role"
-														isCircle={false}
-														onClick={() => {}}
-														onAddMember={() => {
-															if (circle) {
-																openAssignUserDialog('circle', circle.circleId, circle.name);
-															}
-														}}
-														members={membersWithoutRoles.map((m) => ({
-															userId: m.userId,
-															name: m.name,
-															email: m.email
-														}))}
-													/>
-												</div>
-											{:else}
-												<p class="text-button text-secondary mb-section">
-													All members are assigned to roles
-												</p>
-											{/if}
-										</div>
-									</div>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="members" class={tabsContentRecipe()}>
-								<!-- Empty State: Members -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No members yet</p>
-									<p class="text-button text-secondary mb-header">
-										Members assigned to this circle will appear here. This feature will be available
-										in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="documents" class={tabsContentRecipe()}>
-								<!-- Empty State: Documents -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No documents yet</p>
-									<p class="text-button text-secondary mb-header">
-										Documents related to this circle will appear here. This feature will be
-										available in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="activities" class={tabsContentRecipe()}>
-								<!-- Empty State: Activities -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No activities yet</p>
-									<p class="text-button text-secondary mb-header">
-										Recent activities and updates for this circle will appear here. This feature
-										will be available in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="metrics" class={tabsContentRecipe()}>
-								<!-- Empty State: Metrics -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No metrics yet</p>
-									<p class="text-button text-secondary mb-header">
-										Performance metrics and analytics for this circle will appear here. This feature
-										will be available in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="checklists" class={tabsContentRecipe()}>
-								<!-- Empty State: Checklists -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No checklists yet</p>
-									<p class="text-button text-secondary mb-header">
-										Checklists and task lists for this circle will appear here. This feature will be
-										available in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-
-							<Tabs.Content value="projects" class={tabsContentRecipe()}>
-								<!-- Empty State: Projects -->
-								<div class="py-page text-center">
-									<svg
-										class="size-icon-xl text-tertiary mx-auto"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-										/>
-									</svg>
-									<p class="text-button text-primary mb-header font-medium">No projects yet</p>
-									<p class="text-button text-secondary mb-header">
-										Projects associated with this circle will appear here. This feature will be
-										available in a future update.
-									</p>
-								</div>
-							</Tabs.Content>
-						</div>
-					</Tabs.Root>
+					<TabbedPanel
+						tabs={CIRCLE_TABS}
+						bind:activeTab
+						onTabChange={(tab) => {
+							activeTab = tab;
+						}}
+						{tabCounts}
+					>
+						{#snippet content(tabId)}
+							{#if tabId === 'overview'}
+								<CircleOverviewTab
+									{childCircles}
+									{coreRoles}
+									{regularRoles}
+									{membersWithoutRoles}
+									onRoleClick={handleRoleClick}
+									onChildCircleClick={handleChildCircleClick}
+									onQuickUpdateRole={handleQuickUpdateRole}
+									onOpenAssignUserDialog={openAssignUserDialog}
+								/>
+							{:else if tabId === 'members'}
+								<CircleMembersTab />
+							{:else if tabId === 'documents'}
+								<CircleDocumentsTab />
+							{:else if tabId === 'activities'}
+								<CircleActivitiesTab />
+							{:else if tabId === 'metrics'}
+								<CircleMetricsTab />
+							{:else if tabId === 'checklists'}
+								<CircleChecklistsTab />
+							{:else if tabId === 'projects'}
+								<CircleProjectsTab />
+							{/if}
+						{/snippet}
+					</TabbedPanel>
 				</div>
 
 				<!-- Footer with Save Actions (Edit Mode Only) -->
@@ -1102,7 +594,9 @@
 						<Button variant="outline" onclick={handleCancelEdit} disabled={editCircle.isSaving}>
 							Cancel
 						</Button>
-						{#if canEdit}
+
+						{#if isDesignPhase}
+							<!-- Design phase: Direct save for all members -->
 							<Button
 								variant="primary"
 								onclick={handleSaveDirectly}
@@ -1110,14 +604,28 @@
 							>
 								{editCircle.isSaving ? 'Saving...' : 'Save'}
 							</Button>
+						{:else if circleType === 'hierarchy' && isCircleLead}
+							<!-- Hierarchy + Circle Lead: Auto-approve flow -->
+							<Button
+								variant="primary"
+								onclick={handleAutoApprove}
+								disabled={editCircle.isSaving || !editCircle.isDirty}
+							>
+								{editCircle.isSaving ? 'Saving...' : 'Save'}
+							</Button>
+						{:else if circleType === 'guild'}
+							<!-- Guild: View only (no save button) -->
+							<Text variant="body" size="sm" color="secondary">Guild circles cannot be edited</Text>
+						{:else}
+							<!-- Non-hierarchy or non-lead: Propose Change flow -->
+							<Button
+								variant="primary"
+								onclick={handleProposeChange}
+								disabled={editCircle.isSaving || !editCircle.isDirty}
+							>
+								{editCircle.isSaving ? 'Proposing...' : 'Propose Change'}
+							</Button>
 						{/if}
-						<Button
-							variant="primary"
-							onclick={handleSaveAsProposal}
-							disabled={editCircle.isSaving || !editCircle.isDirty}
-						>
-							{editCircle.isSaving ? 'Creating...' : 'Save as Proposal'}
-						</Button>
 					</div>
 				{/if}
 			{/if}
@@ -1125,12 +633,14 @@
 	</StackedPanel>
 
 	<!-- Confirm Discard Dialog -->
-	<ConfirmDiscardDialog
-		open={showDiscardDialog}
-		onOpenChange={(open) => {
-			showDiscardDialog = open;
-		}}
-		onConfirm={handleConfirmDiscard}
+	<StandardDialog
+		bind:open={showDiscardDialog}
+		title="Discard unsaved changes?"
+		description="You have unsaved changes. Are you sure you want to discard them?"
+		submitLabel="Discard"
+		cancelLabel="Keep Editing"
+		variant="danger"
+		onsubmit={handleConfirmDiscard}
 	/>
 
 	<!-- Assign User Dialog -->

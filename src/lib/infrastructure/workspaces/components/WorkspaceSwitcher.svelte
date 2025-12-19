@@ -8,6 +8,7 @@
 	import LinkedAccountGroup from '$lib/components/molecules/LinkedAccountGroup.svelte';
 	import InvitesList from '$lib/components/molecules/InvitesList.svelte';
 	import { Text } from '$lib/components/atoms';
+	import { dropdownMenuItemRecipe } from '$lib/design-system/recipes';
 	import type { WorkspaceInvite, WorkspaceSummary } from '../composables/useWorkspaces.svelte';
 
 	type Variant = 'sidebar' | 'topbar';
@@ -97,6 +98,9 @@
 		}
 	});
 
+	// Apply dropdown menu item recipe
+	const menuItemClasses = $derived(dropdownMenuItemRecipe());
+
 	// Generate 2-letter initials from org name (e.g., "Synergy OS" → "SY", "Test" → "TE")
 	function getOrgInitials(name: string | undefined): string {
 		if (!name) return '—';
@@ -141,7 +145,10 @@
 <DropdownMenu.Root bind:open={mainMenuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class={`flex items-center ${showLabels ? 'gap-button px-2 py-[0.375rem]' : 'p-2'} group hover:bg-component-sidebar-itemHover rounded-button w-full cursor-pointer text-left transition-colors duration-200`}
+		class={showLabels
+			? 'flex w-full cursor-pointer items-center gap-button rounded-button text-left transition-colors duration-200 hover:bg-component-sidebar-itemHover'
+			: 'flex w-full cursor-pointer items-center rounded-button text-left transition-colors duration-200 hover:bg-component-sidebar-itemHover'}
+		style="padding-inline: var(--spacing-2); padding-block: calc(var(--spacing-2) * 0.75);"
 	>
 		<WorkspaceSelector
 			initials={triggerInitials}
@@ -218,17 +225,17 @@
 
 					<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 
-					<!-- Add account -->
-					<DropdownMenu.Item
-						class="rounded-button px-input py-stack-item hover:bg-subtle focus:bg-subtle mx-1 cursor-pointer transition-all duration-200 outline-none"
-						textValue="Add account"
-						onSelect={() => {
-							onAddAccount?.();
-							mainMenuOpen = false;
-						}}
-					>
-						<Text variant="body" size="sm" color="secondary" as="span">Add an account…</Text>
-					</DropdownMenu.Item>
+				<!-- Add account -->
+				<DropdownMenu.Item
+					class={menuItemClasses}
+					textValue="Add account"
+					onSelect={() => {
+						onAddAccount?.();
+						mainMenuOpen = false;
+					}}
+				>
+					<Text variant="body" size="sm" color="secondary" as="span">Add an account…</Text>
+				</DropdownMenu.Item>
 
 					<!-- Linked Accounts Sections -->
 					{#each linkedAccountsWithOrgs as account (account.userId)}
@@ -267,13 +274,19 @@
 </DropdownMenu.Root>
 
 <style>
-	/* WORKAROUND: Portal dropdown z-index fix - see missing-styles.md */
-	/* Ensures dropdown menu appears above fixed sidebar (z-index 50) */
+	/*
+	 * WORKAROUND: Portal dropdown z-index fix
+	 * Ensures dropdown menu appears above fixed sidebar (z-index 50)
+	 * See: dev-docs/2-areas/patterns/missing-styles.md
+	 */
 	:global([data-dropdown-menu-content]) {
 		z-index: var(--zIndex-max) !important;
 	}
 
-	/* Add left margin to workspace switcher menu for breathing room */
+	/*
+	 * Workspace switcher menu left margin for breathing room
+	 * Uses --spacing-2 (8px) for compact design
+	 */
 	:global(.workspace-switcher-menu) {
 		margin-left: var(--spacing-2) !important;
 	}

@@ -29,7 +29,7 @@
 			// Redirect to workspace
 			const slug = workspaces.activeWorkspace.slug;
 			if (slug) {
-				goto(resolveRoute(`/w/${slug}/circles`));
+				goto(resolveRoute(`/w/${slug}/chart`));
 			}
 		} catch (error) {
 			console.error('Failed to complete onboarding:', error);

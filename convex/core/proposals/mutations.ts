@@ -12,12 +12,18 @@ import type { ProposalStatus } from './schema';
 import { getPersonForSessionAndWorkspace } from '../people/queries';
 import { calculateAuthority, getAuthorityContext, isCircleLead } from '../authority';
 import { slugifyName } from '../circles/slug';
+import { CIRCLE_TYPES } from '../circles';
 import {
 	isCustomField,
 	findCustomFieldValueBySystemKey,
 	setCustomFieldValueBySystemKey,
 	archiveCustomFieldValueBySystemKey
 } from '../../infrastructure/customFields/helpers';
+import {
+	notifyProposalCreated,
+	notifyProposalApproved,
+	notifyProposalRejected
+} from './notifications';
 
 // ============================================================================
 // Draft Mutations
@@ -334,7 +340,7 @@ async function createProposalFromDiffMutation(
 	const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
 	await ensureWorkspaceMembership(ctx, args.workspaceId, person._id);
 
-	return createFromDiffInternal(ctx, {
+	const { proposalId } = await createFromDiffInternal(ctx, {
 		personId: person._id,
 		workspaceId: args.workspaceId,
 		entityType: args.entityType,
@@ -343,6 +349,10 @@ async function createProposalFromDiffMutation(
 		description: args.description,
 		editedValues: args.editedValues
 	});
+
+	await notifyProposalCreated(ctx, proposalId);
+
+	return { proposalId };
 }
 
 /**
@@ -689,6 +699,8 @@ async function rejectProposalMutation(
 		updatedAt: Date.now()
 	});
 
+	await notifyProposalRejected(ctx, args.proposalId);
+
 	return { success: true };
 }
 
@@ -763,8 +775,8 @@ async function saveAndApproveMutation(
 		approverPersonId: person._id
 	});
 
-	// TODO: Placeholder for notification system (SYOS-985)
-	// await notifyProposalApproved(ctx, proposalId);
+	await notifyProposalCreated(ctx, proposalId);
+	await notifyProposalApproved(ctx, proposalId);
 
 	return { proposalId };
 }
@@ -813,10 +825,14 @@ async function approveProposal(
 		throw createError(ErrorCodes.PROPOSAL_ACCESS_DENIED, 'Insufficient authority to approve');
 	}
 
-	return approveInternal(ctx, {
+	const result = await approveInternal(ctx, {
 		proposalId: args.proposalId,
 		approverPersonId: person._id
 	});
+
+	await notifyProposalApproved(ctx, args.proposalId);
+
+	return result;
 }
 
 /**
