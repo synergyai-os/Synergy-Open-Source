@@ -2,7 +2,10 @@
  * Composable for managing custom fields for entities (roles, circles, etc.)
  *
  * Provides reactive queries and mutations for custom field definitions and values.
- * Replaces the legacy useCircleItems composable.
+ * This is a shared composable that can be used across all modules.
+ *
+ * @see convex/features/customFields/ for backend implementation
+ * @see architecture.md → "Frontend Patterns" → "Composables Pattern"
  */
 
 import { browser } from '$app/environment';
@@ -46,18 +49,19 @@ export interface CustomFieldWithValue {
 	parsedValue: unknown | null;
 }
 
+export type CustomFieldEntityType =
+	| 'circle'
+	| 'role'
+	| 'person'
+	| 'inboxItem'
+	| 'task'
+	| 'project'
+	| 'meeting';
+
 export interface UseCustomFieldsOptions {
 	sessionId: () => string | undefined;
 	workspaceId: () => string | undefined;
-	entityType: () =>
-		| 'circle'
-		| 'role'
-		| 'person'
-		| 'inboxItem'
-		| 'task'
-		| 'project'
-		| 'meeting'
-		| null;
+	entityType: () => CustomFieldEntityType | null;
 	entityId: () => string | null;
 }
 
@@ -79,20 +83,25 @@ export interface UseCustomFieldsReturn {
 /**
  * Hook to manage custom fields reactively
  *
+ * Returns fields in order defined by `definition.order` from database.
+ * Iterate over `fields` array rather than looking up individual fields.
+ *
  * @example
  * ```svelte
  * <script lang="ts">
- *   import { useCustomFields } from '$lib/modules/org-chart/composables/useCustomFields.svelte';
+ *   import { useCustomFields } from '$lib/composables/useCustomFields.svelte';
  *
  *   const customFields = useCustomFields({
  *     sessionId: () => $page.data.sessionId,
- *     workspaceId: () => $page.data.workspaceId,
- *     entityType: () => 'role',
- *     entityId: () => role?.roleId ?? null
+ *     workspaceId: () => workspaceId,
+ *     entityType: () => 'circle',
+ *     entityId: () => circle?.circleId ?? null
  *   });
- *
- *   const purposeField = $derived(customFields.getFieldBySystemKey('purpose'));
  * </script>
+ *
+ * {#each customFields.fields as field (field.definition._id)}
+ *   <CustomFieldSection {field} />
+ * {/each}
  * ```
  */
 export function useCustomFields(options: UseCustomFieldsOptions): UseCustomFieldsReturn {
@@ -116,14 +125,7 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 					return {
 						sessionId,
 						workspaceId: workspaceId as Id<'workspaces'>,
-						entityType: entityType as
-							| 'circle'
-							| 'role'
-							| 'person'
-							| 'inboxItem'
-							| 'task'
-							| 'project'
-							| 'meeting'
+						entityType: entityType as CustomFieldEntityType
 					};
 				})
 			: null
@@ -142,14 +144,7 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 					);
 					return {
 						sessionId,
-						entityType: entityType as
-							| 'circle'
-							| 'role'
-							| 'person'
-							| 'inboxItem'
-							| 'task'
-							| 'project'
-							| 'meeting',
+						entityType: entityType as CustomFieldEntityType,
 						entityId
 					};
 				})
@@ -221,12 +216,12 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 		});
 	});
 
-	// Helper: Get field by system key
+	// Helper: Get field by system key (use sparingly - prefer iterating over fields)
 	function getFieldBySystemKey(systemKey: string): CustomFieldWithValue | null {
 		return fields.find((f) => f.definition.systemKey === systemKey) ?? null;
 	}
 
-	// Helper: Get field by name
+	// Helper: Get field by name (use sparingly - prefer iterating over fields)
 	function getFieldByName(name: string): CustomFieldWithValue | null {
 		return fields.find((f) => f.definition.name === name) ?? null;
 	}
@@ -236,9 +231,7 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 		definitionId: Id<'customFieldDefinitions'>,
 		value: unknown
 	): Promise<void> {
-		if (!convexClient) {
-			throw new Error('Convex client not available');
-		}
+		invariant(convexClient, 'Convex client not available');
 		const sessionId = getSessionId();
 		const entityType = getEntityType();
 		const entityId = getEntityId();
@@ -247,14 +240,7 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 		await convexClient.mutation(api.features.customFields.mutations.setValue, {
 			sessionId,
 			definitionId,
-			entityType: entityType as
-				| 'circle'
-				| 'role'
-				| 'person'
-				| 'inboxItem'
-				| 'task'
-				| 'project'
-				| 'meeting',
+			entityType: entityType as CustomFieldEntityType,
 			entityId,
 			value
 		});
@@ -262,9 +248,7 @@ export function useCustomFields(options: UseCustomFieldsOptions): UseCustomField
 
 	// Mutation: Delete field value
 	async function deleteFieldValue(definitionId: Id<'customFieldDefinitions'>): Promise<void> {
-		if (!convexClient) {
-			throw new Error('Convex client not available');
-		}
+		invariant(convexClient, 'Convex client not available');
 		const sessionId = getSessionId();
 		const entityId = getEntityId();
 		invariant(sessionId && entityId, 'sessionId and entityId required');

@@ -5,10 +5,9 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
-	import { useCustomFields } from '../composables/useCustomFields.svelte';
+	import { useCustomFields } from '$lib/composables/useCustomFields.svelte';
 	import { useCanEdit } from '../composables/useCanEdit.svelte';
 	import { useEditRole } from '../composables/useEditRole.svelte';
 	import DetailHeader from './DetailHeader.svelte';
@@ -16,18 +15,19 @@
 	import * as Tooltip from '$lib/components/atoms/Tooltip.svelte';
 	import { tooltipContentRecipe, tooltipArrowRecipe } from '$lib/design-system/recipes';
 	import CategoryHeader from './CategoryHeader.svelte';
-	import InlineEditText from './InlineEditText.svelte';
-	import EditPermissionTooltip from './EditPermissionTooltip.svelte';
-	import CategoryItemsList from './CategoryItemsList.svelte';
 	import StandardDialog from '$lib/components/organisms/StandardDialog.svelte';
-	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
 	import Button from '$lib/components/atoms/Button.svelte';
 	import { Avatar } from '$lib/components/atoms';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import Loading from '$lib/components/atoms/Loading.svelte';
-	import StackedPanel, { type PanelContext } from '$lib/components/organisms/StackedPanel.svelte';
-	import { EmptyState, ErrorState, TabbedPanel } from '$lib/components/molecules';
+	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
+	import {
+		EmptyState,
+		ErrorState,
+		TabbedPanel,
+		CustomFieldSection
+	} from '$lib/components/molecules';
 	import { useDetailPanelNavigation } from '../composables/useDetailPanelNavigation.svelte';
 	import type { IconType } from '$lib/components/atoms/iconRegistry';
 	import {
@@ -48,7 +48,7 @@
 	const role = $derived(orgChart?.selectedRole ?? null);
 	const fillers = $derived(orgChart?.selectedRoleFillers ?? []);
 	const isOpen = $derived((orgChart?.selectedRoleId ?? null) !== null);
-	const selectionSource = $derived(orgChart?.selectionSource ?? null);
+	const _selectionSource = $derived(orgChart?.selectionSource ?? null);
 	const error = $derived(orgChart?.selectedRoleError ?? null);
 	const isLoading = $derived(orgChart?.selectedRoleIsLoading ?? false);
 
@@ -158,85 +158,6 @@
 		entityType: () => 'role',
 		entityId: () => role?.roleId ?? null
 	});
-
-	// Helper: Get field value as string (for single fields like Purpose)
-	function getFieldValueAsString(systemKey: string): string {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field || !field.parsedValue) return '';
-		return typeof field.parsedValue === 'string' ? field.parsedValue : String(field.parsedValue);
-	}
-
-	// Helper: Get field value as array (for multi-item fields like Domains, Accountabilities)
-	function getFieldValueAsArray(systemKey: string): string[] {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field || !field.parsedValue) return [];
-		if (Array.isArray(field.parsedValue)) {
-			return field.parsedValue.map((v) => String(v));
-		}
-		return [];
-	}
-
-	// Helper: Check if field has a value (for empty state)
-	function hasFieldValue(field: { parsedValue: unknown }): boolean {
-		if (!field.parsedValue) return false;
-		if (Array.isArray(field.parsedValue)) return field.parsedValue.length > 0;
-		if (typeof field.parsedValue === 'string') return field.parsedValue.trim().length > 0;
-		return true;
-	}
-
-	// Helper: Convert array items to CircleItem format for CategoryItemsList
-	// This is a temporary adapter until we migrate CategoryItemsList to work directly with customFields
-	function getItemsForCategory(systemKey: string): Array<{
-		itemId: string;
-		content: string;
-		order: number;
-		createdAt: number;
-		updatedAt: number;
-	}> {
-		const items = getFieldValueAsArray(systemKey);
-		return items.map((content, index) => ({
-			itemId: `${systemKey}-${index}` as Id<'circleItems'>, // Temporary ID format
-			content,
-			order: index,
-			createdAt: Date.now(),
-			updatedAt: Date.now()
-		}));
-	}
-
-	// Handler: Update single field value (like Purpose)
-	async function handleUpdateSingleField(systemKey: string, value: string): Promise<void> {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field) return;
-		await customFields.setFieldValue(field.definition._id, value);
-	}
-
-	// Handler: Update multi-item field (add item)
-	async function handleAddMultiItemField(systemKey: string, content: string) {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field) return;
-		const currentItems = getFieldValueAsArray(systemKey);
-		const updatedItems = [...currentItems, content];
-		await customFields.setFieldValue(field.definition._id, updatedItems);
-	}
-
-	// Handler: Update multi-item field (update item)
-	async function handleUpdateMultiItemField(systemKey: string, index: number, content: string) {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field) return;
-		const currentItems = getFieldValueAsArray(systemKey);
-		const updatedItems = [...currentItems];
-		updatedItems[index] = content;
-		await customFields.setFieldValue(field.definition._id, updatedItems);
-	}
-
-	// Handler: Update multi-item field (delete item)
-	async function handleDeleteMultiItemField(systemKey: string, index: number) {
-		const field = customFields.getFieldBySystemKey(systemKey);
-		if (!field) return;
-		const currentItems = getFieldValueAsArray(systemKey);
-		const updatedItems = currentItems.filter((_, i) => i !== index);
-		await customFields.setFieldValue(field.definition._id, updatedItems);
-	}
 
 	// Quick update handler for role (purpose and name)
 	async function handleQuickUpdateRole(updates: { name?: string; purpose?: string }) {
@@ -434,139 +355,17 @@
 										class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
 										style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
 									>
-										<!-- Left Column: Overview Details -->
+										<!-- Left Column: Custom Fields (DB-driven, ordered by definition.order) -->
 										<div class="gap-section flex min-w-0 flex-col overflow-hidden">
-											<!-- Purpose - from customFields only (SYOS-963) -->
-											{#if customFields.getFieldBySystemKey('purpose')}
-												{@const purposeField = customFields.getFieldBySystemKey('purpose')}
-												{@const purposeValue = getFieldValueAsString('purpose')}
-												<div>
-													<h4
-														class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-													>
-														{purposeField.definition.name}
-													</h4>
-													{#if isEditMode}
-														<FormTextarea
-															label=""
-															placeholder="What's the purpose of this role?"
-															value={editRole.formValues.purpose}
-															oninput={(e) => editRole.setField('purpose', e.currentTarget.value)}
-															rows={4}
-														/>
-													{:else if canEdit}
-														<InlineEditText
-															value={purposeValue}
-															onSave={async (value) =>
-																await handleUpdateSingleField('purpose', value)}
-															multiline={true}
-															placeholder="What's the purpose of this role?"
-															maxRows={4}
-															size="md"
-														/>
-													{:else if editReason}
-														<EditPermissionTooltip reason={editReason}>
-															<div class="text-button text-secondary leading-relaxed break-words">
-																{#if purposeValue}
-																	{purposeValue}
-																{:else}
-																	<Text variant="body" size="md" color="tertiary"
-																		>No purpose set</Text
-																	>
-																{/if}
-															</div>
-														</EditPermissionTooltip>
-													{:else}
-														<p class="text-button text-secondary leading-relaxed break-words">
-															{purposeValue || 'No purpose set'}
-														</p>
-													{/if}
-												</div>
-											{/if}
-
-											<!-- Dynamically render all custom fields -->
 											{#each customFields.fields as field (field.definition._id)}
-												{@const systemKey = field.definition.systemKey}
-												{@const isPurpose = systemKey === 'purpose'}
-												{@const isMultiItem = field.definition.fieldType === 'textList'}
-												{@const isSingleField = ['text', 'longText'].includes(
-													field.definition.fieldType
-												)}
-
-												{#if !isPurpose}
-													<!-- Skip Purpose - already rendered above -->
-													<div>
-														<h4
-															class="text-button text-tertiary mb-header font-medium tracking-wide uppercase"
-														>
-															{field.definition.name}
-														</h4>
-														{#if isMultiItem}
-															<!-- Multi-item field (textList type: Domains, Accountabilities, etc.) -->
-															{@const items = getItemsForCategory(systemKey ?? '')}
-															{@const canEditField = isEditMode || canEdit}
-															<CategoryItemsList
-																categoryName={field.definition.name}
-																{items}
-																canEdit={canEditField}
-																{editReason}
-																onCreate={async (content) => {
-																	if (systemKey) await handleAddMultiItemField(systemKey, content);
-																}}
-																onUpdate={async (itemId, content) => {
-																	if (systemKey) {
-																		const index = parseInt(itemId.split('-')[1] ?? '0');
-																		await handleUpdateMultiItemField(systemKey, index, content);
-																	}
-																}}
-																onDelete={async (itemId) => {
-																	if (systemKey) {
-																		const index = parseInt(itemId.split('-')[1] ?? '0');
-																		await handleDeleteMultiItemField(systemKey, index);
-																	}
-																}}
-																placeholder={`Add ${field.definition.name.toLowerCase()}`}
-															/>
-														{:else if isSingleField}
-															<!-- Single-field (text or longText type: Notes, etc.) -->
-															{@const value = getFieldValueAsString(systemKey ?? '')}
-															{@const canEditField = isEditMode || canEdit}
-															{#if canEditField}
-																<InlineEditText
-																	{value}
-																	onSave={async (content) => {
-																		if (systemKey)
-																			await handleUpdateSingleField(systemKey, content);
-																	}}
-																	multiline={true}
-																	placeholder={`Add ${field.definition.name.toLowerCase()}`}
-																	maxRows={4}
-																	size="md"
-																/>
-															{:else if editReason}
-																<EditPermissionTooltip reason={editReason}>
-																	<div
-																		class="text-button text-secondary leading-relaxed break-words"
-																	>
-																		{#if hasFieldValue(field)}
-																			{value}
-																		{:else}
-																			<Text variant="body" size="md" color="tertiary">
-																				No {field.definition.name.toLowerCase()} set
-																			</Text>
-																		{/if}
-																	</div>
-																</EditPermissionTooltip>
-															{:else}
-																<p class="text-button text-secondary leading-relaxed break-words">
-																	{hasFieldValue(field)
-																		? value
-																		: `No ${field.definition.name.toLowerCase()} set`}
-																</p>
-															{/if}
-														{/if}
-													</div>
-												{/if}
+												<CustomFieldSection
+													{field}
+													{canEdit}
+													{editReason}
+													onSave={(value) =>
+														customFields.setFieldValue(field.definition._id, value)}
+													onDelete={() => customFields.deleteFieldValue(field.definition._id)}
+												/>
 											{/each}
 										</div>
 

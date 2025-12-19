@@ -61,6 +61,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch, circles vs roles | Use Reactive useQuery Instead of Manual Queries for Auto-Refetch | `convex-integration.md#L340` |
 | proposals, state machine, transitions, terminal states, assertTransition, isTerminalState | Convex State Machine in Core | `convex-integration.md#L470` |
 | hardcoded constants, database query, async refactor, user-created fields, dynamic configuration, flexible system, CUSTOM_FIELD_SYSTEM_KEYS, isCustomField | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
+| custom fields, iterate fields, DB-driven, field rendering, customFields.fields, CustomFieldSection, admin-added fields, display name, field order | DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` |
 | cross-module imports, module api, context, dependency injection, createContext, setContext, getContext, lint, no-cross-module-imports | Module APIs via Context (No Cross-Module Imports) | `architecture-modularity.md#L10` |
 | StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
 
@@ -115,6 +116,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 | Creating molecule component, molecule with recipe, component classification, molecule vs atom | Molecule Components with Recipes | `design-system-patterns.md#L650` |
 | Hardcoded constants limiting flexibility, user-created config not detected, need database-driven configuration | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
+| Custom fields hardcoded in template, admin-added fields don't appear, iterate over DB fields | DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` |
 | Redundant margin, gap vs margin, flex spacing, ml-fieldGroup redundant | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
 | Using raw button instead of Button component, design system compliance, accessibility | Always Use Design System Components | `design-system-patterns.md#L750` |
 | Badge font size, component font size variants, text-2xs text-xs text-sm | Size-Dependent Font Sizes in Recipes | `design-system-patterns.md#L800` |
@@ -145,8 +147,14 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-12-18
+**Last Updated**: 2025-12-19
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
+
+## Recent Additions (2025-12-19)
+
+| Pattern | File | Keywords |
+|---------|------|----------|
+| DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` | custom fields, iterate fields, DB-driven, CustomFieldSection, admin-added fields |
 
 ## Recent Additions (2025-12-18)
 

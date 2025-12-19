@@ -3,10 +3,7 @@
 	import { CIRCLE_DETAIL_KEY, type CircleDetailContext } from '../CircleDetailContext.svelte';
 	import CategoryHeader from '../CategoryHeader.svelte';
 	import RoleCard from '../RoleCard.svelte';
-	import InlineEditText from '../InlineEditText.svelte';
-	import CategoryItemsList from '../CategoryItemsList.svelte';
-	import FormTextarea from '$lib/components/atoms/FormTextarea.svelte';
-	import Text from '$lib/components/atoms/Text.svelte';
+	import { CustomFieldSection } from '$lib/components/molecules';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 
 	// Props: Allow passing child circles, roles, and members (optional override)
@@ -66,13 +63,9 @@
 	const circle = $derived(ctx.circle());
 	const canEdit = $derived(ctx.canEdit());
 	const editReason = $derived(ctx.editReason());
-	const isEditMode = $derived(ctx.isEditMode());
 
-	// Access composables
-	const { customFields, editCircle } = ctx;
-
-	// Use helper functions
-	const purposeValue = $derived(ctx.getFieldValueAsString('purpose'));
+	// Access customFields from context
+	const { customFields } = ctx;
 </script>
 
 <!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
@@ -80,124 +73,17 @@
 	class="grid grid-cols-1 lg:grid-cols-[minmax(400px,1fr)_minmax(400px,500px)]"
 	style="gap: clamp(var(--spacing-5), 2.5vw, var(--spacing-10));"
 >
-	<!-- Left Column: Overview Details -->
+	<!-- Left Column: Custom Fields (DB-driven, ordered by definition.order) -->
 	<div class="gap-section flex min-w-0 flex-col overflow-hidden">
-		<!-- Purpose - from customFields only (SYOS-964) -->
-		{#if customFields.getFieldBySystemKey('purpose')}
-			{@const purposeField = customFields.getFieldBySystemKey('purpose')}
-			<div>
-				<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
-					{purposeField.definition.name}
-				</h4>
-				{#if isEditMode}
-					<FormTextarea
-						label=""
-						placeholder="What's the purpose of this circle?"
-						value={editCircle.formValues.purpose}
-						oninput={(e) => editCircle.setField('purpose', e.currentTarget.value)}
-						rows={4}
-					/>
-				{:else if canEdit}
-					<InlineEditText
-						value={purposeValue}
-						onSave={(purpose) => ctx.handleQuickUpdateCircle({ purpose })}
-						multiline={true}
-						placeholder="What's the purpose of this circle?"
-						maxRows={4}
-						size="md"
-					/>
-				{:else}
-					<p class="text-button text-secondary leading-relaxed break-words">
-						{purposeValue || 'No purpose set'}
-					</p>
-				{/if}
-			</div>
-		{/if}
-
-		<!-- Domains -->
-		<div>
-			<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
-				Domains
-			</h4>
-			<CategoryItemsList
-				categoryName="Domains"
-				items={ctx.getItemsForCategory('Domains')}
+		{#each customFields.fields as field (field.definition._id)}
+			<CustomFieldSection
+				{field}
 				{canEdit}
 				{editReason}
-				onCreate={(content) => ctx.handleAddMultiItemField('Domains', content)}
-				onUpdate={(itemId, content) => ctx.handleUpdateMultiItemField('Domains', itemId, content)}
-				onDelete={(itemId) => ctx.handleDeleteMultiItemField('Domains', itemId)}
-				placeholder="What domains does this circle own?"
+				onSave={(value) => customFields.setFieldValue(field.definition._id, value)}
+				onDelete={() => customFields.deleteFieldValue(field.definition._id)}
 			/>
-		</div>
-
-		<!-- Accountabilities -->
-		<div>
-			<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
-				Accountabilities
-			</h4>
-			<CategoryItemsList
-				categoryName="Accountabilities"
-				items={ctx.getItemsForCategory('Accountabilities')}
-				{canEdit}
-				{editReason}
-				onCreate={(content) => ctx.handleAddMultiItemField('Accountabilities', content)}
-				onUpdate={(itemId, content) =>
-					ctx.handleUpdateMultiItemField('Accountabilities', itemId, content)}
-				onDelete={(itemId) => ctx.handleDeleteMultiItemField('Accountabilities', itemId)}
-				placeholder="What is this circle accountable for?"
-			/>
-		</div>
-
-		<!-- Policies -->
-		<div>
-			<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
-				Policies
-			</h4>
-			<CategoryItemsList
-				categoryName="Policies"
-				items={ctx.getItemsForCategory('Policies')}
-				{canEdit}
-				{editReason}
-				onCreate={(content) => ctx.handleAddMultiItemField('Policies', content)}
-				onUpdate={(itemId, content) => ctx.handleUpdateMultiItemField('Policies', itemId, content)}
-				onDelete={(itemId) => ctx.handleDeleteMultiItemField('Policies', itemId)}
-				placeholder="What policies govern this circle?"
-			/>
-		</div>
-
-		<!-- Decision Rights -->
-		<div>
-			<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">
-				Decision Rights
-			</h4>
-			<CategoryItemsList
-				categoryName="Decision Rights"
-				items={ctx.getItemsForCategory('Decision Rights')}
-				{canEdit}
-				{editReason}
-				onCreate={(content) => ctx.handleAddMultiItemField('Decision Rights', content)}
-				onUpdate={(itemId, content) =>
-					ctx.handleUpdateMultiItemField('Decision Rights', itemId, content)}
-				onDelete={(itemId) => ctx.handleDeleteMultiItemField('Decision Rights', itemId)}
-				placeholder="What decisions can this circle make?"
-			/>
-		</div>
-
-		<!-- Notes -->
-		<div>
-			<h4 class="text-button text-tertiary mb-header font-medium tracking-wide uppercase">Notes</h4>
-			<CategoryItemsList
-				categoryName="Notes"
-				items={ctx.getItemsForCategory('Notes')}
-				{canEdit}
-				{editReason}
-				onCreate={(content) => ctx.handleUpdateSingleField('Notes', content)}
-				onUpdate={(itemId, content) => ctx.handleUpdateSingleField('Notes', content)}
-				onDelete={(itemId) => ctx.handleUpdateSingleField('Notes', '')}
-				placeholder="Additional notes about this circle"
-			/>
-		</div>
+		{/each}
 	</div>
 
 	<!-- Right Column: Roles & Circles -->

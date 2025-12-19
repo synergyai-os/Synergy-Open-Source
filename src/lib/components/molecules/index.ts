@@ -65,6 +65,9 @@ export { default as NavItem } from './NavItem.svelte';
 export { default as SplitButton } from './SplitButton.svelte';
 export { default as Stepper } from './Stepper.svelte';
 
+// Custom Fields Molecules
+export { default as CustomFieldSection } from './CustomFieldSection.svelte';
+
 // Organization Switcher Molecules
 export { default as AccountInfo } from './AccountInfo.svelte';
 export { default as AccountActions } from './AccountActions.svelte';
