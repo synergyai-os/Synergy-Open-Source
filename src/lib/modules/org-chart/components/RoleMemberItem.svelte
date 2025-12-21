@@ -2,9 +2,10 @@
 	import { Avatar } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
 	import { roleCardRecipe } from '$lib/design-system/recipes';
+	import type { Id } from '$lib/convex';
 
 	type Props = {
-		userId: string;
+		personId: Id<'people'>; // Workspace-scoped identifier (architecture requirement - NEVER use userId)
 		name?: string;
 		email: string;
 		avatarImage?: string;
@@ -16,7 +17,7 @@
 	};
 
 	let {
-		userId,
+		personId,
 		name,
 		email,
 		avatarImage,
@@ -50,7 +51,7 @@
 	<button
 		type="button"
 		class={[...containerClasses, 'w-full border-0 bg-transparent p-0']}
-		data-user-id={userId}
+		data-person-id={personId}
 		onclick={onClick}
 	>
 		<Avatar {initials} size="md" image={avatarImage} />
@@ -65,7 +66,7 @@
 		</div>
 	</button>
 {:else}
-	<div class={containerClasses} data-user-id={userId}>
+	<div class={containerClasses} data-person-id={personId}>
 		<Avatar {initials} size="md" image={avatarImage} />
 		<div class="min-w-0 flex-1">
 			<p class="text-label text-primary truncate font-medium">{displayName}</p>

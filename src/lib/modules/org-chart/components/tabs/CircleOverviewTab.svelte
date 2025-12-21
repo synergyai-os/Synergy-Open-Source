@@ -1,8 +1,12 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { getContext } from 'svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
 	import { CIRCLE_DETAIL_KEY, type CircleDetailContext } from '../CircleDetailContext.svelte';
 	import CategoryHeader from '../CategoryHeader.svelte';
 	import RoleCard from '../RoleCard.svelte';
+	import RoleCardWithMembers from '../RoleCardWithMembers.svelte';
 	import { CustomFieldSection } from '$lib/components/molecules';
 	import type { Id } from '$lib/convex/_generated/dataModel';
 
@@ -28,7 +32,7 @@
 			isHiring: boolean;
 		}>;
 		membersWithoutRoles?: Array<{
-			userId: Id<'users'>;
+			personId: Id<'people'>; // Workspace-scoped identifier (architecture requirement - NEVER use userId)
 			name: string;
 			email: string | null;
 		}>;
@@ -63,9 +67,49 @@
 	const circle = $derived(ctx.circle());
 	const canEdit = $derived(ctx.canEdit());
 	const editReason = $derived(ctx.editReason());
+	const sessionId = $derived(ctx.sessionId());
+	const workspaceId = $derived(ctx.workspaceId());
 
 	// Access customFields from context
 	const { customFields } = ctx;
+
+	// Convex client for mutations
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Handle role member assignment
+	async function handleRoleMemberAssignment(roleId: Id<'circleRoles'>, personIds: Id<'people'>[]) {
+		if (!convexClient || !sessionId || personIds.length === 0) return;
+
+		const personId = personIds[0]; // Single selection for roles
+		await convexClient.mutation(api.core.roles.index.assignPerson, {
+			sessionId,
+			circleRoleId: roleId,
+			assigneePersonId: personId
+		});
+	}
+
+	// Handle role member removal (from pinned "Assigned" section)
+	async function handleRoleMemberRemoval(roleId: Id<'circleRoles'>, personId: Id<'people'>) {
+		if (!convexClient || !sessionId) return;
+
+		await convexClient.mutation(api.core.roles.index.removePerson, {
+			sessionId,
+			circleRoleId: roleId,
+			assigneePersonId: personId
+		});
+	}
+
+	// Handle circle member assignment
+	async function handleCircleMemberAssignment(circleId: Id<'circles'>, personIds: Id<'people'>[]) {
+		if (!convexClient || !sessionId || personIds.length === 0) return;
+
+		const personId = personIds[0]; // Single selection for circles
+		await convexClient.mutation(api.core.circles.index.addMember, {
+			sessionId,
+			circleId,
+			memberPersonId: personId
+		});
+	}
 </script>
 
 <!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
@@ -106,12 +150,15 @@
 					{#each coreRoles as role (role.roleId)}
 						{@const roleStatus =
 							role.status === 'draft' ? 'draft' : role.isHiring ? 'hiring' : undefined}
-						<RoleCard
+						<RoleCardWithMembers
+							roleId={role.roleId}
+							roleIdProp={role.roleId}
 							name={role.name}
 							purpose={role.purpose}
 							status={roleStatus}
-							roleId={role.roleId}
 							circleId={circle?.circleId}
+							{workspaceId}
+							{sessionId}
 							{canEdit}
 							{editReason}
 							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
@@ -120,9 +167,8 @@
 							onEdit={() => {
 								/* TODO: Implement edit role */
 							}}
-							onAddMember={() => {
-								onOpenAssignUserDialog?.('role', role.roleId, role.name);
-							}}
+							onMemberSelect={(personIds) => handleRoleMemberAssignment(role.roleId, personIds)}
+							onMemberRemove={(personId) => handleRoleMemberRemoval(role.roleId, personId)}
 							menuItems={[
 								{ label: 'Edit role', onclick: () => {} },
 								{ label: 'Remove', onclick: () => {}, danger: true }
@@ -151,12 +197,15 @@
 					{#each regularRoles as role (role.roleId)}
 						{@const roleStatus =
 							role.status === 'draft' ? 'draft' : role.isHiring ? 'hiring' : undefined}
-						<RoleCard
+						<RoleCardWithMembers
+							roleId={role.roleId}
+							roleIdProp={role.roleId}
 							name={role.name}
 							purpose={role.purpose}
 							status={roleStatus}
-							roleId={role.roleId}
 							circleId={circle?.circleId}
+							{workspaceId}
+							{sessionId}
 							{canEdit}
 							{editReason}
 							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
@@ -165,9 +214,8 @@
 							onEdit={() => {
 								/* TODO: Implement edit role */
 							}}
-							onAddMember={() => {
-								onOpenAssignUserDialog?.('role', role.roleId, role.name);
-							}}
+							onMemberSelect={(personIds) => handleRoleMemberAssignment(role.roleId, personIds)}
+							onMemberRemove={(personId) => handleRoleMemberRemoval(role.roleId, personId)}
 							menuItems={[
 								{ label: 'Edit role', onclick: () => {} },
 								{ label: 'Remove', onclick: () => {}, danger: true }
@@ -195,13 +243,15 @@
 							name={childCircle.name}
 							purpose={childCircle.purpose}
 							isCircle={true}
+							circleId={childCircle.circleId}
+							{workspaceId}
+							{sessionId}
 							onClick={() => onChildCircleClick?.(childCircle.circleId)}
 							onEdit={() => {
 								/* TODO: Implement edit circle */
 							}}
-							onAddMember={() => {
-								onOpenAssignUserDialog?.('circle', childCircle.circleId, childCircle.name);
-							}}
+							onMemberSelect={(personIds) =>
+								handleCircleMemberAssignment(childCircle.circleId, personIds)}
 							menuItems={[
 								{ label: 'Edit circle', onclick: () => {} },
 								{ label: 'Remove', onclick: () => {}, danger: true }
@@ -227,16 +277,19 @@
 					<RoleCard
 						name="Members without role"
 						isCircle={false}
+						circleId={circle?.circleId}
+						{workspaceId}
+						{sessionId}
 						onClick={() => {}}
-						onAddMember={() => {
+						onMemberSelect={(personIds) => {
 							if (circle) {
-								onOpenAssignUserDialog?.('circle', circle.circleId, circle.name);
+								handleCircleMemberAssignment(circle.circleId, personIds);
 							}
 						}}
 						members={membersWithoutRoles.map((m) => ({
-							userId: m.userId,
+							personId: m.personId,
 							name: m.name,
-							email: m.email
+							email: m.email ?? ''
 						}))}
 					/>
 				</div>

@@ -44,6 +44,7 @@ export * as Toolbar from './Toolbar.svelte';
 export { default as StackedPanel } from './StackedPanel.svelte';
 export type { PanelContext } from './StackedPanel.svelte';
 export { default as PermissionGate } from './PermissionGate.svelte';
+export { default as PersonSelector } from './PersonSelector.svelte';
 
 // Banner Organisms
 export { default as DesignModeBanner } from './DesignModeBanner.svelte';

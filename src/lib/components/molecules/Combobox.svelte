@@ -6,8 +6,11 @@
 	// Then: <Combobox.Root> <Combobox.Input> <Combobox.Content> ...
 
 	export const Root = BitsCombobox.Root;
+	export const Portal = BitsCombobox.Portal;
 	export const Input = BitsCombobox.Input;
+	export const Trigger = BitsCombobox.Trigger;
 	export const Content = BitsCombobox.Content;
+	export const Viewport = BitsCombobox.Viewport;
 	export const Item = BitsCombobox.Item;
 	export const Group = BitsCombobox.Group;
 	export const GroupHeading = BitsCombobox.GroupHeading;
