@@ -47,6 +47,7 @@
 		"audit:ci": "node scripts/audit-design-system.js --ci",
 		"audit:naming": "npx tsx scripts/lint-naming.ts",
 		"audit:naming:strict": "npx tsx scripts/lint-naming.ts --strict",
+		"audit:core": "npx tsx scripts/audit-core.ts",
 		"invariants": "npx convex run internal.admin.invariants.runAll | npx tsx scripts/invariants-report.ts",
 		"invariants:critical": "npx convex run internal.admin.invariants.runAll '{\"severityFilter\":\"critical\"}' | npx tsx scripts/invariants-report.ts",
 		"invariants:identity": "npx convex run internal.admin.invariants.runAll '{\"category\":\"IDENT\"}' | npx tsx scripts/invariants-report.ts",

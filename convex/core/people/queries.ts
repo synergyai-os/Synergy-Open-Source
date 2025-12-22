@@ -168,3 +168,35 @@ export const getPersonForWorkspace = query({
 		};
 	}
 });
+
+export const listAllPeopleInWorkspace = query({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		// Verify user is member of workspace (using any active person record)
+		await getPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+
+		// Get all non-archived people in workspace
+		const people = await listPeopleInWorkspace(ctx, args.workspaceId);
+
+		// Filter out archived
+		const activePeople = people.filter((p) => p.status !== 'archived');
+
+		// Map to simplified format for PersonSelector
+		const peopleWithEmails = await Promise.all(
+			activePeople.map(async (person) => ({
+				personId: person._id,
+				displayName: person.displayName ?? person.email ?? 'Unknown',
+				email: await getPersonEmail(ctx, person),
+				status: person.status,
+				workspaceRole: person.workspaceRole,
+				userId: person.userId
+			}))
+		);
+
+		return peopleWithEmails;
+	}
+});

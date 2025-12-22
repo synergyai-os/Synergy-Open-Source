@@ -14,7 +14,7 @@ export function createEditHandlers(params: {
 	editCircle: UseEditCircleReturn;
 	orgChart: UseOrgChart | null;
 	circle: () => any;
-	sessionId: string | null;
+	getSessionId: () => string | null | undefined;
 	workspaceId: () => Id<'workspaces'> | undefined;
 	convexClient: ConvexClient | null;
 	isEditMode: () => boolean;
@@ -25,7 +25,7 @@ export function createEditHandlers(params: {
 		editCircle,
 		orgChart,
 		circle,
-		sessionId,
+		getSessionId,
 		workspaceId,
 		convexClient,
 		setEditMode,
@@ -67,6 +67,7 @@ export function createEditHandlers(params: {
 	async function handleAutoApprove() {
 		const wsId = workspaceId();
 		const c = circle();
+		const sessionId = getSessionId();
 		if (!convexClient || !c || !sessionId || !wsId) return;
 
 		try {

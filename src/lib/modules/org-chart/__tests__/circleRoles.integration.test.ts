@@ -190,7 +190,7 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign user to role
-		const result = await t.mutation(api.core.roles.index.assignUser, {
+		const result = await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId
@@ -229,7 +229,7 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign user
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId
@@ -243,7 +243,7 @@ describe('Circle Roles Integration Tests', () => {
 		expect(fillers.length).toBe(1);
 
 		// Remove user from role
-		const result = await t.mutation(api.core.roles.index.removeUser, {
+		const result = await t.mutation(api.core.roles.index.removePerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId
@@ -285,12 +285,12 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign user to both roles
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: role1,
 			assigneePersonId
 		});
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: role2,
 			assigneePersonId
@@ -330,12 +330,12 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign multiple users to same role
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId: person2
 		});
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId: person3
@@ -397,7 +397,7 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// First assignment succeeds
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId
@@ -405,7 +405,7 @@ describe('Circle Roles Integration Tests', () => {
 
 		// Second assignment fails
 		await expect(
-			t.mutation(api.core.roles.index.assignUser, {
+			t.mutation(api.core.roles.index.assignPerson, {
 				sessionId,
 				circleRoleId: roleId,
 				assigneePersonId
@@ -433,7 +433,7 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign user to role
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: roleId,
 			assigneePersonId
@@ -488,12 +488,12 @@ describe('Circle Roles Integration Tests', () => {
 		});
 
 		// Assign user to both roles
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: role1,
 			assigneePersonId: person2
 		});
-		await t.mutation(api.core.roles.index.assignUser, {
+		await t.mutation(api.core.roles.index.assignPerson, {
 			sessionId,
 			circleRoleId: role2,
 			assigneePersonId: person2

@@ -7,7 +7,7 @@
  * Core data composables:
  * - `useCircles` - Manage circles, members, roles, and mutations
  * - `useCircleMembers` - Query workspace members available for circles
- * - `useCircleRoles` - Query role fillers and available users
+ * - `useCircleRoles` - Query role fillers and available persons
  *
  * @see dev-docs/master-docs/core-data-architecture-audit.md
  */

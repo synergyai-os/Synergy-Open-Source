@@ -38,6 +38,8 @@ export interface CircleDetailContext {
 	// Core Data (reactive getters)
 	// ==========================================
 	circle: () => CircleData | null;
+	sessionId: () => string | undefined;
+	workspaceId: () => Id<'workspaces'> | undefined;
 
 	// ==========================================
 	// Composables (already reactive internally)

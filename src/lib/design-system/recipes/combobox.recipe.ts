@@ -64,7 +64,7 @@ export const comboboxViewportRecipe = cva('inset-sm', {
  * - hover:bg-subtle for visible feedback (NOT hover:bg-hover-solid which doesn't exist)
  */
 export const comboboxItemRecipe = cva(
-	'flex cursor-pointer items-center gap-fieldGroup mx-1 rounded-button px-button py-button text-xs text-primary transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle data-disabled:pointer-events-none',
+	'flex cursor-pointer items-center gap-fieldGroup mx-1 rounded-button px-button py-button text-xs text-primary transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle data-[highlighted]:bg-subtle data-disabled:pointer-events-none',
 	{
 		variants: {
 			disabled: {

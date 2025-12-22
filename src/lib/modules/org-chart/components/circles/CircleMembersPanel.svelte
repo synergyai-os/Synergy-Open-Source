@@ -31,20 +31,20 @@
 		members: () => members
 	});
 
-	const availableUsers = $derived(circleMembers.availableUsers);
+	const availablePersons = $derived(circleMembers.availablePersons);
 
-	let selectedUserId = $state('');
+	let selectedPersonId = $state('');
 
 	async function handleAddMember() {
-		if (!selectedUserId) return;
+		if (!selectedPersonId) return;
 
-		await circles.addMember({ circleId, memberUserId: selectedUserId });
-		selectedUserId = ''; // Reset selection
+		await circles.addMember({ circleId, memberPersonId: selectedPersonId });
+		selectedPersonId = ''; // Reset selection
 	}
 
-	async function handleRemoveMember(userId: string) {
+	async function handleRemoveMember(personId: string) {
 		if (confirm('Remove this member from the circle?')) {
-			await circles.removeMember({ circleId, memberUserId: userId });
+			await circles.removeMember({ circleId, memberPersonId: personId });
 		}
 	}
 </script>
@@ -60,22 +60,22 @@
 	<div class="border-base py-nav-item px-button-sm-x border-b">
 		<div class="gap-button flex">
 			<select
-				bind:value={selectedUserId}
+				bind:value={selectedPersonId}
 				class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary flex-1 border focus:outline-none"
-				disabled={circles.loading.addMember || availableUsers.length === 0}
+				disabled={circles.loading.addMember || availablePersons.length === 0}
 			>
 				<option value="">
-					{availableUsers.length === 0 ? 'All members added' : 'Select user...'}
+					{availablePersons.length === 0 ? 'All members added' : 'Select person...'}
 				</option>
-				{#each availableUsers as user (user.userId)}
-					<option value={user.userId}>
-						{user.name || user.email}
+				{#each availablePersons as person (person.personId)}
+					<option value={person.personId}>
+						{person.name || person.email}
 					</option>
 				{/each}
 			</select>
 			<button
 				onclick={handleAddMember}
-				disabled={!selectedUserId || circles.loading.addMember}
+				disabled={!selectedPersonId || circles.loading.addMember}
 				class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y hover:bg-accent-hover font-medium disabled:opacity-50"
 			>
 				{circles.loading.addMember ? 'Adding...' : 'Add'}
@@ -91,20 +91,20 @@
 			</div>
 		{:else}
 			<div class="space-y-2">
-				{#each members as member (member.userId)}
+				{#each members as member (member.personId)}
 					<div
 						class="border-base px-card py-nav-item rounded-button bg-elevated flex items-center justify-between border"
 					>
 						<div class="min-w-0 flex-1">
 							<p class="text-button text-primary truncate font-medium">
-								{member.name || member.email}
+								{member.displayName || member.email}
 							</p>
-							{#if member.name}
+							{#if member.displayName}
 								<p class="text-label text-secondary truncate">{member.email}</p>
 							{/if}
 						</div>
 						<button
-							onclick={() => handleRemoveMember(member.userId)}
+							onclick={() => handleRemoveMember(member.personId)}
 							disabled={circles.loading.removeMember}
 							class="hover:bg-sidebar-hover rounded-button inset-sm text-secondary hover:text-primary ml-2 disabled:opacity-50"
 							title="Remove member"

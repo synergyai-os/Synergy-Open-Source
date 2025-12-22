@@ -22,10 +22,12 @@ export type CircleSummary = {
 };
 
 export type CircleMember = {
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 	email: string;
-	name: string;
-	joinedAt: number;
+	displayName: string;
+	status?: string;
+	addedAt?: number;
+	joinedAt?: number;
 };
 
 export type CircleRole = {
@@ -38,12 +40,12 @@ export type CircleRole = {
 };
 
 export type RoleFiller = {
-	userId: Id<'users'>;
+	personId: Id<'people'>;
 	email: string;
-	name: string;
+	displayName: string;
 	assignedAt: number;
-	assignedBy: Id<'users'>;
-	assignedByName: string;
+	assignedByPersonId?: Id<'people'>;
+	assignedByDisplayName?: string;
 };
 
 type ModalKey = 'createCircle' | 'createRole';
@@ -73,8 +75,8 @@ export function useCircles(options: {
 			createRole: false,
 			updateRole: false,
 			archiveRole: false,
-			assignUser: false,
-			removeUser: false
+			assignPerson: false,
+			removePerson: false
 		}
 	});
 
@@ -210,7 +212,7 @@ export function useCircles(options: {
 			}
 		},
 
-		addMember: async (args: { circleId: string; memberUserId: string }) => {
+		addMember: async (args: { circleId: string; memberPersonId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
@@ -220,7 +222,7 @@ export function useCircles(options: {
 				await convexClient.mutation(api.core.circles.index.addMember, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
-					memberUserId: args.memberUserId as Id<'users'>
+					memberPersonId: args.memberPersonId as Id<'people'>
 				});
 
 				toast.success('Member added');
@@ -233,7 +235,7 @@ export function useCircles(options: {
 			}
 		},
 
-		removeMember: async (args: { circleId: string; memberUserId: string }) => {
+		removeMember: async (args: { circleId: string; memberPersonId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
@@ -243,7 +245,7 @@ export function useCircles(options: {
 				await convexClient.mutation(api.core.circles.index.removeMember, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
-					memberUserId: args.memberUserId as Id<'users'>
+					memberPersonId: args.memberPersonId as Id<'people'>
 				});
 
 				toast.success('Member removed');
@@ -338,49 +340,49 @@ export function useCircles(options: {
 			}
 		},
 
-		assignUserToRole: async (args: { circleRoleId: string; userId: string }) => {
+		assignPersonToRole: async (args: { circleRoleId: string; assigneePersonId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
-			state.loading.assignUser = true;
+			state.loading.assignPerson = true;
 			try {
-				await convexClient.mutation(api.core.roles.index.assignUser, {
+				await convexClient.mutation(api.core.roles.index.assignPerson, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
-					userId: args.userId as Id<'users'>
+					assigneePersonId: args.assigneePersonId as Id<'people'>
 				});
 
-				toast.success('User assigned to role');
+				toast.success('Person assigned to role');
 			} catch (error) {
-				const message = error instanceof Error ? error.message : 'Failed to assign user';
+				const message = error instanceof Error ? error.message : 'Failed to assign person';
 				toast.error(message);
 				throw error;
 			} finally {
-				state.loading.assignUser = false;
+				state.loading.assignPerson = false;
 			}
 		},
 
-		removeUserFromRole: async (args: { circleRoleId: string; userId: string }) => {
+		removePersonFromRole: async (args: { circleRoleId: string; assigneePersonId: string }) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
-			state.loading.removeUser = true;
+			state.loading.removePerson = true;
 			try {
-				await convexClient.mutation(api.core.roles.index.removeUser, {
+				await convexClient.mutation(api.core.roles.index.removePerson, {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
-					userId: args.userId as Id<'users'>
+					assigneePersonId: args.assigneePersonId as Id<'people'>
 				});
 
-				toast.success('User removed from role');
+				toast.success('Person removed from role');
 			} catch (error) {
-				const message = error instanceof Error ? error.message : 'Failed to remove user';
+				const message = error instanceof Error ? error.message : 'Failed to remove person';
 				toast.error(message);
 				throw error;
 			} finally {
-				state.loading.removeUser = false;
+				state.loading.removePerson = false;
 			}
 		}
 	};

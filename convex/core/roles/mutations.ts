@@ -22,6 +22,7 @@ import { ROLE_TYPES } from './constants';
 import {
 	ensureCircleExists,
 	ensureWorkspaceMembership,
+	ensureWorkspacePersonIsInWorkspace,
 	isLeadRole,
 	isWorkspaceAdmin,
 	requireWorkspacePersonById,
@@ -395,7 +396,10 @@ async function restoreAssignmentMutation(
 		.first();
 
 	if (existingActive) {
-		throw createError(ErrorCodes.ASSIGNMENT_ALREADY_EXISTS, 'User already has this role assigned');
+		throw createError(
+			ErrorCodes.ASSIGNMENT_ALREADY_EXISTS,
+			'Person already has this role assigned'
+		);
 	}
 
 	const _now = Date.now();
@@ -418,9 +422,9 @@ async function restoreAssignmentMutation(
 }
 
 /**
- * Assign user to role helper
+ * Assign person to role helper
  */
-async function assignUserToRole(
+async function assignPersonToRole(
 	ctx: MutationCtx,
 	args: { sessionId: string; circleRoleId: Id<'circleRoles'>; assigneePersonId: Id<'people'> }
 ): Promise<{ success: true }> {
@@ -430,11 +434,17 @@ async function assignUserToRole(
 	}
 
 	const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+	const circle = await ctx.db.get(role.circleId);
+	if (!circle) {
+		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
+	}
 
 	const actorPersonId = await requireWorkspacePersonFromSession(ctx, args.sessionId, workspaceId);
 	const targetPersonId = args.assigneePersonId;
 	await ensureWorkspaceMembership(ctx, workspaceId, actorPersonId);
-	await ensureWorkspaceMembership(ctx, workspaceId, targetPersonId);
+	await requireQuickEditPermissionForPerson(ctx, actorPersonId, circle);
+	// Targets can be placeholders/invited; still must belong to the workspace and not be archived.
+	await ensureWorkspacePersonIsInWorkspace(ctx, workspaceId, targetPersonId);
 
 	const existingAssignment = await ctx.db
 		.query('assignments')
@@ -452,6 +462,25 @@ async function assignUserToRole(
 	}
 
 	const now = Date.now();
+
+	// Domain invariant: role assignment implies circle membership.
+	// If the assignee is not yet a member of the circle, add them.
+	const existingMembership = await ctx.db
+		.query('circleMembers')
+		.withIndex('by_circle_person', (q) =>
+			q.eq('circleId', role.circleId).eq('personId', targetPersonId)
+		)
+		.first();
+
+	if (!existingMembership) {
+		await ctx.db.insert('circleMembers', {
+			circleId: role.circleId,
+			personId: targetPersonId,
+			joinedAt: now,
+			addedByPersonId: actorPersonId
+		});
+	}
+
 	const assignmentId = await ctx.db.insert('assignments', {
 		circleId: role.circleId,
 		roleId: args.circleRoleId,
@@ -480,9 +509,9 @@ async function assignUserToRole(
 }
 
 /**
- * Remove user from role helper
+ * Remove person from role helper
  */
-async function removeUserFromRole(
+async function removePersonFromRole(
 	ctx: MutationCtx,
 	args: { sessionId: string; circleRoleId: Id<'circleRoles'>; assigneePersonId: Id<'people'> }
 ) {
@@ -515,6 +544,29 @@ async function removeUserFromRole(
 	});
 
 	await handleUserCircleRoleRemoved(ctx, assignment._id);
+
+	// Domain invariant: membership = role.
+	// If this was the person's last active role in the circle, remove circle membership.
+	const remainingAssignments = await ctx.db
+		.query('assignments')
+		.withIndex('by_circle_person', (q) =>
+			q.eq('circleId', role.circleId).eq('personId', args.assigneePersonId)
+		)
+		.filter((q) => q.eq(q.field('status'), 'active'))
+		.first();
+
+	if (!remainingAssignments) {
+		const membership = await ctx.db
+			.query('circleMembers')
+			.withIndex('by_circle_person', (q) =>
+				q.eq('circleId', role.circleId).eq('personId', args.assigneePersonId)
+			)
+			.first();
+
+		if (membership) {
+			await ctx.db.delete(membership._id);
+		}
+	}
 
 	return { success: true };
 }
@@ -649,20 +701,20 @@ export const restoreAssignment = mutation({
 	handler: async (ctx, args) => restoreAssignmentMutation(ctx, args)
 });
 
-export const assignUser = mutation({
+export const assignPerson = mutation({
 	args: {
 		sessionId: v.string(),
 		circleRoleId: v.id('circleRoles'),
 		assigneePersonId: v.id('people')
 	},
-	handler: async (ctx, args) => assignUserToRole(ctx, args)
+	handler: async (ctx, args) => assignPersonToRole(ctx, args)
 });
 
-export const removeUser = mutation({
+export const removePerson = mutation({
 	args: {
 		sessionId: v.string(),
 		circleRoleId: v.id('circleRoles'),
 		assigneePersonId: v.id('people')
 	},
-	handler: async (ctx, args) => removeUserFromRole(ctx, args)
+	handler: async (ctx, args) => removePersonFromRole(ctx, args)
 });

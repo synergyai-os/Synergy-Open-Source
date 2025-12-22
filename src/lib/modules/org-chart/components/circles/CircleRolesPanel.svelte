@@ -19,8 +19,8 @@
 			| 'createRole'
 			| 'updateRole'
 			| 'archiveRole'
-			| 'assignUserToRole'
-			| 'removeUserFromRole'
+			| 'assignPersonToRole'
+			| 'removePersonFromRole'
 		>;
 		circleId: string;
 		roles: CircleRole[];
@@ -46,8 +46,8 @@
 
 	const roleFillers = $derived(circleRoles.roleFillers);
 
-	// State for assigning users
-	let assignUserId = $state<Record<string, string>>({});
+	// State for assigning people
+	let assignPersonId = $state<Record<string, string>>({});
 
 	async function handleCreateRole() {
 		if (!newRoleName.trim()) return;
@@ -67,18 +67,18 @@
 	}
 
 	async function handleAssignUser(roleId: string) {
-		const userId = assignUserId[roleId];
-		if (!userId) return;
+		const personId = assignPersonId[roleId];
+		if (!personId) return;
 
-		await circles.assignUserToRole({ circleRoleId: roleId, userId });
+		await circles.assignPersonToRole({ circleRoleId: roleId, assigneePersonId: personId });
 
 		// Reset selection on success (use spread to trigger reactivity)
-		assignUserId = { ...assignUserId, [roleId]: '' };
+		assignPersonId = { ...assignPersonId, [roleId]: '' };
 	}
 
-	async function handleRemoveUser(roleId: string, userId: string) {
-		if (confirm('Remove this user from the role?')) {
-			await circles.removeUserFromRole({ circleRoleId: roleId, userId });
+	async function handleRemoveUser(roleId: string, personId: string) {
+		if (confirm('Remove this person from the role?')) {
+			await circles.removePersonFromRole({ circleRoleId: roleId, assigneePersonId: personId });
 		}
 	}
 
@@ -92,10 +92,10 @@
 		expandedRoleId = expandedRoleId === roleId ? null : roleId;
 	}
 
-	// Filter out users who are already assigned to this role
-	function getAvailableUsersForRole(_roleId: string): CircleMember[] {
+	// Filter out people who are already assigned to this role
+	function getAvailablePeopleForRole(_roleId: string): CircleMember[] {
 		// Note: roleFillers already filtered by expandedRoleId via query
-		return circleRoles.availableUsers;
+		return circleRoles.availablePersons;
 	}
 </script>
 
@@ -235,25 +235,25 @@
 								<div class="mb-header">
 									<div class="gap-button flex">
 										<select
-											bind:value={assignUserId[role.roleId]}
+											bind:value={assignPersonId[role.roleId]}
 											class="border-base text-button rounded-button bg-surface px-input-x py-input-y text-primary focus:border-accent-primary flex-1 border focus:outline-none"
-											disabled={circles.loading.assignUser ||
-												getAvailableUsersForRole(role.roleId).length === 0}
+											disabled={circles.loading.assignPerson ||
+												getAvailablePeopleForRole(role.roleId).length === 0}
 										>
 											<option value="">
-												{getAvailableUsersForRole(role.roleId).length === 0
+												{getAvailablePeopleForRole(role.roleId).length === 0
 													? 'All members assigned'
-													: 'Select user...'}
+													: 'Select person...'}
 											</option>
-											{#each getAvailableUsersForRole(role.roleId) as user (user.userId)}
-												<option value={user.userId}>
-													{user.name || user.email}
+											{#each getAvailablePeopleForRole(role.roleId) as person (person.personId)}
+												<option value={person.personId}>
+													{person.displayName || person.email}
 												</option>
 											{/each}
 										</select>
 										<button
 											onclick={() => handleAssignUser(role.roleId)}
-											disabled={!assignUserId[role.roleId] || circles.loading.assignUser}
+											disabled={!assignPersonId[role.roleId] || circles.loading.assignPerson}
 											class="text-on-solid px-card rounded-button bg-accent-primary py-input-y text-label hover:bg-accent-hover font-medium disabled:opacity-50"
 										>
 											Assign
@@ -264,16 +264,16 @@
 								<!-- Role Fillers -->
 								<div class="space-y-2">
 									{#if roleFillers.length === 0}
-										<p class="text-label text-secondary">No users assigned</p>
+										<p class="text-label text-secondary">No people assigned</p>
 									{:else}
-										{#each roleFillers as filler (filler.userId)}
+										{#each roleFillers as filler (filler.personId)}
 											<div class="text-label flex items-center justify-between">
-												<span class="text-primary">{filler.name || filler.email}</span>
+												<span class="text-primary">{filler.displayName || filler.email}</span>
 												<button
-													onclick={() => handleRemoveUser(role.roleId, filler.userId)}
-													disabled={circles.loading.removeUser}
+													onclick={() => handleRemoveUser(role.roleId, filler.personId)}
+													disabled={circles.loading.removePerson}
 													class="rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
-													title="Remove user"
+													title="Remove person"
 												>
 													<svg
 														class="size-[0.75rem]"

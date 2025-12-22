@@ -613,5 +613,185 @@ if (await isCustomField(ctx, args.workspaceId, field)) {
 - Principle #20: No hardcoded magic values
 - SYOS-989: Database-driven custom field detection
 
-**Last Updated**: 2025-12-18
+---
+
+## #L600: Convex Schema-Query Validator Sync [🟡 IMPORTANT]
+
+**Keywords**: schema validator, query returns validator, validation error, ReturnsValidationError, extra field, validator sync, schema-query mismatch
+
+**Symptom**: Added field to schema validator (e.g., `circleId` to `ActivationIssueValidator`), but query throws validation error:
+```
+ReturnsValidationError: Object contains extra field `circleId` that is not in the validator.
+```
+
+**Root Cause**: Updated schema validator but forgot to update query's `returns` validator. Convex validates query return values at runtime to ensure frontend receives correct shape. Schema validator alone doesn't enforce query returns.
+
+**Fix Pattern**:
+```typescript
+// ✅ Step 1: Update schema validator
+export const ActivationIssueValidator = v.object({
+  // ... existing fields
+  circleId: v.optional(v.string()),
+  roleId: v.optional(v.string())
+});
+
+// ✅ Step 2: Update query's returns validator (DON'T FORGET!)
+export const getActivationIssues = query({
+  args: { /* ... */ },
+  returns: v.array(v.object({
+    // ... existing fields (must match schema)
+    circleId: v.optional(v.string()),
+    roleId: v.optional(v.string())
+  })),
+  handler: async (ctx, args) => { /* ... */ }
+});
+```
+
+**Prevention Checklist**:
+- [ ] Update schema validator (`SomethingValidator`)
+- [ ] Update corresponding TypeScript type (`Something`)
+- [ ] Update query `returns` validator (if query returns this type)
+- [ ] Update mutation `args` validator (if mutation accepts this type)
+
+**Why This Happens**: Convex validates query return values at runtime to ensure frontend receives correct shape. Schema validator alone doesn't enforce query returns.
+
+**Apply when**: 
+- Adding fields to schema validators
+- Query returns objects matching schema
+- Getting `ReturnsValidationError` about extra fields
+
+**Anti-Patterns**:
+- ❌ Updating schema validator but forgetting query `returns` validator
+- ❌ Copy-pasting schema validator without checking all usages
+
+**Related**: #L540 (Database-Driven Configuration)
+
+---
+
+## #L650: Structured Action Data Over URLs (Backend Logic Principle) [🟢 REFERENCE]
+
+**Keywords**: backend logic, action data, URL structure, presentation layer, semantic data, actionType, circleId, roleId, frontend navigation
+
+**Symptom**: Backend returns `actionUrl: '/w/slug/chart'` for fixing issues. This mixes presentation logic (URL structure) into business logic.
+
+**Root Cause**: Backend controlling frontend navigation violates separation of concerns. Backend shouldn't know about URL structure or presentation layer details.
+
+**Before** (❌ Backend controls frontend navigation):
+```typescript
+// Backend
+return {
+  actionType: 'edit_role',
+  actionUrl: `/w/${workspaceSlug}/chart`  // ❌ Backend knows URL structure
+};
+
+// Frontend
+<Button href={issue.actionUrl}>Fix</Button>  // ❌ Direct navigation
+```
+
+**After** (✅ Backend provides semantic data):
+```typescript
+// Backend
+return {
+  actionType: 'edit_role',
+  circleId: circle._id,      // ✅ Semantic data
+  roleId: role._id,          // ✅ Semantic data
+  actionUrl: '/w/.../chart'  // Kept for backward compatibility
+};
+
+// Frontend
+function handleFix(issue) {
+  if (issue.roleId) {
+    orgChart.selectRole(issue.roleId);  // ✅ Frontend controls presentation
+  }
+}
+```
+
+**Principle**: Backend provides **what** needs to happen (semantic actions). Frontend decides **how** to present it (navigation strategy).
+
+**Benefits**:
+- Backend doesn't need to know about stacked panels vs page navigation
+- Easier to change presentation layer without backend changes
+- More testable (can test action logic without URL structure)
+
+**Apply when**: 
+- Backend needs to indicate actions frontend should take
+- Multiple presentation strategies possible (panels, pages, modals)
+- Want to decouple backend from frontend navigation
+
+**Architecture Reference**: Principle #10 (business logic in Convex) + Principle #12 (thin components).
+
+**Related**: #L500 (Stacked Navigation Cross-Module Reuse)
+
+---
+
+## #L700: DB-Driven Custom Field Rendering (Frontend Complement to Database-Driven Configuration) [🟢 REFERENCE]
+
+**Keywords**: custom fields, iterate fields, DB-driven, field rendering, customFields.fields, CustomFieldSection, admin-added fields, display name, field order, frontend complement
+
+**Symptom**: Hardcoded field names and category mappings in Svelte templates prevent:
+- Admin-added custom fields from appearing automatically
+- Display name customization per workspace
+- Proper ordering from database
+
+**Root Cause**: Templates hardcode field names instead of iterating over database-driven field definitions.
+
+**Example of broken code**:
+```svelte
+<!-- ❌ BROKEN: Hardcoded field names -->
+<h4>Domains</h4>
+<CategoryItemsList
+  categoryName="Domains"
+  items={ctx.getItemsForCategory('Domains')}
+/>
+
+<h4>Accountabilities</h4>
+<CategoryItemsList
+  categoryName="Accountabilities"
+  items={ctx.getItemsForCategory('Accountabilities')}
+/>
+```
+
+**Fix**: Iterate over `customFields.fields` from the composable:
+```svelte
+<!-- ✅ CORRECT: DB-driven field rendering -->
+{#each customFields.fields as field (field.definition._id)}
+  <CustomFieldSection
+    {field}
+    {canEdit}
+    {editReason}
+    onSave={(value) => customFields.setFieldValue(field.definition._id, value)}
+    onDelete={() => customFields.deleteFieldValue(field.definition._id)}
+  />
+{/each}
+```
+
+**Key Components**:
+1. **Shared Composable** (`$lib/composables/useCustomFields.svelte.ts`):
+   - 2 queries: definitions + values
+   - Returns `fields` array ordered by `definition.order`
+   - Provides `setFieldValue` and `deleteFieldValue` mutations
+
+2. **Reusable Molecule** (`CustomFieldSection.svelte`):
+   - Auto-renders based on `field.definition.fieldType`
+   - Uses `field.definition.name` for display (admin-configurable)
+   - Handles single values (text, longText) and lists (textList)
+
+**Benefits**:
+- New fields appear automatically when admin adds them
+- Display names are workspace-configurable
+- Ordering controlled by database
+- Only 2 queries regardless of field count
+
+**Apply when**: 
+- Rendering custom fields in templates
+- Need admin-configurable field display
+- Want automatic field discovery
+
+**Architecture Reference**: This is the frontend complement to "Database-Driven Configuration" (#L540).
+
+**Related**: #L540 (Database-Driven Configuration)
+
+---
+
+**Last Updated**: 2025-12-19
 

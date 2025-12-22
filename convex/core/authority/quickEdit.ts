@@ -36,6 +36,21 @@ export async function requireQuickEditPermissionForPerson(
 	personId: Id<'people'>,
 	circle: Doc<'circles'>
 ): Promise<void> {
+	// Phase behavior:
+	// - design: direct edits are expected (proposals not required); allow workspace members to edit even
+	//   before circle membership/authority is established (common during org setup).
+	// - active: respect allowQuickChanges + authority restrictions.
+	const workspace = await ctx.db.get(circle.workspaceId);
+	if (!workspace) {
+		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
+	}
+
+	// In design phase we intentionally allow quick edits without circle authority checks.
+	// The caller is still required to be an active workspace member by the domain mutation wrappers.
+	if (workspace.phase === 'design') {
+		return;
+	}
+
 	// 1. Check workspace setting
 	const orgSettings = await ctx.db
 		.query('workspaceOrgSettings')

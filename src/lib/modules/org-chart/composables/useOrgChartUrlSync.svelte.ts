@@ -195,9 +195,9 @@ export function useOrgChartUrlSync(orgChart: UseOrgChart) {
 		// Only update if URL actually changed
 		if (newUrl.href !== currentPage.url.href) {
 			if (usePush) {
-				pushState(newUrl.href, {});
+				pushState(newUrl.pathname + newUrl.search + newUrl.hash, {});
 			} else {
-				replaceState(newUrl.href, {});
+				replaceState(newUrl.pathname + newUrl.search + newUrl.hash, {});
 			}
 		}
 	}

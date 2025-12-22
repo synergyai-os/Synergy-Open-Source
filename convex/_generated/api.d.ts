@@ -8,14 +8,6 @@
  * @module
  */
 
-import type * as admin_analytics from "../admin/analytics.js";
-import type * as admin_archived_migrateCirclesToWorkspaces from "../admin/archived/migrateCirclesToWorkspaces.js";
-import type * as admin_archived_syos814TestUtils from "../admin/archived/syos814TestUtils.js";
-import type * as admin_archived_syos814VerifyPhase2 from "../admin/archived/syos814VerifyPhase2.js";
-import type * as admin_archived_syos814VerifyPhase3 from "../admin/archived/syos814VerifyPhase3.js";
-import type * as admin_cleanupLegacyCircleItems from "../admin/cleanupLegacyCircleItems.js";
-import type * as admin_ensurePersonForUserInWorkspace from "../admin/ensurePersonForUserInWorkspace.js";
-import type * as admin_fixInvariantViolations from "../admin/fixInvariantViolations.js";
 import type * as admin_invariants from "../admin/invariants.js";
 import type * as admin_invariants_assignments from "../admin/invariants/assignments.js";
 import type * as admin_invariants_authority from "../admin/invariants/authority.js";
@@ -30,20 +22,11 @@ import type * as admin_invariants_proposals from "../admin/invariants/proposals.
 import type * as admin_invariants_roles from "../admin/invariants/roles.js";
 import type * as admin_invariants_types from "../admin/invariants/types.js";
 import type * as admin_invariants_workspaces from "../admin/invariants/workspaces.js";
-import type * as admin_migrateAddCoreRoles from "../admin/migrateAddCoreRoles.js";
-import type * as admin_migrateArchiveAbandonedWorkspaces from "../admin/migrateArchiveAbandonedWorkspaces.js";
-import type * as admin_migrateDefaultCategories from "../admin/migrateDefaultCategories.js";
-import type * as admin_migrateOrgChartSoftDelete from "../admin/migrateOrgChartSoftDelete.js";
-import type * as admin_migrateProposalsToPerson from "../admin/migrateProposalsToPerson.js";
-import type * as admin_migrateRootCircles from "../admin/migrateRootCircles.js";
-import type * as admin_migrateTagsToPersonId from "../admin/migrateTagsToPersonId.js";
-import type * as admin_migrateVersionHistory from "../admin/migrateVersionHistory.js";
 import type * as admin_migrations_migrateCircleItemsToCustomFields from "../admin/migrations/migrateCircleItemsToCustomFields.js";
 import type * as admin_migrations_migrateProjectsToPersonId from "../admin/migrations/migrateProjectsToPersonId.js";
 import type * as admin_migrations_migrateTasksAuditFields from "../admin/migrations/migrateTasksAuditFields.js";
 import type * as admin_orgStructureImport from "../admin/orgStructureImport.js";
 import type * as admin_rbac from "../admin/rbac.js";
-import type * as admin_reportMissingProposalPersons from "../admin/reportMissingProposalPersons.js";
 import type * as admin_resetWorkspace from "../admin/resetWorkspace.js";
 import type * as admin_seed_bootstrap from "../admin/seed/bootstrap.js";
 import type * as admin_seed_customFieldDefinitions from "../admin/seed/customFieldDefinitions.js";
@@ -53,7 +36,6 @@ import type * as admin_seed_roleTemplates from "../admin/seed/roleTemplates.js";
 import type * as admin_seed_workspaceSeed from "../admin/seed/workspaceSeed.js";
 import type * as admin_settings from "../admin/settings.js";
 import type * as admin_users from "../admin/users.js";
-import type * as admin_validateRoleTemplates from "../admin/validateRoleTemplates.js";
 import type * as core_assignments_index from "../core/assignments/index.js";
 import type * as core_assignments_mutations from "../core/assignments/mutations.js";
 import type * as core_assignments_queries from "../core/assignments/queries.js";
@@ -318,14 +300,6 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  "admin/analytics": typeof admin_analytics;
-  "admin/archived/migrateCirclesToWorkspaces": typeof admin_archived_migrateCirclesToWorkspaces;
-  "admin/archived/syos814TestUtils": typeof admin_archived_syos814TestUtils;
-  "admin/archived/syos814VerifyPhase2": typeof admin_archived_syos814VerifyPhase2;
-  "admin/archived/syos814VerifyPhase3": typeof admin_archived_syos814VerifyPhase3;
-  "admin/cleanupLegacyCircleItems": typeof admin_cleanupLegacyCircleItems;
-  "admin/ensurePersonForUserInWorkspace": typeof admin_ensurePersonForUserInWorkspace;
-  "admin/fixInvariantViolations": typeof admin_fixInvariantViolations;
   "admin/invariants": typeof admin_invariants;
   "admin/invariants/assignments": typeof admin_invariants_assignments;
   "admin/invariants/authority": typeof admin_invariants_authority;
@@ -340,20 +314,11 @@ declare const fullApi: ApiFromModules<{
   "admin/invariants/roles": typeof admin_invariants_roles;
   "admin/invariants/types": typeof admin_invariants_types;
   "admin/invariants/workspaces": typeof admin_invariants_workspaces;
-  "admin/migrateAddCoreRoles": typeof admin_migrateAddCoreRoles;
-  "admin/migrateArchiveAbandonedWorkspaces": typeof admin_migrateArchiveAbandonedWorkspaces;
-  "admin/migrateDefaultCategories": typeof admin_migrateDefaultCategories;
-  "admin/migrateOrgChartSoftDelete": typeof admin_migrateOrgChartSoftDelete;
-  "admin/migrateProposalsToPerson": typeof admin_migrateProposalsToPerson;
-  "admin/migrateRootCircles": typeof admin_migrateRootCircles;
-  "admin/migrateTagsToPersonId": typeof admin_migrateTagsToPersonId;
-  "admin/migrateVersionHistory": typeof admin_migrateVersionHistory;
   "admin/migrations/migrateCircleItemsToCustomFields": typeof admin_migrations_migrateCircleItemsToCustomFields;
   "admin/migrations/migrateProjectsToPersonId": typeof admin_migrations_migrateProjectsToPersonId;
   "admin/migrations/migrateTasksAuditFields": typeof admin_migrations_migrateTasksAuditFields;
   "admin/orgStructureImport": typeof admin_orgStructureImport;
   "admin/rbac": typeof admin_rbac;
-  "admin/reportMissingProposalPersons": typeof admin_reportMissingProposalPersons;
   "admin/resetWorkspace": typeof admin_resetWorkspace;
   "admin/seed/bootstrap": typeof admin_seed_bootstrap;
   "admin/seed/customFieldDefinitions": typeof admin_seed_customFieldDefinitions;
@@ -363,7 +328,6 @@ declare const fullApi: ApiFromModules<{
   "admin/seed/workspaceSeed": typeof admin_seed_workspaceSeed;
   "admin/settings": typeof admin_settings;
   "admin/users": typeof admin_users;
-  "admin/validateRoleTemplates": typeof admin_validateRoleTemplates;
   "core/assignments/index": typeof core_assignments_index;
   "core/assignments/mutations": typeof core_assignments_mutations;
   "core/assignments/queries": typeof core_assignments_queries;

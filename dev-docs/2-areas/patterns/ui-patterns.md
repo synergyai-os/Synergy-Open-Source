@@ -258,6 +258,91 @@ Patterns for bits-ui components, scroll areas, dropdowns, and visual effects.
 **Key points**:
 - `bind:open` on Root is **required** - without it, dropdown won't open
 - Add `onclick` and `onfocus` handlers to Input to open on interaction
+
+---
+
+## #L560: URL-Synced Tabs Without Full-Panel Flash (Keep Header Stable) [🟡 IMPORTANT]
+
+**Keywords**: tabs, URL params, replaceState, shallow routing, white flash, loading gate, StackedPanel, TabbedPanel
+
+**Symptom**: Clicking a tab briefly makes the whole panel go blank/white, then re-renders. Even though data is already loaded, the user perceives a “page reload”.
+
+**Root Cause**: The panel template uses a whole-panel loading gate:
+
+```svelte
+{#if isLoading}
+  <Loading />
+{:else if entity}
+  <!-- header + tabs + everything -->
+{/if}
+```
+
+If `isLoading` toggles `true` even briefly (often happens when URL-driven state updates), Svelte replaces the entire panel content, causing a flash.
+
+**Fix**:
+
+- **Keep a stable “last loaded” entity** (per selected id) so the header and structure never disappear.
+- **Scope loading UI to the tab content area**, not the entire panel.
+- If loading jitters during tab changes, **only show the overlay on real entity changes**, not on tab changes.
+
+**Implementation pattern (Svelte 5 runes)**:
+
+```ts
+// In the panel component
+const entity = $derived(source?.selectedEntity ?? null);
+const selectedId = $derived(source?.selectedEntityId ?? null);
+const isLoading = $derived(source?.selectedEntityIsLoading ?? false);
+
+const stable = $state({ entity: null as typeof entity, id: null as typeof selectedId });
+const lastLoaded = $state({ id: null as string | null });
+
+$effect(() => {
+  // Reset stable entity when selection changes
+  if (selectedId !== stable.id) {
+    stable.id = selectedId;
+    stable.entity = null;
+  }
+  // Update stable entity whenever real data arrives
+  if (entity) stable.entity = entity;
+});
+
+const displayEntity = $derived(entity ?? stable.entity);
+
+$effect(() => {
+  if (displayEntity && selectedId) lastLoaded.id = selectedId as unknown as string;
+});
+
+const shouldShowContentOverlay = $derived(
+  !!selectedId && isLoading && lastLoaded.id !== (selectedId as unknown as string)
+);
+```
+
+```svelte
+{#if !displayEntity && isLoading}
+  <Loading message="Loading..." />
+{:else if displayEntity}
+  <DetailHeader entityName={displayEntity.name} />
+
+  <div class="relative flex-1 overflow-y-auto">
+    <TabbedPanel ... />
+
+    {#if shouldShowContentOverlay}
+      <div class="bg-surface/80 absolute inset-0 flex items-center justify-center">
+        <Loading message="Loading..." />
+      </div>
+    {/if}
+  </div>
+{/if}
+```
+
+**Apply when**:
+- Tabs are synced to URL query params (shareable links)
+- Any “loading” boolean can briefly toggle due to URL/state changes
+- You want **header + chrome to remain stable** during transient fetch/recompute
+
+**Related**:
+- `convex-integration.md#L250` (conditional `useQuery` must be wrapped in `$derived`)
+- `stacked-navigation.md` (stack drives selection; URL sync is first-class)
 - Open on `oninput` when user starts typing (better UX)
 - Trigger button works automatically with `bind:open`
 
@@ -337,6 +422,98 @@ Patterns for bits-ui components, scroll areas, dropdowns, and visual effects.
 - ❌ Missing `collisionPadding` (dropdown can extend beyond viewport)
 
 **Related**: #L60 (ScrollArea Max Height), #L120 (Combobox Open State)
+
+---
+
+## #L140: Combobox Input (Portal) — Autofocus + Cmd/Ctrl+A + Delete Behavior [🟡 IMPORTANT]
+
+**Keywords**: Combobox, bits-ui, Portal, Input, focus, autofocus, keyboard, Cmd+A, Ctrl+A, select all, delete, backspace, stopPropagation, onOpenChangeComplete, tick, requestAnimationFrame
+
+**Symptom**:
+- User clicks a Combobox trigger and **can’t type immediately** (input inside the dropdown isn’t focused)
+- **Cmd/Ctrl+A** selects “all options” (or does nothing) instead of selecting input text
+- **Delete/Backspace after Cmd+A** doesn’t clear the input (or triggers combobox behaviors)
+
+**Root Cause**:
+- When the input is rendered inside `Combobox.Content` (often via `Combobox.Portal`), it may not exist yet at the moment you open the combobox (Portal timing + animations).
+- Combobox root-level key handlers can treat Cmd/Ctrl+A / Delete as *combobox shortcuts* instead of native input editing.
+
+**Pattern**:
+- **Focus after open** using `tick()` + a few `requestAnimationFrame` retries (Portal-safe).
+- On the input `keydown`:
+  - Intercept **Cmd/Ctrl+A** → `input.select()` and `stopPropagation()`
+  - For **Backspace/Delete**: if the input has value or selection, `stopPropagation()` so native editing wins.
+
+**Implementation:**
+
+```svelte
+<script lang="ts">
+	import { browser } from '$app/environment';
+	import { tick } from 'svelte';
+
+	let inputRef = $state<HTMLInputElement | null>(null);
+	let open = $state(false);
+
+	function tryFocus(): boolean {
+		if (!inputRef) return false;
+		inputRef.focus();
+		inputRef.select();
+		return true;
+	}
+
+	async function focusSoon() {
+		if (!browser) return;
+		await tick();
+		let attempts = 0;
+		const maxAttempts = 6;
+		const step = () => {
+			if (tryFocus()) return;
+			attempts += 1;
+			if (attempts < maxAttempts) requestAnimationFrame(step);
+		};
+		requestAnimationFrame(step);
+	}
+
+	function onOpenChangeComplete(isOpen: boolean) {
+		if (!isOpen) return;
+		void focusSoon();
+	}
+
+	function onInputKeyDown(event: KeyboardEvent) {
+		// Cmd/Ctrl + A should select input text, not combobox items
+		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
+			event.preventDefault();
+			event.stopPropagation();
+			(event.currentTarget as HTMLInputElement).select();
+			return;
+		}
+
+		// Ensure Backspace/Delete edits the input when there is text/selection
+		if (event.key === 'Backspace' || event.key === 'Delete') {
+			const input = event.currentTarget as HTMLInputElement;
+			const hasValue = input.value.length > 0;
+			const hasSelection = input.selectionStart !== input.selectionEnd;
+			if (hasValue || hasSelection) event.stopPropagation();
+		}
+	}
+</script>
+
+<!-- Combobox root (bind:open recommended for controlled open) -->
+<Combobox.Root bind:open onOpenChangeComplete={onOpenChangeComplete}>
+	<Combobox.Portal>
+		<Combobox.Content>
+			<Combobox.Input bind:ref={inputRef} onkeydown={onInputKeyDown} />
+		</Combobox.Content>
+	</Combobox.Portal>
+</Combobox.Root>
+```
+
+**Anti-Patterns**:
+- ❌ Focusing immediately on click (Portal input not mounted yet)
+- ❌ `event.preventDefault()` for Delete/Backspace without checking selection/value (breaks native editing)
+- ❌ Letting Cmd/Ctrl+A bubble to Combobox root (selects options / breaks UX)
+
+**Related**: #L120 (Combobox Open State), #L130 (Combobox Dropdown Sizing), #L510 (External Trigger with `customAnchor`)
 
 ---
 
@@ -603,5 +780,212 @@ function closePanel() {
 
 ---
 
-**Last Updated**: 2025-12-05
+## #L500: Stacked Navigation Cross-Module Reuse (Reusing Module Panels in Different Contexts) [🟢 REFERENCE]
+
+**Keywords**: stacked navigation, module panels, cross-module reuse, composable, CircleDetailPanel, RoleDetailPanel, useOrgChart, activation page
+
+**Symptom**: Need to open circle/role edit panels from a different context (e.g., activation page) without duplicating UI code or navigating away from the current page.
+
+**Root Cause**: Panels are tightly coupled to their original module context. Need a way to reuse existing panel components and their composables in new contexts.
+
+**Fix**: Initialize the module's composable (`useOrgChart`) in the new context and reuse existing panel components:
+
+```svelte
+<!-- ✅ CORRECT: Reuse existing panels with their composable -->
+<script lang="ts">
+  import { useOrgChart } from '$lib/modules/org-chart/composables/useOrgChart.svelte';
+  import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
+  import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
+  
+  // Initialize composable (provides required context)
+  const orgChart = browser
+    ? useOrgChart({
+        sessionId: () => data.sessionId,
+        workspaceId: () => data.workspaceId
+      })
+    : null;
+    
+  // Open panels via composable methods
+  function handleFixIssue(issue) {
+    if (issue.circleId) {
+      orgChart.selectCircle(issue.circleId);
+    } else if (issue.roleId) {
+      orgChart.selectRole(issue.roleId);
+    }
+  }
+</script>
+
+<!-- Panels render automatically when selection changes -->
+{#if orgChart}
+  <CircleDetailPanel {orgChart} />
+  <RoleDetailPanel {orgChart} />
+{/if}
+```
+
+**Benefits**:
+- ✅ Consistent UI/UX across contexts (same edit experience)
+- ✅ No code duplication
+- ✅ Automatic features (edit protection, breadcrumbs, mobile support)
+- ✅ URL sync works (shareable deep links)
+
+**Trade-offs**:
+- Adds dependency on module composable
+- Loads full panel features (may be heavier than needed)
+
+**When to create standalone panels instead**:
+- Need simplified behavior (fewer features)
+- Performance critical (minimize bundle size)
+- Significantly different UX requirements
+
+**Apply when**: 
+- Need to reuse module panels in different contexts
+- Want consistent edit experience across pages
+- Need to avoid code duplication
+
+**Architecture Reference**: See `stacked-navigation.md` Pattern 2 (consuming navigation) and Pattern 3 (checking visibility).
+
+**Related**: #L350 (Mobile-First Panel Pattern), #L460 (StackedPanel Close Handler)
+
+---
+
+## #L510: Combobox External Trigger with customAnchor [🔴 CRITICAL]
+
+**Keywords**: Combobox, external trigger, customAnchor, positioning, dropdown, portal, icon button, invisible dropdown, off-screen
+
+**Symptom**: Combobox with external trigger (controlled by parent) doesn't show dropdown, or dropdown appears off-screen/invisible even though content is rendering.
+
+**Root Cause**: When using `triggerStyle="external"` pattern (parent controls open state via `bind:open`), the Combobox.Content has no positioning reference. Bits UI's Portal needs to know WHERE to position the dropdown via the `customAnchor` prop.
+
+**Wrong approach:**
+```svelte
+<!-- ❌ WRONG: No anchor reference passed -->
+<script>
+  let open = $state(false);
+</script>
+
+<Button onclick={() => open = true}>Add Person</Button>
+
+<Combobox.Root bind:open>
+  <Combobox.Portal>
+    <!-- Content renders but positioned at (0,0) or off-screen -->
+    <Combobox.Content>
+      <Combobox.Input />
+      <!-- ... -->
+    </Combobox.Content>
+  </Combobox.Portal>
+</Combobox.Root>
+```
+
+**Fix**: Capture trigger element reference and pass to `customAnchor`:
+
+```svelte
+<script lang="ts">
+  import { Combobox } from 'bits-ui';
+  
+  let open = $state(false);
+  let triggerRef = $state<HTMLElement | null>(null);
+</script>
+
+<!-- Capture trigger element reference -->
+<div bind:this={triggerRef}>
+  <Button onclick={() => open = true}>Add Person</Button>
+</div>
+
+<Combobox.Root bind:open>
+  <Combobox.Portal>
+    <!-- Pass trigger reference to anchor dropdown -->
+    <Combobox.Content
+      customAnchor={triggerRef}
+      side="bottom"
+      align="start"
+      sideOffset={4}
+    >
+      <Combobox.Input />
+      <!-- ... -->
+    </Combobox.Content>
+  </Combobox.Portal>
+</Combobox.Root>
+```
+
+**Component API Pattern** (for reusable components):
+
+```svelte
+<!-- PersonSelector.svelte (external mode) -->
+<script lang="ts">
+  type Props = {
+    triggerStyle?: 'default' | 'external';
+    open?: boolean; // Bindable for external mode
+    anchorElement?: HTMLElement | null; // Required for external mode
+    // ... other props
+  };
+  
+  let {
+    triggerStyle = 'default',
+    open: externalOpen = $bindable(undefined),
+    anchorElement = null
+  } = $props();
+</script>
+
+<Combobox.Root bind:open={externalOpen}>
+  {#if triggerStyle === 'default'}
+    <!-- Built-in trigger -->
+    <Combobox.Trigger>...</Combobox.Trigger>
+  {/if}
+  
+  <Combobox.Portal>
+    <Combobox.Content
+      customAnchor={triggerStyle === 'external' ? anchorElement : undefined}
+    >
+      <!-- ... -->
+    </Combobox.Content>
+  </Combobox.Portal>
+</Combobox.Root>
+```
+
+**Usage:**
+```svelte
+<script>
+  let selectorOpen = $state(false);
+  let buttonRef = $state(null);
+</script>
+
+<div bind:this={buttonRef}>
+  <Button onclick={() => selectorOpen = true}>Add</Button>
+</div>
+
+<PersonSelector
+  triggerStyle="external"
+  bind:open={selectorOpen}
+  anchorElement={buttonRef}
+/>
+```
+
+**Key points**:
+- **Always** capture the trigger element reference with `bind:this`
+- Pass the reference to `customAnchor` prop on `Combobox.Content`
+- Without `customAnchor`, Portal has no positioning context
+- The anchor element should wrap or be the actual trigger button
+
+**Why this happens**:
+- Bits UI Portal renders content in `document.body` (not at DOM location)
+- Floating UI (positioning library) needs anchor reference to calculate position
+- Default mode: Combobox.Trigger provides automatic anchor reference
+- External mode: No built-in trigger, so parent must provide anchor
+
+**Apply when**: 
+- Building combobox with external/icon trigger
+- Parent component controls open state
+- Dropdown exists but is invisible/off-screen
+- Using icon buttons or custom triggers
+
+**Anti-patterns:**
+- ❌ Hidden `sr-only` div as anchor (has no position)
+- ❌ Passing `customAnchor={undefined}` in external mode
+- ❌ Conditional rendering without proper anchor reference
+
+**Related**: #L120 (Combobox Open State), #L130 (Combobox Dropdown Sizing)
+
+---
+
+**Last Updated**: 2025-12-20
 

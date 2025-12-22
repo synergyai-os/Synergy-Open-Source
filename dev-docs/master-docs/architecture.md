@@ -1025,6 +1025,7 @@ export default defineSchema({
 | `require___` | `T` (throws if invalid) | Fetch-or-throw validation |
 | `ensure___` | `void` (throws if invalid) | Validate condition |
 | `validate___` | `void` or `T` | Validation helpers |
+| `map___` | `T` or `T[]` | Transform data structure to another shape |
 
 ### Handler Pattern (Thin Orchestration)
 
@@ -1341,6 +1342,23 @@ const selectedCircleId = $derived(navigation.getTopmostLayer('circle')?.id);
 // ❌ WRONG: Separate selection state
 let selectedCircleId = $state(null); // Can get out of sync!
 ```
+
+### URL State (Query Params) for Shareable UI
+
+Use query parameters for **shareable, reloadable UI state** within a feature (tabs, filters, selected subviews). Keep the feature route path clean and stable; use query params for view state.
+
+**Rules:**
+
+- **Use SvelteKit shallow routing helpers**: always use `pushState` / `replaceState` from `$app/navigation` for URL state updates (never `window.history.*`).
+- **Relative URL only**: pass `pathname + search + hash` (not `.href`) to `pushState/replaceState`.
+- **Namespaced keys**: avoid collisions by giving each feature/component a unique key (e.g. `circleTab`, `roleTab`).
+- **Merge patches**: URL updaters must preserve unrelated params (patch the current URL, don’t reconstruct from stale `$page.url`).
+
+**Shared primitive:** `src/lib/composables/useUrlSearchParamSync.svelte.ts`
+
+**Example:** org-chart deep links combine stacked navigation + tab state:
+
+`/w/<slug>/chart?nav=c:...&circleTab=members`
 
 ### Anti-Patterns
 

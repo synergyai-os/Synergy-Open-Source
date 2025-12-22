@@ -30,6 +30,7 @@
 	import CircleEditFooter from './CircleEditFooter.svelte';
 	import CircleEditModeBar from './CircleEditModeBar.svelte';
 	import CircleTitleBadges from './CircleTitleBadges.svelte';
+	import { invariant } from '$lib/utils/invariant';
 
 	let { orgChart }: { orgChart: UseOrgChart | null } = $props();
 
@@ -45,6 +46,38 @@
 		isOpen = $derived(navigation.isInStack('circle')),
 		isLoading = $derived(orgChart?.selectedCircleIsLoading ?? false),
 		error = $derived(orgChart?.selectedCircleError ?? null);
+	const stable = $state({
+		circle: null as typeof circle,
+		circleId: null as typeof selectedCircleId
+	});
+	const lastLoaded = $state({
+		circleId: null as string | null
+	});
+
+	// Keep a stable copy of the last-loaded circle for the currently selected circleId.
+	// This prevents full-panel flashes when `isLoading` toggles briefly (e.g., URL state updates).
+	$effect(() => {
+		const id = selectedCircleId;
+		if (id !== stable.circleId) {
+			stable.circleId = id;
+			stable.circle = null;
+		}
+		if (circle) {
+			stable.circle = circle;
+		}
+	});
+
+	const displayCircle = $derived(circle ?? stable.circle);
+	$effect(() => {
+		if (displayCircle && selectedCircleId) {
+			lastLoaded.circleId = selectedCircleId as unknown as string;
+		}
+	});
+	const shouldShowContentLoadingOverlay = $derived(
+		!!selectedCircleId &&
+			isLoading &&
+			lastLoaded.circleId !== (selectedCircleId as unknown as string)
+	);
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces'),
 		workspaceId = $derived(() => workspaces?.activeWorkspaceId ?? undefined),
 		convexClient = browser ? useConvexClient() : null,
@@ -56,13 +89,14 @@
 		}),
 		canEdit = $derived(editPermission.canEdit),
 		isDesignPhase = $derived(editPermission.isDesignPhase);
-	const authorityQuery =
-			browser && circle && sessionId
-				? useQuery(api.core.circles.index.getMyAuthority, () => ({
-						sessionId: sessionId!,
-						circleId: circle!.circleId
-					}))
-				: null,
+	const authorityQuery = $derived(
+			browser && circle?.circleId && sessionId
+				? useQuery(api.core.circles.index.getMyAuthority, () => {
+						invariant(sessionId && circle?.circleId, 'sessionId and circleId required');
+						return { sessionId, circleId: circle.circleId };
+					})
+				: null
+		),
 		isCircleLead = $derived(authorityQuery?.data?.isCircleLead ?? false),
 		circleType = $derived(circle?.circleType ?? CIRCLE_TYPES.HIERARCHY),
 		editReason = $derived.by(() =>
@@ -135,7 +169,7 @@
 			editCircle,
 			orgChart,
 			circle: () => circle,
-			sessionId: () => sessionId,
+			getSessionId: () => sessionId ?? null,
 			workspaceId: () => workspaceId(),
 			convexClient,
 			isEditMode: () => isEditMode,
@@ -186,6 +220,8 @@
 	// Simplified context - tab components access customFields directly for DB-driven iteration
 	setContext<CircleDetailContext>(CIRCLE_DETAIL_KEY, {
 		circle: () => circle,
+		sessionId: () => sessionId,
+		workspaceId: () => workspaceId(),
 		customFields,
 		editCircle,
 		canEdit: () => canEdit,
@@ -207,13 +243,13 @@
 		iconRenderer={renderBreadcrumbIcon}
 	>
 		{#snippet children(panelContext)}
-			{#if isLoading}
+			{#if !displayCircle && isLoading}
 				<Loading message="Loading circle details..." size="md" fullHeight={true} />
-			{:else if error}
+			{:else if !displayCircle && error}
 				<ErrorState title="Failed to load circle" message={String(error)} />
-			{:else if circle}
+			{:else if displayCircle}
 				<DetailHeader
-					entityName={isEditMode ? editCircle.formValues.name : circle.name}
+					entityName={isEditMode ? editCircle.formValues.name : displayCircle.name}
 					onClose={handleClose}
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
@@ -224,18 +260,24 @@
 				>
 					{#snippet titleBadges()}
 						<CircleTitleBadges
-							circleType={isEditMode ? editCircle.formValues.circleType : circle.circleType}
+							circleType={isEditMode ? editCircle.formValues.circleType : displayCircle.circleType}
 							decisionModel={isEditMode
 								? editCircle.formValues.decisionModel
-								: circle.decisionModel}
+								: displayCircle.decisionModel}
 						/>
 					{/snippet}
 				</DetailHeader>
 				{#if isEditMode}
 					<CircleEditModeBar />
 				{/if}
-				<div class="flex-1 overflow-y-auto">
-					<TabbedPanel tabs={CIRCLE_TABS} bind:activeTab {tabCounts}>
+				<div class="relative flex-1 overflow-y-auto">
+					<TabbedPanel
+						tabs={CIRCLE_TABS}
+						bind:activeTab
+						{tabCounts}
+						urlParam="circleTab"
+						urlHistoryMode="replace"
+					>
 						{#snippet content(tabId)}
 							<CircleTabContent
 								{tabId}
@@ -250,6 +292,12 @@
 							/>
 						{/snippet}
 					</TabbedPanel>
+
+					{#if shouldShowContentLoadingOverlay}
+						<div class="bg-surface/80 absolute inset-0 flex items-center justify-center">
+							<Loading message="Loading..." size="md" />
+						</div>
+					{/if}
 				</div>
 				{#if isEditMode}
 					<CircleEditFooter

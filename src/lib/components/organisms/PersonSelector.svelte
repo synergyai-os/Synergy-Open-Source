@@ -150,6 +150,13 @@
 			.filter((opt): opt is NonNullable<typeof opt> => opt !== undefined);
 	});
 
+	// Pinned options filtered by search (so pinned respects combobox search, too)
+	const filteredPinnedOptions = $derived.by(() => {
+		const q = selector.searchValue.trim().toLowerCase();
+		if (!q) return pinnedOptions;
+		return pinnedOptions.filter((opt) => opt.searchableText.toLowerCase().includes(q));
+	});
+
 	// Get available options (not selected)
 	const availableOptions = $derived.by(() => {
 		return selector.options.filter((opt) => {
@@ -207,6 +214,12 @@
 	}
 
 	function setSingleValue(newValue: string) {
+		// Special-case: "pinned:" values are action items (unassign), not real selections.
+		// Never write them into `selectedPersonIds`.
+		if (newValue.startsWith('pinned:')) {
+			selectedPersonIds = [];
+			return;
+		}
 		if (newValue) {
 			selectedPersonIds = [newValue as Id<'people'>];
 		} else {
@@ -249,10 +262,16 @@
 			}
 		}
 
+		// Enter should select the highlighted item (Bits UI default).
+		// Only intercept Enter to create when there are truly no matches anywhere.
 		if (event.key === 'Enter' || event.key === 'Return') {
-			event.preventDefault();
-			event.stopPropagation();
-			if (allowCreate && selector.canCreateNew && selector.searchValue.trim().length > 0) {
+			const q = selector.searchValue.trim();
+			if (!q) return;
+
+			const hasMatches = availableOptions.length > 0 || filteredPinnedOptions.length > 0;
+			if (allowCreate && selector.canCreateNew && !hasMatches) {
+				event.preventDefault();
+				event.stopPropagation();
 				handleCreatePersonClick();
 			}
 		}
@@ -448,12 +467,12 @@
 						class="border-base px-input py-stack-item relative border-b"
 						style="margin-bottom: 4px;"
 					>
-						<input
+						<Combobox.Input
 							type="text"
-							bind:value={selector.searchValue}
-							bind:this={comboboxInputRef}
+							bind:ref={comboboxInputRef}
+							value={selector.searchValue}
 							oninput={(e) => {
-								selector.searchValue = e.currentTarget.value;
+								selector.searchValue = (e.currentTarget as HTMLInputElement).value;
 								setComboboxOpen(true);
 							}}
 							onkeydown={handleInputKeyDown}
@@ -461,9 +480,6 @@
 							{placeholder}
 							class={comboboxInputRecipe()}
 							aria-label="Person selector input"
-							role="combobox"
-							aria-expanded={comboboxOpenInternal}
-							aria-controls={comboboxContentId}
 						/>
 					</div>
 
@@ -481,73 +497,70 @@
 							style="max-height: var(--spacing-56); overflow-y: auto;"
 						>
 							<!-- Pinned Section (display-only; e.g. "Assigned") -->
-							{#if pinnedOptions.length > 0}
+							{#if filteredPinnedOptions.length > 0}
 								<div class="py-stack-item px-input">
 									<p class="text-label text-tertiary mb-1 font-medium tracking-wider uppercase">
 										{pinnedSectionLabel}
 									</p>
 									<div class="space-y-0.5">
-										{#each pinnedOptions as person (person.id)}
+										{#each filteredPinnedOptions as person (person.id)}
 											{@const isClickable = !!onPinnedPersonClick && !!person.personId}
-											<button
-												type="button"
-												class={[
-													comboboxItemRecipe(),
-													isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
-												]}
-												disabled={!isClickable}
-												aria-label={isClickable
-													? `Remove ${person.displayName}`
-													: `${pinnedSectionLabel}: ${person.displayName}`}
-												onclick={() => {
-													if (!person.personId) return;
-													onPinnedPersonClick?.(person.personId);
-												}}
-											>
-												{#if isClickable}
-													<svg
-														class="text-secondary size-icon-sm flex-shrink-0"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-hidden="true"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M6 18L18 6M6 6l12 12"
-														/>
-													</svg>
-												{:else}
-													<svg
-														class="text-accent-primary size-icon-sm flex-shrink-0"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-														aria-hidden="true"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M5 13l4 4L19 7"
-														/>
-													</svg>
-												{/if}
-												<Avatar initials={getInitials(person.avatarName)} size="xs" />
-												<div class="flex flex-1 flex-col">
-													<span class="text-primary text-sm font-medium">{person.displayName}</span>
-													{#if person.email}
-														<span class="text-tertiary text-label">{person.email}</span>
-													{/if}
-												</div>
-												{#if person.badge}
-													<Badge variant={getBadgeVariant(person.badge)} size="sm">
-														{getBadgeLabel(person.badge)}
-													</Badge>
-												{/if}
-											</button>
+											{#if person.personId}
+												<Combobox.Item
+													value={`pinned:${person.personId}`}
+													label={person.displayName}
+													disabled={!isClickable}
+													class={comboboxItemRecipe()}
+												>
+													{#snippet children({ selected: _selected, highlighted: _highlighted })}
+														{#if isClickable}
+															<svg
+																class="text-secondary size-icon-sm flex-shrink-0"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+																aria-hidden="true"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	stroke-width="2"
+																	d="M6 18L18 6M6 6l12 12"
+																/>
+															</svg>
+														{:else}
+															<svg
+																class="text-accent-primary size-icon-sm flex-shrink-0"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+																aria-hidden="true"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	stroke-width="2"
+																	d="M5 13l4 4L19 7"
+																/>
+															</svg>
+														{/if}
+														<Avatar initials={getInitials(person.avatarName)} size="xs" />
+														<div class="flex flex-1 flex-col">
+															<span class="text-primary text-sm font-medium"
+																>{person.displayName}</span
+															>
+															{#if person.email}
+																<span class="text-tertiary text-label">{person.email}</span>
+															{/if}
+														</div>
+														{#if person.badge}
+															<Badge variant={getBadgeVariant(person.badge)} size="sm">
+																{getBadgeLabel(person.badge)}
+															</Badge>
+														{/if}
+													{/snippet}
+												</Combobox.Item>
+											{/if}
 										{/each}
 									</div>
 								</div>
@@ -801,10 +814,23 @@
 			bind:open={comboboxOpenInternal}
 			onOpenChange={handleOpenChange}
 			onOpenChangeComplete={handleOpenChangeComplete}
-			items={availableOptions
-				.filter((p) => p.personId)
-				.map((p) => ({ value: p.personId as Id<'people'>, label: p.displayName }))}
+			items={[
+				...filteredPinnedOptions
+					.filter((p) => p.personId)
+					.map((p) => ({ value: `pinned:${p.personId as Id<'people'>}`, label: p.displayName })),
+				...availableOptions
+					.filter((p) => p.personId)
+					.map((p) => ({ value: p.personId as Id<'people'>, label: p.displayName }))
+			]}
 			onValueChange={(value) => {
+				// Pinned action items: unassign (do not close; do not emit onSelect)
+				if (typeof value === 'string' && value.startsWith('pinned:')) {
+					const personId = value.slice('pinned:'.length) as Id<'people'>;
+					onPinnedPersonClick?.(personId);
+					// Keep search so user can quickly reassign; keep open.
+					setComboboxOpen(true);
+					return;
+				}
 				// Single-select semantics:
 				// - Only emit `onSelect` when we have an actual selection (truthy value)
 				// - Avoid passing `$state` proxies across the boundary; always pass a fresh array

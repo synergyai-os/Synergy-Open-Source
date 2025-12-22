@@ -130,7 +130,89 @@ echo "Phase 10: Moving org-chart implementation detail..."
 move_to_archive "src/lib/modules/org-chart/navigation-control.md" "modules"
 
 echo ""
-echo "Phase 11: Deleting obsolete files..."
+echo "Phase 11: Auto-archiving SYOS ticket files (dynamic discovery)..."
+# Find all SYOS-*.md files in root and archive them
+SYOS_COUNT=0
+ROOT_COUNT=0
+OTHER_COUNT=0
+while IFS= read -r -d '' file; do
+    filename=$(basename "$file")
+    # Skip if already in archive
+    if [ ! -f "$ARCHIVE_DIR/tickets/$filename" ]; then
+        echo "  📦 $filename → archive/tickets/"
+        mkdir -p "$ARCHIVE_DIR/tickets"
+        mv "$file" "$ARCHIVE_DIR/tickets/$filename"
+        ((SYOS_COUNT++))
+    fi
+done < <(find "$PROJECT_ROOT" -maxdepth 1 -name "SYOS-*.md" -type f -print0 2>/dev/null)
+if [ $SYOS_COUNT -eq 0 ]; then
+    echo "  ℹ️  No new SYOS-*.md files found (already archived)"
+else
+    echo "  ✅ Archived $SYOS_COUNT SYOS ticket file(s)"
+fi
+
+echo ""
+echo "Phase 12: Auto-archiving ROOT-*.md analysis files (dynamic discovery)..."
+# Find all ROOT-*.md files in root and archive them
+while IFS= read -r -d '' file; do
+    filename=$(basename "$file")
+    # Skip if already in archive
+    if [ ! -f "$ARCHIVE_DIR/analysis/$filename" ]; then
+        echo "  📦 $filename → archive/analysis/"
+        mkdir -p "$ARCHIVE_DIR/analysis"
+        mv "$file" "$ARCHIVE_DIR/analysis/$filename"
+        ((ROOT_COUNT++))
+    fi
+done < <(find "$PROJECT_ROOT" -maxdepth 1 -name "ROOT-*.md" -type f -print0 2>/dev/null)
+if [ $ROOT_COUNT -eq 0 ]; then
+    echo "  ℹ️  No new ROOT-*.md files found (already archived)"
+else
+    echo "  ✅ Archived $ROOT_COUNT ROOT-*.md file(s)"
+fi
+
+echo ""
+echo "Phase 13: Auto-archiving other analysis/report files (dynamic discovery)..."
+# Archive other common analysis patterns (excluding README.md)
+OTHER_PATTERNS=(
+    "*-ANALYSIS.md"
+    "*-REPORT.md"
+    "*-investigation.md"
+    "*-implementation-summary.md"
+    "*-refactoring-summary.md"
+    "*-manual-testing-guide.md"
+    "*-ALIGNMENT-PROPOSAL.md"
+    "*-URL-ALIGNMENT-FIX.md"
+    "*-FIXES.md"
+    "*-COMPLETE.md"
+    "*-dataflow-report.md"
+    "CIRCLES-PAGE-ANALYSIS.md"
+    "FLOW-CHART-TO-PURPOSE-EDIT.md"
+    "INVESTIGATION-REPORT.md"
+    "root-cause.md"
+    "template-usage-analysis-report.md"
+    "openModal-createWorkspace-dataflow-report.md"
+    "STACKED-PANEL-DOCUMENTATION.md"
+)
+for pattern in "${OTHER_PATTERNS[@]}"; do
+    while IFS= read -r -d '' file; do
+        filename=$(basename "$file")
+        # Skip README.md and files already in archive
+        if [ "$filename" != "README.md" ] && [ ! -f "$ARCHIVE_DIR/analysis/$filename" ]; then
+            echo "  📦 $filename → archive/analysis/"
+            mkdir -p "$ARCHIVE_DIR/analysis"
+            mv "$file" "$ARCHIVE_DIR/analysis/$filename"
+            ((OTHER_COUNT++))
+        fi
+    done < <(find "$PROJECT_ROOT" -maxdepth 1 -name "$pattern" -type f -print0 2>/dev/null)
+done
+if [ $OTHER_COUNT -eq 0 ]; then
+    echo "  ℹ️  No new analysis/report files found (already archived)"
+else
+    echo "  ✅ Archived $OTHER_COUNT analysis/report file(s)"
+fi
+
+echo ""
+echo "Phase 14: Deleting obsolete files..."
 delete_file ".ci-test.md"
 delete_file "dev-docs/2-areas/patterns/patterns-and-lessons.md"  # Duplicate
 
@@ -145,7 +227,18 @@ echo "✅ Cleanup complete!"
 echo ""
 echo "Summary:"
 echo "  - Files archived: See dev-docs/archive/2025-01/"
-echo "  - Files deleted: See above"
+echo "  - SYOS tickets: $SYOS_COUNT file(s)"
+echo "  - ROOT analysis: $ROOT_COUNT file(s)"
+echo "  - Other analysis/reports: $OTHER_COUNT file(s)"
+echo "  - Files deleted: See Phase 14 above"
+echo ""
+echo "Archive structure:"
+echo "  📁 dev-docs/archive/2025-01/"
+echo "    ├── tickets/     → SYOS-*.md files"
+echo "    ├── analysis/    → ROOT-*.md and analysis files"
+echo "    ├── modules/     → Module implementation docs"
+echo "    ├── implementation/ → Script & migration docs"
+echo "    └── ...          → Other categories"
 echo ""
 echo "Next steps:"
 echo "  1. Review archived files"

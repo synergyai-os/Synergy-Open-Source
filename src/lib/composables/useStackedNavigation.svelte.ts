@@ -24,9 +24,9 @@ import {
 } from '$lib/infrastructure/navigation/constants';
 import { checkLayerAccess } from '$lib/infrastructure/navigation/accessChecks';
 import { browser } from '$app/environment';
-import { page } from '$app/stores';
-import { get } from 'svelte/store';
+import { pushState, replaceState } from '$app/navigation';
 import { getContext } from 'svelte';
+import { SvelteURL } from 'svelte/reactivity';
 import { invariant } from '$lib/utils/invariant';
 import type { ConvexClient } from 'convex/browser';
 
@@ -220,6 +220,12 @@ export interface UseStackedNavigationReturn {
 	 */
 	pushAndReplace: (layer: Omit<NavigationLayer, 'zIndex'>) => boolean;
 
+	/**
+	 * Clear all layers from the stack.
+	 * Useful when leaving a route that owns stacked-panel state (prevents "sticky" panels across pages).
+	 */
+	clear: () => void;
+
 	// Navigation handlers (for StackedPanel props)
 	/**
 	 * Handle close action (ESC key or close button)
@@ -288,7 +294,7 @@ export interface UseStackedNavigationReturn {
  * ```
  */
 export function getStackedNavigation(): UseStackedNavigationReturn {
-	const navigation = getContext<UseStackedNavigationReturn | undefined>('stacked-navigation');
+	const navigation = getContext<UseStackedNavigationReturn>('stacked-navigation');
 	invariant(
 		navigation,
 		'[getStackedNavigation] Navigation context not found. Make sure useStackedNavigation is initialized in a parent layout.'
@@ -362,8 +368,9 @@ export function useStackedNavigation(
 		if (!browser || !enableUrlSync || isSyncingFromUrl) return;
 
 		const navValue = serializeStack(navStack.stack);
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity -- We don't want reactive URL here, just string manipulation
-		const currentUrl = new URL(window.location.href);
+		// Read from window.location (source of truth) to avoid clobbering other query params
+		// that may have been written by other URL sync mechanisms.
+		const currentUrl = new SvelteURL(window.location.href);
 
 		if (navValue) {
 			currentUrl.searchParams.set(NAV_QUERY_PARAM, navValue);
@@ -371,11 +378,13 @@ export function useStackedNavigation(
 			currentUrl.searchParams.delete(NAV_QUERY_PARAM);
 		}
 
-		// Use History API directly to avoid page reloads
+		const relativeUrl = `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`;
+
+		// Use SvelteKit navigation helpers (required to keep router + $page in sync)
 		if (action === 'push') {
-			window.history.pushState({}, '', currentUrl.toString());
+			pushState(relativeUrl, {});
 		} else {
-			window.history.replaceState({}, '', currentUrl.toString());
+			replaceState(relativeUrl, {});
 		}
 	}
 
@@ -559,6 +568,32 @@ export function useStackedNavigation(
 	}
 
 	/**
+	 * Clear the navigation stack and sync URL.
+	 */
+	function clear(): void {
+		// Check edit protection
+		if (checkEditProtection()) {
+			return;
+		}
+
+		// Reset edit mode if active
+		resetEditMode();
+
+		const poppedLayers = navStack.stack.slice();
+		navStack.clear();
+		blockedLayer = null;
+
+		// Sync URL (replace current entry)
+		updateUrl('replace');
+
+		// Notify module to sync selection state
+		onNavigate(null, {
+			action: 'close',
+			poppedLayers
+		});
+	}
+
+	/**
 	 * Handle close action (ESC key or close button)
 	 */
 	function handleClose(): void {
@@ -662,8 +697,7 @@ export function useStackedNavigation(
 
 		// Initialize from URL on first load
 		if (!initialUrlLoaded && navStack.depth === 0) {
-			const currentPage = get(page);
-			const navParam = currentPage.url.searchParams.get(NAV_QUERY_PARAM);
+			const navParam = new SvelteURL(window.location.href).searchParams.get(NAV_QUERY_PARAM);
 			if (navParam) {
 				initializeFromUrl(navParam);
 			}
@@ -711,6 +745,7 @@ export function useStackedNavigation(
 		// Navigation actions
 		push,
 		pushAndReplace,
+		clear,
 
 		// Navigation handlers
 		handleClose,

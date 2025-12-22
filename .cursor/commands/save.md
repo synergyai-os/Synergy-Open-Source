@@ -1,6 +1,6 @@
 # save
 
-Capture learnings from work session. Update patterns or rules.
+Capture learnings from work session. Update patterns or Cursor rules.
 
 **Key Principle**: One canonical pattern per concept. Merge before add.
 
@@ -9,23 +9,23 @@ Capture learnings from work session. Update patterns or rules.
 ## Document Hierarchy
 
 ```
-dev-docs/master-docs/
-├── architecture.md          → 25 principles, structure (rarely changes)
-├── design-system.md         → Styling, tokens, recipes (rarely changes)
-└── architecture/
-    └── governance-design.md → Governance models (rarely changes)
-        ↓
-dev-docs/2-areas/patterns/   → Solved problems (grows over time)
-.cursor/rules/               → Proactive constraints (grows slowly)
+Master Documents (rarely change, need review):
+├── architecture.md          → 25 principles, structure, patterns
+├── design-system.md         → Styling, tokens, recipes
+└── governance-design.md     → Governance models, circle types
+
+Working Documents (grow over time):
+├── dev-docs/2-areas/patterns/   → Solved problems, indexed
+└── .cursor/rules/               → Proactive constraints
 ```
 
 **When to update what:**
 
 | Learning Type | Update |
 |---------------|--------|
-| New architectural principle | `dev-docs/master-docs/architecture.md` (rare, needs review) |
-| New design system pattern | `dev-docs/master-docs/design-system.md` (rare, needs review) |
-| New governance pattern | `dev-docs/master-docs/architecture/governance-design.md` (rare, needs review) |
+| New architectural principle | `architecture.md` (rare, needs RFC for FROZEN domains) |
+| New design system pattern | `design-system.md` (rare, needs review) |
+| New governance pattern | `governance-design.md` (rare, needs review) |
 | Solved a bug/problem | `dev-docs/2-areas/patterns/` (common) |
 | Preventing repeated mistakes | `.cursor/rules/` (when 2+ occurrences) |
 
@@ -77,10 +77,10 @@ Found existing pattern?
 **Location**: `dev-docs/2-areas/patterns/`
 
 **Domain files:**
-- `svelte-reactivity.md` - Svelte 5 patterns
-- `convex-integration.md` - Convex patterns
-- `ui-patterns.md` - UI/UX patterns
-- `design-system-patterns.md` - Design system patterns
+- `svelte-reactivity.md` - Svelte 5 patterns, composables
+- `convex-integration.md` - Convex patterns, mutations, queries
+- `ui-patterns.md` - UI/UX patterns, components
+- `design-system-patterns.md` - Tokens, recipes, styling
 
 **Pattern format:**
 
@@ -176,7 +176,7 @@ After saving:
 ```
 1. Analyze → What type of work? What was learned?
 
-2. Search → 3+ grep searches in patterns/
+2. Search → 3+ grep searches in dev-docs/2-areas/patterns/
 
 3. Decide → Enhance existing / Consolidate / Add new
 
@@ -195,13 +195,14 @@ After saving:
 
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` — Pattern index and lookup
 - **Rules**: `.cursor/rules/` — Proactive constraints
-- **Architecture**: `dev-docs/master-docs/architecture.md` — 25 principles, identity model, auth patterns
-- **Design System**: `dev-docs/master-docs/design-system.md` — Tokens, recipes, styling patterns
-- **Governance**: `dev-docs/master-docs/architecture/governance-design.md` — Circle types, role templates
+- **Architecture**: `architecture.md` — 25 principles, identity model, auth patterns
+- **Design System**: `design-system.md` — Tokens, recipes, styling patterns
+- **Governance**: `governance-design.md` — Circle types, role templates
+
+---
 
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.1 | 2025-12-17 | Aligned with architecture.md v4.0. Updated document paths, added governance reference, clarified document hierarchy. |
-| 1.0 | 2025-12-07 | Original version |
+| 2.0 | 2025-12-19 | Rewritten aligned with architecture.md v4.1. Uses `dev-docs/2-areas/patterns/` structure. |

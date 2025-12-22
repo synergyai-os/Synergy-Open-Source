@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import { getContext } from 'svelte';
 	import { invariant } from '$lib/utils/invariant';
+	import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
 	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
@@ -49,6 +50,15 @@
 			: null;
 
 	const isLoading = $derived(!orgChart || orgChart.isLoading);
+
+	// Prevent "sticky" stacked panels when leaving the chart route.
+	// Without this, deep-linked `nav=...` state can persist across routes and feel like the app is "stuck".
+	const navigation = getStackedNavigation();
+	$effect(() => {
+		return () => {
+			navigation.clear();
+		};
+	});
 </script>
 
 <div class="bg-base flex h-full flex-col">

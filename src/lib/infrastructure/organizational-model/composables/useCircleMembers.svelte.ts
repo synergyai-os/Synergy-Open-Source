@@ -32,9 +32,11 @@ export function useCircleMembers(options: {
 
 	const orgMembers = $derived(orgMembersQuery?.data ?? []);
 
-	// Filter out users who are already members
-	const availableUsers = $derived(
-		orgMembers.filter((user) => !getMembers().some((m) => m.userId === user.userId))
+	// Filter out people who are already members
+	const availablePersons = $derived(
+		orgMembers.filter(
+			(member) => member.personId && !getMembers().some((m) => m.personId === member.personId)
+		)
 	);
 
 	return {
@@ -44,8 +46,8 @@ export function useCircleMembers(options: {
 		get members() {
 			return getMembers();
 		},
-		get availableUsers() {
-			return availableUsers;
+		get availablePersons() {
+			return availablePersons;
 		}
 	};
 }

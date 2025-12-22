@@ -3,7 +3,7 @@ import type { Id } from '../../_generated/dataModel';
 import { ensureUniqueSlug } from './slug';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { getMyPerson, getPersonById } from '../people/queries';
-import { requireActivePerson } from '../people/rules';
+import { requireActivePerson, requirePerson } from '../people/rules';
 
 export async function ensureUniqueCircleSlug(
 	ctx: MutationCtx,
@@ -30,6 +30,30 @@ export async function ensureWorkspaceMembership(
 			ErrorCodes.WORKSPACE_ACCESS_DENIED,
 			'You do not have access to this workspace'
 		);
+	}
+}
+
+/**
+ * Ensures a person belongs to a workspace and is not archived.
+ *
+ * Note: Unlike ensureWorkspaceMembership(), this allows non-active people
+ * (e.g. placeholders and invited people) because they can still be relevant
+ * to circle planning and membership lists.
+ */
+export async function ensureWorkspacePersonNotArchived(
+	ctx: QueryCtx | MutationCtx,
+	workspaceId: Id<'workspaces'>,
+	personId: Id<'people'>
+): Promise<void> {
+	const person = await requirePerson(ctx, personId);
+	if (person.workspaceId !== workspaceId) {
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			'You do not have access to this workspace'
+		);
+	}
+	if (person.status === 'archived') {
+		throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Person is archived');
 	}
 }
 

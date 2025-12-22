@@ -227,3 +227,102 @@ export async function canQuickEdit(ctx, userId, circle) {
 
 **Related Tickets**: SYOS-971
 
+---
+
+## #L200: Foundation Hardening (Functional Factories, Typed Errors, URL Helpers) [🟢 REFERENCE]
+
+**Keywords**: functional factories, classes, logger, typed errors, error factories, type guards, localhost fallback, app URL, PUBLIC_APP_URL, Convex layering scaffolds
+
+**Symptom**: Codebase uses classes, untyped errors, and hardcoded localhost fallbacks that violate architectural principles.
+
+**Root Cause**: Legacy patterns that don't align with Principle #11 (zero classes) and Principle #20 (no hardcoded magic values).
+
+**Fix Patterns**:
+
+### 1. Favor Functional Factories Over Classes (Principle #11)
+
+**Example**: `logger` built via `createLogger()` to preserve API while staying class-free.
+
+```typescript
+// ✅ CORRECT: Functional factory
+export function createLogger(name: string) {
+  return {
+    info: (message: string) => console.log(`[${name}] ${message}`),
+    error: (message: string) => console.error(`[${name}] ${message}`)
+  };
+}
+
+// ❌ WRONG: Class-based
+export class Logger {
+  constructor(private name: string) {}
+  info(message: string) { /* ... */ }
+}
+```
+
+### 2. Use Typed Error Factories Plus Type Guards Instead of Subclasses
+
+**Example**: `createWorkOSError` + `isWorkOSError` keeps status codes and names without relying on `instanceof`.
+
+```typescript
+// ✅ CORRECT: Typed error factory
+export function createWorkOSError(message: string, statusCode: number) {
+  return {
+    name: 'WorkOSError',
+    message,
+    statusCode
+  };
+}
+
+export function isWorkOSError(error: unknown): error is WorkOSError {
+  return typeof error === 'object' && error !== null && 'name' in error && error.name === 'WorkOSError';
+}
+
+// ❌ WRONG: Error subclass
+export class WorkOSError extends Error {
+  constructor(message: string, public statusCode: number) {
+    super(message);
+  }
+}
+```
+
+### 3. Remove Localhost Fallbacks for App URLs (Principle #20)
+
+**Require `PUBLIC_APP_URL` and surface a clear error**; build invite links via a helper (`getPublicAppUrl`) rather than `|| 'http://localhost:5173'`.
+
+```typescript
+// ✅ CORRECT: Require env var, no fallback
+export function getPublicAppUrl(): string {
+  const url = import.meta.env.PUBLIC_APP_URL;
+  if (!url) {
+    throw new Error('PUBLIC_APP_URL environment variable is required');
+  }
+  return url;
+}
+
+// ❌ WRONG: Localhost fallback
+const appUrl = import.meta.env.PUBLIC_APP_URL || 'http://localhost:5173';
+```
+
+### 4. Enforce Convex Layering Scaffolds
+
+**Keep `convex/features/` and `convex/infrastructure/` directories present even if empty**, to guide dependency flow (Principle #5).
+
+**Key Principles**:
+1. **Zero classes** - Use functional factories instead
+2. **Typed errors** - Use factories + type guards, not subclasses
+3. **No magic values** - Require env vars, don't fallback to localhost
+4. **Layer structure** - Keep empty directories to guide dependencies
+
+**Apply when**: 
+- Refactoring legacy code to align with architecture principles
+- Creating new infrastructure utilities
+- Building error handling systems
+- Setting up environment configuration
+
+**Related**: 
+- Principle #11: Zero classes
+- Principle #20: No hardcoded magic values
+- Principle #5: Layer dependencies
+
+**Related Tickets**: SYOS-706
+

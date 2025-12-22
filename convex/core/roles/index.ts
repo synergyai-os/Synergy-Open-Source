@@ -19,6 +19,6 @@ export {
 	archiveRole,
 	restoreRole,
 	restoreAssignment,
-	assignUser,
-	removeUser
+	assignPerson,
+	removePerson
 } from './mutations';

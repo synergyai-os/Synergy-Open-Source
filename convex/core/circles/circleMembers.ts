@@ -1,10 +1,14 @@
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
-import { ensureWorkspaceMembership, requireWorkspacePersonFromSession } from './circleAccess';
+import {
+	ensureWorkspaceMembership,
+	ensureWorkspacePersonNotArchived,
+	requireWorkspacePersonFromSession
+} from './circleAccess';
 import { requireCircle } from './rules';
 import { getPersonById } from '../people/queries';
-import { getPersonEmail } from '../people/rules';
+import { getPersonEmail, isWorkspaceAdmin } from '../people/rules';
 
 export async function getCircleMembers(
 	ctx: QueryCtx,
@@ -45,7 +49,9 @@ export async function getCircleMembers(
 				personId: membership.personId,
 				email: await getPersonEmail(ctx, person),
 				displayName: person.displayName,
-				joinedAt: membership.joinedAt
+				status: person.status,
+				addedAt: membership.joinedAt,
+				addedBy: membership.addedByPersonId
 			};
 		})
 	);
@@ -66,13 +72,20 @@ export async function addCircleMember(
 	);
 
 	await ensureWorkspaceMembership(ctx, circle.workspaceId, actingPersonId);
-	await ensureWorkspaceMembership(ctx, circle.workspaceId, args.memberPersonId);
-	await ensureCircleMembership(
-		ctx,
-		args.circleId,
-		actingPersonId,
-		ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER
-	);
+	await ensureWorkspacePersonNotArchived(ctx, circle.workspaceId, args.memberPersonId);
+
+	// Authorization:
+	// - Workspace admins/owners can add circle members even if they are not already in the circle.
+	// - Otherwise, require the actor to already be a circle member.
+	const actorIsWorkspaceAdmin = await isWorkspaceAdmin(ctx, actingPersonId);
+	if (!actorIsWorkspaceAdmin) {
+		await ensureCircleMembership(
+			ctx,
+			args.circleId,
+			actingPersonId,
+			ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER
+		);
+	}
 
 	const existingMembership = await ctx.db
 		.query('circleMembers')
@@ -88,7 +101,8 @@ export async function addCircleMember(
 	await ctx.db.insert('circleMembers', {
 		circleId: args.circleId,
 		personId: args.memberPersonId,
-		joinedAt: Date.now()
+		joinedAt: Date.now(),
+		addedByPersonId: actingPersonId
 	});
 
 	return { success: true };

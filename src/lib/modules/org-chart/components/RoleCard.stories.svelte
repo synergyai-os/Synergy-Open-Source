@@ -1,6 +1,9 @@
-<script module>
+<script module lang="ts">
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import RoleCard from './RoleCard.svelte';
+	import type { Id } from '$lib/convex';
+
+	const fakePersonId = (value: string) => value as unknown as Id<'people'>;
 
 	const { Story } = defineMeta({
 		component: RoleCard,
@@ -30,7 +33,6 @@
 		name: 'Product Manager',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
 	}}
 >
@@ -40,7 +42,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 		/>
 	{/snippet}
@@ -53,7 +54,6 @@
 		purpose: 'Lead the engineering team',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
 	}}
 >
@@ -63,7 +63,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 		/>
 	{/snippet}
@@ -76,19 +75,18 @@
 		purpose: 'Own product roadmap and strategy',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
 		members: [
 			{
-				userId: 'user-1',
+				personId: fakePersonId('person-1'),
 				name: 'Alice Johnson',
 				email: 'alice.johnson@example.com',
-				avatarImage: 'https://i.pravatar.cc/150?img=12'
+				avatarImage: undefined
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -98,7 +96,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 			members={args.members}
 			memberMenuItems={args.memberMenuItems}
@@ -113,29 +110,28 @@
 		purpose: 'Own product roadmap and strategy',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
 		members: [
 			{
-				userId: 'user-1',
+				personId: fakePersonId('person-1'),
 				name: 'Alice Johnson',
 				email: 'alice.johnson@example.com',
-				avatarImage: 'https://i.pravatar.cc/150?img=12'
+				avatarImage: undefined
 			},
 			{
-				userId: 'user-2',
+				personId: fakePersonId('person-2'),
 				name: 'Bob Williams',
 				email: 'bob.williams@example.com'
 			},
 			{
-				userId: 'user-3',
+				personId: fakePersonId('person-3'),
 				name: 'Charlie Brown',
 				email: 'charlie.brown@example.com'
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId: Id<'people'>) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -145,7 +141,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 			members={args.members}
 			memberMenuItems={args.memberMenuItems}
@@ -160,26 +155,25 @@
 		isCircle: true,
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
-		currentUserId: 'randy-hereman',
+		currentPersonId: fakePersonId('person-randy'),
 		members: [
 			{
-				userId: 'randy-hereman',
+				personId: fakePersonId('person-randy'),
 				name: 'Randy Hereman',
 				email: 'randy@example.com',
 				roleName: 'Circle Lead'
 			},
 			{
-				userId: 'thomas-wagner',
+				personId: fakePersonId('person-thomas'),
 				name: 'Thomas Wagner',
 				email: 'thomas@example.com',
 				roleName: 'Facilitator'
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId: Id<'people'>) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -193,9 +187,8 @@
 				isCircle={args.isCircle}
 				onClick={args.onClick}
 				onEdit={args.onEdit}
-				onAddMember={args.onAddMember}
 				menuItems={args.menuItems}
-				currentUserId={args.currentUserId}
+				currentPersonId={args.currentPersonId}
 				members={args.members}
 				memberMenuItems={args.memberMenuItems}
 			/>
@@ -209,25 +202,24 @@
 		name: 'Engineering Lead',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
 		members: [
 			{
-				userId: 'user-1',
+				personId: fakePersonId('person-1'),
 				name: 'John Doe',
 				email: 'john.doe@example.com',
 				scope: 'Lead product development and strategy'
 			},
 			{
-				userId: 'user-2',
+				personId: fakePersonId('person-2'),
 				name: 'Jane Smith',
 				email: 'jane.smith@example.com',
 				scope: 'Manage engineering team operations'
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId: Id<'people'>) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -238,7 +230,6 @@
 			isCircle={args.isCircle}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 			members={args.members}
 			memberMenuItems={args.memberMenuItems}
@@ -253,26 +244,25 @@
 		isCircle: true,
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
-		currentUserId: 'randy-hereman',
+		currentPersonId: fakePersonId('person-randy'),
 		members: [
 			{
-				userId: 'randy-hereman',
+				personId: fakePersonId('person-randy'),
 				name: 'Randy Hereman',
 				email: 'randy@example.com',
 				roleName: 'Circle Lead'
 			},
 			{
-				userId: 'thomas-wagner',
+				personId: fakePersonId('person-thomas'),
 				name: 'Thomas Wagner',
 				email: 'thomas@example.com',
 				roleName: 'Facilitator'
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId: Id<'people'>) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -282,9 +272,8 @@
 			isCircle={args.isCircle}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
-			currentUserId={args.currentUserId}
+			currentPersonId={args.currentPersonId}
 			members={args.members}
 			memberMenuItems={args.memberMenuItems}
 		/>
@@ -297,16 +286,15 @@
 		name: 'Members without role',
 		isCircle: false,
 		onClick: () => console.log('Clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		members: [
 			{
-				userId: 'user-1',
+				personId: fakePersonId('person-1'),
 				name: 'Alice Johnson',
 				email: 'alice.johnson@example.com',
-				avatarImage: 'https://i.pravatar.cc/150?img=12'
+				avatarImage: undefined
 			},
 			{
-				userId: 'user-2',
+				personId: fakePersonId('person-2'),
 				name: 'Bob Williams',
 				email: 'bob.williams@example.com'
 			}
@@ -318,7 +306,6 @@
 			name={args.name}
 			isCircle={args.isCircle}
 			onClick={args.onClick}
-			onAddMember={args.onAddMember}
 			members={args.members}
 		/>
 	{/snippet}
@@ -329,8 +316,7 @@
 	args={{
 		name: 'Members without role',
 		isCircle: false,
-		onClick: () => console.log('Clicked'),
-		onAddMember: () => console.log('Add member clicked')
+		onClick: () => console.log('Clicked')
 	}}
 >
 	{#snippet template(args)}
@@ -338,7 +324,6 @@
 			name={args.name}
 			isCircle={args.isCircle}
 			onClick={args.onClick}
-			onAddMember={args.onAddMember}
 			members={args.members}
 		/>
 	{/snippet}
@@ -352,7 +337,6 @@
 		purpose: 'Own product roadmap and strategy',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
 	}}
 >
@@ -363,7 +347,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 		/>
 	{/snippet}
@@ -377,7 +360,6 @@
 		purpose: 'Lead the engineering team',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }]
 	}}
 >
@@ -388,7 +370,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 		/>
 	{/snippet}
@@ -402,19 +383,18 @@
 		purpose: 'Lead design initiatives',
 		onClick: () => console.log('Clicked'),
 		onEdit: () => console.log('Edit clicked'),
-		onAddMember: () => console.log('Add member clicked'),
 		menuItems: [{ label: 'Archive', onclick: () => console.log('Archive') }],
 		members: [
 			{
-				userId: 'user-1',
+				personId: fakePersonId('person-1'),
 				name: 'Alice Johnson',
 				email: 'alice.johnson@example.com',
-				avatarImage: 'https://i.pravatar.cc/150?img=12'
+				avatarImage: undefined
 			}
 		],
-		memberMenuItems: (userId) => [
-			{ label: 'Edit', onclick: () => console.log(`Edit ${userId}`) },
-			{ label: 'Remove', onclick: () => console.log(`Remove ${userId}`), danger: true }
+		memberMenuItems: (personId: Id<'people'>) => [
+			{ label: 'Edit', onclick: () => console.log(`Edit ${personId}`) },
+			{ label: 'Remove', onclick: () => console.log(`Remove ${personId}`), danger: true }
 		]
 	}}
 >
@@ -425,7 +405,6 @@
 			purpose={args.purpose}
 			onClick={args.onClick}
 			onEdit={args.onEdit}
-			onAddMember={args.onAddMember}
 			menuItems={args.menuItems}
 			members={args.members}
 			memberMenuItems={args.memberMenuItems}

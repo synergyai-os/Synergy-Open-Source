@@ -1,7 +1,13 @@
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
+import { mutation } from '../../_generated/server';
+import { v } from 'convex/values';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { findPersonByEmailAndWorkspace, getNormalizedEmail } from './queries';
+import {
+	findPersonByEmailAndWorkspace,
+	getNormalizedEmail,
+	getPersonForSessionAndWorkspace
+} from './queries';
 import { canArchivePerson, canInvitePeople, requireActivePerson, requirePerson } from './rules';
 
 type PersonDoc = Doc<'people'>;
@@ -103,11 +109,12 @@ export async function invitePerson(ctx: MutationCtx, args: InviteArgs): Promise<
 		);
 	}
 
-	if (args.userId) {
+	if (args.userId !== null && args.userId !== undefined) {
+		const userId = args.userId;
 		const existingByUser = await ctx.db
 			.query('people')
 			.withIndex('by_workspace_user', (q) =>
-				q.eq('workspaceId', args.workspaceId).eq('userId', args.userId)
+				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
 			)
 			.first();
 
@@ -285,55 +292,6 @@ async function getActiveOwnerCount(
 }
 
 /**
- * Create a placeholder person (planning entity with name only).
- * Placeholders represent known future participants (new hires, consultants, board members)
- * who should appear in org charts and can hold roles before they have system accounts.
- *
- * @param ctx - Mutation context
- * @param args - Placeholder creation arguments
- * @returns personId of the created placeholder
- */
-export async function createPlaceholder(
-	ctx: MutationCtx,
-	args: CreatePlaceholderArgs
-): Promise<Id<'people'>> {
-	const workspace = await ctx.db.get(args.workspaceId);
-	if (!workspace) {
-		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
-	}
-
-	if (!args.displayName || args.displayName.trim() === '') {
-		throw createError(ErrorCodes.WORKSPACE_NAME_REQUIRED, 'Placeholder must have a displayName');
-	}
-
-	if (args.createdByPersonId) {
-		const canInvite = await canInvitePeople(ctx, args.createdByPersonId);
-		if (!canInvite) {
-			throw createError(
-				ErrorCodes.WORKSPACE_ACCESS_DENIED,
-				'User does not have permission to create placeholders'
-			);
-		}
-	}
-
-	const now = Date.now();
-	return ctx.db.insert('people', {
-		workspaceId: args.workspaceId,
-		userId: undefined,
-		email: undefined,
-		displayName: args.displayName.trim(),
-		workspaceRole: args.workspaceRole,
-		status: 'placeholder',
-		createdAt: now,
-		invitedAt: undefined, // Placeholders don't have invitedAt (IDENT-13)
-		invitedBy: args.createdByPersonId ?? undefined,
-		joinedAt: undefined,
-		archivedAt: undefined,
-		archivedBy: undefined
-	});
-}
-
-/**
  * Transition a placeholder person to invited status by adding email.
  * This is the first step in converting a planning entity into a real participant.
  *
@@ -388,4 +346,110 @@ export async function transitionPlaceholderToInvited(
 	});
 
 	return requirePerson(ctx, args.personId);
+}
+
+// ============================================================================
+// Mutation Wrappers (Convex API)
+// ============================================================================
+
+/**
+ * Create a placeholder person via Convex mutation API.
+ * Wraps createPlaceholder function with sessionId handling.
+ *
+ * @example
+ * ```typescript
+ * const personId = await client.mutation(api.core.people.mutations.createPlaceholder, {
+ *   sessionId,
+ *   workspaceId,
+ *   displayName: 'John Doe',
+ *   workspaceRole: 'member'
+ * });
+ * ```
+ */
+export const createPlaceholder = mutation({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		displayName: v.string(),
+		workspaceRole: v.union(v.literal('owner'), v.literal('admin'), v.literal('member'))
+	},
+	handler: async (ctx, args) => {
+		// Get personId from sessionId
+		const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+
+		// Call the internal function (renamed to avoid conflict)
+		return await createPlaceholderInternal(ctx, {
+			workspaceId: args.workspaceId,
+			displayName: args.displayName,
+			workspaceRole: args.workspaceRole,
+			createdByPersonId: person._id
+		});
+	}
+});
+
+/**
+ * Create an invited person via Convex mutation API.
+ * Wraps invitePerson() with sessionId handling.
+ */
+export const createInvitedPerson = mutation({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		email: v.string(),
+		displayName: v.optional(v.string()),
+		workspaceRole: v.union(v.literal('owner'), v.literal('admin'), v.literal('member'))
+	},
+	handler: async (ctx, args) => {
+		const { person } = await getPersonForSessionAndWorkspace(ctx, args.sessionId, args.workspaceId);
+
+		return await invitePerson(ctx, {
+			workspaceId: args.workspaceId,
+			email: args.email,
+			workspaceRole: args.workspaceRole,
+			invitedByPersonId: person._id,
+			displayName: args.displayName ?? null,
+			userId: undefined
+		});
+	}
+});
+
+// Internal implementation (renamed to avoid naming conflict with mutation export)
+async function createPlaceholderInternal(
+	ctx: MutationCtx,
+	args: CreatePlaceholderArgs
+): Promise<Id<'people'>> {
+	const workspace = await ctx.db.get(args.workspaceId);
+	if (!workspace) {
+		throw createError(ErrorCodes.WORKSPACE_NOT_FOUND, 'Workspace not found');
+	}
+
+	if (!args.displayName || args.displayName.trim() === '') {
+		throw createError(ErrorCodes.WORKSPACE_NAME_REQUIRED, 'Placeholder must have a displayName');
+	}
+
+	if (args.createdByPersonId) {
+		const canInvite = await canInvitePeople(ctx, args.createdByPersonId);
+		if (!canInvite) {
+			throw createError(
+				ErrorCodes.WORKSPACE_ACCESS_DENIED,
+				'User does not have permission to create placeholders'
+			);
+		}
+	}
+
+	const now = Date.now();
+	return ctx.db.insert('people', {
+		workspaceId: args.workspaceId,
+		userId: undefined,
+		email: undefined,
+		displayName: args.displayName.trim(),
+		workspaceRole: args.workspaceRole,
+		status: 'placeholder',
+		createdAt: now,
+		invitedAt: undefined, // Placeholders don't have invitedAt (IDENT-13)
+		invitedBy: args.createdByPersonId ?? undefined,
+		joinedAt: undefined,
+		archivedAt: undefined,
+		archivedBy: undefined
+	});
 }

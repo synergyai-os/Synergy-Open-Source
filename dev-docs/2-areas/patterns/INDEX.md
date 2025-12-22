@@ -24,6 +24,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | architecture layers, infrastructure imports core, dependency violation, Principle #5, CIRCLE_TYPES, constants, layer boundaries, authority vs RBAC, organizational authority, system capabilities | Infrastructure Importing from Core (Layer Violation) | `architecture-modularity.md#L140` |
 | scroll, bottom, position, viewport, scrollTop | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | overflow, max-height, scroll, dropdown, full-page, parent height, h-full, Tabs.Root, height constraint | ScrollArea Max Height | `ui-patterns.md#L60` |
+| combobox, portal, input focus, autofocus, cmd+a, ctrl+a, select all, delete, backspace, stopPropagation | Combobox Input (Portal) — Autofocus + Cmd/Ctrl+A + Delete Behavior | `ui-patterns.md#L140` |
 | border, harsh, contrast, subtle, soft | Border Contrast | `design-system-patterns.md#L60` |
 | CVA, recipe, match, styling, NavItem, consistent | Component Style Matching | `design-system-patterns.md#L100` |
 | height, header, inconsistent, 2.5rem, 40px, PageHeader component, sticky header, header padding, header divider, right slot, header button, small button, icon button, header action | Consistent Header Heights | `design-system-patterns.md#L150` |
@@ -61,9 +62,11 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | useQuery, manual query, convexClient.query, $effect, auto-refetch, reactivity, mutation updates, hard reload, refetch, circles vs roles | Use Reactive useQuery Instead of Manual Queries for Auto-Refetch | `convex-integration.md#L340` |
 | proposals, state machine, transitions, terminal states, assertTransition, isTerminalState | Convex State Machine in Core | `convex-integration.md#L470` |
 | hardcoded constants, database query, async refactor, user-created fields, dynamic configuration, flexible system, CUSTOM_FIELD_SYSTEM_KEYS, isCustomField | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
-| custom fields, iterate fields, DB-driven, field rendering, customFields.fields, CustomFieldSection, admin-added fields, display name, field order | DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` |
+| custom fields, iterate fields, DB-driven, field rendering, customFields.fields, CustomFieldSection, admin-added fields, display name, field order | DB-Driven Custom Field Rendering (Frontend) | `convex-integration.md#L700` |
 | cross-module imports, module api, context, dependency injection, createContext, setContext, getContext, lint, no-cross-module-imports | Module APIs via Context (No Cross-Module Imports) | `architecture-modularity.md#L10` |
 | StackedPanel, closePanel, navigationStack, previousLayer, modal stuck, ESC key, backdrop click, can't close, app frozen | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
+| URL params, shallow routing, replaceState, tabs, white flash, panel reload, loading gate | URL-Synced Tabs Without Full-Panel Flash | `ui-patterns.md#L560` |
+| Combobox, external trigger, customAnchor, positioning, dropdown invisible, off-screen, portal, icon button, bind:open | Combobox External Trigger with customAnchor | `ui-patterns.md#L510` |
 
 ---
 
@@ -80,6 +83,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Query never fires after user selection, queryResult is null forever, conditional useQuery | Conditional Query Creation Must Be Wrapped in $derived | `convex-integration.md#L250` |
 | After mutations UI doesn't update, need manual refetch, hard reload feeling, circles update but roles don't | Use Reactive useQuery Instead of Manual Queries | `convex-integration.md#L340` |
 | Panel cannot be closed, ESC key doesn't work, backdrop click doesn't work, app stuck, must reload | StackedPanel Close Handler Must Check for Previous Layer | `ui-patterns.md#L460` |
+| Combobox dropdown doesn't appear with external trigger, dropdown invisible even though rendering, off-screen positioning | Combobox External Trigger with customAnchor | `ui-patterns.md#L510` |
 
 ## 🟡 Important (Common Issues)
 
@@ -89,6 +93,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Domain logic mixed with Convex DB code; untestable rules; duplicate lead/dedup logic scattered | Core Domain Logic in convex/core (Pure + Tests) | `architecture-modularity.md#L70` |
 | Dropdown content overflows instead of scrolling | ScrollArea Max Height | `ui-patterns.md#L60` |
 | Full-page ScrollArea doesn't scroll (no scrollbar) | ScrollArea Max Height | `ui-patterns.md#L60` |
+| Combobox opens but typing doesn't work; Cmd/Ctrl+A doesn't select input text; Delete/Backspace behaves oddly | Combobox Input (Portal) — Autofocus + Cmd/Ctrl+A + Delete Behavior | `ui-patterns.md#L140` |
 | Borders look too harsh/dark | Border Contrast (Subtle vs Base) | `design-system-patterns.md#L60` |
 | Headers have inconsistent heights | Consistent Header Heights | `design-system-patterns.md#L150` |
 | Page padding inconsistent or content touches edges | Standardize Page-Level Padding | `design-system-patterns.md#L350` |
@@ -116,7 +121,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 | Creating molecule component, molecule with recipe, component classification, molecule vs atom | Molecule Components with Recipes | `design-system-patterns.md#L650` |
 | Hardcoded constants limiting flexibility, user-created config not detected, need database-driven configuration | Database-Driven Configuration (Hardcoded → DB Query) | `convex-integration.md#L540` |
-| Custom fields hardcoded in template, admin-added fields don't appear, iterate over DB fields | DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` |
+| Custom fields hardcoded in template, admin-added fields don't appear, iterate over DB fields | DB-Driven Custom Field Rendering (Frontend) | `convex-integration.md#L700` |
 | Redundant margin, gap vs margin, flex spacing, ml-fieldGroup redundant | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
 | Using raw button instead of Button component, design system compliance, accessibility | Always Use Design System Components | `design-system-patterns.md#L750` |
 | Badge font size, component font size variants, text-2xs text-xs text-sm | Size-Dependent Font Sizes in Recipes | `design-system-patterns.md#L800` |
@@ -147,16 +152,16 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-12-19
+**Last Updated**: 2025-12-20
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
 
-## Recent Additions (2025-12-19)
+## Recent Additions (2025-12-20)
 
 | Pattern | File | Keywords |
 |---------|------|----------|
-| DB-Driven Custom Field Rendering (Frontend) | `../patterns-and-lessons.md` | custom fields, iterate fields, DB-driven, CustomFieldSection, admin-added fields |
+| Combobox External Trigger with customAnchor | `ui-patterns.md#L510` | external trigger, customAnchor, positioning, portal, icon button, invisible dropdown |
 
-## Recent Additions (2025-12-18)
+## Recent Additions (2025-12-18 & 2025-12-19)
 
 | Pattern | File | Keywords |
 |---------|------|----------|

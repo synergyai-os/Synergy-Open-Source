@@ -8,7 +8,7 @@ import { describe, expect, test, vi } from 'vitest';
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import { listMembersWithoutRoles } from './queries';
-import { create, archiveRole, assignUser } from './mutations';
+import { create, archiveRole, assignPerson, removePerson } from './mutations';
 import { create as createTemplate } from './templates';
 import {
 	hasDuplicateRoleName,
@@ -66,7 +66,12 @@ describe('queries', () => {
 
 		vi.mock('./roleAccess', () => ({
 			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(mockPersonId),
-			ensureWorkspaceMembership: vi.fn()
+			ensureWorkspaceMembership: vi.fn(),
+			ensureCircleExists: vi.fn(),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
+			isLeadRole: vi.fn(),
+			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn()
 		}));
 
 		test('returns members when no roles exist', async () => {
@@ -109,8 +114,10 @@ describe('mutations', () => {
 		vi.mock('./roleAccess', () => ({
 			ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
 			ensureWorkspaceMembership: vi.fn(),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
 			isLeadRole: vi.fn(),
 			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn(),
 			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(personId)
 		}));
 
@@ -129,7 +136,7 @@ describe('mutations', () => {
 				db: {
 					query: vi.fn().mockReturnValue({
 						withIndex: vi.fn().mockReturnValue({
-							collect: vi.fn().mockResolvedValue([])
+							collect: vi.fn().mockResolvedValue([{ _id: 'r-existing', name: 'Lead' }])
 						})
 					}),
 					insert: vi.fn()
@@ -141,7 +148,7 @@ describe('mutations', () => {
 					sessionId: 's1',
 					circleId: circleId as any,
 					name: 'Lead',
-					purpose: undefined
+					fieldValues: undefined
 				})
 			).rejects.toThrow(/VALIDATION_INVALID_FORMAT/);
 		});
@@ -151,7 +158,10 @@ describe('mutations', () => {
 		vi.mock('./roleAccess', () => ({
 			ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
 			ensureWorkspaceMembership: vi.fn(),
-			countLeadRolesInCircle: vi.fn(),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
+			isLeadRole: vi.fn(),
+			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn(),
 			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p1')
 		}));
 
@@ -169,10 +179,18 @@ describe('mutations', () => {
 		});
 	});
 
-	describe('assignUser', () => {
+	describe('assignPerson', () => {
+		vi.mock('../authority/quickEdit', () => ({
+			requireQuickEditPermissionForPerson: vi.fn().mockResolvedValue(undefined)
+		}));
+
 		vi.mock('./roleAccess', () => ({
 			ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
 			ensureWorkspaceMembership: vi.fn(),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
+			isLeadRole: vi.fn(),
+			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn(),
 			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p-acting')
 		}));
 
@@ -182,7 +200,7 @@ describe('mutations', () => {
 		}));
 
 		test('throws when assignment already exists', async () => {
-			const handler = (assignUser as any).handler ?? (assignUser as any);
+			const handler = (assignPerson as any).handler ?? (assignPerson as any);
 			const ctx = {
 				db: {
 					get: vi.fn().mockResolvedValue({
@@ -192,7 +210,9 @@ describe('mutations', () => {
 					}),
 					query: vi.fn().mockReturnValue({
 						withIndex: vi.fn().mockReturnValue({
-							first: vi.fn().mockResolvedValue({ _id: 'existing-assignment' })
+							filter: vi.fn().mockReturnValue({
+								first: vi.fn().mockResolvedValue({ _id: 'existing-assignment' })
+							})
 						})
 					}),
 					insert: vi.fn()
@@ -206,6 +226,123 @@ describe('mutations', () => {
 					assigneePersonId: 'p-target' as any
 				})
 			).rejects.toThrow(/ASSIGNMENT_ALREADY_EXISTS/);
+		});
+	});
+
+	describe('removePerson', () => {
+		vi.mock('./roleAccess', () => ({
+			ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
+			ensureWorkspaceMembership: vi.fn(),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
+			isLeadRole: vi.fn(),
+			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn(),
+			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue('p-acting')
+		}));
+
+		vi.mock('./roleRbac', () => ({
+			handleUserCircleRoleCreated: vi.fn(),
+			handleUserCircleRoleRemoved: vi.fn()
+		}));
+
+		test('removes circle membership when the last role assignment is removed', async () => {
+			const handler = (removePerson as any).handler ?? (removePerson as any);
+
+			const assignmentQueryChain = {
+				withIndex: vi.fn().mockReturnValue({
+					filter: vi.fn().mockReturnValue({
+						first: vi
+							.fn()
+							// 1) find active assignment for by_role_person (exists)
+							.mockResolvedValueOnce({ _id: 'a1' })
+							// 2) remaining assignments for by_circle_person (none)
+							.mockResolvedValueOnce(null)
+					})
+				})
+			};
+
+			const circleMembersQueryChain = {
+				withIndex: vi.fn().mockReturnValue({
+					first: vi.fn().mockResolvedValue({ _id: 'cm1' })
+				})
+			};
+
+			const ctx = {
+				db: {
+					get: vi.fn().mockResolvedValue({
+						_id: 'r1',
+						circleId: 'c1',
+						templateId: undefined
+					}),
+					query: vi.fn((table: string) => {
+						if (table === 'assignments') return assignmentQueryChain as any;
+						if (table === 'circleMembers') return circleMembersQueryChain as any;
+						return { withIndex: vi.fn() } as any;
+					}),
+					patch: vi.fn().mockResolvedValue(undefined),
+					delete: vi.fn().mockResolvedValue(undefined)
+				}
+			} as unknown as MutationCtx;
+
+			await expect(
+				handler(ctx as any, {
+					sessionId: 's1',
+					circleRoleId: 'r1' as any,
+					assigneePersonId: 'p-target' as any
+				})
+			).resolves.toEqual({ success: true });
+
+			expect(ctx.db.delete).toHaveBeenCalledWith('cm1');
+		});
+
+		test('does not remove circle membership if the person still has another active role in the circle', async () => {
+			const handler = (removePerson as any).handler ?? (removePerson as any);
+
+			const assignmentQueryChain = {
+				withIndex: vi.fn().mockReturnValue({
+					filter: vi.fn().mockReturnValue({
+						first: vi
+							.fn()
+							// 1) find active assignment for by_role_person (exists)
+							.mockResolvedValueOnce({ _id: 'a1' })
+							// 2) remaining assignments for by_circle_person (exists)
+							.mockResolvedValueOnce({ _id: 'a2' })
+					})
+				})
+			};
+
+			const circleMembersQueryChain = {
+				withIndex: vi.fn().mockReturnValue({
+					first: vi.fn().mockResolvedValue({ _id: 'cm1' })
+				})
+			};
+
+			const ctx = {
+				db: {
+					get: vi.fn().mockResolvedValue({
+						_id: 'r1',
+						circleId: 'c1',
+						templateId: undefined
+					}),
+					query: vi.fn((table: string) => {
+						if (table === 'assignments') return assignmentQueryChain as any;
+						if (table === 'circleMembers') return circleMembersQueryChain as any;
+						return { withIndex: vi.fn() } as any;
+					}),
+					patch: vi.fn().mockResolvedValue(undefined),
+					delete: vi.fn().mockResolvedValue(undefined)
+				}
+			} as unknown as MutationCtx;
+
+			await expect(
+				handler(ctx as any, {
+					sessionId: 's1',
+					circleRoleId: 'r1' as any,
+					assigneePersonId: 'p-target' as any
+				})
+			).resolves.toEqual({ success: true });
+
+			expect(ctx.db.delete).not.toHaveBeenCalled();
 		});
 	});
 });
@@ -222,13 +359,16 @@ describe('templates', () => {
 		}));
 
 		vi.mock('./roleAccess', () => ({
-			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(templateMockPersonId)
-		}));
-		vi.mock('../roleAccess', () => ({
-			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(templateMockPersonId)
+			requireWorkspacePersonFromSession: vi.fn().mockResolvedValue(templateMockPersonId),
+			ensureWorkspaceMembership: vi.fn(),
+			ensureCircleExists: vi.fn().mockResolvedValue({ workspaceId: 'w1' }),
+			ensureWorkspacePersonIsInWorkspace: vi.fn(),
+			isLeadRole: vi.fn(),
+			isWorkspaceAdmin: vi.fn(),
+			requireWorkspacePersonById: vi.fn()
 		}));
 
-		vi.mock('./rules', () => ({
+		vi.mock('./templates/rules', () => ({
 			findLeadRoleTemplate: vi.fn().mockResolvedValue(null),
 			isWorkspaceAdmin: vi.fn().mockResolvedValue(false),
 			updateLeadRolesFromTemplate: vi.fn()
@@ -289,7 +429,7 @@ describe('templates', () => {
 					isCore: false,
 					appliesTo: 'hierarchy'
 				})
-			).rejects.toThrow(/PERSON_NOT_FOUND/);
+			).rejects.toThrow(/AUTHZ_INSUFFICIENT_RBAC/);
 		});
 	});
 });

@@ -2,7 +2,7 @@ import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { isLeadTemplate, countLeadRoles } from './rules';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { requireActivePerson } from '../people/rules';
+import { requireActivePerson, requirePerson } from '../people/rules';
 import { getMyPerson, getPersonById } from '../people/queries';
 
 export async function ensureWorkspaceMembership(
@@ -16,6 +16,28 @@ export async function ensureWorkspaceMembership(
 			ErrorCodes.WORKSPACE_ACCESS_DENIED,
 			'You do not have access to this workspace'
 		);
+	}
+}
+
+/**
+ * Ensures the person belongs to the workspace, regardless of whether they are active, invited, or a placeholder.
+ * This is intentionally looser than ensureWorkspaceMembership() and should generally only be used for "target"
+ * identities (e.g. assignees) where placeholders are valid.
+ */
+export async function ensureWorkspacePersonIsInWorkspace(
+	ctx: QueryCtx | MutationCtx,
+	workspaceId: Id<'workspaces'>,
+	personId: Id<'people'>
+): Promise<void> {
+	const person = await requirePerson(ctx, personId);
+	if (person.workspaceId !== workspaceId) {
+		throw createError(
+			ErrorCodes.WORKSPACE_ACCESS_DENIED,
+			'You do not have access to this workspace'
+		);
+	}
+	if (person.status === 'archived') {
+		throw createError(ErrorCodes.WORKSPACE_MEMBERSHIP_REQUIRED, 'Person is archived');
 	}
 }
 

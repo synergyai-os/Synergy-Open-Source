@@ -33,6 +33,32 @@ SynergyOS uses path-based workspace routing (`/w/:slug/...`) for all workspace-s
 
 ---
 
+## URL State (Query Params)
+
+Path segments define **workspace + feature**. Query parameters define **UI state inside a feature** that should be shareable/bookmarkable (e.g., stacked panels, selected tabs).
+
+### Principles
+
+- **Namespaced keys**: each feature must own its query keys to avoid collisions.
+	- Example: org-chart uses `nav` (stacked panels) + `circleTab` / `roleTab` (tab state).
+- **Merge, don’t overwrite**: URL writers must patch the current URL (keep unrelated params intact).
+- **Shallow routing only**: when updating query params from the client, use SvelteKit’s `pushState`/`replaceState` (never `window.history.*`).
+- **Relative URLs only**: pass `pathname + search + hash` to `pushState/replaceState` (not `.href`).
+
+### Example: Org Chart Deep Link
+
+- `/w/acme-corp/chart?nav=c:abc123.r:def456&circleTab=members`
+	- `nav=...` restores stacked panels (circle → role)
+	- `circleTab=members` restores the active tab within the circle panel
+
+### Key Implementations
+
+- **Stacked navigation URL sync**: `src/lib/composables/useStackedNavigation.svelte.ts` (`nav` param)
+- **Generic query-param sync**: `src/lib/composables/useUrlSearchParamSync.svelte.ts` (reusable for tabs/filters)
+- **TabbedPanel URL support**: `src/lib/components/molecules/TabbedPanel.svelte` (opt-in via `urlParam`)
+
+---
+
 ## Slug vs ID Strategy
 
 ### Why Slugs?

@@ -34,17 +34,17 @@ export function useCircleRoles(options: {
 
 	const roleFillers = $derived(fillersQuery?.data ?? []);
 
-	// Filter out users who are already assigned to this role
-	const availableUsers = $derived(
-		getMembers().filter((member) => !roleFillers.some((f) => f.userId === member.userId))
+	// Filter out people who are already assigned to this role
+	const availablePersons = $derived(
+		getMembers().filter((member) => !roleFillers.some((f) => f.personId === member.personId))
 	);
 
 	return {
 		get roleFillers() {
 			return roleFillers;
 		},
-		get availableUsers() {
-			return availableUsers;
+		get availablePersons() {
+			return availablePersons;
 		}
 	};
 }

@@ -52,17 +52,21 @@ export function useWorkspaceState(
 	$effect(() => {
 		if (!browser) return;
 
-		// Wait until query has loaded before applying validation logic
-		// This prevents resetting activeWorkspaceId during initial loading state
-		if (organizationsQuery && organizationsQuery.data === undefined) {
-			return;
-		}
-
 		const currentUserId = getUserId();
 		const storageKey = getStorageKey(currentUserId);
 		const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
 		const list = organizationsData();
+		const isLoadingOrganizations = !!(organizationsQuery && organizationsQuery.data === undefined);
+
+		// If we have no workspace list yet AND the query is still loading, don't mutate state.
+		// Important: if `list` is already populated via server-side `initialOrganizations`,
+		// we *should* validate immediately (prevents stale localStorage workspace IDs from
+		// leaking into downstream Convex queries like tags.listAllTags).
+		if (isLoadingOrganizations && (!list || list.length === 0)) {
+			return;
+		}
+
 		// Server-side enforcement redirects users with no workspaces to /onboarding
 		// This should never happen, but handle gracefully
 		if (!list || list.length === 0) {
@@ -211,12 +215,28 @@ export function useWorkspaceState(
 		// Users are required to have at least one workspace (enforced server-side)
 		// If null is passed, default to first workspace
 		const list = organizationsData();
-		const targetOrgId = workspaceId || (list.length > 0 ? list[0].workspaceId : null);
+		const requestedOrgId = workspaceId;
+		const firstOrgId = list.length > 0 ? list[0].workspaceId : null;
+
+		// Only allow selecting workspaces that exist in the user's current workspace list.
+		// This prevents stale IDs (localStorage), invites, or manually-constructed IDs from
+		// becoming the active workspace and triggering backend membership errors.
+		const targetOrgId =
+			requestedOrgId && list.some((org) => org.workspaceId === requestedOrgId)
+				? requestedOrgId
+				: firstOrgId;
 
 		if (!targetOrgId) {
 			// Should never happen due to server-side enforcement, but handle gracefully
 			console.warn('setActiveWorkspace called with null and no workspaces available');
 			return;
+		}
+
+		if (requestedOrgId && requestedOrgId !== targetOrgId) {
+			console.warn('setActiveWorkspace: requested workspace not found; falling back to first', {
+				requestedOrgId,
+				fallbackWorkspaceId: targetOrgId
+			});
 		}
 
 		// Set switching state before changing workspace

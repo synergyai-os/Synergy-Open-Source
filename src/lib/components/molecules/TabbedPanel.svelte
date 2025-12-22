@@ -33,8 +33,13 @@
 	 */
 
 	import type { Snippet } from 'svelte';
-	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
-	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
+	import * as Tabs from '../atoms/Tabs.svelte';
+	import {
+		tabsListRecipe,
+		tabsTriggerRecipe,
+		tabsContentRecipe
+	} from '../../design-system/recipes';
+	import { useUrlSearchParamSync } from '../../composables/useUrlSearchParamSync.svelte';
 
 	interface Tab {
 		id: string;
@@ -45,12 +50,77 @@
 	interface Props {
 		tabs: Tab[];
 		activeTab: string;
-		onTabChange: (tab: string) => void;
+		/**
+		 * Optional: when provided, the active tab is synced to/from the URL query string.
+		 * Use a unique key per TabbedPanel instance on a page (e.g. "circleTab", "roleTab").
+		 */
+		urlParam?: string;
+		/**
+		 * Whether tab changes create browser history entries ("push") or update in place ("replace").
+		 * Default: "replace".
+		 */
+		urlHistoryMode?: 'push' | 'replace';
+		/**
+		 * When true, removes the param from the URL when activeTab is the default tab.
+		 * Default: true.
+		 */
+		clearUrlWhenDefault?: boolean;
+		/**
+		 * Optional callback fired when a tab trigger is clicked.
+		 * Most consumers can rely on `bind:activeTab` alone.
+		 */
+		onTabChange?: (tab: string) => void;
 		tabCounts?: Record<string, number>;
 		content: Snippet<[string]>; // Receives tabId parameter
 	}
 
-	let { tabs, activeTab = $bindable(), onTabChange, tabCounts = {}, content }: Props = $props();
+	const noop = (_tab: string) => {};
+
+	let {
+		tabs,
+		activeTab = $bindable(),
+		urlParam,
+		urlHistoryMode = 'replace',
+		clearUrlWhenDefault = true,
+		onTabChange = noop,
+		tabCounts = {},
+		content
+	}: Props = $props();
+
+	const defaultTabId = $derived.by(() => tabs[0]?.id ?? activeTab);
+
+	function isValidTabId(tabId: string): boolean {
+		return tabs.some((t) => t.id === tabId);
+	}
+
+	// Keep activeTab valid if tabs change dynamically
+	$effect(() => {
+		if (tabs.length === 0) return;
+		if (!isValidTabId(activeTab)) {
+			activeTab = defaultTabId;
+		}
+	});
+
+	// Optional URL sync for the active tab (initialized once)
+	if (urlParam) {
+		useUrlSearchParamSync<string>({
+			param: urlParam,
+			historyMode: urlHistoryMode,
+			isReady: () => tabs.length > 0,
+			getValue: () => activeTab,
+			setValue: (value) => {
+				activeTab = value;
+			},
+			parse: (raw) => {
+				if (!raw) return null;
+				return isValidTabId(raw) ? raw : null;
+			},
+			serialize: (value) => {
+				if (clearUrlWhenDefault && value === defaultTabId) return null;
+				return value;
+			}
+		});
+	}
 
 	// Get count for a tab (default 0)
 	function getCount(tabId: string): number {

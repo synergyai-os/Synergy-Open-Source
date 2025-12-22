@@ -54,6 +54,36 @@
 	const isOpen = $derived(navigation.isInStack('role'));
 	const error = $derived(orgChart?.selectedRoleError ?? null);
 	const isLoading = $derived(orgChart?.selectedRoleIsLoading ?? false);
+	const stable = $state({
+		role: null as typeof role,
+		roleId: null as typeof selectedRoleId
+	});
+	const lastLoaded = $state({
+		roleId: null as string | null
+	});
+
+	// Keep a stable copy of the last-loaded role for the currently selected roleId.
+	// Prevents full-panel flash if `isLoading` toggles briefly (e.g., URL tab param updates).
+	$effect(() => {
+		const id = selectedRoleId;
+		if (id !== stable.roleId) {
+			stable.roleId = id;
+			stable.role = null;
+		}
+		if (role) {
+			stable.role = role;
+		}
+	});
+
+	const displayRole = $derived(role ?? stable.role);
+	$effect(() => {
+		if (displayRole && selectedRoleId) {
+			lastLoaded.roleId = selectedRoleId as unknown as string;
+		}
+	});
+	const shouldShowContentLoadingOverlay = $derived(
+		!!selectedRoleId && isLoading && lastLoaded.roleId !== (selectedRoleId as unknown as string)
+	);
 
 	// Convex client for mutations
 	const convexClient = browser ? useConvexClient() : null;
@@ -288,16 +318,16 @@
 		iconRenderer={renderBreadcrumbIcon}
 	>
 		{#snippet children(panelContext)}
-			{#if isLoading}
+			{#if !displayRole && isLoading}
 				<!-- Loading State -->
 				<Loading message="Loading role details..." />
-			{:else if error}
+			{:else if !displayRole && error}
 				<!-- Error State -->
 				<ErrorState title="Failed to load role" message={String(error)} />
-			{:else if role}
+			{:else if displayRole}
 				<!-- Header -->
 				<DetailHeader
-					entityName={isEditMode ? editRole.formValues.name : role.name}
+					entityName={isEditMode ? editRole.formValues.name : displayRole.name}
 					onClose={handleClose}
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
@@ -360,10 +390,12 @@
 
 				<div class="flex h-full flex-col">
 					<!-- Content -->
-					<div class="flex-1 overflow-y-auto">
+					<div class="relative flex-1 overflow-y-auto">
 						<TabbedPanel
 							tabs={ROLE_TABS}
 							bind:activeTab
+							urlParam="roleTab"
+							urlHistoryMode="replace"
 							onTabChange={(tab) => {
 								activeTab = tab;
 							}}
@@ -405,20 +437,20 @@
 												/>
 												{#if fillers.length > 0}
 													<div class="gap-content mb-section flex flex-col">
-														{#each fillers as filler (filler.userId)}
+														{#each fillers as filler (filler.personId)}
 															<div
 																class="p-card gap-button rounded-card bg-surface flex items-center"
 															>
 																<Avatar
-																	initials={getInitials(filler.name || filler.email)}
+																	initials={getInitials(filler.displayName || filler.email)}
 																	size="md"
 																/>
 																<!-- Info -->
 																<div class="min-w-0 flex-1">
 																	<p class="text-button text-primary truncate font-medium">
-																		{filler.name || filler.email}
+																		{filler.displayName || filler.email}
 																	</p>
-																	{#if filler.name}
+																	{#if filler.displayName}
 																		<p class="text-label text-secondary truncate">{filler.email}</p>
 																	{/if}
 																</div>
@@ -472,6 +504,12 @@
 								{/if}
 							{/snippet}
 						</TabbedPanel>
+
+						{#if shouldShowContentLoadingOverlay}
+							<div class="bg-surface/80 absolute inset-0 flex items-center justify-center">
+								<Loading message="Loading..." />
+							</div>
+						{/if}
 					</div>
 
 					<!-- Footer with Save Actions (Edit Mode Only) -->
