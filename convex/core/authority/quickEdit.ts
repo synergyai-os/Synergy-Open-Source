@@ -2,16 +2,18 @@
  * Quick Edit Permission Checks
  *
  * Determines if a person can make quick edits (direct changes without proposals)
- * to circles and roles based on workspace settings and circle type restrictions.
+ * to circles and roles based on workspace settings and lead authority restrictions.
  *
  * Per SYOS-971: Quick edit is an authority decision (organizational),
  * not an RBAC system capability.
+ *
+ * SYOS-1070: Updated to use leadAuthority model
  */
 
 import type { Doc, Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { CIRCLE_TYPES, type CircleType } from '../circles/constants';
+import { DEFAULT_LEAD_AUTHORITY, LEAD_AUTHORITY, type LeadAuthority } from '../circles/constants';
 import { getAuthorityContext } from './context';
 import { isCircleLead, isCircleMember } from './rules';
 
@@ -23,8 +25,8 @@ type AnyCtx = QueryCtx | MutationCtx;
  *
  * Checks:
  * 1. Workspace setting: `allowQuickChanges` must be enabled
- * 2. Circle type restrictions: guilds cannot be quick-edited
- * 3. Authority: person must be circle lead (hierarchy) or member (empowered_team/hybrid)
+ * 2. Lead authority restrictions: convening circles cannot be quick-edited
+ * 3. Authority: person must be circle lead (decides) or member (facilitates)
  *
  * @param ctx - Query or mutation context
  * @param personId - Person ID making the edit
@@ -64,49 +66,48 @@ export async function requireQuickEditPermissionForPerson(
 		);
 	}
 
-	// 2. Check circle type restrictions
-	const circleType = (circle.circleType ?? CIRCLE_TYPES.HIERARCHY) as CircleType;
+	// 2. Check lead authority restrictions
+	const leadAuthority = (circle.leadAuthority ?? DEFAULT_LEAD_AUTHORITY) as LeadAuthority;
 
-	if (circleType === CIRCLE_TYPES.GUILD) {
+	if (leadAuthority === LEAD_AUTHORITY.CONVENES) {
 		throw createError(
 			ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
-			'Guilds are coordination-only. Create a proposal in your home circle.'
+			'Convening circles are coordination-only. Create a proposal in your home circle.'
 		);
 	}
 
-	// 3. Check authority based on circle type
+	// 3. Check authority based on lead authority
 	const authorityContext = await getAuthorityContext(ctx, {
 		personId,
 		circleId: circle._id
 	});
 
-	switch (circleType) {
-		case CIRCLE_TYPES.HIERARCHY:
+	switch (leadAuthority) {
+		case LEAD_AUTHORITY.DECIDES:
 			// Only circle lead can edit
 			if (!isCircleLead(authorityContext)) {
 				throw createError(
 					ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
-					'Only Circle Lead can make changes in hierarchical circles.'
+					'Only Circle Lead can make changes in circles where lead decides.'
 				);
 			}
 			break;
 
-		case CIRCLE_TYPES.EMPOWERED_TEAM:
-		case CIRCLE_TYPES.HYBRID:
+		case LEAD_AUTHORITY.FACILITATES:
 			// Any circle member can edit
 			if (!isCircleMember(authorityContext)) {
 				throw createError(
 					ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
-					'Only circle members can make changes in empowered teams.'
+					'Only circle members can make changes in facilitated circles.'
 				);
 			}
 			break;
 
-		case CIRCLE_TYPES.GUILD:
+		case LEAD_AUTHORITY.CONVENES:
 			// Already handled above, but TypeScript needs exhaustive check
 			throw createError(
 				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
-				'Guilds are coordination-only. Create a proposal in your home circle.'
+				'Convening circles are coordination-only. Create a proposal in your home circle.'
 			);
 	}
 }

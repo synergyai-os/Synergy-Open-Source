@@ -10,13 +10,7 @@ import type { Id } from '../../_generated/dataModel';
 import { listMembersWithoutRoles } from './queries';
 import { create, archiveRole, assignPerson, removePerson } from './mutations';
 import { create as createTemplate } from './templates';
-import {
-	hasDuplicateRoleName,
-	normalizeRoleName,
-	isLeadTemplate,
-	countLeadRoles,
-	isLeadRequiredForCircleType
-} from './rules';
+import { hasDuplicateRoleName, normalizeRoleName, isLeadTemplate, countLeadRoles } from './rules';
 
 // ============================================================================
 // Queries Tests
@@ -427,7 +421,7 @@ describe('templates', () => {
 					],
 					description: undefined,
 					isCore: false,
-					appliesTo: 'hierarchy'
+					appliesTo: 'decides'
 				})
 			).rejects.toThrow(/AUTHZ_INSUFFICIENT_RBAC/);
 		});
@@ -514,29 +508,6 @@ describe('lead helpers', () => {
 
 			const result = countLeadRoles(roles, (templateId) => templateMap.get(templateId));
 			expect(result).toBe(1);
-		});
-	});
-
-	describe('isLeadRequiredForCircleType', () => {
-		test('uses defaults when overrides are absent', () => {
-			expect(isLeadRequiredForCircleType('hierarchy')).toBe(true);
-			expect(isLeadRequiredForCircleType('empowered_team')).toBe(false);
-			expect(isLeadRequiredForCircleType('guild')).toBe(false);
-			expect(isLeadRequiredForCircleType('hybrid')).toBe(true);
-		});
-
-		test('defaults circle type to hierarchy', () => {
-			expect(isLeadRequiredForCircleType(undefined)).toBe(true);
-			expect(isLeadRequiredForCircleType(null)).toBe(true);
-		});
-
-		test('respects override map when provided', () => {
-			const override = { hierarchy: false, guild: true };
-
-			expect(isLeadRequiredForCircleType('hierarchy', override)).toBe(false);
-			expect(isLeadRequiredForCircleType('guild', override)).toBe(true);
-			// Non-overridden types fall back to defaults
-			expect(isLeadRequiredForCircleType('empowered_team', override)).toBe(false);
 		});
 	});
 });

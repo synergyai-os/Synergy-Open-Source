@@ -184,7 +184,7 @@
 								type="submit"
 								disabled={isLoading || !email.trim() || !!emailError}
 							>
-								{isLoading ? 'Inviting...' : 'Invite User'}
+								{isLoading ? 'Inviting...' : 'Invite Member'}
 							</Button>
 						</div>
 					</form>

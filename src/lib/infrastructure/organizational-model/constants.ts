@@ -1,5 +1,5 @@
 /**
- * Operating Mode Constants
+ * Lead Authority Constants
  *
  * System-defined values that must remain fixed for type safety and permission logic.
  * Labels are customizable per workspace via workspaceOrgSettings.
@@ -14,67 +14,36 @@
  *
  * @example
  * ```typescript
- * import { CIRCLE_TYPES, DEFAULT_CIRCLE_TYPE_LABELS } from '$lib/infrastructure/organizational-model/constants';
+ * import { LEAD_AUTHORITY, DEFAULT_LEAD_AUTHORITY_LABELS } from '$lib/infrastructure/organizational-model/constants';
  *
- * const circleType = CIRCLE_TYPES.HIERARCHY;
- * const label = DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY]; // "Hierarchy"
+ * const leadAuthority = LEAD_AUTHORITY.DECIDES;
+ * const label = DEFAULT_LEAD_AUTHORITY_LABELS[LEAD_AUTHORITY.DECIDES]; // "Decides"
  * ```
  */
 
 // ============================================================================
-// Circle Types
+// Lead Authority
 // ============================================================================
 
-export const CIRCLE_TYPES = {
-	HIERARCHY: 'hierarchy',
-	EMPOWERED_TEAM: 'empowered_team',
-	GUILD: 'guild',
-	HYBRID: 'hybrid'
+export const LEAD_AUTHORITY = {
+	DECIDES: 'decides',
+	FACILITATES: 'facilitates',
+	CONVENES: 'convenes'
 } as const;
 
-export type CircleType = (typeof CIRCLE_TYPES)[keyof typeof CIRCLE_TYPES];
+export type LeadAuthority = (typeof LEAD_AUTHORITY)[keyof typeof LEAD_AUTHORITY];
 
 // Default labels (used when workspace labels not configured)
-export const DEFAULT_CIRCLE_TYPE_LABELS: Record<CircleType, string> = {
-	[CIRCLE_TYPES.HIERARCHY]: 'Hierarchy',
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Empowered Team',
-	[CIRCLE_TYPES.GUILD]: 'Guild',
-	[CIRCLE_TYPES.HYBRID]: 'Hybrid'
+export const DEFAULT_LEAD_AUTHORITY_LABELS: Record<LeadAuthority, string> = {
+	[LEAD_AUTHORITY.DECIDES]: 'Decides',
+	[LEAD_AUTHORITY.FACILITATES]: 'Facilitates',
+	[LEAD_AUTHORITY.CONVENES]: 'Convenes'
 } as const;
 
-export const DEFAULT_CIRCLE_TYPE_DESCRIPTIONS: Record<CircleType, string> = {
-	[CIRCLE_TYPES.HIERARCHY]: 'Traditional: manager decides',
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Agile: team consensus',
-	[CIRCLE_TYPES.GUILD]: 'Coordination only, no authority',
-	[CIRCLE_TYPES.HYBRID]: 'Mixed: depends on decision type'
-} as const;
-
-// ============================================================================
-// Decision Models
-// ============================================================================
-
-export const DECISION_MODELS = {
-	MANAGER_DECIDES: 'manager_decides',
-	TEAM_CONSENSUS: 'team_consensus',
-	CONSENT: 'consent',
-	COORDINATION_ONLY: 'coordination_only'
-} as const;
-
-export type DecisionModel = (typeof DECISION_MODELS)[keyof typeof DECISION_MODELS];
-
-// Default labels (used when workspace labels not configured)
-export const DEFAULT_DECISION_MODEL_LABELS: Record<DecisionModel, string> = {
-	[DECISION_MODELS.MANAGER_DECIDES]: 'Manager Decides',
-	[DECISION_MODELS.TEAM_CONSENSUS]: 'Team Consensus',
-	[DECISION_MODELS.CONSENT]: 'Consent',
-	[DECISION_MODELS.COORDINATION_ONLY]: 'Coordination Only'
-} as const;
-
-export const DEFAULT_DECISION_MODEL_DESCRIPTIONS: Record<DecisionModel, string> = {
-	[DECISION_MODELS.MANAGER_DECIDES]: 'Single approver (manager/lead)',
-	[DECISION_MODELS.TEAM_CONSENSUS]: 'All members must agree',
-	[DECISION_MODELS.CONSENT]: 'No valid objections (IDM)',
-	[DECISION_MODELS.COORDINATION_ONLY]: 'Guild: must approve in home circle'
+export const DEFAULT_LEAD_AUTHORITY_DESCRIPTIONS: Record<LeadAuthority, string> = {
+	[LEAD_AUTHORITY.DECIDES]: 'Lead makes decisions for the circle',
+	[LEAD_AUTHORITY.FACILITATES]: 'Lead facilitates team decisions',
+	[LEAD_AUTHORITY.CONVENES]: 'Lead convenes gatherings, no decision authority'
 } as const;
 
 // ============================================================================
@@ -136,17 +105,10 @@ export function isSingleFieldCategory(categoryName: string): boolean {
 // ============================================================================
 
 /**
- * Type guard: Check if value is a valid CircleType
+ * Type guard: Check if value is a valid LeadAuthority
  */
-export function isCircleType(value: string): value is CircleType {
-	return Object.values(CIRCLE_TYPES).includes(value as CircleType);
-}
-
-/**
- * Type guard: Check if value is a valid DecisionModel
- */
-export function isDecisionModel(value: string): value is DecisionModel {
-	return Object.values(DECISION_MODELS).includes(value as DecisionModel);
+export function isLeadAuthority(value: string): value is LeadAuthority {
+	return Object.values(LEAD_AUTHORITY).includes(value as LeadAuthority);
 }
 
 // ============================================================================
@@ -155,36 +117,24 @@ export function isDecisionModel(value: string): value is DecisionModel {
 
 /**
  * System-defined authority levels for Lead roles.
- * Authority is computed at runtime from circle type, not stored on roles.
+ * Note: LeadAuthority values directly map to authority levels (no conversion needed).
  */
 export const AUTHORITY_LEVELS = {
-	AUTHORITY: 'authority',
-	FACILITATIVE: 'facilitative',
-	CONVENING: 'convening'
+	DECIDES: 'decides',
+	FACILITATES: 'facilitates',
+	CONVENES: 'convenes'
 } as const;
 
 export type AuthorityLevel = (typeof AUTHORITY_LEVELS)[keyof typeof AUTHORITY_LEVELS];
 
 /**
- * Circle Type → Authority Level Mapping (system behavior)
- * Lead authority adapts to circle type using hard-coded defaults.
- */
-export const CIRCLE_TYPE_LEAD_AUTHORITY: Record<CircleType, AuthorityLevel> = {
-	[CIRCLE_TYPES.HIERARCHY]: AUTHORITY_LEVELS.AUTHORITY,
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: AUTHORITY_LEVELS.FACILITATIVE,
-	[CIRCLE_TYPES.GUILD]: AUTHORITY_LEVELS.CONVENING,
-	[CIRCLE_TYPES.HYBRID]: AUTHORITY_LEVELS.AUTHORITY
-} as const;
-
-/**
- * Lead Requirement by Circle Type (system behavior)
+ * Lead Requirement by Lead Authority (system behavior)
  * Determines if a Lead role is required when creating a circle.
  */
-export const DEFAULT_LEAD_REQUIRED: Record<CircleType, boolean> = {
-	[CIRCLE_TYPES.HIERARCHY]: true,
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: false,
-	[CIRCLE_TYPES.GUILD]: false,
-	[CIRCLE_TYPES.HYBRID]: true
+export const DEFAULT_LEAD_REQUIRED: Record<LeadAuthority, boolean> = {
+	[LEAD_AUTHORITY.DECIDES]: true,
+	[LEAD_AUTHORITY.FACILITATES]: false,
+	[LEAD_AUTHORITY.CONVENES]: false
 } as const;
 
 // ============================================================================
@@ -192,36 +142,34 @@ export const DEFAULT_LEAD_REQUIRED: Record<CircleType, boolean> = {
 // ============================================================================
 
 /**
- * Default Lead role labels by circle type
+ * Default Lead role labels by lead authority
  * MVP: Returns default label
- * Phase 4+: Will check workspaceOrgSettings.leadLabelByCircleType first
+ * Phase 4+: Will check workspaceOrgSettings.leadLabelByAuthority first
  */
-export const DEFAULT_LEAD_LABELS: Record<CircleType, string> = {
-	[CIRCLE_TYPES.HIERARCHY]: 'Manager',
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Coordinator',
-	[CIRCLE_TYPES.GUILD]: 'Steward',
-	[CIRCLE_TYPES.HYBRID]: 'Lead'
+export const DEFAULT_LEAD_LABELS: Record<LeadAuthority, string> = {
+	[LEAD_AUTHORITY.DECIDES]: 'Manager',
+	[LEAD_AUTHORITY.FACILITATES]: 'Coordinator',
+	[LEAD_AUTHORITY.CONVENES]: 'Steward'
 } as const;
 
 /**
- * Default Lead role descriptions by circle type
+ * Default Lead role descriptions by lead authority
  * MVP: Returns default description
  * Phase 4+: Will check workspaceOrgSettings first
  */
-export const DEFAULT_LEAD_DESCRIPTIONS: Record<CircleType, string> = {
-	[CIRCLE_TYPES.HIERARCHY]: 'Makes final decisions for this circle',
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: 'Coordinates the team. Team decides together using consent.',
-	[CIRCLE_TYPES.GUILD]: 'Organizes gatherings. Decisions are made in home circles.',
-	[CIRCLE_TYPES.HYBRID]: 'Authority varies by decision type'
+export const DEFAULT_LEAD_DESCRIPTIONS: Record<LeadAuthority, string> = {
+	[LEAD_AUTHORITY.DECIDES]: 'Makes final decisions for this circle',
+	[LEAD_AUTHORITY.FACILITATES]: 'Coordinates the team. Team decides together using consent.',
+	[LEAD_AUTHORITY.CONVENES]: 'Organizes gatherings. Decisions are made in home circles.'
 } as const;
 
 /**
  * UI configuration for authority levels (emoji + badge text)
  */
 export const AUTHORITY_LEVEL_UI: Record<AuthorityLevel, { emoji: string; badge: string }> = {
-	[AUTHORITY_LEVELS.AUTHORITY]: { emoji: '👔', badge: 'Authority Role' },
-	[AUTHORITY_LEVELS.FACILITATIVE]: { emoji: '🤝', badge: 'Facilitative Role' },
-	[AUTHORITY_LEVELS.CONVENING]: { emoji: '🌱', badge: 'Convening Role' }
+	[AUTHORITY_LEVELS.DECIDES]: { emoji: '👔', badge: 'Decides' },
+	[AUTHORITY_LEVELS.FACILITATES]: { emoji: '🤝', badge: 'Facilitates' },
+	[AUTHORITY_LEVELS.CONVENES]: { emoji: '🌱', badge: 'Convenes' }
 } as const;
 
 // ============================================================================
@@ -229,28 +177,31 @@ export const AUTHORITY_LEVEL_UI: Record<AuthorityLevel, { emoji: string; badge: 
 // ============================================================================
 
 /**
- * Get Lead authority level for a circle type
- * @returns System-defined authority level (constant lookup, no DB query)
+ * Get Lead authority level from leadAuthority value
+ * Note: Since leadAuthority IS the authority level, this is an identity function
+ * @returns The leadAuthority value as an AuthorityLevel
  */
-export function getLeadAuthorityLevel(circleType: CircleType | null | undefined): AuthorityLevel {
-	return CIRCLE_TYPE_LEAD_AUTHORITY[circleType ?? CIRCLE_TYPES.HIERARCHY];
+export function getLeadAuthorityLevel(
+	leadAuthority: LeadAuthority | null | undefined
+): AuthorityLevel {
+	return (leadAuthority ?? LEAD_AUTHORITY.DECIDES) as AuthorityLevel;
 }
 
 /**
  * Get Lead label for display in UI
  * MVP: Returns default label
- * Phase 4+: Will check workspaceOrgSettings.leadLabelByCircleType first
+ * Phase 4+: Will check workspaceOrgSettings.leadLabelByAuthority first
  */
 export function getLeadLabel(
-	circleType: CircleType | null | undefined,
-	_workspaceLabels?: Record<CircleType, string> // Unused in MVP, ready for Phase 4+
+	leadAuthority: LeadAuthority | null | undefined,
+	_workspaceLabels?: Record<LeadAuthority, string> // Unused in MVP, ready for Phase 4+
 ): string {
 	// MVP: Just return default
-	return DEFAULT_LEAD_LABELS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+	return DEFAULT_LEAD_LABELS[leadAuthority ?? LEAD_AUTHORITY.DECIDES];
 
 	// Phase 4+: Uncomment to enable workspace customization
-	// const customLabel = workspaceLabels?.[circleType ?? CIRCLE_TYPES.HIERARCHY];
-	// return customLabel ?? DEFAULT_LEAD_LABELS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+	// const customLabel = workspaceLabels?.[leadAuthority ?? LEAD_AUTHORITY.DECIDES];
+	// return customLabel ?? DEFAULT_LEAD_LABELS[leadAuthority ?? LEAD_AUTHORITY.DECIDES];
 }
 
 /**
@@ -259,10 +210,10 @@ export function getLeadLabel(
  * Phase 4+: Will check workspaceOrgSettings first
  */
 export function getLeadDescription(
-	circleType: CircleType | null | undefined,
-	_workspaceDescriptions?: Record<CircleType, string> // Unused in MVP, ready for Phase 4+
+	leadAuthority: LeadAuthority | null | undefined,
+	_workspaceDescriptions?: Record<LeadAuthority, string> // Unused in MVP, ready for Phase 4+
 ): string {
-	return DEFAULT_LEAD_DESCRIPTIONS[circleType ?? CIRCLE_TYPES.HIERARCHY];
+	return DEFAULT_LEAD_DESCRIPTIONS[leadAuthority ?? LEAD_AUTHORITY.DECIDES];
 }
 
 /**

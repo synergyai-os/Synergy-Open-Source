@@ -50,6 +50,7 @@
 		onCreateWorkspace,
 		onAddAccount,
 		onSwitchAccount,
+		onLogout,
 		onLogoutAccount,
 		onCreateWorkspaceForAccount,
 		onJoinWorkspaceForAccount
@@ -77,6 +78,7 @@
 		onJoinWorkspaceForAccount?: (targetUserId: string) => void;
 		onAddAccount?: () => void;
 		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
+		onLogout?: () => void;
 		onLogoutAccount?: (targetUserId: string) => void;
 	} = $props();
 
@@ -212,6 +214,31 @@
 						onSelect={(orgId) => handleSelect(orgId)}
 						onClose={handleClose}
 					/>
+
+					<!-- Logout Button (Current Account Only) -->
+					{#if onLogout}
+						<DropdownMenu.Item
+							class={menuItemClasses}
+							textValue="Log out"
+							onSelect={() => {
+								onLogout();
+								handleClose();
+							}}
+						>
+							<div class="gap-header flex items-center">
+								<!-- WORKAROUND: logout icon missing from registry - see missing-styles.md -->
+								<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+									/>
+								</svg>
+								<Text variant="body" size="sm" color="error" as="span">Log out</Text>
+							</div>
+						</DropdownMenu.Item>
+					{/if}
 
 					<!-- Actions Section -->
 					<DropdownMenu.Separator class="border-base my-stack-divider border-t" />

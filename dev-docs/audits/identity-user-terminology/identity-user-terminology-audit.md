@@ -1,6 +1,6 @@
 ---
 title: Identity terminology audit (user/users)
-generatedAt: 2025-12-21T17:28:23.939Z
+generatedAt: 2025-12-23T08:11:54.142Z
 ---
 
 ## Purpose
@@ -14,144 +14,14 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 
 | Scope | Count |
 |---|---:|
-| system_auth | 1712 |
-| workspace | 932 |
-| unknown | 1741 |
+| system_auth | 1725 |
+| workspace | 798 |
+| unknown | 1641 |
 
 ## All instances
 
 | File | Line | Match count | Matched text(s) | Scope | Reason | Snippet |
 |---|---:|---:|---|---|---|---|
-| `convex/admin/analytics.ts` | 23 | 2 | `users` | `system_auth` | Auth signals: query users table | 		const users = await ctx.db.query('users').collect(); |
-| `convex/admin/analytics.ts` | 24 | 2 | `Users, users` | `unknown` | No strong auth/workspace signals detected | 		const activeUsers = users.filter((u) => !u.deletedAt); |
-| `convex/admin/analytics.ts` | 36 | 1 | `User` | `workspace` | Workspace signals: workspace, role | 		const activeUserRoles = [...systemRoles, ...workspaceRoles]; // All are active in new model |
-| `convex/admin/analytics.ts` | 45 | 1 | `users` | `unknown` | No strong auth/workspace signals detected | 			users: { |
-| `convex/admin/analytics.ts` | 46 | 1 | `users` | `unknown` | No strong auth/workspace signals detected | 				total: users.length, |
-| `convex/admin/analytics.ts` | 47 | 1 | `Users` | `unknown` | No strong auth/workspace signals detected | 				active: activeUsers.length, |
-| `convex/admin/analytics.ts` | 48 | 2 | `users, Users` | `unknown` | No strong auth/workspace signals detected | 				deleted: users.length - activeUsers.length |
-| `convex/admin/analytics.ts` | 67 | 1 | `User` | `workspace` | Workspace signals: role | 				total: activeUserRoles.length, |
-| `convex/admin/analytics.ts` | 68 | 1 | `User` | `workspace` | Workspace signals: role | 				active: activeUserRoles.length, |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 837 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 				existingMemberships.map((m) => `${m.workspaceId}_${m.userId}`) |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 850 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(2) signals | 						userId: Id<'users'>; |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 866 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 					const membershipKey = `${workspaceId}_${oldMembershipDoc.userId}`; |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 876 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 							userId: oldMembershipDoc.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 15 | 1 | `User` | `system_auth` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814TestUtils.ts` | 18 | 1 | `User` | `workspace` | Workspace signals: person/people, workspace | 	findPersonByUserAndWorkspace |
-| `convex/admin/archived/syos814TestUtils.ts` | 44 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 54 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 60 | 1 | `user` | `system_auth` | Auth signals: , userId | 				userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 72 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 						userId: person.userId |
-| `convex/admin/archived/syos814TestUtils.ts` | 79 | 3 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 102 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 105 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 112 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const adminPerson = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 125 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 134 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userId: membership.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 173 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 176 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 184 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 						userId: person.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 195 | 3 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId |
-| `convex/admin/archived/syos814TestUtils.ts` | 215 | 1 | `User` | `system_auth` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 267 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 278 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 303 | 3 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 11 | 1 | `User` | `system_auth` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 12 | 2 | `User` | `workspace` | Workspace signals: person/people, people, workspace, people domain path | import { listWorkspacesForUser, findPersonByUserAndWorkspace } from '../../core/people/queries'; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 13 | 1 | `User` | `workspace` | Workspace signals: workspace | import { getUserWorkspaceIds } from '../../infrastructure/access/permissions'; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 33 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople: boolean; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 60 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 70 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 90 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 99 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const adminMembership = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 109 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 		let getUserWorkspaceIdsUsesPeople = false; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 116 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const peopleWorkspaceIds = await listWorkspacesForUser(ctx, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 120 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			const infraWorkspaceIds = await getUserWorkspaceIds(ctx, userId.toString()); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 129 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople = workspaceIdsMatch; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 164 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople && |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 182 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 					getUserWorkspaceIdsUsesPeople, |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 213 | 1 | `User` | `system_auth` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 223 | 1 | `User` | `workspace` | Workspace signals: workspace | 				'infrastructure/access/permissions.ts - getUserWorkspaceIds', |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 224 | 1 | `user` | `workspace` | Workspace signals: workspace | 				'infrastructure/featureFlags/targeting.ts - userHasWorkspaceAccess', |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 228 | 1 | `User` | `workspace` | Workspace signals: workspace, member | 				'core/workspaces/inviteValidation.ts - ensureUserNotAlreadyMember', |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 11 | 1 | `User` | `system_auth` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 13 | 1 | `User` | `workspace` | Workspace signals: workspace | 	listWorkspacesForUser, |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 14 | 1 | `User` | `workspace` | Workspace signals: person/people, workspace | 	findPersonByUserAndWorkspace, |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 17 | 1 | `User` | `workspace` | Workspace signals: workspace | import { getUserWorkspaceIds } from '../../infrastructure/access/permissions'; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 37 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople: boolean; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 71 | 2 | `user, User` | `system_auth` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 81 | 1 | `user` | `workspace` | Workspace signals: workspace | 				.withIndex('by_workspace_user' as any, (q: any) => |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 82 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 99 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 114 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 131 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const adminPerson = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 141 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 		let getUserWorkspaceIdsUsesPeople = false; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 147 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			const peopleWorkspaceIds = await listWorkspacesForUser(ctx, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 150 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			const infraWorkspaceIds = await getUserWorkspaceIds(ctx, userId.toString()); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 158 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople = workspaceIdsMatch; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 200 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 			getUserWorkspaceIdsUsesPeople && |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 220 | 1 | `User` | `workspace` | Workspace signals: people, workspace | 					getUserWorkspaceIdsUsesPeople, |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 258 | 1 | `User` | `system_auth` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 273 | 2 | `User` | `workspace` | Workspace signals: workspace | 					'getUserWorkspaceIds → uses listWorkspacesForUser', |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 274 | 1 | `User` | `workspace` | Workspace signals: people | 					'listOrgLinksForUser → uses people table', |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 285 | 1 | `users` | `unknown` | No strong auth/workspace signals detected | 					'core/users/orgLinks.ts', |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 14 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(2) signals | 		userId: v.id('users') |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 20 | 1 | `user` | `workspace` | Workspace signals: person/people, workspace | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 21 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', args.userId) |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 30 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const user = await db.get(args.userId); |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 31 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const email = user?.email ?? `unknown-${args.userId}@example.invalid`; |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 32 | 2 | `user` | `workspace` | Workspace signals: person/people, workspace | 		const displayName = (user?.name as string \| undefined) ?? user?.firstName ?? null; |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 37 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 			userId: args.userId, |
-| `convex/admin/fixInvariantViolations.ts` | 36 | 1 | `user` | `workspace` | Workspace signals: workspace | 		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId)) |
-| `convex/admin/fixInvariantViolations.ts` | 45 | 1 | `user` | `workspace` | Workspace signals: workspace | 		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId)) |
-| `convex/admin/fixInvariantViolations.ts` | 227 | 1 | `User` | `workspace` | Workspace signals: circle | export const fixCircleItemCategoryUserIds = internalMutation({ |
-| `convex/admin/fixInvariantViolations.ts` | 230 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		console.log('🔧 Fixing circleItemCategories userId references (XDOM-01)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 237 | 1 | `user` | `workspace` | Workspace signals: person/people, people | 		const userToPersonMap = new Map<string, Id<'people'>>(); |
-| `convex/admin/fixInvariantViolations.ts` | 239 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 241 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 243 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 254 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 255 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 256 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 266 | 1 | `user` | `workspace` | Workspace signals: personId, person/people | 				createdByPersonId = userToPersonMap.get(legacyCategory.createdBy.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 345 | 1 | `User` | `unknown` | No strong auth/workspace signals detected | export const fixMeetingUserIds = internalMutation({ |
-| `convex/admin/fixInvariantViolations.ts` | 348 | 1 | `user` | `system_auth` | Auth signals: , userId | 		console.log('🔧 Fixing meetings userId references (XDOM-01)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 354 | 1 | `user` | `workspace` | Workspace signals: person/people, people | 		const userToPersonMap = new Map<string, Id<'people'>>(); |
-| `convex/admin/fixInvariantViolations.ts` | 356 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 357 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 359 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 370 | 1 | `user` | `workspace` | Workspace signals: personId, person/people | 				let createdByPersonId = userToPersonMap.get(meeting.createdBy.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 400 | 1 | `User` | `workspace` | Workspace signals: circle | export const fixCircleItemUserIds = internalMutation({ |
-| `convex/admin/fixInvariantViolations.ts` | 403 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		console.log('🔧 Fixing circleItems userId references (XDOM-05)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 409 | 1 | `user` | `workspace` | Workspace signals: person/people, people | 		const userToPersonMap = new Map<string, Id<'people'>>(); |
-| `convex/admin/fixInvariantViolations.ts` | 411 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 412 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 414 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 424 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 425 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 426 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 				archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 436 | 1 | `user` | `workspace` | Workspace signals: personId, person/people | 				createdByPersonId = userToPersonMap.get(legacyItem.createdBy.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 617 | 1 | `user` | `workspace` | Workspace signals: circle | 		console.log('\n📌 Step 5: Fixing circleItemCategory userIds...'); |
-| `convex/admin/fixInvariantViolations.ts` | 618 | 1 | `User` | `workspace` | Workspace signals: circle | 		const categoryResult = await fixCircleItemCategoryUserIdsHandler(ctx); |
-| `convex/admin/fixInvariantViolations.ts` | 621 | 1 | `user` | `workspace` | Workspace signals: circle | 		console.log('\n📌 Step 6: Fixing circleItem userIds...'); |
-| `convex/admin/fixInvariantViolations.ts` | 622 | 1 | `User` | `workspace` | Workspace signals: circle | 		const circleItemResult = await fixCircleItemUserIdsHandler(ctx); |
-| `convex/admin/fixInvariantViolations.ts` | 736 | 1 | `User` | `workspace` | Workspace signals: circle | async function fixCircleItemCategoryUserIdsHandler(ctx: MutationCtx) { |
-| `convex/admin/fixInvariantViolations.ts` | 740 | 1 | `user` | `workspace` | Workspace signals: person/people, people | 	const userToPersonMap = new Map<string, Id<'people'>>(); |
-| `convex/admin/fixInvariantViolations.ts` | 742 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 743 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 745 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 755 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 756 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 757 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 766 | 1 | `user` | `workspace` | Workspace signals: personId, person/people | 			createdByPersonId = userToPersonMap.get(legacyCategory.createdBy.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 790 | 1 | `User` | `workspace` | Workspace signals: circle | async function fixCircleItemUserIdsHandler(ctx: MutationCtx) { |
-| `convex/admin/fixInvariantViolations.ts` | 794 | 1 | `user` | `workspace` | Workspace signals: person/people, people | 	const userToPersonMap = new Map<string, Id<'people'>>(); |
-| `convex/admin/fixInvariantViolations.ts` | 796 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 797 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 799 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 809 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 810 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 811 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 			archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 820 | 1 | `user` | `workspace` | Workspace signals: personId, person/people | 			createdByPersonId = userToPersonMap.get(legacyItem.createdBy.toString()); |
 | `convex/admin/invariants/crossDomain.ts` | 54 | 1 | `user` | `system_auth` | Auth signals: , userId | 			name: 'No userId references in core domain tables', |
 | `convex/admin/invariants/crossDomain.ts` | 59 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 					? 'Core tables use personId instead of userId' |
 | `convex/admin/invariants/crossDomain.ts` | 60 | 1 | `user` | `system_auth` | Auth signals: , userId | 					: `${violations.length} record(s) still use userId-based references` |
@@ -188,62 +58,6 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `convex/admin/invariants/identity.ts` | 278 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				(person) => !person.displayName \|\| person.email !== undefined \|\| person.userId !== undefined |
 | `convex/admin/invariants/identity.ts` | 284 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			name: 'Placeholder people have displayName, no email, no userId', |
 | `convex/admin/invariants/identity.ts` | 290 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					: `${violations.length} placeholder people with invalid fields (missing displayName or have email/userId)` |
-| `convex/admin/migrateAddCoreRoles.ts` | 12 | 1 | `User` | `unknown` | Mixed auth(1) + workspace(1) signals | import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation'; |
-| `convex/admin/migrateAddCoreRoles.ts` | 26 | 2 | `user, User` | `unknown` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/migrateAddCoreRoles.ts` | 30 | 1 | `user` | `workspace` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/migrateAddCoreRoles.ts` | 31 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/migrateAddCoreRoles.ts` | 113 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 							updatedBy: userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 137 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 							updatedBy: userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 169 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(1) signals | 		userId: v.id('users') |
-| `convex/admin/migrateAddCoreRoles.ts` | 236 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 							updatedBy: args.userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 260 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 							updatedBy: args.userId |
-| `convex/admin/migrateDefaultCategories.ts` | 23 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateDefaultCategories.ts` | 32 | 1 | `user` | `system_auth` | Auth signals: , userId | 		return owner.userId; |
-| `convex/admin/migrateDefaultCategories.ts` | 37 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		return members[0].userId; |
-| `convex/admin/migrateOrgChartSoftDelete.ts` | 24 | 1 | `user` | `workspace` | Workspace signals: circle, role | 		console.log('  Note: userCircleRoles table removed (SYOS-815)\n'); |
-| `convex/admin/migrateOrgChartSoftDelete.ts` | 82 | 1 | `user` | `workspace` | Workspace signals: circle, role | 		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)'); |
-| `convex/admin/migrateProposalsToPerson.ts` | 12 | 1 | `User` | `workspace` | Workspace signals: person/people, workspace, proposal | type WorkspaceUserKey = string; |
-| `convex/admin/migrateProposalsToPerson.ts` | 19 | 1 | `User` | `workspace` | Workspace signals: person/people, workspace, proposal | 	const personMap = new Map<WorkspaceUserKey, string>(); |
-| `convex/admin/migrateProposalsToPerson.ts` | 21 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		const userId = (person as any).userId; |
-| `convex/admin/migrateProposalsToPerson.ts` | 22 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		if (!userId) continue; |
-| `convex/admin/migrateProposalsToPerson.ts` | 23 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 		personMap.set(makeKey(person.workspaceId, userId), person._id); |
-| `convex/admin/migrateProposalsToPerson.ts` | 151 | 2 | `user, User` | `unknown` | Mixed auth(1) + workspace(3) signals | function makeKey(workspaceId: string, userId: string): WorkspaceUserKey { |
-| `convex/admin/migrateProposalsToPerson.ts` | 152 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 	return `${workspaceId}:${userId}`; |
-| `convex/admin/migrateRootCircles.ts` | 20 | 1 | `users` | `unknown` | Mixed auth(1) + workspace(1) signals | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateRootCircles.ts` | 29 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		return owner.userId; |
-| `convex/admin/migrateRootCircles.ts` | 34 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		return members[0].userId; |
-| `convex/admin/migrateTagsToPersonId.ts` | 12 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(2) signals | type TagDoc = Doc<'tags'> & { userId?: Id<'users'> }; |
-| `convex/admin/migrateTagsToPersonId.ts` | 14 | 3 | `User, user, users` | `unknown` | Mixed auth(2) + workspace(3) signals | async function findWorkspaceForUser(ctx: MutationCtx, userId: Id<'users'>) { |
-| `convex/admin/migrateTagsToPersonId.ts` | 17 | 3 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		.withIndex('by_user', (q) => q.eq('userId', userId)) |
-| `convex/admin/migrateTagsToPersonId.ts` | 24 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 		throw new Error(`No active people for user ${userId}`); |
-| `convex/admin/migrateTagsToPersonId.ts` | 29 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 	throw new Error(`Multiple active workspaces for user ${userId}: [${workspaces}]`); |
-| `convex/admin/migrateTagsToPersonId.ts` | 35 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(2) signals | 	userId?: Id<'users'> |
-| `convex/admin/migrateTagsToPersonId.ts` | 38 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 	if (userId) { |
-| `convex/admin/migrateTagsToPersonId.ts` | 39 | 1 | `User` | `workspace` | Workspace signals: personId, person/people | 		const personByUser = await ctx.db |
-| `convex/admin/migrateTagsToPersonId.ts` | 41 | 3 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId)) |
-| `convex/admin/migrateTagsToPersonId.ts` | 43 | 2 | `User` | `workspace` | Workspace signals: personId, person/people | 		if (personByUser) return personByUser; |
-| `convex/admin/migrateTagsToPersonId.ts` | 61 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		console.log('🔄 Starting migration: tags.userId -> tags.personId'); |
-| `convex/admin/migrateTagsToPersonId.ts` | 75 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(2) signals | 				const legacyUserId = tag.userId; |
-| `convex/admin/migrateTagsToPersonId.ts` | 80 | 1 | `User` | `workspace` | Workspace signals: personId, person/people | 					if (!legacyUserId) { |
-| `convex/admin/migrateTagsToPersonId.ts` | 81 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 						throw new Error(`Tag ${tag._id} missing workspaceId and legacy userId`); |
-| `convex/admin/migrateTagsToPersonId.ts` | 83 | 2 | `User` | `workspace` | Workspace signals: personId, person/people, workspace | 					workspaceId = await findWorkspaceForUser(ctx, legacyUserId); |
-| `convex/admin/migrateTagsToPersonId.ts` | 87 | 1 | `User` | `workspace` | Workspace signals: personId, person/people, workspace | 				const person = await ensurePersonForWorkspace(ctx, workspaceId, legacyUserId); |
-| `convex/admin/migrateVersionHistory.ts` | 25 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateVersionHistory.ts` | 34 | 1 | `user` | `system_auth` | Auth signals: , userId | 		return owner.userId; |
-| `convex/admin/migrateVersionHistory.ts` | 39 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		return members[0].userId; |
-| `convex/admin/migrateVersionHistory.ts` | 48 | 2 | `User, users` | `system_auth` | Auth signals: Convex users id type | async function getAnyUserId(ctx: MutationCtx): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateVersionHistory.ts` | 49 | 2 | `user, users` | `system_auth` | Auth signals: query users table | 	const user = await ctx.db.query('users').first(); |
-| `convex/admin/migrateVersionHistory.ts` | 50 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 	return user?._id ?? null; |
-| `convex/admin/migrateVersionHistory.ts` | 64 | 2 | `User` | `unknown` | No strong auth/workspace signals detected | 		const systemUserId = await getAnyUserId(ctx); |
-| `convex/admin/migrateVersionHistory.ts` | 65 | 1 | `User` | `unknown` | No strong auth/workspace signals detected | 		if (!systemUserId) { |
-| `convex/admin/migrateVersionHistory.ts` | 68 | 1 | `users` | `unknown` | No strong auth/workspace signals detected | 				'No users found in database. Cannot create version history.' |
-| `convex/admin/migrateVersionHistory.ts` | 101 | 1 | `User` | `workspace` | Workspace signals: workspace, circle | 				changedBy = (await getWorkspaceOwner(ctx, circle.workspaceId)) ?? systemUserId; |
-| `convex/admin/migrateVersionHistory.ts` | 156 | 1 | `User` | `workspace` | Workspace signals: workspace, circle | 				changedBy = (await getWorkspaceOwner(ctx, circle.workspaceId)) ?? systemUserId; |
-| `convex/admin/migrateVersionHistory.ts` | 185 | 1 | `user` | `workspace` | Workspace signals: circle, role | 		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)'); |
-| `convex/admin/migrateVersionHistory.ts` | 221 | 1 | `User` | `workspace` | Workspace signals: workspace, circle | 				changedBy = (await getWorkspaceOwner(ctx, circle.workspaceId)) ?? systemUserId; |
-| `convex/admin/migrateVersionHistory.ts` | 234 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 					userId: member.userId, |
-| `convex/admin/migrateVersionHistory.ts` | 268 | 1 | `User` | `workspace` | Workspace signals: workspace | 				changedBy = (await getWorkspaceOwner(ctx, category.workspaceId)) ?? systemUserId; |
-| `convex/admin/migrateVersionHistory.ts` | 316 | 1 | `User` | `workspace` | Workspace signals: workspace | 				changedBy = (await getWorkspaceOwner(ctx, item.workspaceId)) ?? systemUserId; |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 35 | 1 | `User` | `workspace` | Workspace signals: person/people, people, workspace, circle | import { findPersonByUserAndWorkspace } from '../../core/people/queries'; |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 50 | 2 | `user, users` | `unknown` | Mixed auth(2) + workspace(1) signals | 	userId: Id<'users'>, |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 53 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(3) signals | 	const person = await findPersonByUserAndWorkspace(ctx, userId, workspaceId); |
@@ -351,12 +165,6 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `convex/admin/rbac.ts` | 1050 | 2 | `user, User` | `system_auth` | Auth signals: , userId | 				userId: adminUserId, |
 | `convex/admin/rbac.ts` | 1053 | 1 | `User` | `unknown` | No strong auth/workspace signals detected | 				grantedBy: adminUserId |
 | `convex/admin/rbac.ts` | 1061 | 2 | `user, User` | `system_auth` | Auth signals: , userId | 			userId: adminUserId, |
-| `convex/admin/reportMissingProposalPersons.ts` | 44 | 2 | `Users` | `workspace` | Workspace signals: person/people, proposal | 		{ count: number; legacyUsers: Record<string, number>; processedUsers: Record<string, number> } |
-| `convex/admin/reportMissingProposalPersons.ts` | 49 | 2 | `Users` | `workspace` | Workspace signals: person/people, workspace, proposal | 			grouped[row.workspaceId] = { count: 0, legacyUsers: {}, processedUsers: {} }; |
-| `convex/admin/reportMissingProposalPersons.ts` | 53 | 1 | `Users` | `workspace` | Workspace signals: person/people, workspace, proposal | 			grouped[row.workspaceId].legacyUsers[row.legacyCreatedBy] = |
-| `convex/admin/reportMissingProposalPersons.ts` | 54 | 1 | `Users` | `workspace` | Workspace signals: person/people, workspace, proposal | 				(grouped[row.workspaceId].legacyUsers[row.legacyCreatedBy] ?? 0) + 1; |
-| `convex/admin/reportMissingProposalPersons.ts` | 57 | 1 | `Users` | `workspace` | Workspace signals: person/people, workspace, proposal | 			grouped[row.workspaceId].processedUsers[row.legacyProcessedBy] = |
-| `convex/admin/reportMissingProposalPersons.ts` | 58 | 1 | `Users` | `workspace` | Workspace signals: person/people, workspace, proposal | 				(grouped[row.workspaceId].processedUsers[row.legacyProcessedBy] ?? 0) + 1; |
 | `convex/admin/users.ts` | 17 | 1 | `Users` | `unknown` | No strong auth/workspace signals detected | export const listAllUsers = query({ |
 | `convex/admin/users.ts` | 24 | 2 | `users` | `system_auth` | Auth signals: query users table | 		const users = await ctx.db.query('users').collect(); |
 | `convex/admin/users.ts` | 26 | 2 | `users, user` | `unknown` | No strong auth/workspace signals detected | 		return users.map((user) => ({ |
@@ -394,18 +202,6 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `convex/admin/users.ts` | 139 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 			updatedAt: user.updatedAt, |
 | `convex/admin/users.ts` | 140 | 1 | `user` | `system_auth` | Auth signals: login | 			lastLoginAt: user.lastLoginAt, |
 | `convex/admin/users.ts` | 141 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 			deletedAt: user.deletedAt, |
-| `convex/admin/validateRoleTemplates.ts` | 12 | 1 | `User` | `unknown` | Mixed auth(1) + workspace(1) signals | import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation'; |
-| `convex/admin/validateRoleTemplates.ts` | 24 | 1 | `User` | `unknown` | Mixed auth(1) + workspace(1) signals | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 62 | 1 | `User` | `unknown` | Mixed auth(1) + workspace(1) signals | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 133 | 2 | `user, User` | `unknown` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 137 | 1 | `user` | `workspace` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/validateRoleTemplates.ts` | 138 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/validateRoleTemplates.ts` | 200 | 2 | `user, User` | `unknown` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 209 | 1 | `user` | `workspace` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/validateRoleTemplates.ts` | 210 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 				q.eq('workspaceId', circle.workspaceId).eq('userId', userId) |
-| `convex/admin/validateRoleTemplates.ts` | 276 | 2 | `user, User` | `unknown` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 280 | 1 | `user` | `workspace` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/validateRoleTemplates.ts` | 281 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
 | `convex/auth.config.ts` | 16 | 1 | `user` | `system_auth` | Auth signals: WorkOS | 			issuer: `https://api.workos.com/user_management/${clientId}`, |
 | `convex/core/assignments/assignments.test.ts` | 33 | 1 | `User` | `workspace` | Workspace signals: person/people, workspace | 	getPersonByUserAndWorkspace: vi.fn() |
 | `convex/core/assignments/assignments.test.ts` | 45 | 1 | `User` | `workspace` | Workspace signals: person/people, people, workspace | import { getPersonByUserAndWorkspace } from '../people/queries'; |
@@ -2077,90 +1873,138 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `scripts/audit-user-terminology.ts` | 33 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'identity-user-terminology-audit.system-auth.md' |
 | `scripts/audit-user-terminology.ts` | 35 | 1 | `user` | `system_auth` | Auth-domain file pattern match | const OUTPUT_UNKNOWN_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.unknown.md'); |
 | `scripts/audit-user-terminology.ts` | 36 | 1 | `user` | `system_auth` | Auth-domain file pattern match | const OUTPUT_SUMMARY_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.summary.md'); |
-| `scripts/audit-user-terminology.ts` | 69 | 2 | `USER, users` | `system_auth` | Auth-domain file pattern match | const USER_SUBSTRING_RE = /users?/gi; |
-| `scripts/audit-user-terminology.ts` | 71 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const USER_TOKEN_RE = /[A-Za-z_][A-Za-z0-9_]*/g; |
-| `scripts/audit-user-terminology.ts` | 72 | 2 | `USER, users` | `system_auth` | Auth-domain file pattern match | const STRING_LITERAL_WITH_USER_RE = /(['"`])[^'"`]*users?[^'"`]*\1/i; |
-| `scripts/audit-user-terminology.ts` | 74 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([ |
-| `scripts/audit-user-terminology.ts` | 76 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userId', |
-| `scripts/audit-user-terminology.ts` | 77 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userIds', |
-| `scripts/audit-user-terminology.ts` | 78 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'targetUserId', |
-| `scripts/audit-user-terminology.ts` | 79 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'memberUserId', |
-| `scripts/audit-user-terminology.ts` | 80 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'assigneeUserId', |
-| `scripts/audit-user-terminology.ts` | 81 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'inviteeUserId', |
-| `scripts/audit-user-terminology.ts` | 82 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'ownerUserId', |
-| `scripts/audit-user-terminology.ts` | 83 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'candidateUserId', |
-| `scripts/audit-user-terminology.ts` | 86 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'getUser', |
-| `scripts/audit-user-terminology.ts` | 87 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'getUserById', |
-| `scripts/audit-user-terminology.ts` | 88 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUser', |
-| `scripts/audit-user-terminology.ts` | 89 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUserById', |
-| `scripts/audit-user-terminology.ts` | 90 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUserByEmail', |
-| `scripts/audit-user-terminology.ts` | 91 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'validateUser' |
-| `scripts/audit-user-terminology.ts` | 94 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const WORKSPACE_USER_PATTERN_EXCEPTIONS: RegExp[] = [ |
-| `scripts/audit-user-terminology.ts` | 95 | 3 | `User` | `system_auth` | Auth-domain file pattern match | 	/^get.*User$/, // getActiveUser, getUserById |
-| `scripts/audit-user-terminology.ts` | 96 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^find.*User$/, // findUserByEmail |
-| `scripts/audit-user-terminology.ts` | 97 | 2 | `User, UserS` | `system_auth` | Auth-domain file pattern match | 	/^validate.*User$/, // validateUserSession |
-| `scripts/audit-user-terminology.ts` | 98 | 5 | `User, Users` | `system_auth` | Auth-domain file pattern match | 	/^(User\|Users)(Doc\|Id\|Type)s?$/, // UserDoc, UserId, UsersType |
-| `scripts/audit-user-terminology.ts` | 99 | 3 | `users` | `system_auth` | Auth-domain file pattern match | 	/^(Doc\|Id)<'?users'?>$/ // Doc<'users'> / Id<'users'> (best effort) |
-| `scripts/audit-user-terminology.ts` | 103 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 	/^convex\/core\/users\//, |
-| `scripts/audit-user-terminology.ts` | 108 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	/\/audit-user-terminology(\.ts)?$/ |
-| `scripts/audit-user-terminology.ts` | 124 | 1 | `User` | `system_auth` | Auth-domain file pattern match | function hasOnlyExceptionUserTokens(lineText: string): boolean { |
-| `scripts/audit-user-terminology.ts` | 125 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	USER_TOKEN_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 126 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	const tokens = Array.from(lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? '').filter(Boolean); |
-| `scripts/audit-user-terminology.ts` | 127 | 2 | `user` | `system_auth` | Auth-domain file pattern match | 	const userTokens = tokens.filter((t) => t.toLowerCase().includes('user')); |
-| `scripts/audit-user-terminology.ts` | 128 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	if (userTokens.length === 0) return false; |
-| `scripts/audit-user-terminology.ts` | 130 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	for (const tok of userTokens) { |
-| `scripts/audit-user-terminology.ts` | 131 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
-| `scripts/audit-user-terminology.ts` | 132 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		if (WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(tok))) continue; |
-| `scripts/audit-user-terminology.ts` | 180 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 				path.basename(resolved).startsWith('identity-user-terminology-audit') |
-| `scripts/audit-user-terminology.ts` | 208 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/infrastructure/users/', why: 'users infra path' }, |
-| `scripts/audit-user-terminology.ts` | 209 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/admin/users/', why: 'admin users path' }, |
-| `scripts/audit-user-terminology.ts` | 218 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "v.id('users')", why: "Convex users id type" }, |
-| `scripts/audit-user-terminology.ts` | 219 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "id<'users'>", why: "Convex users id type" }, |
-| `scripts/audit-user-terminology.ts` | 220 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "db.query('users')", why: 'query users table' }, |
-| `scripts/audit-user-terminology.ts` | 221 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "db.insert('users'", why: 'insert users table' }, |
-| `scripts/audit-user-terminology.ts` | 222 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/core/users/', why: 'users domain path' }, |
-| `scripts/audit-user-terminology.ts` | 223 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: 'users table', why: 'users table mention' }, |
-| `scripts/audit-user-terminology.ts` | 246 | 2 | `User, user` | `system_auth` | Auth-domain file pattern match | 	const hasUserId = /\buserid\b/i.test(lineText); |
-| `scripts/audit-user-terminology.ts` | 247 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	const authCount = matchedAuth.length + (hasUserId ? 1 : 0); |
-| `scripts/audit-user-terminology.ts` | 267 | 2 | `User, user` | `system_auth` | Auth-domain file pattern match | 			reason: `Auth signals: ${matchedAuth.map((s) => s.why).slice(0, 4).join(', ')}${hasUserId ? ', userId' : ''}` |
-| `scripts/audit-user-terminology.ts` | 287 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	if (STRING_LITERAL_WITH_USER_RE.test(lineText)) return 'string'; |
-| `scripts/audit-user-terminology.ts` | 319 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		USER_SUBSTRING_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 320 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		const matches = Array.from(line.matchAll(USER_SUBSTRING_RE)); |
-| `scripts/audit-user-terminology.ts` | 438 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('title: Identity terminology audit summary (user/users)'); |
-| `scripts/audit-user-terminology.ts` | 445 | 4 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **Correct**: `user/users` when referring to global auth identity (`users` table, WorkOS, sessions, `userId`).' |
-| `scripts/audit-user-terminology.ts` | 448 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **Incorrect (to fix)**: `user/users` used in workspace/domain context where the entity is a `person`/`people` record (`personId`, circles/roles/workspace membership).' |
-| `scripts/audit-user-terminology.ts` | 492 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'- Then fix **UI labels** (workspace `kind=string`) where "Users" should be "People" (or "Members" when it truly means membership).' |
-| `scripts/audit-user-terminology.ts` | 495 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'- Apply mechanical renames (e.g. `availableUsers` → `availablePeople`) and re-run the script.' |
-| `scripts/audit-user-terminology.ts` | 498 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'- Use `identity-user-terminology-audit.unknown.md` only after the workspace list is shrinking (unknown becomes manageable).' |
-| `scripts/audit-user-terminology.ts` | 512 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push(`title: Identity terminology audit (user/users)`); |
-| `scripts/audit-user-terminology.ts` | 519 | 6 | `user, users, Users, User` | `system_auth` | Auth-domain file pattern match | 		'Audit of `user` / `users` occurrences in code and UI labels (strings), including inside identifiers like `availableUsers`, `useUsers`, `UserProfile`, `userId`, with a heuristic scope classification:' |
-| `scripts/audit-user-terminology.ts` | 522 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **system_auth**: global auth identity / sessions / WorkOS / `userId` / `users` table' |
-| `scripts/audit-user-terminology.ts` | 563 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	lines.push('## Workspace-scoped tokens containing "user" (candidate renames)'); |
-| `scripts/audit-user-terminology.ts` | 566 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'This list is derived from lines classified as `workspace` and extracts identifier-like tokens containing `user`/`users` (case-insensitive).' |
-| `scripts/audit-user-terminology.ts` | 569 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'It is intended to drive a systematic rename plan toward **0 workspace-scoped `user` terminology**. Tokens in the exception allowlist are omitted.' |
-| `scripts/audit-user-terminology.ts` | 582 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 583 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
-| `scripts/audit-user-terminology.ts` | 586 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 			if (!tok.toLowerCase().includes('user')) continue; |
-| `scripts/audit-user-terminology.ts` | 587 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 			if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
-| `scripts/audit-user-terminology.ts` | 606 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 		const recommendation = lower.includes('users') |
-| `scripts/audit-user-terminology.ts` | 608 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 			: lower.includes('user') |
-| `scripts/audit-user-terminology.ts` | 620 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'Goal: reduce **workspace-scoped** `user/users` terminology to **0** in code + UI labels by renaming identifiers and UI copy to `person/people` (or `member` only when the domain truly means membership rather than identity).' |
-| `scripts/audit-user-terminology.ts` | 626 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'- **Step 1: Define the “allowed user” carve-outs (prevents breaking identity model)**' |
-| `scripts/audit-user-terminology.ts` | 628 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Keep `userId` and the `users` table terminology for **System/Auth identity**.'); |
-| `scripts/audit-user-terminology.ts` | 630 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		'  - Keep `*UserId` forms when they truly refer to global identity targets (invites, auth flows).' |
-| `scripts/audit-user-terminology.ts` | 636 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename variables/props like `availableUsers` → `availablePeople` or `availablePersons` (prefer `people/person` when backed by `people` table).' |
-| `scripts/audit-user-terminology.ts` | 639 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename functions/hooks like `useUsers...` that actually query `people`/`personId` to `usePeople...` / `usePersons...`.' |
-| `scripts/audit-user-terminology.ts` | 642 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename UI copy text in workspace screens: "Users" → "People" (or "Members" only when it refers to membership).' |
-| `scripts/audit-user-terminology.ts` | 647 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		'  - Rename components/files like `AssignUserDialog` to `AssignPersonDialog` only after updating all imports + stories/tests.' |
-| `scripts/audit-user-terminology.ts` | 654 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Ensure all workspace mutations/queries accept `personId` (not `userId`).'); |
-| `scripts/audit-user-terminology.ts` | 655 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Reserve `user/users` naming for global identity and auth tables only.'); |
-| `scripts/audit-user-terminology.ts` | 674 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 			!(r.kind === 'code' && hasOnlyExceptionUserTokens(r.lineText)) |
-| `scripts/audit-user-terminology.ts` | 686 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (workspace-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 691 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (system/auth-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 696 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (unknown-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 702 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.production-code.md'), |
-| `scripts/audit-user-terminology.ts` | 707 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.tests.md'), |
-| `scripts/audit-user-terminology.ts` | 712 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.ui-strings.md'), |
+| `scripts/audit-user-terminology.ts` | 39 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'identity-user-terminology-audit.actionable.md' |
+| `scripts/audit-user-terminology.ts` | 73 | 2 | `USER, users` | `system_auth` | Auth-domain file pattern match | const USER_SUBSTRING_RE = /users?/gi; |
+| `scripts/audit-user-terminology.ts` | 75 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const USER_TOKEN_RE = /[A-Za-z_][A-Za-z0-9_]*/g; |
+| `scripts/audit-user-terminology.ts` | 76 | 2 | `USER, users` | `system_auth` | Auth-domain file pattern match | const STRING_LITERAL_WITH_USER_RE = /(['"`])[^'"`]*users?[^'"`]*\1/i; |
+| `scripts/audit-user-terminology.ts` | 78 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([ |
+| `scripts/audit-user-terminology.ts` | 80 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userId', |
+| `scripts/audit-user-terminology.ts` | 81 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userIds', |
+| `scripts/audit-user-terminology.ts` | 82 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'actorUserId', |
+| `scripts/audit-user-terminology.ts` | 83 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'actingUserId', |
+| `scripts/audit-user-terminology.ts` | 84 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'targetUserId', |
+| `scripts/audit-user-terminology.ts` | 85 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'memberUserId', |
+| `scripts/audit-user-terminology.ts` | 86 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'assigneeUserId', |
+| `scripts/audit-user-terminology.ts` | 87 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'inviteeUserId', |
+| `scripts/audit-user-terminology.ts` | 88 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'invitedUserId', |
+| `scripts/audit-user-terminology.ts` | 89 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'ownerUserId', |
+| `scripts/audit-user-terminology.ts` | 90 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'candidateUserId', |
+| `scripts/audit-user-terminology.ts` | 93 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userRoleId', |
+| `scripts/audit-user-terminology.ts` | 94 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userRoleIds', |
+| `scripts/audit-user-terminology.ts` | 97 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'getUser', |
+| `scripts/audit-user-terminology.ts` | 98 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'getUserById', |
+| `scripts/audit-user-terminology.ts` | 99 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUser', |
+| `scripts/audit-user-terminology.ts` | 100 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUserById', |
+| `scripts/audit-user-terminology.ts` | 101 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'findUserByEmail', |
+| `scripts/audit-user-terminology.ts` | 102 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	'validateUser', |
+| `scripts/audit-user-terminology.ts` | 105 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userEmail', |
+| `scripts/audit-user-terminology.ts` | 106 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userName', |
+| `scripts/audit-user-terminology.ts` | 107 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userEmails', |
+| `scripts/audit-user-terminology.ts` | 108 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	'userNames' |
+| `scripts/audit-user-terminology.ts` | 111 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | const WORKSPACE_USER_PATTERN_EXCEPTIONS: RegExp[] = [ |
+| `scripts/audit-user-terminology.ts` | 112 | 3 | `User` | `system_auth` | Auth-domain file pattern match | 	/^get.*User$/, // getActiveUser, getUserById |
+| `scripts/audit-user-terminology.ts` | 113 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^find.*User$/, // findUserByEmail |
+| `scripts/audit-user-terminology.ts` | 114 | 2 | `User, UserS` | `system_auth` | Auth-domain file pattern match | 	/^validate.*User$/, // validateUserSession |
+| `scripts/audit-user-terminology.ts` | 115 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^create.*User$/, // createUser |
+| `scripts/audit-user-terminology.ts` | 116 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^update.*User$/, // updateUser |
+| `scripts/audit-user-terminology.ts` | 117 | 5 | `User, Users` | `system_auth` | Auth-domain file pattern match | 	/^(User\|Users)(Doc\|Id\|Type)s?$/, // UserDoc, UserId, UsersType |
+| `scripts/audit-user-terminology.ts` | 118 | 3 | `users` | `system_auth` | Auth-domain file pattern match | 	/^(Doc\|Id)<'?users'?>$/, // Doc<'users'> / Id<'users'> (best effort) |
+| `scripts/audit-user-terminology.ts` | 121 | 3 | `User` | `system_auth` | Auth-domain file pattern match | 	/^(get\|find\|list)Person.*By.*User/i, // getPersonByUserAndWorkspace, findPersonByUserAndWorkspace |
+| `scripts/audit-user-terminology.ts` | 122 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^(get\|find\|list).*ForUser$/i, // listWorkspacesForUser |
+| `scripts/audit-user-terminology.ts` | 123 | 2 | `User` | `system_auth` | Auth-domain file pattern match | 	/^(get\|find).*ByUserAndWorkspace$/i, // findPersonByUserAndWorkspace |
+| `scripts/audit-user-terminology.ts` | 124 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	/^linkPersonToUser$/i, |
+| `scripts/audit-user-terminology.ts` | 127 | 3 | `User` | `system_auth` | Auth-domain file pattern match | 	/^find(User)?(Name\|Email)Field$/i, // findUserNameField, findUserEmailField |
+| `scripts/audit-user-terminology.ts` | 130 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	/^invited(User)?Id$/i, |
+| `scripts/audit-user-terminology.ts` | 133 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	/^(get\|list\|assign\|revoke\|update).*UserRole/i, |
+| `scripts/audit-user-terminology.ts` | 134 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	/^(list\|create\|update)UserRoleAssignment/i, |
+| `scripts/audit-user-terminology.ts` | 137 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	/^USER_ID_FIELD$/i, |
+| `scripts/audit-user-terminology.ts` | 138 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	/^USER_.*_FIELD$/i |
+| `scripts/audit-user-terminology.ts` | 142 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 	/^convex\/core\/users\//, |
+| `scripts/audit-user-terminology.ts` | 147 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	/\/audit-user-terminology(\.ts)?$/ |
+| `scripts/audit-user-terminology.ts` | 185 | 1 | `User` | `system_auth` | Auth-domain file pattern match | function replaceUserWithPreferredTerm(text: string, preferred: 'Person' \| 'Member'): string { |
+| `scripts/audit-user-terminology.ts` | 190 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		.replaceAll(/\bUsers\b/g, preferred === 'Person' ? 'People' : 'Members') |
+| `scripts/audit-user-terminology.ts` | 191 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 		.replaceAll(/\busers\b/g, plural) |
+| `scripts/audit-user-terminology.ts` | 192 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		.replaceAll(/\bUser\b/g, preferred) |
+| `scripts/audit-user-terminology.ts` | 193 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		.replaceAll(/\buser\b/g, singular); |
+| `scripts/audit-user-terminology.ts` | 196 | 1 | `User` | `system_auth` | Auth-domain file pattern match | function replaceUserInStringLiterals(lineText: string, preferred: 'Person' \| 'Member'): string { |
+| `scripts/audit-user-terminology.ts` | 199 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 	return lineText.replaceAll(/(['"`])([^'"`]*\busers?\b[^'"`]*)\1/gi, (_m, quote, body) => { |
+| `scripts/audit-user-terminology.ts` | 200 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		return `${quote}${replaceUserWithPreferredTerm(String(body), preferred)}${quote}`; |
+| `scripts/audit-user-terminology.ts` | 207 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		STRING_LITERAL_WITH_USER_RE.test(lineText) && |
+| `scripts/audit-user-terminology.ts` | 208 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		/\b(Add\|Assign\|Invite)\s+User(s)?\b/i.test(lineText) |
+| `scripts/audit-user-terminology.ts` | 224 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		if (!base.includes('User')) continue; |
+| `scripts/audit-user-terminology.ts` | 226 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		const suggestedName = base.replaceAll('User', preferred); |
+| `scripts/audit-user-terminology.ts` | 251 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		'This report is intentionally narrow: it focuses on high-signal workspace UI terminology drift (\"User\" → \"Person\"), plus a short list of code identifier rename candidates.' |
+| `scripts/audit-user-terminology.ts` | 257 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	lines.push('## P1: Org-chart component file names containing "User"'); |
+| `scripts/audit-user-terminology.ts` | 278 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	lines.push('## P2: Workspace UI copy containing "User" (high-signal phrases only)'); |
+| `scripts/audit-user-terminology.ts` | 288 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 			const suggested = replaceUserInStringLiterals(current, preferred); |
+| `scripts/audit-user-terminology.ts` | 308 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 309 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
+| `scripts/audit-user-terminology.ts` | 310 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		const userTokens = tokens |
+| `scripts/audit-user-terminology.ts` | 314 | 2 | `User, Users` | `system_auth` | Auth-domain file pattern match | 			.filter((t) => /User\|Users/.test(t)) |
+| `scripts/audit-user-terminology.ts` | 315 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 			.filter((t) => !WORKSPACE_USER_TOKEN_EXCEPTIONS.has(t)) |
+| `scripts/audit-user-terminology.ts` | 316 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 			.filter((t) => !WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(t))); |
+| `scripts/audit-user-terminology.ts` | 318 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		for (const tok of Array.from(new Set(userTokens))) { |
+| `scripts/audit-user-terminology.ts` | 322 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 			const stateFlagMatch = /^isUser([A-Z][A-Za-z0-9_]*)$/.exec(tok); |
+| `scripts/audit-user-terminology.ts` | 325 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 				: tok.replaceAll(/User/g, preferred); |
+| `scripts/audit-user-terminology.ts` | 345 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	lines.push('## P3: Org-chart code identifiers containing "User" (rename candidates)'); |
+| `scripts/audit-user-terminology.ts` | 366 | 1 | `User` | `system_auth` | Auth-domain file pattern match | function hasOnlyExceptionUserTokens(lineText: string): boolean { |
+| `scripts/audit-user-terminology.ts` | 367 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 368 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	const tokens = Array.from(lineText.matchAll(USER_TOKEN_RE)) |
+| `scripts/audit-user-terminology.ts` | 371 | 2 | `user` | `system_auth` | Auth-domain file pattern match | 	const userTokens = tokens.filter((t) => t.toLowerCase().includes('user')); |
+| `scripts/audit-user-terminology.ts` | 372 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	if (userTokens.length === 0) return false; |
+| `scripts/audit-user-terminology.ts` | 374 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	for (const tok of userTokens) { |
+| `scripts/audit-user-terminology.ts` | 375 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
+| `scripts/audit-user-terminology.ts` | 376 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		if (WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(tok))) continue; |
+| `scripts/audit-user-terminology.ts` | 424 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 				path.basename(resolved).startsWith('identity-user-terminology-audit') |
+| `scripts/audit-user-terminology.ts` | 452 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/infrastructure/users/', why: 'users infra path' }, |
+| `scripts/audit-user-terminology.ts` | 453 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/admin/users/', why: 'admin users path' }, |
+| `scripts/audit-user-terminology.ts` | 462 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "v.id('users')", why: 'Convex users id type' }, |
+| `scripts/audit-user-terminology.ts` | 463 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "id<'users'>", why: 'Convex users id type' }, |
+| `scripts/audit-user-terminology.ts` | 464 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "db.query('users')", why: 'query users table' }, |
+| `scripts/audit-user-terminology.ts` | 465 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: "db.insert('users'", why: 'insert users table' }, |
+| `scripts/audit-user-terminology.ts` | 466 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: '/core/users/', why: 'users domain path' }, |
+| `scripts/audit-user-terminology.ts` | 467 | 2 | `users` | `system_auth` | Auth-domain file pattern match | 		{ key: 'users table', why: 'users table mention' }, |
+| `scripts/audit-user-terminology.ts` | 490 | 2 | `User, user` | `system_auth` | Auth-domain file pattern match | 	const hasUserId = /\buserid\b/i.test(lineText); |
+| `scripts/audit-user-terminology.ts` | 491 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 	const authCount = matchedAuth.length + (hasUserId ? 1 : 0); |
+| `scripts/audit-user-terminology.ts` | 518 | 2 | `User, user` | `system_auth` | Auth-domain file pattern match | 				.join(', ')}${hasUserId ? ', userId' : ''}` |
+| `scripts/audit-user-terminology.ts` | 541 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 	if (STRING_LITERAL_WITH_USER_RE.test(lineText)) return 'string'; |
+| `scripts/audit-user-terminology.ts` | 573 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		USER_SUBSTRING_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 574 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		const matches = Array.from(line.matchAll(USER_SUBSTRING_RE)); |
+| `scripts/audit-user-terminology.ts` | 694 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('title: Identity terminology audit summary (user/users)'); |
+| `scripts/audit-user-terminology.ts` | 701 | 4 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **Correct**: `user/users` when referring to global auth identity (`users` table, WorkOS, sessions, `userId`).' |
+| `scripts/audit-user-terminology.ts` | 704 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **Incorrect (to fix)**: `user/users` used in workspace/domain context where the entity is a `person`/`people` record (`personId`, circles/roles/workspace membership).' |
+| `scripts/audit-user-terminology.ts` | 750 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'- Then fix **UI labels** (workspace `kind=string`) where "Users" should be "People" (or "Members" when it truly means membership).' |
+| `scripts/audit-user-terminology.ts` | 753 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'- Apply mechanical renames (e.g. `availableUsers` → `availablePeople`) and re-run the script.' |
+| `scripts/audit-user-terminology.ts` | 756 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'- Use `identity-user-terminology-audit.unknown.md` only after the workspace list is shrinking (unknown becomes manageable).' |
+| `scripts/audit-user-terminology.ts` | 770 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push(`title: Identity terminology audit (user/users)`); |
+| `scripts/audit-user-terminology.ts` | 777 | 6 | `user, users, Users, User` | `system_auth` | Auth-domain file pattern match | 		'Audit of `user` / `users` occurrences in code and UI labels (strings), including inside identifiers like `availableUsers`, `useUsers`, `UserProfile`, `userId`, with a heuristic scope classification:' |
+| `scripts/audit-user-terminology.ts` | 780 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'- **system_auth**: global auth identity / sessions / WorkOS / `userId` / `users` table' |
+| `scripts/audit-user-terminology.ts` | 821 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	lines.push('## Workspace-scoped tokens containing "user" (candidate renames)'); |
+| `scripts/audit-user-terminology.ts` | 824 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'This list is derived from lines classified as `workspace` and extracts identifier-like tokens containing `user`/`users` (case-insensitive).' |
+| `scripts/audit-user-terminology.ts` | 827 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'It is intended to drive a systematic rename plan toward **0 workspace-scoped `user` terminology**. Tokens in the exception allowlist are omitted.' |
+| `scripts/audit-user-terminology.ts` | 840 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 841 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
+| `scripts/audit-user-terminology.ts` | 844 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 			if (!tok.toLowerCase().includes('user')) continue; |
+| `scripts/audit-user-terminology.ts` | 845 | 1 | `USER` | `system_auth` | Auth-domain file pattern match | 			if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
+| `scripts/audit-user-terminology.ts` | 864 | 1 | `users` | `system_auth` | Auth-domain file pattern match | 		const recommendation = lower.includes('users') |
+| `scripts/audit-user-terminology.ts` | 866 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 			: lower.includes('user') |
+| `scripts/audit-user-terminology.ts` | 878 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		'Goal: reduce **workspace-scoped** `user/users` terminology to **0** in code + UI labels by renaming identifiers and UI copy to `person/people` (or `member` only when the domain truly means membership rather than identity).' |
+| `scripts/audit-user-terminology.ts` | 884 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		'- **Step 1: Define the “allowed user” carve-outs (prevents breaking identity model)**' |
+| `scripts/audit-user-terminology.ts` | 886 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Keep `userId` and the `users` table terminology for **System/Auth identity**.'); |
+| `scripts/audit-user-terminology.ts` | 888 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		'  - Keep `*UserId` forms when they truly refer to global identity targets (invites, auth flows).' |
+| `scripts/audit-user-terminology.ts` | 894 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename variables/props like `availableUsers` → `availablePeople` or `availablePersons` (prefer `people/person` when backed by `people` table).' |
+| `scripts/audit-user-terminology.ts` | 897 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename functions/hooks like `useUsers...` that actually query `people`/`personId` to `usePeople...` / `usePersons...`.' |
+| `scripts/audit-user-terminology.ts` | 900 | 1 | `Users` | `system_auth` | Auth-domain file pattern match | 		'  - Rename UI copy text in workspace screens: "Users" → "People" (or "Members" only when it refers to membership).' |
+| `scripts/audit-user-terminology.ts` | 905 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 		'  - Rename components/files like `AssignUserDialog` to `AssignPersonDialog` only after updating all imports + stories/tests.' |
+| `scripts/audit-user-terminology.ts` | 912 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Ensure all workspace mutations/queries accept `personId` (not `userId`).'); |
+| `scripts/audit-user-terminology.ts` | 913 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 	lines.push('  - Reserve `user/users` naming for global identity and auth tables only.'); |
+| `scripts/audit-user-terminology.ts` | 932 | 1 | `User` | `system_auth` | Auth-domain file pattern match | 			!(r.kind === 'code' && hasOnlyExceptionUserTokens(r.lineText)) |
+| `scripts/audit-user-terminology.ts` | 947 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (workspace-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 952 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (system/auth-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 957 | 2 | `user, users` | `system_auth` | Auth-domain file pattern match | 		title: 'Identity terminology audit (unknown-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 965 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 			'identity-user-terminology-audit.workspace.production-code.md' |
+| `scripts/audit-user-terminology.ts` | 971 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.tests.md'), |
+| `scripts/audit-user-terminology.ts` | 976 | 1 | `user` | `system_auth` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.ui-strings.md'), |
 | `scripts/check-auth-guard.js` | 11 | 2 | `User` | `system_auth` | Auth signals: session | const LEGACY_HELPERS = new Set(['getAuthUserId', 'getUserIdFromSession']); |
 | `scripts/check-auth-guard.js` | 49 | 1 | `User` | `unknown` | No strong auth/workspace signals detected | function hasUserIdProperty(objectExpression) { |
 | `scripts/check-auth-guard.js` | 52 | 1 | `user` | `system_auth` | Auth signals: , userId | 			return findPropertyName(prop.name) === 'userId'; |
@@ -2631,7 +2475,6 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 98 | 1 | `user` | `workspace` | Workspace signals: workspace, member | 					emailError = 'This user has already been invited'; |
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 100 | 1 | `user` | `workspace` | Workspace signals: workspace, member | 					emailError = 'This user is already a member'; |
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 140 | 1 | `user` | `workspace` | Workspace signals: workspace, member | 						Send an invite to a specific user by email. They'll receive a link to join this |
-| `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 187 | 1 | `User` | `workspace` | Workspace signals: workspace, member | 								{isLoading ? 'Inviting...' : 'Invite User'} |
 | `src/lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte` | 17 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		userId: string; |
 | `src/lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte` | 36 | 1 | `user` | `workspace` | Workspace signals: workspace | 		accountEmail = 'user@example.com', |
 | `src/lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte` | 37 | 1 | `user` | `workspace` | Workspace signals: workspace | 		accountName = 'user@example.com', |
@@ -2704,19 +2547,19 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 16 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 	userId?: () => string \| undefined; |
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 35 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 	const getUserId = options.userId \|\| (() => undefined); |
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 43 | 1 | `User` | `workspace` | Workspace signals: workspace | 		lastUserId: undefined as string \| undefined, |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 61 | 2 | `User` | `workspace` | Workspace signals: workspace | 		const currentUserId = getUserId(); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 62 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageKey = getStorageKey(currentUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 63 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageDetailsKey = getStorageDetailsKey(currentUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 121 | 2 | `user, User` | `unknown` | Mixed auth(1) + workspace(1) signals | 		const userId = getUserId(); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 125 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		if (userId !== undefined) { |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 127 | 2 | `User` | `workspace` | Workspace signals: workspace | 			const prevUserId = untrack(() => state.lastUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 132 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				state.lastUserId = userId; |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 136 | 3 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			if (prevUserId !== undefined && prevUserId !== userId) { |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 142 | 1 | `User` | `workspace` | Workspace signals: workspace | 				const oldStorageKey = getStorageKey(prevUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 143 | 1 | `User` | `workspace` | Workspace signals: workspace | 				const oldStorageDetailsKey = getStorageDetailsKey(prevUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 245 | 2 | `User` | `workspace` | Workspace signals: workspace | 		const currentUserId = getUserId(); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 246 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageKey = getStorageKey(currentUserId); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 247 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageDetailsKey = getStorageDetailsKey(currentUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 55 | 2 | `User` | `workspace` | Workspace signals: workspace | 		const currentUserId = getUserId(); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 56 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageKey = getStorageKey(currentUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 57 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageDetailsKey = getStorageDetailsKey(currentUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 125 | 2 | `user, User` | `unknown` | Mixed auth(1) + workspace(1) signals | 		const userId = getUserId(); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 129 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		if (userId !== undefined) { |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 131 | 2 | `User` | `workspace` | Workspace signals: workspace | 			const prevUserId = untrack(() => state.lastUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 136 | 2 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 				state.lastUserId = userId; |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 140 | 3 | `User, user` | `unknown` | Mixed auth(1) + workspace(1) signals | 			if (prevUserId !== undefined && prevUserId !== userId) { |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 146 | 1 | `User` | `workspace` | Workspace signals: workspace | 				const oldStorageKey = getStorageKey(prevUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 147 | 1 | `User` | `workspace` | Workspace signals: workspace | 				const oldStorageDetailsKey = getStorageDetailsKey(prevUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 265 | 2 | `User` | `workspace` | Workspace signals: workspace | 		const currentUserId = getUserId(); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 266 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageKey = getStorageKey(currentUserId); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 267 | 1 | `User` | `workspace` | Workspace signals: workspace | 		const storageDetailsKey = getStorageDetailsKey(currentUserId); |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 58 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(1) signals | 		it('should return key with userId prefix when userId provided', () => { |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 59 | 1 | `user` | `workspace` | Workspace signals: workspace | 			const result = getStorageKey('user123'); |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 60 | 1 | `user` | `workspace` | Workspace signals: workspace | 			expect(result).toBe('activeOrganizationId_user123'); |
@@ -3347,79 +3190,21 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 382 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle, member | 		await createTestOrganizationMember(t, org2, user2, 'member'); |
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 386 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		cleanupQueue.push({ userId: user1, orgId: org1 }); |
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 387 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(2) signals | 		cleanupQueue.push({ userId: user2, orgId: org2 }); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 90 | 2 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 	const dialogTitle = $derived(type === 'role' ? 'Assign User to Role' : 'Add User to Circle'); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 93 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 			? `Select a user to assign to the role "${entityName}".` |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 94 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 			: `Select a user to add to the circle "${entityName}".` |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 102 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 				? 'Assign User' |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 103 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 				: 'Add User' |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 108 | 1 | `user` | `workspace` | Workspace signals: org-chart path | 			toast.error('Please select a user'); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 131 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 				toast.success(`User assigned to role "${entityName}"`); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 138 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 				toast.success(`User added to circle "${entityName}"`); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 145 | 1 | `user` | `workspace` | Workspace signals: org-chart path | 			const message = error instanceof Error ? error.message : 'Failed to assign user'; |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 12 | 2 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 38 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	let showAssignUserDialog = $state(false); |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 104 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 							showAssignUserDialog = true; |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 108 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 						<span>Add User to Circle</span> |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 138 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	<AssignUserDialog |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 139 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		bind:open={showAssignUserDialog} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 16 | 2 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 108 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		assignUserDialogOpen = $state(false), |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 109 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 		assignUserDialogType = $state<'role' \| 'circle'>('role'), |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 110 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 		assignUserDialogEntityId = $state<Id<'circleRoles'> \| Id<'circles'> \| null>(null), |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 111 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		assignUserDialogEntityName = $state(''); |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 113 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		openAssignUserDialog = ( |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 118 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			assignUserDialogType = type; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 119 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			assignUserDialogEntityId = entityId; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 120 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			assignUserDialogEntityName = entityName; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 121 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			assignUserDialogOpen = true; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 123 | 1 | `UserS` | `workspace` | Workspace signals: org-chart path, circle | 		handleAssignUserSuccess = () => { |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 184 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle, role | 			layerType === 'circle' ? 'circle' : layerType === 'role' ? 'user' : null; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 251 | 2 | `User` | `workspace` | Workspace signals: org-chart path, circle | 								onOpenAssignUserDialog={openAssignUserDialog} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 280 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	{#if assignUserDialogEntityId && circle} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 281 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		<AssignUserDialog |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 282 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			bind:open={assignUserDialogOpen} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 283 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			type={assignUserDialogType} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 284 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			entityId={assignUserDialogEntityId} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 285 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 			entityName={assignUserDialogEntityName} |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 287 | 1 | `UserS` | `workspace` | Workspace signals: org-chart path, circle | 			onSuccess={handleAssignUserSuccess} |
+| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 218 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle, role | 			layerType === 'circle' ? 'circle' : layerType === 'role' ? 'user' : null; |
 | `src/lib/modules/org-chart/components/CircleNode.stories.svelte` | 164 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 	play={async ({ canvasElement, userEvent }) => { |
 | `src/lib/modules/org-chart/components/CircleNode.stories.svelte` | 169 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 		await userEvent.click(circleGroup); |
 | `src/lib/modules/org-chart/components/CircleNode.stories.svelte` | 201 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 	play={async ({ canvasElement, userEvent }) => { |
 | `src/lib/modules/org-chart/components/CircleNode.stories.svelte` | 206 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 		await userEvent.hover(circleGroup); |
 | `src/lib/modules/org-chart/components/CircleNode.stories.svelte` | 207 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle | 		await userEvent.unhover(circleGroup); |
-| `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte` | 69 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 	async function handleAssignUser(roleId: string) { |
-| `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte` | 79 | 1 | `User` | `workspace` | Workspace signals: personId, person/people, org-chart path, circle | 	async function handleRemoveUser(roleId: string, personId: string) { |
 | `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte` | 86 | 1 | `user` | `workspace` | Workspace signals: org-chart path, circle, role | 		if (confirm(`Archive role "${roleName}"? All user assignments will be removed.`)) { |
-| `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte` | 255 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 											onclick={() => handleAssignUser(role.roleId)} |
-| `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte` | 273 | 1 | `User` | `workspace` | Workspace signals: personId, person/people, org-chart path, circle | 													onclick={() => handleRemoveUser(role.roleId, filler.personId)} |
-| `src/lib/modules/org-chart/components/CircleTabContent.svelte` | 22 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle, role | 		onOpenAssignUserDialog: (type: 'role' \| 'circle', entityId: any, entityName: string) => void; |
-| `src/lib/modules/org-chart/components/CircleTabContent.svelte` | 34 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		onOpenAssignUserDialog |
-| `src/lib/modules/org-chart/components/CircleTabContent.svelte` | 47 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		{onOpenAssignUserDialog} |
-| `src/lib/modules/org-chart/components/CircleTypeSelector.svelte` | 63 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 	let isUserUpdating = $state(false); |
-| `src/lib/modules/org-chart/components/CircleTypeSelector.svelte` | 68 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		if (isUserUpdating) { |
-| `src/lib/modules/org-chart/components/CircleTypeSelector.svelte` | 106 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		isUserUpdating = true; |
-| `src/lib/modules/org-chart/components/CircleTypeSelector.svelte` | 144 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 					isUserUpdating = false; |
-| `src/lib/modules/org-chart/components/CircleTypeSelector.svelte` | 151 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 				isUserUpdating = false; |
-| `src/lib/modules/org-chart/components/DecisionModelSelector.svelte` | 83 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 	let isUserUpdating = $state(false); |
-| `src/lib/modules/org-chart/components/DecisionModelSelector.svelte` | 88 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 		if (isUserUpdating) { |
-| `src/lib/modules/org-chart/components/DecisionModelSelector.svelte` | 149 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 		isUserUpdating = true; |
-| `src/lib/modules/org-chart/components/DecisionModelSelector.svelte` | 164 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 					isUserUpdating = false; |
-| `src/lib/modules/org-chart/components/DecisionModelSelector.svelte` | 171 | 1 | `User` | `workspace` | Workspace signals: org-chart path | 				isUserUpdating = false; |
 | `src/lib/modules/org-chart/components/import/PreviewTree.svelte` | 49 | 1 | `user` | `workspace` | Workspace signals: org-chart path | 		const userChildren: DisplayNode[] = node.children.map((c) => ({ ...c, isAutoCreated: false })); |
 | `src/lib/modules/org-chart/components/import/PreviewTree.svelte` | 52 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 		return [...coreRoles, ...userChildren]; |
 | `src/lib/modules/org-chart/components/RoleCard.stories.svelte` | 152 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 	name="CurrentUserHighlighted" |
 | `src/lib/modules/org-chart/components/RoleCard.stories.svelte` | 183 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 				The current user's card (Randy Hereman) is highlighted with the brand teal background. |
 | `src/lib/modules/org-chart/components/RoleCard.svelte` | 13 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(6) signals | 		personId: Id<'people'>; // Workspace-scoped identifier (architecture requirement - NEVER use userId) |
-| `src/lib/modules/org-chart/components/RoleCard.svelte` | 17 | 2 | `User, user` | `workspace` | Workspace signals: org-chart path, role | 		scope?: string; // User-level scope (displayed on user card) |
-| `src/lib/modules/org-chart/components/RoleCard.svelte` | 227 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 							<Icon type="user-plus" size="sm" /> |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 6 | 2 | `User` | `workspace` | Workspace signals: org-chart path, role | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 17 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 	let showAssignUserDialog = $state(false); |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 56 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 							showAssignUserDialog = true; |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 60 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 						<span>Assign User to Role</span> |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 67 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 	<AssignUserDialog |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 68 | 1 | `User` | `workspace` | Workspace signals: org-chart path, role | 		bind:open={showAssignUserDialog} |
-| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 275 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 			return 'user'; |
-| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 438 | 1 | `users` | `workspace` | Workspace signals: org-chart path, role | 										icon="users" |
+| `src/lib/modules/org-chart/components/RoleCard.svelte` | 232 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 							<Icon type="user-plus" size="sm" /> |
+| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 305 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 			return 'user'; |
+| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 470 | 1 | `users` | `workspace` | Workspace signals: org-chart path, role | 										icon="users" |
 | `src/lib/modules/org-chart/components/RoleMemberItem.stories.svelte` | 26 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 		userId: 'user-1', |
 | `src/lib/modules/org-chart/components/RoleMemberItem.stories.svelte` | 34 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 			userId={args.userId} |
 | `src/lib/modules/org-chart/components/RoleMemberItem.stories.svelte` | 49 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 		userId: 'user-2', |
@@ -3434,14 +3219,11 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `src/lib/modules/org-chart/components/RoleMemberItem.stories.svelte` | 159 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 		userId: 'user-7', |
 | `src/lib/modules/org-chart/components/RoleMemberItem.stories.svelte` | 166 | 2 | `user` | `unknown` | Mixed auth(1) + workspace(3) signals | 			userId={args.userId} |
 | `src/lib/modules/org-chart/components/RoleMemberItem.svelte` | 8 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(7) signals | 		personId: Id<'people'>; // Workspace-scoped identifier (architecture requirement - NEVER use userId) |
-| `src/lib/modules/org-chart/components/RoleMemberItem.svelte` | 12 | 2 | `User, user` | `workspace` | Workspace signals: org-chart path, role, member | 		scope?: string; // User-level scope (displayed below user name) |
 | `src/lib/modules/org-chart/components/RoleNode.stories.svelte` | 162 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 	play={async ({ canvasElement, userEvent }) => { |
 | `src/lib/modules/org-chart/components/RoleNode.stories.svelte` | 167 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 		await userEvent.click(roleGroup); |
 | `src/lib/modules/org-chart/components/RoleNode.stories.svelte` | 197 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 	play={async ({ canvasElement, userEvent }) => { |
 | `src/lib/modules/org-chart/components/RoleNode.stories.svelte` | 202 | 1 | `user` | `workspace` | Workspace signals: org-chart path, role | 		await userEvent.hover(roleGroup); |
 | `src/lib/modules/org-chart/components/tabs/CircleOverviewTab.svelte` | 35 | 1 | `user` | `unknown` | Mixed auth(1) + workspace(6) signals | 			personId: Id<'people'>; // Workspace-scoped identifier (architecture requirement - NEVER use userId) |
-| `src/lib/modules/org-chart/components/tabs/CircleOverviewTab.svelte` | 45 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		onOpenAssignUserDialog?: ( |
-| `src/lib/modules/org-chart/components/tabs/CircleOverviewTab.svelte` | 60 | 1 | `User` | `workspace` | Workspace signals: org-chart path, circle | 		onOpenAssignUserDialog |
 | `src/lib/modules/projects/api.ts` | 24 | 1 | `user` | `workspace` | Workspace signals: role, assignee | 	assigneeType: 'user' \| 'role'; |
 | `src/lib/modules/projects/api.ts` | 25 | 2 | `User, users` | `unknown` | Mixed auth(1) + workspace(1) signals | 	assigneeUserId?: Id<'users'>; |
 | `src/lib/modules/projects/api.ts` | 31 | 1 | `users` | `system_auth` | Auth signals: Convex users id type | 	createdBy: Id<'users'>; |
@@ -3487,16 +3269,13 @@ Audit of `user` / `users` occurrences in code and UI labels (strings), including
 | `src/routes/(authenticated)/+layout.server.ts` | 350 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 		user: locals.auth.user, |
 | `src/routes/(authenticated)/+layout.svelte` | 52 | 3 | `user` | `system_auth` | Auth signals: , userId | 		userId: () => data.user?.userId, |
 | `src/routes/(authenticated)/+layout.svelte` | 87 | 1 | `User` | `unknown` | No strong auth/workspace signals detected | 			? useQuery(api.infrastructure.rbac.queries.getUserRBACDetails, () => { |
-| `src/routes/(authenticated)/+layout.svelte` | 162 | 3 | `user` | `system_auth` | Auth signals: , userId | 				userId: data.user?.userId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 164 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 				email: data.user?.email ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 166 | 1 | `user` | `system_auth` | Auth signals: WorkOS | 				workosId: data.user?.workosId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 291 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com'); |
-| `src/routes/(authenticated)/+layout.svelte` | 293 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 		data.user?.firstName && data.user?.lastName |
-| `src/routes/(authenticated)/+layout.svelte` | 294 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 			? `${data.user.firstName} ${data.user.lastName}` |
-| `src/routes/(authenticated)/+layout.svelte` | 473 | 3 | `user` | `system_auth` | Auth signals: , userId | 					userId: data.user?.userId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 475 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 					email: data.user?.email ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 477 | 1 | `user` | `system_auth` | Auth signals: WorkOS | 					workosId: data.user?.workosId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 826 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 				user={data.user} |
+| `src/routes/(authenticated)/+layout.svelte` | 170 | 3 | `user` | `system_auth` | Auth signals: , userId | 				userId: data.user?.userId ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 172 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 				email: data.user?.email ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 174 | 1 | `user` | `system_auth` | Auth signals: WorkOS | 				workosId: data.user?.workosId ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 299 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com'); |
+| `src/routes/(authenticated)/+layout.svelte` | 301 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 		data.user?.firstName && data.user?.lastName |
+| `src/routes/(authenticated)/+layout.svelte` | 302 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 			? `${data.user.firstName} ${data.user.lastName}` |
+| `src/routes/(authenticated)/+layout.svelte` | 784 | 2 | `user` | `unknown` | No strong auth/workspace signals detected | 				user={data.user} |
 | `src/routes/(authenticated)/account/+page.server.ts` | 14 | 1 | `user` | `unknown` | No strong auth/workspace signals detected | 			user: null, |
 | `src/routes/(authenticated)/account/+page.server.ts` | 27 | 1 | `users` | `unknown` | No strong auth/workspace signals detected | 		linkedAccounts = (await client.query(api.core.users.index.listLinkedAccounts, { |
 | `src/routes/(authenticated)/account/+page.svelte` | 6 | 3 | `User, users` | `system_auth` | Auth signals: users infra path | 	import UserProfile from '$lib/infrastructure/users/components/UserProfile.svelte'; |
@@ -4415,81 +4194,54 @@ It is intended to drive a systematic rename plan toward **0 workspace-scoped `us
 
 | Token | Count | Recommendation | Example location |
 |---|---:|---|---|
-| `userRoleId` | 54 | Rename to Person form | `src/routes/(authenticated)/w/[slug]/settings/roles/+page.svelte:87` |
-| `user` | 47 | Rename to Person form | `src/routes/+layout.server.ts:13` |
+| `user` | 41 | Rename to Person form | `src/routes/+layout.server.ts:13` |
 | `getPersonByUserAndWorkspace` | 28 | Rename to Person form | `convex/features/tasks/tasks.test.ts:12` |
-| `findPersonByUserAndWorkspace` | 24 | Rename to Person form | `convex/infrastructure/rbac/setupAdmin.ts:20` |
 | `user2Id` | 22 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts:230` |
-| `listWorkspacesForUser` | 21 | Rename to Person form | `convex/infrastructure/featureFlags/targeting.ts:4` |
+| `findPersonByUserAndWorkspace` | 21 | Rename to Person form | `convex/infrastructure/rbac/setupAdmin.ts:20` |
 | `getPersonIdForUser` | 20 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts:18` |
 | `username` | 20 | Rename to Person form | `src/lib/components/molecules/WorkspaceSelector.stories.svelte:18` |
+| `listWorkspacesForUser` | 19 | Rename to Person form | `convex/infrastructure/featureFlags/targeting.ts:4` |
 | `assignRoleToUser` | 15 | Rename to Person form | `src/routes/(authenticated)/admin/rbac/+page.svelte:291` |
-| `User` | 13 | Rename to Person form | `src/routes/settings/+page.svelte:759` |
 | `userRole` | 13 | Rename to Person form | `src/routes/(authenticated)/admin/rbac/users/[id]/+page.svelte:58` |
 | `currentUserId` | 12 | Rename to Person form | `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts:61` |
 | `getUserId` | 10 | Rename to Person form | `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts:61` |
-| `getUserWorkspaceIdsUsesPeople` | 10 | Rename to Person form | `convex/admin/archived/syos814VerifyPhase3.ts:37` |
-| `isUserUpdating` | 10 | Rename to Person form | `src/lib/modules/org-chart/components/DecisionModelSelector.svelte:83` |
-| `userToPersonMap` | 10 | Rename to Person form | `convex/admin/fixInvariantViolations.ts:237` |
-| `userEmail` | 9 | Rename to Person form | `src/routes/(authenticated)/w/[slug]/settings/roles/+page.svelte:137` |
 | `userEvent` | 9 | Rename to Person form | `src/lib/modules/org-chart/components/RoleNode.stories.svelte:162` |
 | `user2` | 8 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts:382` |
-| `userName` | 8 | Rename to Person form | `src/routes/(authenticated)/w/[slug]/settings/roles/+page.svelte:137` |
 | `users` | 8 | Rename to People/Persons form | `src/routes/(authenticated)/w/[slug]/settings/roles/+page.svelte:125` |
 | `getUserRoles` | 7 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circleRoles.integration.test.ts:300` |
-| `invitedUserId` | 7 | Rename to Person form | `src/lib/infrastructure/workspaces/__tests__/workspaces.integration.test.ts:118` |
-| `actingUserId` | 6 | Rename to Person form | `convex/infrastructure/rbac/roles.ts:87` |
+| `User` | 7 | Rename to Person form | `src/routes/settings/+page.svelte:759` |
 | `findUserEmailField` | 6 | Rename to Person form | `convex/features/invites/helpers.ts:32` |
 | `findUserNameField` | 6 | Rename to Person form | `convex/features/invites/helpers.ts:32` |
 | `handleUserCircleRoleCreated` | 6 | Rename to Person form | `convex/core/roles/roles.test.ts:198` |
 | `handleUserCircleRoleRemoved` | 6 | Rename to Person form | `convex/core/roles/roles.test.ts:199` |
-| `onOpenAssignUserDialog` | 6 | Rename to Person form | `src/lib/modules/org-chart/components/tabs/CircleOverviewTab.svelte:45` |
-| `showAssignUserDialog` | 6 | Rename to Person form | `src/lib/modules/org-chart/components/RoleContextMenu.svelte:17` |
 | `USER_ID_FIELD` | 6 | Rename to Person form | `convex/features/readwise/queries/progress.ts:3` |
 | `userCircleRoles` | 6 | Rename to Person form | `convex/core/roles/roles.test.ts:51` |
 | `userIsAdmin` | 6 | Rename to Person form | `convex/core/roles/templates/mutations.ts:34` |
 | `withUserAndEmailBefore` | 6 | Rename to Person form | `convex/migrations/clearPeopleEmailDenormalization.ts:16` |
-| `activeUserRoles` | 5 | Rename to Person form | `convex/infrastructure/rbac/permissions/access.ts:88` |
 | `adminUserId` | 5 | Rename to Person form | `src/lib/infrastructure/workspaces/__tests__/workspaces.integration.test.ts:86` |
 | `ensureUserNotAlreadyMember` | 5 | Rename to Person form | `convex/features/invites/rules.ts:73` |
 | `invitedUsers` | 5 | Rename to People/Persons form | `src/lib/modules/meetings/composables/useMeetings.svelte.ts:39` |
 | `linkedUser` | 5 | Rename to Person form | `convex/features/readwise/queries/progress.ts:16` |
-| `systemUserId` | 5 | Rename to Person form | `convex/admin/migrateVersionHistory.ts:101` |
 | `user1` | 5 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts:381` |
-| `assignUserDialogEntityId` | 4 | Rename to Person form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:110` |
 | `getUserPermissions` | 4 | Rename to Person form | `convex/infrastructure/rbac/setupAdmin.ts:101` |
 | `inviterUserId` | 4 | Rename to Person form | `src/lib/infrastructure/workspaces/__tests__/workspaces.integration.test.ts:114` |
-| `legacyUsers` | 4 | Rename to People/Persons form | `convex/admin/reportMissingProposalPersons.ts:44` |
 | `listActiveUserRoles` | 4 | Rename to Person form | `convex/infrastructure/rbac/permissions.ts:4` |
-| `processedUsers` | 4 | Rename to People/Persons form | `convex/admin/reportMissingProposalPersons.ts:44` |
 | `remainingWithUserAndEmail` | 4 | Rename to Person form | `convex/migrations/clearPeopleEmailDenormalization.ts:19` |
 | `userId2` | 4 | Rename to Person form | `src/lib/modules/meetings/__tests__/meetings.integration.test.ts:360` |
 | `userRoles` | 4 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circleRoles.integration.test.ts:300` |
-| `AssignUserDialog` | 3 | Rename to Person form | `src/lib/modules/org-chart/components/RoleContextMenu.svelte:67` |
-| `assignUserDialogEntityName` | 3 | Rename to Person form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:111` |
-| `assignUserDialogOpen` | 3 | Rename to Person form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:108` |
-| `assignUserDialogType` | 3 | Rename to Person form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:109` |
 | `existingByUser` | 3 | Rename to Person form | `convex/core/people/mutations.ts:114` |
-| `getUserWorkspaceIds` | 3 | Rename to Person form | `convex/infrastructure/access/permissions.ts:12` |
 | `handleUserCircleRoleRestored` | 3 | Rename to Person form | `convex/core/roles/roleRbac.ts:89` |
-| `legacyUserId` | 3 | Rename to Person form | `convex/admin/migrateTagsToPersonId.ts:80` |
 | `linkPersonToUser` | 3 | Rename to Person form | `convex/core/people/people.test.ts:4` |
 | `listUserRoles` | 3 | Rename to Person form | `convex/core/roles/queries.ts:249` |
-| `personByUser` | 3 | Rename to Person form | `convex/admin/migrateTagsToPersonId.ts:39` |
-| `prevUserId` | 3 | Rename to Person form | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts:127` |
+| `prevUserId` | 3 | Rename to Person form | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts:131` |
 | `selectedUserId` | 3 | Rename to Person form | `src/routes/(authenticated)/w/[slug]/settings/roles/+page.svelte:45` |
+| `activeUserRoles` | 2 | Rename to Person form | `convex/infrastructure/rbac/permissions/access.ts:88` |
 | `actorUser` | 2 | Rename to Person form | `convex/features/tags/access.ts:38` |
 | `createUserRoleAssignment` | 2 | Rename to Person form | `convex/infrastructure/rbac/permissions.ts:5` |
 | `existingUserInvite` | 2 | Rename to Person form | `convex/features/invites/rules.ts:65` |
-| `fixCircleItemCategoryUserIdsHandler` | 2 | Rename to Person form | `convex/admin/fixInvariantViolations.ts:618` |
-| `fixCircleItemUserIdsHandler` | 2 | Rename to Person form | `convex/admin/fixInvariantViolations.ts:622` |
-| `handleAssignUser` | 2 | Rename to Person form | `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte:69` |
-| `handleAssignUserSuccess` | 2 | Rename to People/Persons form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:123` |
-| `handleRemoveUser` | 2 | Rename to Person form | `src/lib/modules/org-chart/components/circles/CircleRolesPanel.svelte:79` |
 | `hasUser` | 2 | Rename to Person form | `convex/migrations/clearPeopleEmailDenormalization.ts:37` |
 | `lastUserId` | 2 | Rename to Person form | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts:43` |
 | `memberUserIds` | 2 | Rename to Person form | `convex/features/invites/helpers.ts:379` |
-| `openAssignUserDialog` | 2 | Rename to Person form | `src/lib/modules/org-chart/components/CircleDetailPanel.svelte:113` |
 | `revokeUserRole` | 2 | Rename to Person form | `src/routes/(authenticated)/admin/rbac/users/[id]/+page.svelte:77` |
 | `teamLeadUserId` | 2 | Rename to Person form | `tests/convex/integration/rbac.integration.test.ts:194` |
 | `updateUserRoleRevocation` | 2 | Rename to Person form | `convex/infrastructure/rbac/permissions.ts:6` |
@@ -4502,7 +4254,6 @@ It is intended to drive a systematic rename plan toward **0 workspace-scoped `us
 | `userOnboardingComplete` | 2 | Rename to Person form | `src/routes/(authenticated)/+layout.server.ts:161` |
 | `userRolesAfter` | 2 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circleRoles.integration.test.ts:456` |
 | `userRolesBefore` | 2 | Rename to Person form | `src/lib/modules/org-chart/__tests__/circleRoles.integration.test.ts:443` |
-| `WorkspaceUserKey` | 2 | Rename to Person form | `convex/admin/migrateProposalsToPerson.ts:12` |
 | `_findPersonByUserAndWorkspace` | 1 | Rename to Person form | `convex/infrastructure/rbac/setupAdmin.ts:20` |
 | `_getPersonByUserAndWorkspace` | 1 | Rename to Person form | `convex/features/customFields/queries.ts:13` |
 | `_userRoleId` | 1 | Rename to Person form | `convex/infrastructure/rbac/permissions/lifecycle.ts:113` |
@@ -4511,15 +4262,13 @@ It is intended to drive a systematic rename plan toward **0 workspace-scoped `us
 | `collectBrandingForUser` | 1 | Rename to Person form | `convex/features/workspaceBranding/index.ts:68` |
 | `currentUserEmail` | 1 | Rename to Person form | `src/routes/(authenticated)/w/[slug]/settings/branding/+page.server.ts:37` |
 | `ensureNoExistingUserInvite` | 1 | Rename to Person form | `convex/features/invites/helpers.ts:77` |
-| `findWorkspaceForUser` | 1 | Rename to Person form | `convex/admin/migrateTagsToPersonId.ts:83` |
-| `fixCircleItemCategoryUserIds` | 1 | Rename to Person form | `convex/admin/fixInvariantViolations.ts:227` |
-| `fixCircleItemUserIds` | 1 | Rename to Person form | `convex/admin/fixInvariantViolations.ts:400` |
 | `getTargetUserId` | 1 | Rename to Person form | `convex/features/tasks/queries.ts:72` |
 | `getUserCircleIds` | 1 | Rename to Person form | `convex/infrastructure/access/permissions.ts:44` |
 | `getUserFlashcards` | 1 | Rename to Person form | `convex/features/flashcards/repository.ts:50` |
 | `getUserSettings` | 1 | Rename to People/Persons form | `convex/core/workspaces/settings.ts:19` |
 | `getUserSettingsForSync` | 1 | Rename to People/Persons form | `convex/core/workspaces/settings.ts:352` |
 | `getUserSettingsQuery` | 1 | Rename to People/Persons form | `convex/features/readwise/filters.ts:57` |
+| `getUserWorkspaceIds` | 1 | Rename to Person form | `convex/infrastructure/access/permissions.ts:12` |
 | `INVITE_USER_MISMATCH` | 1 | Rename to Person form | `convex/core/people/mutations.ts:87` |
 | `inviteeUser` | 1 | Rename to Person form | `src/lib/infrastructure/workspaces/__tests__/workspaces.integration.test.ts:137` |
 | `listUserFlashcards` | 1 | Rename to Person form | `convex/features/flashcards/index.ts:120` |

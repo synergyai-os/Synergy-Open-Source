@@ -190,14 +190,14 @@ User now has 'users.change-roles' permission in this workspace
 
 ### Current State
 
-| Component                          | Status                                                      |
-| ---------------------------------- | ----------------------------------------------------------- |
-| Auto-assignment on circleRole fill | ✅ Working                                                  |
-| Cleanup on circleRole removal      | ✅ Working                                                  |
-| Uses `workspaceRoles` table        | ⚠️ Migration needed (currently uses deprecated `userRoles`) |
-| `sourceCircleRoleId` tracking      | ⚠️ Migration needed                                         |
+| Component                          | Status                                    |
+| ---------------------------------- | ----------------------------------------- |
+| Auto-assignment on circleRole fill | ✅ Working                                |
+| Cleanup on circleRole removal      | ✅ Working                                |
+| Uses `workspaceRoles` table        | ✅ Complete (migrated in SYOS-862)        |
+| `sourceCircleRoleId` tracking      | ✅ Complete (with `by_source_role` index) |
 
-See SYOS-861 for migration status.
+Migration completed in SYOS-862. The bridge now uses the two-scope RBAC model (`systemRoles` + `workspaceRoles`).
 
 ### Simplification
 

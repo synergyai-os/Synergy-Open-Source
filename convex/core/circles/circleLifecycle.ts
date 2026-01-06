@@ -10,7 +10,7 @@ import {
 import { createCoreRolesForCircle, transformLeadRoleOnCircleTypeChange } from './autoCreateRoles';
 import { slugifyName } from './slug';
 import { validateCircleName, validateCircleNameUpdate } from './validation';
-import { CIRCLE_TYPES, DECISION_MODELS, type CircleType, type DecisionModel } from './constants';
+import { LEAD_AUTHORITY, type LeadAuthority } from './constants';
 import { createSystemCustomFieldDefinitions } from '../../admin/seed/customFieldDefinitions';
 import { seedWorkspaceResources } from '../../admin/seed/workspaceSeed';
 
@@ -22,8 +22,7 @@ export async function createCircleInternal(
 		name: string;
 		purpose?: string;
 		parentCircleId?: Id<'circles'>;
-		circleType?: CircleType;
-		decisionModel?: DecisionModel;
+		leadAuthority?: LeadAuthority;
 	}
 ) {
 	const actorPersonId = await requireWorkspacePersonFromSession(
@@ -77,17 +76,16 @@ export async function createCircleInternal(
 	const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugBase);
 	const now = Date.now();
 
-	const circleType = args.circleType ?? CIRCLE_TYPES.HIERARCHY;
-	const decisionModel = args.decisionModel ?? DECISION_MODELS.MANAGER_DECIDES;
+	const leadAuthority = args.leadAuthority ?? LEAD_AUTHORITY.DECIDES;
 
-	// Create lean circle (no descriptive fields per SYOS-961)
+	// Create circle with governance fields in schema (DR-011)
 	const circleId = await ctx.db.insert('circles', {
 		workspaceId: args.workspaceId,
 		name: trimmedName,
 		slug,
+		purpose: args.purpose ?? '', // GOVERNANCE FIELD - required
 		parentCircleId: args.parentCircleId,
-		circleType,
-		decisionModel,
+		leadAuthority,
 		status: 'active',
 		createdAt: now,
 		updatedAt: now,
@@ -99,32 +97,7 @@ export async function createCircleInternal(
 		await recordCreateHistory(ctx, 'circle', newCircle);
 	}
 
-	// Create customFieldValue for purpose if provided (SYOS-961)
-	if (args.purpose) {
-		const purposeDefinition = await ctx.db
-			.query('customFieldDefinitions')
-			.withIndex('by_workspace_system_key', (q) =>
-				q.eq('workspaceId', args.workspaceId).eq('systemKey', 'purpose')
-			)
-			.first();
-
-		if (purposeDefinition) {
-			await ctx.db.insert('customFieldValues', {
-				workspaceId: args.workspaceId,
-				definitionId: purposeDefinition._id,
-				entityType: 'circle',
-				entityId: circleId,
-				value: args.purpose,
-				searchText: args.purpose,
-				createdByPersonId: actorPersonId,
-				createdAt: now,
-				updatedAt: now,
-				updatedByPersonId: actorPersonId
-			});
-		}
-	}
-
-	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, actorPersonId, circleType);
+	await createCoreRolesForCircle(ctx, circleId, args.workspaceId, actorPersonId, leadAuthority);
 
 	// If this is a root circle, seed meeting templates (workspace-scoped)
 	if (args.parentCircleId === undefined) {
@@ -178,50 +151,9 @@ export async function updateCircleInternal(
 		updates.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
 	}
 
-	// Update purpose as customFieldValue (SYOS-961)
+	// Update purpose directly on schema (DR-011: governance fields in core schema)
 	if (args.purpose !== undefined) {
-		const purposeDefinition = await ctx.db
-			.query('customFieldDefinitions')
-			.withIndex('by_workspace_system_key', (q) =>
-				q.eq('workspaceId', circle.workspaceId).eq('systemKey', 'purpose')
-			)
-			.first();
-
-		if (purposeDefinition) {
-			// Check if customFieldValue already exists
-			const existingValue = await ctx.db
-				.query('customFieldValues')
-				.withIndex('by_definition_entity', (q) =>
-					q.eq('definitionId', purposeDefinition._id).eq('entityId', args.circleId)
-				)
-				.first();
-
-			const now = Date.now();
-
-			if (existingValue) {
-				// Update existing value
-				await ctx.db.patch(existingValue._id, {
-					value: args.purpose,
-					searchText: args.purpose,
-					updatedAt: now,
-					updatedByPersonId: actorPersonId
-				});
-			} else {
-				// Create new value
-				await ctx.db.insert('customFieldValues', {
-					workspaceId: circle.workspaceId,
-					definitionId: purposeDefinition._id,
-					entityType: 'circle',
-					entityId: args.circleId,
-					value: args.purpose,
-					searchText: args.purpose,
-					createdByPersonId: actorPersonId,
-					createdAt: now,
-					updatedAt: now,
-					updatedByPersonId: actorPersonId
-				});
-			}
-		}
+		updates.purpose = args.purpose;
 	}
 
 	if (args.parentCircleId !== undefined) {
@@ -261,8 +193,7 @@ export async function updateInlineCircle(
 		updates: {
 			name?: string;
 			purpose?: string;
-			circleType?: CircleType;
-			decisionModel?: DecisionModel;
+			leadAuthority?: LeadAuthority;
 		};
 	}
 ) {
@@ -312,87 +243,45 @@ export async function updateInlineCircle(
 		updateData.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
 	}
 
-	// Update purpose as customFieldValue (SYOS-961)
+	// Update purpose directly on schema (DR-011: governance fields in core schema)
 	if (args.updates.purpose !== undefined) {
-		const purposeDefinition = await ctx.db
-			.query('customFieldDefinitions')
-			.withIndex('by_workspace_system_key', (q) =>
-				q.eq('workspaceId', circle.workspaceId).eq('systemKey', 'purpose')
-			)
-			.first();
-
-		if (purposeDefinition) {
-			// Check if customFieldValue already exists
-			const existingValue = await ctx.db
-				.query('customFieldValues')
-				.withIndex('by_definition_entity', (q) =>
-					q.eq('definitionId', purposeDefinition._id).eq('entityId', args.circleId)
-				)
-				.first();
-
-			const now = Date.now();
-
-			if (existingValue) {
-				// Update existing value
-				await ctx.db.patch(existingValue._id, {
-					value: args.updates.purpose,
-					searchText: args.updates.purpose,
-					updatedAt: now,
-					updatedByPersonId: actorPersonId
-				});
-			} else {
-				// Create new value
-				await ctx.db.insert('customFieldValues', {
-					workspaceId: circle.workspaceId,
-					definitionId: purposeDefinition._id,
-					entityType: 'circle',
-					entityId: args.circleId,
-					value: args.updates.purpose,
-					searchText: args.updates.purpose,
-					createdByPersonId: actorPersonId,
-					createdAt: now,
-					updatedAt: now,
-					updatedByPersonId: actorPersonId
-				});
-			}
-		}
+		updateData.purpose = args.updates.purpose;
 	}
 
-	// Handle circle type change (GOV-01: transform lead role)
-	if (args.updates.circleType !== undefined && args.updates.circleType !== beforeDoc.circleType) {
-		const newCircleType = args.updates.circleType;
-		const isFirstTimeSettingCircleType = beforeDoc.circleType === undefined;
+	// Handle lead authority change (GOV-01: transform lead role)
+	if (
+		args.updates.leadAuthority !== undefined &&
+		args.updates.leadAuthority !== beforeDoc.leadAuthority
+	) {
+		const newLeadAuthority = args.updates.leadAuthority;
+		const isFirstTimeSettingLeadAuthority = beforeDoc.leadAuthority === undefined;
 
-		// If this is the first time setting circle type on a non-root circle,
+		// If this is the first time setting lead authority on a non-root circle,
 		// seed custom field definitions if not already seeded for the workspace.
 		// Root circles are seeded when created (in createCircleInternal).
-		if (isFirstTimeSettingCircleType && beforeDoc.parentCircleId !== undefined) {
+		if (isFirstTimeSettingLeadAuthority && beforeDoc.parentCircleId !== undefined) {
 			await createSystemCustomFieldDefinitions(ctx, beforeDoc.workspaceId, actorPersonId);
 		}
 
-		// CRITICAL FIX: If circleType was undefined, we're setting it for the first time.
+		// CRITICAL FIX: If leadAuthority was undefined, we're setting it for the first time.
 		// The function checks for leadRole existence FIRST, so it will create roles if missing.
-		// However, we must pass a valid CircleType for the oldCircleType parameter.
-		// Use CIRCLE_TYPES.HIERARCHY as default only for the type signature - the function's logic
+		// However, we must pass a valid LeadAuthority for the oldLeadAuthority parameter.
+		// Use LEAD_AUTHORITY.DECIDES as default only for the type signature - the function's logic
 		// (checking leadRole first) ensures roles are created even if types match.
-		const oldCircleType: CircleType = beforeDoc.circleType ?? CIRCLE_TYPES.HIERARCHY;
+		const oldLeadAuthority: LeadAuthority = beforeDoc.leadAuthority ?? LEAD_AUTHORITY.DECIDES;
 
-		// Transform lead role to match new circle type (or create if first time)
+		// Transform lead role to match new lead authority (or create if first time)
 		// Note: transformLeadRoleOnCircleTypeChange checks for leadRole existence FIRST,
-		// so even if oldCircleType === newCircleType, it will create roles if missing.
+		// so even if oldLeadAuthority === newLeadAuthority, it will create roles if missing.
 		await transformLeadRoleOnCircleTypeChange(
 			ctx,
 			args.circleId,
-			oldCircleType,
-			newCircleType,
+			oldLeadAuthority,
+			newLeadAuthority,
 			actorPersonId
 		);
 
-		updateData.circleType = args.updates.circleType;
-	}
-
-	if (args.updates.decisionModel !== undefined) {
-		updateData.decisionModel = args.updates.decisionModel;
+		updateData.leadAuthority = args.updates.leadAuthority;
 	}
 
 	await ctx.db.patch(args.circleId, updateData);

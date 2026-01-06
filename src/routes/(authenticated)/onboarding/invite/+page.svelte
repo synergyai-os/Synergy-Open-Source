@@ -6,6 +6,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { browser } from '$app/environment';
+	import { FormInput, Button } from '$lib/components/atoms';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -16,45 +17,38 @@
 	let isCompleting = $state(false);
 	let errorMessage = $state<string | null>(null);
 
-	async function handleSkip() {
-		console.log('handleSkip called', {
-			hasWorkspaces: !!workspaces,
-			activeWorkspace: workspaces?.activeWorkspace,
-			hasConvexClient: !!convexClient,
-			hasSessionId: !!data.sessionId,
-			sessionId: data.sessionId,
-			isCompleting
-		});
+	// Design team invites (5 slots)
+	let invites = $state([
+		{ name: '', email: '' },
+		{ name: '', email: '' },
+		{ name: '', email: '' },
+		{ name: '', email: '' },
+		{ name: '', email: '' }
+	]);
 
-		if (isCompleting) {
-			console.log('Already completing, ignoring click');
-			return;
-		}
+	async function handleContinue() {
+		if (isCompleting) return;
 
-		// Get workspace ID from data if activeWorkspace is not available
+		// Get workspace ID
 		let workspaceId: string | undefined;
 		if (workspaces?.activeWorkspace?.workspaceId) {
 			workspaceId = workspaces.activeWorkspace.workspaceId;
 		} else if (workspaces?.workspaces && workspaces.workspaces.length > 0) {
-			// Fallback: use first workspace
 			workspaceId = workspaces.workspaces[0].workspaceId;
 		}
 
 		if (!workspaceId) {
 			errorMessage = 'Workspace not available. Please refresh the page.';
-			console.error('handleSkip: No workspace ID available', { workspaces });
 			return;
 		}
 
 		if (!convexClient) {
 			errorMessage = 'Client not available. Please refresh the page.';
-			console.error('handleSkip: convexClient is null');
 			return;
 		}
 
 		if (!data.sessionId) {
 			errorMessage = 'Session not available. Please refresh the page.';
-			console.error('handleSkip: sessionId is missing', { data });
 			return;
 		}
 
@@ -62,34 +56,23 @@
 		errorMessage = null;
 
 		try {
-			console.log('Calling updateOnboardingStep mutation...', {
-				sessionId: data.sessionId,
-				workspaceId,
-				step: 'team_invited'
-			});
-
-			// Mark team_invited step as skipped (optional step)
-			// We mark it as completed even if skipped, since it's optional
+			// Mark team_invited step as completed (optional step)
 			await convexClient.mutation(api.features.onboarding.index.updateOnboardingStep, {
 				sessionId: data.sessionId,
-				workspaceId: workspaceId as any,
+				workspaceId: workspaceId as Id<'workspaces'>,
 				step: 'team_invited',
 				completed: true
 			});
 
-			console.log('Mutation successful, invalidating and redirecting...');
-			// Invalidate all data to refresh server load functions
+			// Invalidate and move to next step
 			await invalidateAll();
-			// Wait a moment for data to refresh
 			await new Promise((resolve) => setTimeout(resolve, 200));
-			// Move to completion screen
-			await goto(resolveRoute('/onboarding/complete'), { invalidateAll: true });
+			await goto(resolveRoute('/onboarding/terminology'), { invalidateAll: true });
 		} catch (error) {
-			console.error('Failed to skip invite step:', error);
-			errorMessage = error instanceof Error ? error.message : 'Failed to skip step';
-			// Still redirect even if update fails (optional step)
-			console.log('Redirecting anyway (optional step)...');
-			await goto(resolveRoute('/onboarding/complete'), { invalidateAll: true });
+			console.error('Failed to continue:', error);
+			errorMessage = error instanceof Error ? error.message : 'Failed to continue';
+			// Still redirect (optional step)
+			await goto(resolveRoute('/onboarding/terminology'), { invalidateAll: true });
 		} finally {
 			isCompleting = false;
 		}
@@ -97,30 +80,75 @@
 </script>
 
 <div class="border-base bg-surface rounded-card p-card-padding border">
-	<div class="space-y-6">
+	<div class="gap-content-sectionGap flex flex-col">
 		<!-- Header -->
 		<div>
-			<h1 class="text-primary text-2xl font-semibold">Invite Your Team</h1>
+			<h1 class="text-primary text-2xl font-semibold">Your Workspace is in Design Mode</h1>
 			<p class="text-secondary mt-2 text-sm">
-				Team invitations are coming soon! For now, you can skip this step and invite people later
-				from your workspace settings.
+				Before inviting everyone, bring in 2–5 key people to help design your workspace. Together,
+				you'll build the structure and customize it to fit your organization.
 			</p>
 		</div>
 
-		<!-- Coming Soon -->
-		<div class="bg-elevated rounded-md p-6 text-center">
-			<div class="text-6xl">📨</div>
-			<h3 class="text-primary mt-4 font-medium">Coming Soon</h3>
-			<p class="text-secondary mt-2 text-sm">
-				We're building a great team invitation experience. You'll be able to invite members and
-				manage permissions right here.
-			</p>
+		<!-- Two-Phase Cards -->
+		<div class="gap-content-subsectionGap flex flex-col">
+			<!-- Design Phase (Current) -->
+			<div class="bg-elevated rounded-md p-4">
+				<div class="gap-content-subsectionGap flex flex-col">
+					<div class="flex items-start gap-3">
+						<div class="text-2xl">👥</div>
+						<div class="flex-1">
+							<h3 class="text-primary font-medium">Design Phase (You are here)</h3>
+							<p class="text-secondary mt-1 text-sm">
+								Build your org structure, define roles, and customize terminology with a small core
+								team.
+							</p>
+						</div>
+					</div>
+
+					<!-- Coming Soon Notice -->
+					<div class="bg-surface border-brand rounded-md border-l-4 p-3">
+						<p class="text-secondary text-sm">
+							<span class="font-medium">Coming soon:</span> Invite your design team directly from this
+							page. For now, you can invite them later from workspace settings.
+						</p>
+					</div>
+
+					<!-- Invite Inputs (Disabled for now) -->
+					<div class="gap-form-section-gap flex flex-col opacity-50">
+						{#each invites as invite, i (i)}
+							<div class="grid grid-cols-2 gap-3">
+								<FormInput placeholder="Name" value={invite.name} disabled={true} size="sm" />
+								<FormInput
+									type="email"
+									placeholder="Email address"
+									value={invite.email}
+									disabled={true}
+									size="sm"
+								/>
+							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+
+			<!-- Launch Phase (Next) -->
+			<div class="border-base rounded-md border p-4">
+				<div class="flex items-start gap-3">
+					<div class="text-2xl">🚀</div>
+					<div class="flex-1">
+						<h3 class="text-primary font-medium">Launch Phase (Next step)</h3>
+						<p class="text-secondary mt-1 text-sm">
+							Once your workspace is ready, invite everyone with a single link from workspace
+							settings.
+						</p>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		{#if errorMessage}
-			<div
-				class="rounded-md bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400"
-			>
+			<div class="bg-status-errorBg text-status-error rounded-md p-3 text-sm">
 				{errorMessage}
 			</div>
 		{/if}
@@ -135,19 +163,9 @@
 			>
 				← Back
 			</button>
-			<button
-				type="button"
-				onclick={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
-					console.log('Button clicked!', { isCompleting, event: e });
-					handleSkip();
-				}}
-				disabled={isCompleting}
-				class="text-on-solid bg-accent-primary px-button-x py-button-y cursor-pointer rounded-md text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
-			>
-				{isCompleting ? 'Skipping...' : 'Skip for Now'}
-			</button>
+			<Button variant="primary" size="md" onclick={handleContinue} disabled={isCompleting}>
+				{isCompleting ? 'Continuing...' : 'Continue Setup'}
+			</Button>
 		</div>
 	</div>
 </div>

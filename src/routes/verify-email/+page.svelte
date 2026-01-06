@@ -2,7 +2,11 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { PinInput, Button } from '$lib/components/atoms';
+	import { PinInput, Button, Text, Heading } from '$lib/components/atoms';
+	import { verifyEmailBoxRecipe } from '$lib/design-system/recipes';
+	import { fade, fly, scale } from 'svelte/transition';
+	import { cubicOut, backOut } from 'svelte/easing';
+	import { prefersReducedMotion } from 'svelte/motion';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -96,38 +100,9 @@
 	onMount(() => {
 		mounted = true;
 
-		// Auto-paste from clipboard if it contains a 6-digit code
-		const tryAutoPaste = async () => {
-			try {
-				// Check if clipboard API is available
-				if (!navigator.clipboard || !navigator.clipboard.readText) {
-					console.log('📋 Clipboard API not available');
-					return;
-				}
-
-				// Request clipboard permission and read text
-				const clipboardText = await navigator.clipboard.readText();
-				console.log('📋 Clipboard content available');
-
-				// Check if clipboard contains exactly 6 digits
-				const sixDigitMatch = clipboardText.match(/\b\d{6}\b/);
-				if (sixDigitMatch) {
-					const sixDigitCode = sixDigitMatch[0];
-					console.log('✅ Found 6-digit code in clipboard, auto-pasting...');
-					code = sixDigitCode;
-					// The $effect will trigger handleVerification automatically
-				} else {
-					console.log('📋 No 6-digit code found in clipboard');
-				}
-			} catch (_err) {
-				// Silently fail - user might have denied clipboard permission
-				// or there might be no clipboard access (Firefox private mode, etc.)
-				console.log('📋 Could not read clipboard (permission denied or not available)');
-			}
-		};
-
-		// Try auto-paste after a short delay to ensure the page is fully loaded
-		setTimeout(tryAutoPaste, 500);
+		// NOTE: We intentionally do NOT auto-read the clipboard here.
+		// The PinInput already supports pasting a 6-digit code. Auto-reading can pull stale
+		// codes from previous attempts and cause confusing "Invalid verification code" errors.
 
 		const interval = setInterval(() => {
 			if (timeLeft > 0) {
@@ -245,8 +220,7 @@
 	<!-- Animated background gradient -->
 	{#if mounted}
 		<div
-			class="animate-gradient from-accent-primary/5 to-accent-primary/10 absolute inset-0 bg-gradient-to-br via-transparent"
-			style="animation: gradient 15s ease infinite; background-size: 200% 200%;"
+			class="from-accent-primary/5 to-accent-primary/10 absolute inset-0 bg-gradient-to-br via-transparent"
 		></div>
 	{/if}
 
@@ -254,19 +228,23 @@
 		class="py-system-content relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="border-base p-content-padding rounded-modal bg-elevated w-full max-w-md border shadow-lg transition-all duration-300 hover:shadow-xl"
-			style="animation: fadeInUp 0.5s ease-out"
+			class={[verifyEmailBoxRecipe({ variant: 'default' }), 'w-full']}
+			in:fly={{
+				y: prefersReducedMotion.current ? 0 : 16,
+				duration: 400,
+				delay: 100,
+				easing: cubicOut
+			}}
 		>
-			<!-- Email icon with animation -->
+			<!-- Email icon -->
 			<div
-				class="bg-accent-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
+				class="bg-accent-primary/10 mb-header size-icon-xl mx-auto flex items-center justify-center rounded-full"
 			>
 				<svg
-					class="text-accent-primary h-8 w-8"
+					class="text-accent-primary size-icon-md"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
-					style="animation: pulse 2s ease-in-out infinite"
 				>
 					<path
 						stroke-linecap="round"
@@ -277,115 +255,81 @@
 				</svg>
 			</div>
 
-			<header class="gap-form-section flex flex-col text-center">
-				<h1 class="text-primary text-3xl font-bold tracking-tight">Check your inbox</h1>
-				<p class="text-secondary text-base leading-relaxed">
+			<!-- Header: Uses semantic tokens mb-header (12px), gap-header (12px) -->
+			<header class="gap-header mb-header flex flex-col text-center">
+				<Heading level={1}>Check your inbox</Heading>
+				<Text variant="body" size="base" color="secondary">
 					We sent a 6-digit code to<br />
 					<span class="text-primary font-semibold">{email}</span>
-				</p>
+				</Text>
 			</header>
 
 			<!-- Already authenticated message with countdown -->
 			{#if isAuthenticated()}
 				<div
-					class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
-					style="animation: slideDown 0.3s ease-out"
+					class="gap-fieldGroup rounded-input border-success bg-status-successLight px-input py-input mb-alert flex flex-col border"
+					in:fly={{ y: prefersReducedMotion.current ? 0 : -8, duration: 200, easing: cubicOut }}
+					out:fade={{ duration: 150 }}
 				>
-					<div class="flex flex-col gap-3">
-						<div class="flex items-start gap-2">
-							<svg
-								class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<div class="flex-1">
-								<p class="text-sm font-medium text-green-700">
-									You're already signed in! Redirecting you in {redirectCountdown} seconds...
-								</p>
-							</div>
-						</div>
-						<Button
-							onclick={handleRedirectNow}
-							class="w-full bg-green-600 text-white hover:bg-green-700"
+					<div class="gap-fieldGroup flex items-start">
+						<svg
+							class="size-icon-md text-success flex-shrink-0"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
 						>
-							Continue Now
-						</Button>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<div class="flex-1">
+							<Text variant="body" size="sm" color="success" class="font-medium">
+								You're already signed in! Redirecting you in {redirectCountdown} seconds...
+							</Text>
+						</div>
 					</div>
+					<Button onclick={handleRedirectNow} variant="primary" class="w-full">Continue Now</Button>
 				</div>
 			{:else}
-				<!-- Success message with animation -->
+				<!-- Success message -->
 				{#if resendSuccess}
 					<div
-						class="mt-content-section rounded-input px-input-x py-input-y border border-green-500 bg-green-50 shadow-sm"
-						style="animation: slideDown 0.3s ease-out"
+						class="gap-fieldGroup rounded-input border-success bg-status-successLight px-input py-input mb-alert flex items-center border"
+						in:fly={{ y: prefersReducedMotion.current ? 0 : -8, duration: 200, easing: cubicOut }}
+						out:fade={{ duration: 150 }}
 					>
-						<div class="flex items-center gap-2">
-							<svg
-								class="h-5 w-5 text-green-600"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M5 13l4 4L19 7"
-								/>
-							</svg>
-							<p class="text-sm font-medium text-green-700">New code sent! Check your email.</p>
-						</div>
+						<svg
+							class="size-icon-md text-success flex-shrink-0"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 13l4 4L19 7"
+							/>
+						</svg>
+						<Text variant="body" size="sm" color="success" class="font-medium">
+							New code sent! Check your email.
+						</Text>
 					</div>
 				{/if}
 
 				<!-- Redirect to login message with countdown (for "already registered" error) -->
 				{#if shouldRedirectToLogin}
 					<div
-						class="mt-content-section bg-accent-primary/10 rounded-input border-accent-primary px-input-x py-input-y border shadow-sm"
-						style="animation: slideDown 0.3s ease-out"
+						class="gap-fieldGroup rounded-input border-accent-primary bg-accent-primary/10 px-input py-input mb-alert flex flex-col border"
+						in:fly={{ y: prefersReducedMotion.current ? 0 : -8, duration: 200, easing: cubicOut }}
+						out:fade={{ duration: 150 }}
 					>
-						<div class="flex flex-col gap-3">
-							<div class="flex items-start gap-2">
-								<svg
-									class="text-accent-primary mt-0.5 h-5 w-5 flex-shrink-0"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-									/>
-								</svg>
-								<div class="flex-1">
-									<p class="text-primary text-sm font-medium">
-										This email is already registered. Redirecting you to sign in in {redirectCountdown}
-										seconds...
-									</p>
-								</div>
-							</div>
-							<Button onclick={handleRedirectToLogin} class="w-full">Sign In Now</Button>
-						</div>
-					</div>
-				{:else if errorMessage}
-					<!-- Error message with animation -->
-					<div
-						class="mt-content-section bg-error rounded-input border-error px-input-x py-input-y border shadow-sm"
-						style="animation: shake 0.5s ease-out"
-					>
-						<div class="flex items-start gap-2">
+						<div class="gap-fieldGroup flex items-start">
 							<svg
-								class="text-error-secondary mt-0.5 h-5 w-5 flex-shrink-0"
+								class="size-icon-md text-accent-primary flex-shrink-0"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -394,15 +338,46 @@
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="2"
-									d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<p class="text-error-secondary text-sm font-medium">{errorMessage}</p>
+							<div class="flex-1">
+								<Text variant="body" size="sm" color="primary" class="font-medium">
+									This email is already registered. Redirecting you to sign in in {redirectCountdown}
+									seconds...
+								</Text>
+							</div>
 						</div>
+						<Button onclick={handleRedirectToLogin} variant="primary" class="w-full"
+							>Sign In Now</Button
+						>
+					</div>
+				{:else if errorMessage}
+					<!-- Error message -->
+					<div
+						class="gap-fieldGroup rounded-input border-error bg-status-errorLight px-input py-input mb-alert flex items-start border"
+						in:scale={{ start: 0.98, duration: 200, easing: backOut }}
+						out:fade={{ duration: 150 }}
+					>
+						<svg
+							class="size-icon-md text-error flex-shrink-0"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<Text variant="body" size="sm" color="error" class="font-medium">{errorMessage}</Text>
 					</div>
 				{/if}
 
-				<div class="mt-8">
+				<!-- Form: Uses semantic token gap-form (12px) -->
+				<div class="gap-form flex flex-col">
 					<PinInput
 						bind:value={code}
 						label="Enter verification code"
@@ -413,18 +388,20 @@
 
 					<!-- Paste hint -->
 					{#if !code && mounted}
-						<p class="text-tertiary mt-2 text-center text-sm">
-							💡 Tip: Copy the code from your email and it will auto-paste
-						</p>
+						<Text variant="body" size="sm" color="tertiary" class="mt-fieldGroup text-center">
+							💡 Tip: Copy the 6-digit code from your email, then paste it here
+						</Text>
 					{/if}
 				</div>
 
-				<!-- Timer display with visual feedback -->
-				<div class="mt-6 text-center">
+				<!-- Timer display -->
+				<div class="mb-alert text-center">
 					{#if timeLeft > 0}
-						<div class="bg-surface inline-flex items-center gap-2 rounded-full px-4 py-2">
+						<div
+							class="bg-surface gap-fieldGroup px-button py-button inline-flex items-center rounded-full"
+						>
 							<svg
-								class="text-tertiary h-4 w-4"
+								class="size-icon-sm text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -436,17 +413,24 @@
 									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<span class="text-sm font-medium {timeLeft < 60 ? 'text-error' : 'text-tertiary'}">
+							<Text
+								variant="body"
+								size="sm"
+								color={timeLeft < 60 ? 'error' : 'tertiary'}
+								class="font-medium"
+							>
 								{minutes}:{seconds.toString().padStart(2, '0')}
-							</span>
+							</Text>
 						</div>
 					{:else}
-						<p class="text-error text-sm font-medium">Code expired. Please request a new one.</p>
+						<Text variant="body" size="sm" color="error" class="font-medium">
+							Code expired. Please request a new one.
+						</Text>
 					{/if}
 				</div>
 
-				<!-- Resend button with better styling -->
-				<div class="mt-6">
+				<!-- Resend button -->
+				<div class="mb-alert">
 					<Button
 						variant="secondary"
 						onclick={resendCode}
@@ -455,7 +439,7 @@
 					>
 						{#if isResending}
 							<svg
-								class="mr-2 h-4 w-4 animate-spin"
+								class="size-icon-sm mr-2 animate-spin"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -477,86 +461,15 @@
 				</div>
 
 				<!-- Helper text -->
-				<div class="border-base mt-6 border-t pt-6 text-center">
-					<p class="text-secondary text-sm">
+				<div class="border-subtle mb-alert border-t pt-6 text-center">
+					<Text variant="body" size="sm" color="secondary">
 						Wrong email?
-						<a
-							href={resolveRoute('/register')}
-							class="hover:text-accent-hover text-accent-primary font-medium transition-colors"
-						>
+						<a href={resolveRoute('/register')} class="text-brand font-medium hover:underline">
 							Start over
 						</a>
-					</p>
+					</Text>
 				</div>
 			{/if}
 		</div>
 	</div>
 </div>
-
-<style>
-	@keyframes gradient {
-		0% {
-			background-position: 0% 50%;
-		}
-		50% {
-			background-position: 100% 50%;
-		}
-		100% {
-			background-position: 0% 50%;
-		}
-	}
-
-	@keyframes fadeInUp {
-		from {
-			opacity: 0;
-			transform: translateY(20px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes slideDown {
-		from {
-			opacity: 0;
-			transform: translateY(-10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes shake {
-		0%,
-		100% {
-			transform: translateX(0);
-		}
-		10%,
-		30%,
-		50%,
-		70%,
-		90% {
-			transform: translateX(-5px);
-		}
-		20%,
-		40%,
-		60%,
-		80% {
-			transform: translateX(5px);
-		}
-	}
-
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 1;
-			transform: scale(1);
-		}
-		50% {
-			opacity: 0.8;
-			transform: scale(1.05);
-		}
-	}
-</style>

@@ -34,7 +34,7 @@ export const radioGroupIndicatorRecipe = cva(
 				false: ''
 			},
 			disabled: {
-				true: 'cursor-not-allowed opacity-50',
+				true: 'cursor-not-allowed opacity-disabled',
 				false: ''
 			}
 		},

@@ -178,30 +178,18 @@ Future cleanup script will:
 - ✅ Delete users matching `randy+ci-*@synergyai.nl` older than 7 days
 - ✅ Preserve worker pool, static users, and personal users
 
-### 4. Convex Environment Setup
+### 4. E2E Test Mode Configuration
 
-The E2E tests mock email sending to avoid hitting Resend API rate limits. This requires setting an environment variable in your Convex deployment:
+E2E tests mock email sending to avoid hitting Resend API rate limits. Email skipping is controlled by the SvelteKit server environment, not Convex.
 
-```bash
-# Set E2E_TEST_MODE in Convex (one-time setup)
-npx convex env set E2E_TEST_MODE true
-```
+**How it works:**
 
-**What this does:**
-
-- Prevents Convex email actions from calling Resend API during tests
-- Mock emails are logged to console for debugging
+- `E2E_TEST_MODE=true` is set in the SvelteKit server environment (via `.env.test` or npm script)
+- SvelteKit server endpoints check this and pass `skipEmail: true` parameter to Convex actions
+- Convex trusts the `skipEmail` parameter from SvelteKit (single source of truth)
 - Verification codes are still generated and testable via `/test/get-verification-code`
 
-**Verification:**
-
-```bash
-# Check if E2E_TEST_MODE is set
-npx convex env get E2E_TEST_MODE
-# Should return: true
-```
-
-**Note**: This only affects the development deployment. Production deployments should NOT have `E2E_TEST_MODE` set.
+**Important**: Do NOT set `E2E_TEST_MODE` in Convex deployment environment (`npx convex env set`). This would affect all requests, not just E2E tests. The SvelteKit server is responsible for determining test mode and passing it explicitly to Convex.
 
 ## Running Tests
 

@@ -1,6 +1,6 @@
 ---
 title: Identity terminology audit (unknown-only): user/users
-generatedAt: 2025-12-21T17:28:23.991Z
+generatedAt: 2025-12-23T08:11:54.164Z
 ---
 
 ## Totals
@@ -9,68 +9,12 @@ generatedAt: 2025-12-21T17:28:23.991Z
 |---|---:|---:|---:|---:|---:|
 | system_auth | 0 | 0 | 0 | 0 | 0 |
 | workspace | 0 | 0 | 0 | 0 | 0 |
-| unknown | 1741 | 0 | 0 | 487 | 1254 |
+| unknown | 1641 | 0 | 0 | 460 | 1181 |
 
 ## Instances
 
 | File | Line | Kind | Match count | Matched text(s) | Scope | Confidence | Reason | Snippet |
 |---|---:|---|---:|---|---|---|---|---|
-| `convex/admin/analytics.ts` | 24 | `code` | 2 | `Users, users` | `unknown` | `low` | No strong auth/workspace signals detected | 		const activeUsers = users.filter((u) => !u.deletedAt); |
-| `convex/admin/analytics.ts` | 45 | `code` | 1 | `users` | `unknown` | `low` | No strong auth/workspace signals detected | 			users: { |
-| `convex/admin/analytics.ts` | 46 | `code` | 1 | `users` | `unknown` | `low` | No strong auth/workspace signals detected | 				total: users.length, |
-| `convex/admin/analytics.ts` | 47 | `code` | 1 | `Users` | `unknown` | `low` | No strong auth/workspace signals detected | 				active: activeUsers.length, |
-| `convex/admin/analytics.ts` | 48 | `code` | 2 | `users, Users` | `unknown` | `low` | No strong auth/workspace signals detected | 				deleted: users.length - activeUsers.length |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 837 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 				existingMemberships.map((m) => `${m.workspaceId}_${m.userId}`) |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 850 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(2) signals | 						userId: Id<'users'>; |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 866 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 					const membershipKey = `${workspaceId}_${oldMembershipDoc.userId}`; |
-| `convex/admin/archived/migrateCirclesToWorkspaces.ts` | 876 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 							userId: oldMembershipDoc.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 54 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 72 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 						userId: person.userId |
-| `convex/admin/archived/syos814TestUtils.ts` | 79 | `code` | 3 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 105 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 112 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const adminPerson = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 125 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 134 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userId: membership.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 176 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 184 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 						userId: person.userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 195 | `code` | 3 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId |
-| `convex/admin/archived/syos814TestUtils.ts` | 278 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 303 | `code` | 3 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userIdMatches: person?.userId === userId |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 70 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 90 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 99 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const adminMembership = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 116 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const peopleWorkspaceIds = await listWorkspacesForUser(ctx, userId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 120 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			const infraWorkspaceIds = await getUserWorkspaceIds(ctx, userId.toString()); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 82 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 99 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 114 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const membership = await requireWorkspaceMembership(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 131 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const adminPerson = await requireWorkspaceAdminOrOwner(ctx, args.workspaceId, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 147 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			const peopleWorkspaceIds = await listWorkspacesForUser(ctx, userId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 150 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			const infraWorkspaceIds = await getUserWorkspaceIds(ctx, userId.toString()); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 285 | `string` | 1 | `users` | `unknown` | `low` | No strong auth/workspace signals detected | 					'core/users/orgLinks.ts', |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 14 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(2) signals | 		userId: v.id('users') |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 21 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', args.userId) |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 30 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const user = await db.get(args.userId); |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 31 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const email = user?.email ?? `unknown-${args.userId}@example.invalid`; |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 37 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 			userId: args.userId, |
-| `convex/admin/fixInvariantViolations.ts` | 230 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		console.log('🔧 Fixing circleItemCategories userId references (XDOM-01)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 239 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 241 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 243 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 345 | `code` | 1 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | export const fixMeetingUserIds = internalMutation({ |
-| `convex/admin/fixInvariantViolations.ts` | 356 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 357 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 359 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 403 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		console.log('🔧 Fixing circleItems userId references (XDOM-05)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 411 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 412 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 414 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 742 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 743 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 745 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userToPersonMap.set(person.userId.toString(), person._id); |
-| `convex/admin/fixInvariantViolations.ts` | 796 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		if (person.userId) { |
-| `convex/admin/fixInvariantViolations.ts` | 797 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			const existing = userToPersonMap.get(person.userId.toString()); |
-| `convex/admin/fixInvariantViolations.ts` | 799 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				userToPersonMap.set(person.userId.toString(), person._id); |
 | `convex/admin/invariants/crossDomain.ts` | 59 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 					? 'Core tables use personId instead of userId' |
 | `convex/admin/invariants/identity.ts` | 18 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			.filter((person) => !person.userId) |
 | `convex/admin/invariants/identity.ts` | 23 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			name: 'Active people must have userId set', |
@@ -97,40 +41,6 @@ generatedAt: 2025-12-21T17:28:23.991Z
 | `convex/admin/invariants/identity.ts` | 278 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				(person) => !person.displayName \|\| person.email !== undefined \|\| person.userId !== undefined |
 | `convex/admin/invariants/identity.ts` | 284 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			name: 'Placeholder people have displayName, no email, no userId', |
 | `convex/admin/invariants/identity.ts` | 290 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					: `${violations.length} placeholder people with invalid fields (missing displayName or have email/userId)` |
-| `convex/admin/migrateAddCoreRoles.ts` | 12 | `code` | 1 | `User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation'; |
-| `convex/admin/migrateAddCoreRoles.ts` | 26 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/migrateAddCoreRoles.ts` | 31 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/migrateAddCoreRoles.ts` | 113 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 							updatedBy: userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 137 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 							updatedBy: userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 169 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 		userId: v.id('users') |
-| `convex/admin/migrateAddCoreRoles.ts` | 236 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 							updatedBy: args.userId |
-| `convex/admin/migrateAddCoreRoles.ts` | 260 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 							updatedBy: args.userId |
-| `convex/admin/migrateDefaultCategories.ts` | 37 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		return members[0].userId; |
-| `convex/admin/migrateProposalsToPerson.ts` | 21 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		const userId = (person as any).userId; |
-| `convex/admin/migrateProposalsToPerson.ts` | 22 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		if (!userId) continue; |
-| `convex/admin/migrateProposalsToPerson.ts` | 23 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 		personMap.set(makeKey(person.workspaceId, userId), person._id); |
-| `convex/admin/migrateProposalsToPerson.ts` | 151 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | function makeKey(workspaceId: string, userId: string): WorkspaceUserKey { |
-| `convex/admin/migrateProposalsToPerson.ts` | 152 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 	return `${workspaceId}:${userId}`; |
-| `convex/admin/migrateRootCircles.ts` | 20 | `string` | 1 | `users` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateRootCircles.ts` | 29 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		return owner.userId; |
-| `convex/admin/migrateRootCircles.ts` | 34 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		return members[0].userId; |
-| `convex/admin/migrateTagsToPersonId.ts` | 12 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(2) signals | type TagDoc = Doc<'tags'> & { userId?: Id<'users'> }; |
-| `convex/admin/migrateTagsToPersonId.ts` | 14 | `string` | 3 | `User, user, users` | `unknown` | `low` | Mixed auth(2) + workspace(3) signals | async function findWorkspaceForUser(ctx: MutationCtx, userId: Id<'users'>) { |
-| `convex/admin/migrateTagsToPersonId.ts` | 17 | `string` | 3 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		.withIndex('by_user', (q) => q.eq('userId', userId)) |
-| `convex/admin/migrateTagsToPersonId.ts` | 24 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 		throw new Error(`No active people for user ${userId}`); |
-| `convex/admin/migrateTagsToPersonId.ts` | 29 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 	throw new Error(`Multiple active workspaces for user ${userId}: [${workspaces}]`); |
-| `convex/admin/migrateTagsToPersonId.ts` | 35 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(2) signals | 	userId?: Id<'users'> |
-| `convex/admin/migrateTagsToPersonId.ts` | 38 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 	if (userId) { |
-| `convex/admin/migrateTagsToPersonId.ts` | 41 | `string` | 3 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 			.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId)) |
-| `convex/admin/migrateTagsToPersonId.ts` | 61 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 		console.log('🔄 Starting migration: tags.userId -> tags.personId'); |
-| `convex/admin/migrateTagsToPersonId.ts` | 75 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 				const legacyUserId = tag.userId; |
-| `convex/admin/migrateTagsToPersonId.ts` | 81 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 						throw new Error(`Tag ${tag._id} missing workspaceId and legacy userId`); |
-| `convex/admin/migrateVersionHistory.ts` | 39 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		return members[0].userId; |
-| `convex/admin/migrateVersionHistory.ts` | 50 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 	return user?._id ?? null; |
-| `convex/admin/migrateVersionHistory.ts` | 64 | `code` | 2 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | 		const systemUserId = await getAnyUserId(ctx); |
-| `convex/admin/migrateVersionHistory.ts` | 65 | `code` | 1 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | 		if (!systemUserId) { |
-| `convex/admin/migrateVersionHistory.ts` | 68 | `string` | 1 | `users` | `unknown` | `low` | No strong auth/workspace signals detected | 				'No users found in database. Cannot create version history.' |
-| `convex/admin/migrateVersionHistory.ts` | 234 | `code` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 					userId: member.userId, |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 50 | `string` | 2 | `user, users` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 	userId: Id<'users'>, |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 53 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 	const person = await findPersonByUserAndWorkspace(ctx, userId, workspaceId); |
 | `convex/admin/migrations/migrateCircleItemsToCustomFields.ts` | 287 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(4) signals | 						`⚠️  Category ${category._id}: userId ${category.createdBy} not found in people table for workspace ${category.workspaceId}, using fallback person` |
@@ -205,15 +115,6 @@ generatedAt: 2025-12-21T17:28:23.991Z
 | `convex/admin/users.ts` | 138 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			createdAt: user.createdAt, |
 | `convex/admin/users.ts` | 139 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			updatedAt: user.updatedAt, |
 | `convex/admin/users.ts` | 141 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			deletedAt: user.deletedAt, |
-| `convex/admin/validateRoleTemplates.ts` | 12 | `code` | 1 | `User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation'; |
-| `convex/admin/validateRoleTemplates.ts` | 24 | `code` | 1 | `User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 62 | `code` | 1 | `User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 133 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 138 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
-| `convex/admin/validateRoleTemplates.ts` | 200 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 210 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(3) signals | 				q.eq('workspaceId', circle.workspaceId).eq('userId', userId) |
-| `convex/admin/validateRoleTemplates.ts` | 276 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(2) + workspace(1) signals | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/validateRoleTemplates.ts` | 281 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(2) signals | 				q.eq('workspaceId', args.workspaceId).eq('userId', userId) |
 | `convex/core/assignments/mutations.ts` | 25 | `string` | 2 | `User, users` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 	assigneeUserId: Id<'users'>; |
 | `convex/core/assignments/mutations.ts` | 170 | `string` | 2 | `User, users` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		assigneeUserId: v.id('users'), |
 | `convex/core/authority/authority.test.ts` | 216 | `string` | 1 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | 				displayName: 'Test User', |
@@ -1042,10 +943,10 @@ generatedAt: 2025-12-21T17:28:23.991Z
 | `src/lib/infrastructure/workspaces/composables/useWorkspaces.svelte.ts` | 94 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		userId: getUserId, |
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 16 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 	userId?: () => string \| undefined; |
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 35 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 	const getUserId = options.userId \|\| (() => undefined); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 121 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		const userId = getUserId(); |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 125 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		if (userId !== undefined) { |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 132 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				state.lastUserId = userId; |
-| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 136 | `code` | 3 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			if (prevUserId !== undefined && prevUserId !== userId) { |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 125 | `code` | 2 | `user, User` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		const userId = getUserId(); |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 129 | `code` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		if (userId !== undefined) { |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 136 | `code` | 2 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 				state.lastUserId = userId; |
+| `src/lib/infrastructure/workspaces/composables/useWorkspaceState.svelte.ts` | 140 | `code` | 3 | `User, user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 			if (prevUserId !== undefined && prevUserId !== userId) { |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 58 | `string` | 2 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		it('should return key with userId prefix when userId provided', () => { |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 63 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		it('should return base key when userId is undefined', () => { |
 | `src/lib/infrastructure/workspaces/composables/workspaceStorage.svelte.test.ts` | 68 | `string` | 1 | `user` | `unknown` | `low` | Mixed auth(1) + workspace(1) signals | 		it('should handle empty string userId (treated as falsy)', () => { |
@@ -1359,12 +1260,11 @@ generatedAt: 2025-12-21T17:28:23.991Z
 | `src/routes/(authenticated)/+layout.server.ts` | 254 | `code` | 1 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | 					api.infrastructure.rbac.permissions.getUserPermissionsQuery, |
 | `src/routes/(authenticated)/+layout.server.ts` | 350 | `code` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 		user: locals.auth.user, |
 | `src/routes/(authenticated)/+layout.svelte` | 87 | `code` | 1 | `User` | `unknown` | `low` | No strong auth/workspace signals detected | 			? useQuery(api.infrastructure.rbac.queries.getUserRBACDetails, () => { |
-| `src/routes/(authenticated)/+layout.svelte` | 164 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 				email: data.user?.email ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 291 | `string` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com'); |
-| `src/routes/(authenticated)/+layout.svelte` | 293 | `code` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 		data.user?.firstName && data.user?.lastName |
-| `src/routes/(authenticated)/+layout.svelte` | 294 | `string` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			? `${data.user.firstName} ${data.user.lastName}` |
-| `src/routes/(authenticated)/+layout.svelte` | 475 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 					email: data.user?.email ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 826 | `code` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 				user={data.user} |
+| `src/routes/(authenticated)/+layout.svelte` | 172 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 				email: data.user?.email ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 299 | `string` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com'); |
+| `src/routes/(authenticated)/+layout.svelte` | 301 | `code` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 		data.user?.firstName && data.user?.lastName |
+| `src/routes/(authenticated)/+layout.svelte` | 302 | `string` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			? `${data.user.firstName} ${data.user.lastName}` |
+| `src/routes/(authenticated)/+layout.svelte` | 784 | `code` | 2 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 				user={data.user} |
 | `src/routes/(authenticated)/account/+page.server.ts` | 14 | `code` | 1 | `user` | `unknown` | `low` | No strong auth/workspace signals detected | 			user: null, |
 | `src/routes/(authenticated)/account/+page.server.ts` | 27 | `code` | 1 | `users` | `unknown` | `low` | No strong auth/workspace signals detected | 		linkedAccounts = (await client.query(api.core.users.index.listLinkedAccounts, { |
 | `src/routes/(authenticated)/account/+page.svelte` | 13 | `code` | 3 | `User, user` | `unknown` | `low` | No strong auth/workspace signals detected | 	const currentUser = $derived(data.user as UserProfileType \| null); |

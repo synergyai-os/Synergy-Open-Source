@@ -33,7 +33,6 @@ import {
 	handleUserCircleRoleRemoved,
 	handleUserCircleRoleRestored
 } from './roleRbac';
-import { createCustomFieldValuesFromTemplate } from '../../infrastructure/customFields';
 
 // ============================================================================
 // Helper Functions
@@ -106,8 +105,7 @@ export async function archiveRoleHelper(
 /**
  * Update circle role helper
  *
- * Note (SYOS-960): purpose and decisionRights are now stored in customFieldValues.
- * Use customFields mutations to update those fields.
+ * DR-011: purpose and decisionRights are governance fields stored directly on schema.
  */
 async function updateCircleRole(
 	ctx: MutationCtx,
@@ -190,8 +188,7 @@ async function updateCircleRole(
 /**
  * Update circle role inline helper
  *
- * Note (SYOS-960): purpose and decisionRights are now stored in customFieldValues.
- * Use customFields mutations to update those fields.
+ * DR-011: purpose and decisionRights are governance fields stored directly on schema.
  */
 async function updateInlineCircleRole(
 	ctx: MutationCtx,
@@ -200,6 +197,8 @@ async function updateInlineCircleRole(
 		circleRoleId: Id<'circleRoles'>;
 		updates: {
 			name?: string;
+			purpose?: string;
+			decisionRights?: string[];
 			representsToParent?: boolean;
 		};
 	}
@@ -251,6 +250,25 @@ async function updateInlineCircleRole(
 		}
 
 		updateData.name = trimmedName;
+	}
+
+	if (args.updates.purpose !== undefined) {
+		const trimmedPurpose = args.updates.purpose.trim();
+		if (!trimmedPurpose) {
+			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Role purpose is required (GOV-02)');
+		}
+		updateData.purpose = trimmedPurpose;
+	}
+
+	if (args.updates.decisionRights !== undefined) {
+		const cleaned = args.updates.decisionRights.map((r) => r.trim()).filter(Boolean);
+		if (cleaned.length === 0) {
+			throw createError(
+				ErrorCodes.VALIDATION_REQUIRED_FIELD,
+				'Role must have at least one decision right (GOV-03)'
+			);
+		}
+		updateData.decisionRights = cleaned;
 	}
 
 	if (args.updates.representsToParent !== undefined) {
@@ -580,15 +598,9 @@ export const create = mutation({
 		sessionId: v.string(),
 		circleId: v.id('circles'),
 		name: v.string(),
-		// SYOS-960: Accept field values array instead of purpose/decisionRights
-		fieldValues: v.optional(
-			v.array(
-				v.object({
-					systemKey: v.string(),
-					values: v.array(v.string())
-				})
-			)
-		),
+		// DR-011: Governance fields in core schema
+		purpose: v.string(),
+		decisionRights: v.array(v.string()),
 		roleType: v.optional(
 			v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom'))
 		)
@@ -601,6 +613,19 @@ export const create = mutation({
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
 			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Role name is required');
+		}
+
+		// GOV-02: Every role has a purpose
+		if (!args.purpose || !args.purpose.trim()) {
+			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'Role purpose is required (GOV-02)');
+		}
+
+		// GOV-03: Every role has at least one decision right
+		if (!args.decisionRights || args.decisionRights.length === 0) {
+			throw createError(
+				ErrorCodes.VALIDATION_REQUIRED_FIELD,
+				'Role must have at least one decision right (GOV-03)'
+			);
 		}
 
 		const existingRoles = await ctx.db
@@ -619,11 +644,13 @@ export const create = mutation({
 		const roleType = args.roleType ?? ROLE_TYPES.CUSTOM;
 
 		const now = Date.now();
-		// Create lean circleRole (no descriptive fields per SYOS-960)
+		// DR-011: Create circleRole with governance fields in schema
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId: args.circleId,
 			workspaceId,
 			name: trimmedName,
+			purpose: args.purpose.trim(),
+			decisionRights: args.decisionRights.filter((r) => r.trim()),
 			roleType,
 			status: 'active',
 			isHiring: false,
@@ -631,20 +658,6 @@ export const create = mutation({
 			updatedAt: now,
 			updatedByPersonId: personId
 		});
-
-		// Create customFieldValues if provided (SYOS-960)
-		// Validation (GOV-02, GOV-03) happens inside helper (phase-aware - SYOS-996)
-		if (args.fieldValues && args.fieldValues.length > 0) {
-			const workspace = await ctx.db.get(workspaceId);
-			await createCustomFieldValuesFromTemplate(ctx, {
-				workspaceId,
-				entityType: 'role',
-				entityId: roleId,
-				templateDefaultFieldValues: args.fieldValues,
-				createdByPersonId: personId,
-				workspacePhase: workspace?.phase
-			});
-		}
 
 		const newRole = await ctx.db.get(roleId);
 		if (newRole) {
@@ -671,6 +684,9 @@ export const updateInline = mutation({
 		circleRoleId: v.id('circleRoles'),
 		updates: v.object({
 			name: v.optional(v.string()),
+			// DR-011: Governance fields in core schema
+			purpose: v.optional(v.string()),
+			decisionRights: v.optional(v.array(v.string())),
 			representsToParent: v.optional(v.boolean())
 		})
 	},

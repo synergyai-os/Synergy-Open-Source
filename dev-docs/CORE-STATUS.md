@@ -469,8 +469,8 @@ userId + workspaceId → getPersonByUserAndWorkspace → personId
 **Status:** ⚠️ Partially Working
 
 **Expected Flow:**
-1. Create circle with `circleType`
-2. System looks up roleTemplate for that `circleType` + `roleType: 'circle_lead'`
+1. Create circle with `leadAuthority`
+2. System looks up roleTemplate for that `leadAuthority` + `roleType: 'circle_lead'`
 3. System creates role with template defaults
 4. System validates GOV-01 (exactly one lead role)
 

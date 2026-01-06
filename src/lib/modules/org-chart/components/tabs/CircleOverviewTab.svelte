@@ -42,7 +42,7 @@
 			roleId: Id<'circleRoles'>,
 			updates: { name?: string; purpose?: string }
 		) => Promise<void>;
-		onOpenAssignUserDialog?: (
+		onOpenAssignPersonDialog?: (
 			type: 'role' | 'circle',
 			entityId: Id<'circleRoles'> | Id<'circles'>,
 			entityName: string
@@ -57,7 +57,7 @@
 		onRoleClick,
 		onChildCircleClick,
 		onQuickUpdateRole,
-		onOpenAssignUserDialog
+		onOpenAssignPersonDialog: _onOpenAssignPersonDialog
 	}: Props = $props();
 
 	// Get shared context
@@ -67,11 +67,45 @@
 	const circle = $derived(ctx.circle());
 	const canEdit = $derived(ctx.canEdit());
 	const editReason = $derived(ctx.editReason());
+	const isDesignPhase = $derived(ctx.isDesignPhase());
 	const sessionId = $derived(ctx.sessionId());
 	const workspaceId = $derived(ctx.workspaceId());
 
+	// IMPORTANT:
+	// - `canEdit` means "can edit directly in design OR can propose in active" (see useCanEdit)
+	// - Direct inline saves in this tab call `api.core.circles.index.updateInline`, which only works in design phase.
+	const canInlineEdit = $derived(canEdit && isDesignPhase);
+	const inlineEditReason = $derived.by(() => {
+		if (canInlineEdit) return editReason;
+		if (canEdit && !isDesignPhase) {
+			return 'Direct edits only allowed in design phase. Click Edit to propose changes.';
+		}
+		return editReason;
+	});
+
 	// Access customFields from context
 	const { customFields } = ctx;
+	const visibleCustomFields = $derived(
+		customFields.fields.filter((f) => {
+			const key = f.definition.systemKey;
+			const name = f.definition.name;
+			return key !== 'purpose' && name !== 'Purpose';
+		})
+	);
+
+	const governancePurposeField = $derived.by(() => ({
+		definition: {
+			// Sentinel ID: rendered via CustomFieldSection but not stored in customFieldDefinitions
+			_id: '' as unknown as Id<'customFieldDefinitions'>,
+			name: 'Purpose',
+			order: -1,
+			systemKey: 'purpose',
+			isSystemField: true,
+			fieldType: 'longText'
+		},
+		value: null,
+		parsedValue: circle?.purpose ?? ''
+	}));
 
 	// Convex client for mutations
 	const convexClient = browser ? useConvexClient() : null;
@@ -110,6 +144,17 @@
 			memberPersonId: personId
 		});
 	}
+
+	async function saveCirclePurpose(value: unknown) {
+		const next = typeof value === 'string' ? value : '';
+		await ctx.handleQuickUpdateCircle({ purpose: next });
+	}
+
+	async function deleteCirclePurpose() {
+		// Circle purpose is a governance field; keep UX aligned with CustomFieldSection by showing a tooltip+message elsewhere.
+		// For now, just clear to empty string and let server-side validation enforce GOV-* if applicable.
+		await ctx.handleQuickUpdateCircle({ purpose: '' });
+	}
 </script>
 
 <!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
@@ -119,11 +164,19 @@
 >
 	<!-- Left Column: Custom Fields (DB-driven, ordered by definition.order) -->
 	<div class="gap-section flex min-w-0 flex-col overflow-hidden">
-		{#each customFields.fields as field (field.definition._id)}
+		<CustomFieldSection
+			field={governancePurposeField}
+			canEdit={canInlineEdit}
+			editReason={inlineEditReason}
+			onSave={saveCirclePurpose}
+			onDelete={deleteCirclePurpose}
+		/>
+
+		{#each visibleCustomFields as field (field.definition._id)}
 			<CustomFieldSection
 				{field}
-				{canEdit}
-				{editReason}
+				canEdit={canInlineEdit}
+				editReason={inlineEditReason}
 				onSave={(value) => customFields.setFieldValue(field.definition._id, value)}
 				onDelete={() => customFields.deleteFieldValue(field.definition._id)}
 			/>
@@ -159,10 +212,14 @@
 							circleId={circle?.circleId}
 							{workspaceId}
 							{sessionId}
-							{canEdit}
-							{editReason}
-							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
-							onPurposeChange={(purpose) => onQuickUpdateRole?.(role.roleId, { purpose })}
+							canEdit={canInlineEdit}
+							editReason={inlineEditReason}
+							onNameChange={canInlineEdit
+								? (name) => onQuickUpdateRole?.(role.roleId, { name })
+								: undefined}
+							onPurposeChange={canInlineEdit
+								? (purpose) => onQuickUpdateRole?.(role.roleId, { purpose })
+								: undefined}
 							onClick={() => onRoleClick?.(role.roleId, role.name)}
 							onEdit={() => {
 								/* TODO: Implement edit role */
@@ -206,10 +263,14 @@
 							circleId={circle?.circleId}
 							{workspaceId}
 							{sessionId}
-							{canEdit}
-							{editReason}
-							onNameChange={(name) => onQuickUpdateRole?.(role.roleId, { name })}
-							onPurposeChange={(purpose) => onQuickUpdateRole?.(role.roleId, { purpose })}
+							canEdit={canInlineEdit}
+							editReason={inlineEditReason}
+							onNameChange={canInlineEdit
+								? (name) => onQuickUpdateRole?.(role.roleId, { name })
+								: undefined}
+							onPurposeChange={canInlineEdit
+								? (purpose) => onQuickUpdateRole?.(role.roleId, { purpose })
+								: undefined}
 							onClick={() => onRoleClick?.(role.roleId, role.name)}
 							onEdit={() => {
 								/* TODO: Implement edit role */

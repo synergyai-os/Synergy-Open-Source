@@ -54,11 +54,11 @@ export const get = query({
 			workspaceId: circle.workspaceId,
 			name: circle.name,
 			slug: circle.slug,
+			purpose: circle.purpose,
 			parentCircleId: circle.parentCircleId,
 			parentName,
 			memberCount: members.length,
-			circleType: circle.circleType,
-			decisionModel: circle.decisionModel,
+			leadAuthority: circle.leadAuthority,
 			createdAt: circle.createdAt,
 			updatedAt: circle.updatedAt,
 			archivedAt: circle.archivedAt
@@ -131,7 +131,7 @@ export const getMyAuthority = query({
 		return {
 			isCircleLead: isCircleLead(authorityContext),
 			isMember: isCircleMember(authorityContext),
-			circleType: circle.circleType
+			leadAuthority: circle.leadAuthority
 		};
 	}
 });

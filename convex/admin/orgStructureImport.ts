@@ -11,6 +11,7 @@ import { v } from 'convex/values';
 import { validateSessionAndGetUserId } from '../infrastructure/sessionValidation';
 import type { Id, MutationCtx } from '../_generated/dataModel';
 import { createCoreRolesForCircle, ensureUniqueSlug, slugifyName } from '../core/circles';
+import { LEAD_AUTHORITY } from '../core/circles/constants';
 import { recordCreateHistory } from '../core/history';
 import { createError, ErrorCodes } from '../infrastructure/errors/codes';
 
@@ -234,8 +235,7 @@ export const importOrgStructure = mutation({
 					slug,
 					purpose: node.purpose?.trim(),
 					parentCircleId,
-					circleType: CIRCLE_TYPES.HIERARCHY, // Default circle type (SYOS-675)
-					decisionModel: DECISION_MODELS.MANAGER_DECIDES, // Default decision model (SYOS-675)
+					leadAuthority: LEAD_AUTHORITY.DECIDES, // Default lead authority (SYOS-675)
 					status: 'draft', // All imports start as draft
 					createdAt: now,
 					updatedAt: now,
@@ -248,13 +248,13 @@ export const importOrgStructure = mutation({
 					await recordCreateHistory(ctx, 'circle', newCircle);
 				}
 
-				// Auto-create core roles (Circle Lead, etc.) - respects circleType (SYOS-675)
+				// Auto-create core roles (Circle Lead, etc.) - respects leadAuthority (SYOS-675)
 				await createCoreRolesForCircle(
 					ctx,
 					circleId,
 					args.workspaceId,
 					userId,
-					CIRCLE_TYPES.HIERARCHY
+					LEAD_AUTHORITY.DECIDES
 				);
 
 				// Recursively create children

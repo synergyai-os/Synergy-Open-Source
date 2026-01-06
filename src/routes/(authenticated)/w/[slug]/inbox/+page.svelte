@@ -135,7 +135,7 @@
 			linkedSuccessTimeout = setTimeout(() => {
 				const url = new URL(window.location.href);
 				url.searchParams.delete('linked');
-				replaceState(url.pathname + url.search, {});
+				replaceState(url.pathname + url.search + url.hash, {});
 			}, 5000);
 		}
 
@@ -443,7 +443,7 @@
 				onclick={() => {
 					const url = new URL(window.location.href);
 					url.searchParams.delete('linked');
-					replaceState(url.pathname + url.search, {});
+					replaceState(url.pathname + url.search + url.hash, {});
 				}}
 				class="ml-icon text-secondary hover:text-primary transition-colors"
 				aria-label="Dismiss"

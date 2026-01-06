@@ -65,9 +65,9 @@
 					return;
 				}
 
-				if (!rootCircle.circleType) {
+				if (!rootCircle.leadAuthority) {
 					validationError =
-						'Root circle must have a circle type selected. Please complete the circle setup step first.';
+						'Root circle must have lead authority selected. Please complete the circle setup step first.';
 					canComplete = false;
 					return;
 				}

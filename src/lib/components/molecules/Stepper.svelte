@@ -33,6 +33,7 @@
 	}: Props = $props();
 
 	// Track previous step to detect completion transitions
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let previousStep = $state(currentStep);
 
 	// Determine step state
@@ -58,6 +59,25 @@
 	$effect(() => {
 		previousStep = currentStep;
 	});
+
+	// Determine step state
+	function getStepState(stepIndex: number): StepState {
+		if (stepIndex < currentStep) {
+			return 'completed';
+		}
+		if (stepIndex === currentStep) {
+			return 'current';
+		}
+		return 'pending';
+	}
+
+	// Check if step was just completed (for animation trigger)
+	function wasJustCompleted(stepIndex: number): boolean {
+		// Step is completed now AND wasn't completed before
+		const isCompleted = stepIndex < currentStep;
+		const wasCompleted = stepIndex < previousStep;
+		return isCompleted && !wasCompleted;
+	}
 
 	// Check if step can be navigated to
 	function canNavigate(stepIndex: number): boolean {

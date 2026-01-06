@@ -53,8 +53,8 @@ Workspaces start in `design` phase. Structure can be freely changed without gove
 | GOV-05 | Role assignments are traceable (who assigned, when) | Schema requirement |
 | GOV-06 | Governance changes create history records (when phase = 'active') | Mutation side effect |
 | GOV-07 | Person can fill 0-N roles; role can have 0-N people | Many-to-many via assignments |
-| GOV-08 | Circle type is explicit, never null for active circles | Schema validation |
-| ORG-10 | Root circle type must not be 'guild' | Activation validation only |
+| GOV-08 | Lead authority is explicit, never null for active circles | Schema validation |
+| ORG-10 | Root circle lead authority must not be 'convenes' | Activation validation only |
 
 ---
 
@@ -68,8 +68,8 @@ Workspaces start in `design` phase. Structure can be freely changed without gove
 │  • Authority calculated from assignments                           │
 │  • Changes create history (when active) (GOV-06)                   │
 ├─────────────────────────────────────────────────────────────────────┤
-│  LAYER 2: GOVERNANCE MODE (per-circle, 4 options)                  │
-│  • hierarchy | empowered_team | guild | hybrid                     │
+│  LAYER 2: LEAD AUTHORITY (per-circle, 3 options)                   │
+│  • decides | facilitates | convenes                                │
 │  • Affects: proposal flow, decision process, auto-created roles    │
 │  • Can vary within same workspace                                  │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -103,7 +103,7 @@ Workspaces start in `design` phase. Structure can be freely changed without gove
 | Check | Rule | Error Message |
 |-------|------|---------------|
 | Root exists | Workspace has exactly one root circle | "Create a root circle before activation" |
-| Root type valid | Root circle type ≠ guild (ORG-10) | "Root circle cannot be a guild" |
+| Root type valid | Root circle lead authority ≠ convenes (ORG-10) | "Root circle cannot use 'convenes' authority" |
 | Lead roles exist | Every circle has `roleType: 'circle_lead'` | "Circle [name] needs a lead role" |
 
 **Triggered by**: `org_designer` via explicit UI action
@@ -114,45 +114,45 @@ One-way only: `design` → `active`. No reversal. Once live, audit trail must be
 
 ---
 
-## 5. Circle Types
+## 5. Lead Authority Model
 
-### 5.1 Type Definitions
+### 5.1 Authority Options
 
-| Type | Decision Pattern | Lead Authority | Root Eligible |
-|------|------------------|----------------|---------------|
-| `hierarchy` | Lead decides | Full (decides directly) | ✅ Yes |
-| `empowered_team` | Team consents, lead facilitates | Facilitative (breaks ties) | ✅ Yes |
-| `guild` | Advisory only | Convening (schedules only) | ❌ No |
-| `hybrid` | Configured per-decision | Full (uses consent) | ✅ Yes |
+| Lead Authority | Decision Pattern | Lead Role | Root Eligible |
+|----------------|------------------|-----------|---------------|
+| `decides` | Lead decides directly | Circle Lead | ✅ Yes |
+| `facilitates` | Team decides by consent, lead facilitates | Team Lead | ✅ Yes |
+| `convenes` | Advisory only, recommendations to home circles | Steward | ❌ No |
+
+**Key Question**: "How does the lead make decisions for this circle?"
 
 ### 5.2 Behavior Matrix
 
-| Behavior | `hierarchy` | `empowered_team` | `guild` | `hybrid` |
-|----------|-------------|------------------|---------|----------|
-| Lead approves proposals unilaterally | ✅ | ❌ | N/A | Configurable |
-| Consent process required | ❌ | ✅ | N/A | Configurable |
-| Members raise objections | Optional | Required | N/A | Configurable |
-| Decision rights binding | ✅ | ✅ | ❌ Advisory | ✅ |
+| Behavior | `decides` | `facilitates` | `convenes` |
+|----------|-----------|---------------|------------|
+| Lead approves proposals unilaterally | ✅ Yes | ❌ No | N/A |
+| Consent process required | ❌ No | ✅ Yes | N/A |
+| Members raise objections | Optional | Required | N/A |
+| Decision rights binding | ✅ Yes | ✅ Yes | ❌ Advisory |
 
-### 5.3 Auto-Created Roles by Circle Type
+### 5.3 Auto-Created Roles by Lead Authority
 
-| Circle Type | Auto-Created Roles | Lead Role Name |
-|-------------|-------------------|----------------|
-| `hierarchy` | circle_lead, secretary | Circle Lead |
-| `empowered_team` | circle_lead, facilitator, secretary | Team Lead |
-| `guild` | circle_lead (as Steward) | Steward |
-| `hybrid` | circle_lead, facilitator, secretary | Circle Lead |
+| Lead Authority | Auto-Created Roles | Lead Role Name |
+|----------------|-------------------|----------------|
+| `decides` | circle_lead, secretary | Circle Lead |
+| `facilitates` | circle_lead, facilitator, secretary | Team Lead |
+| `convenes` | circle_lead (as Steward) | Steward |
 
-**Note**: Guild's "Steward" has `roleType: 'circle_lead'` but convening authority only.
+**Note**: `convenes` circles have a "Steward" with `roleType: 'circle_lead'` but convening authority only.
 
-### 5.4 Circle Type Change
+### 5.4 Lead Authority Change
 
 | Scenario | Action |
 |----------|--------|
-| Any → guild | Transform Circle Lead to Steward template |
-| guild → Any | Transform Steward to Circle Lead template |
-| hierarchy → empowered_team | Add Facilitator if missing |
-| empowered_team → hierarchy | Keep Facilitator (now optional) |
+| Any → convenes | Transform lead role to Steward template |
+| convenes → Any | Transform Steward to Circle Lead template |
+| decides → facilitates | Add Facilitator if missing |
+| facilitates → decides | Keep Facilitator (now optional) |
 
 **Rule**: Never delete the lead role. Transform it.
 
@@ -216,8 +216,8 @@ Custom roles have no template (`templateId: null`), so need their own `roleType:
 ```typescript
 // In circle creation mutation
 1. Create circle record
-2. Read circleType
-3. Create roles per type (see 5.3)
+2. Read leadAuthority
+3. Create roles per authority (see 5.3)
 4. For each role:
    a. Create lean circleRole record (name, roleType, templateId only)
    b. Create customFieldValues from template.defaultFieldValues
@@ -225,15 +225,15 @@ Custom roles have no template (`templateId: null`), so need their own `roleType:
       - Helper: infrastructure/customFields/helpers.ts
 ```
 
-### 7.2 Trigger: Circle Type Change
+### 7.2 Trigger: Lead Authority Change
 
-When `circleType` changes, system transforms lead role to match new type's template. Structural roles added/kept as needed.
+When `leadAuthority` changes, system transforms lead role to match new authority's template. Structural roles added/kept as needed.
 
 ---
 
 ## 8. Authority Calculation
 
-### 8.1 By Circle Type
+### 8.1 By Lead Authority
 
 ```typescript
 function calculateAuthority(personId, circleId): Authority {
@@ -241,15 +241,13 @@ function calculateAuthority(personId, circleId): Authority {
   const isLead = hasRoleType(personId, circleId, 'circle_lead');
   const isMember = hasAnyRole(personId, circleId);
   
-  switch (circle.circleType) {
-    case 'hierarchy':
+  switch (circle.leadAuthority) {
+    case 'decides':
       return { canApproveProposals: isLead, canAssignRoles: isLead, ... };
-    case 'empowered_team':
+    case 'facilitates':
       return { canApproveProposals: false, canRaiseObjections: isMember, ... };
-    case 'guild':
+    case 'convenes':
       return { canApproveProposals: false, canAssignRoles: isLead, ... }; // Advisory
-    case 'hybrid':
-      return calculateHybridAuthority(circle, personId);
   }
 }
 ```
@@ -297,13 +295,13 @@ displayNames: v.optional(v.object({
 | `governance` | Governance meeting | Proposals |
 | `strategic` | Strategy review | Updated strategy |
 
-### 10.2 By Circle Type
+### 10.2 By Lead Authority
 
-| Circle Type | Processing | Resolution Authority |
-|-------------|------------|---------------------|
-| `hierarchy` | Lead reviews | Lead decides |
-| `empowered_team` | Consent process | Collective |
-| `guild` | Discussion | Advisory recommendation |
+| Lead Authority | Processing | Resolution Authority |
+|----------------|------------|---------------------|
+| `decides` | Lead reviews | Lead decides |
+| `facilitates` | Consent process | Collective |
+| `convenes` | Discussion | Advisory recommendation |
 
 ---
 
@@ -314,9 +312,8 @@ displayNames: v.optional(v.object({
 ```
 "How does your organization make decisions today?"
 
-○ Leaders decide, teams execute        → hierarchy, Traditional vocab
-○ Teams collaborate, leaders facilitate → empowered_team, Agile vocab
-○ We're experimenting                  → hybrid flow
+○ Leaders decide, teams execute        → decides, Traditional vocab
+○ Teams collaborate, leaders facilitate → facilitates, Agile vocab
 ```
 
 ### 11.2 Minimum Viable Setup
@@ -347,7 +344,7 @@ Workspace starts in `design` phase. Creator can:
 |--------|--------|
 | % roles with purpose | 100% |
 | % roles with ≥1 decision right | 100% |
-| % circles with type set | 100% |
+| % circles with lead authority set | 100% |
 | Time to first tension | < 7 days |
 
 ### 12.2 Clarity
@@ -379,7 +376,7 @@ Workspace starts in `design` phase. Creator can:
 **roleTemplates table:**
 - `roleType`: `'circle_lead' | 'structural' | 'custom'`
 - `defaultFieldValues`: `Array<{ systemKey: string, values: string[] }>` (flexible field system)
-- `appliesTo`: `'hierarchy' | 'empowered_team' | 'guild' | 'hybrid'` (single value, not array)
+- `appliesTo`: `'decides' | 'facilitates' | 'convenes'` (single value, not array)
 - **Removed** (SYOS-960): `defaultPurpose`, `defaultDecisionRights` → now in `defaultFieldValues`
 
 **customFieldValues table:** (stores role descriptive fields)
@@ -404,10 +401,10 @@ Workspace starts in `design` phase. Creator can:
 | Term | Definition |
 |------|------------|
 | **Circle** | Organizational unit with defined purpose and roles |
-| **Circle Type** | Governance mode (hierarchy, empowered_team, guild, hybrid) |
+| **Lead Authority** | How the circle lead makes decisions (decides, facilitates, convenes) |
 | **Decision Right** | Explicit authority to make specific decisions |
 | **roleType** | System classification (circle_lead, structural, custom) |
-| **Steward** | Guild-specific lead role with convening authority only |
+| **Steward** | Convenes-specific lead role with convening authority only |
 | **Tension** | Gap between current reality and desired state |
 
 ---

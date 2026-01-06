@@ -1,48 +1,42 @@
-import { CIRCLE_TYPES, type CircleType } from '../circles';
+import { LEAD_AUTHORITY, type LeadAuthority } from '../circles';
 import type { CirclePolicy } from './types';
 
 /**
- * Policy lookup table for each circle type.
+ * Policy lookup table for each lead authority level.
  * Defines governance rules based on organizational model.
+ *
+ * SIMPLIFIED from 4 circle types to 3 lead authority levels:
+ * - `decides`: Lead has full decision authority
+ * - `facilitates`: Lead facilitates, team decides via consent
+ * - `convenes`: Lead schedules only, advisory decisions
  */
-export const circlePolicies: Record<CircleType, CirclePolicy> = {
-	[CIRCLE_TYPES.HIERARCHY]: {
+export const circlePolicies: Record<LeadAuthority, CirclePolicy> = {
+	[LEAD_AUTHORITY.DECIDES]: {
 		leadRequired: true,
 		leadLabel: 'Circle Lead',
-		decisionModel: 'lead_decides',
 		canLeadApproveUnilaterally: true,
 		canLeadAssignRoles: true,
 		coreRoles: ['Circle Lead', 'Secretary']
 	},
-	[CIRCLE_TYPES.EMPOWERED_TEAM]: {
+	[LEAD_AUTHORITY.FACILITATES]: {
 		leadRequired: false,
 		leadLabel: 'Coordinator',
-		decisionModel: 'consent',
 		canLeadApproveUnilaterally: false,
 		canLeadAssignRoles: false,
 		coreRoles: ['Facilitator', 'Secretary']
 	},
-	[CIRCLE_TYPES.GUILD]: {
+	[LEAD_AUTHORITY.CONVENES]: {
 		leadRequired: false,
 		leadLabel: 'Steward',
-		decisionModel: 'consensus',
 		canLeadApproveUnilaterally: false,
 		canLeadAssignRoles: false,
 		coreRoles: ['Steward']
-	},
-	[CIRCLE_TYPES.HYBRID]: {
-		leadRequired: true,
-		leadLabel: 'Circle Lead',
-		decisionModel: 'consent',
-		canLeadApproveUnilaterally: false,
-		canLeadAssignRoles: true,
-		coreRoles: ['Circle Lead', 'Facilitator', 'Secretary']
 	}
 };
 
 /**
- * Get the policy configuration for a circle type.
+ * Get the policy configuration for a lead authority level.
  */
-export function getPolicy(circleType: CircleType): CirclePolicy {
-	return circlePolicies[circleType];
+export function getPolicy(leadAuthority: LeadAuthority): CirclePolicy {
+	return circlePolicies[leadAuthority];
 }

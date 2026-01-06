@@ -1,72 +1,75 @@
 /**
  * Authority Calculator
  *
- * Pure functions for calculating authority levels from circle types.
+ * Pure functions for calculating authority levels from lead authority values.
  * These functions have no side effects and are easily testable in isolation.
  *
  * SYOS-692: Extracted from the org chart permission helpers (now in rbac/orgChart.ts)
  * to enable isolated testing and clear separation of concerns.
+ *
+ * SYOS-1070: Simplified — leadAuthority IS the authority level, no mapping needed.
  */
 
-import { CIRCLE_TYPES, type CircleType } from '../circles';
+import { LEAD_AUTHORITY, type LeadAuthority } from '../circles';
 import { getPolicy } from './policies';
 import { isCircleLead, isCircleMember, isFacilitator } from './rules';
 import type { Authority, AuthorityContext, AuthorityLevel, CirclePolicy } from './types';
 
 /**
- * Calculate authority level from circle type
- * Pure function - no side effects, easily testable
+ * Get authority level from lead authority value.
+ * Pure function - no side effects, easily testable.
  *
- * Mapping:
- * - hierarchy → authority (Lead decides directly)
- * - empowered_team → facilitative (Team consensus, Lead facilitates)
- * - guild → convening (No authority, coordination only)
- * - hybrid → authority (Lead decides, same as hierarchy)
+ * SIMPLIFIED: Since leadAuthority IS the authority level, this is now an
+ * identity function with default handling. The mapping complexity from
+ * the old circleType → AuthorityLevel has been eliminated.
  *
- * @param circleType - The circle's operating mode
- * @returns Authority level for the Lead role in this circle
+ * Values:
+ * - decides: Lead has full decision authority
+ * - facilitates: Lead facilitates, team decides via consent
+ * - convenes: Lead schedules only, advisory decisions
+ *
+ * @param leadAuthority - The circle's lead authority level
+ * @returns The authority level (same as leadAuthority, or default)
  */
-export function calculateAuthorityLevel(circleType: CircleType | null | undefined): AuthorityLevel {
-	const effectiveType = circleType ?? CIRCLE_TYPES.HIERARCHY;
-
-	const mapping: Record<CircleType, AuthorityLevel> = {
-		[CIRCLE_TYPES.HIERARCHY]: 'authority', // Lead decides directly
-		[CIRCLE_TYPES.EMPOWERED_TEAM]: 'facilitative', // Team consensus, Lead facilitates
-		[CIRCLE_TYPES.GUILD]: 'convening', // No authority, coordination only
-		[CIRCLE_TYPES.HYBRID]: 'authority' // Lead decides (same as hierarchy)
-	};
-
-	return mapping[effectiveType];
+export function getAuthorityLevel(leadAuthority: LeadAuthority | null | undefined): AuthorityLevel {
+	return leadAuthority ?? LEAD_AUTHORITY.DECIDES;
 }
+
+/**
+ * @deprecated Use getAuthorityLevel() instead. This alias exists for backwards compatibility.
+ */
+export const calculateAuthorityLevel = getAuthorityLevel;
 
 /**
  * Check if Lead role has direct approval authority
  *
- * @param circleType - The circle's operating mode
- * @returns true if Lead can approve proposals directly (authority level)
+ * @param leadAuthority - The circle's lead authority level
+ * @returns true if Lead can approve proposals directly (decides)
  */
-export function hasDirectApprovalAuthority(circleType: CircleType | null | undefined): boolean {
-	return calculateAuthorityLevel(circleType) === 'authority';
+export function hasDirectApprovalAuthority(
+	leadAuthority: LeadAuthority | null | undefined
+): boolean {
+	return getAuthorityLevel(leadAuthority) === LEAD_AUTHORITY.DECIDES;
 }
 
 /**
  * Check if circle requires consent process
  *
- * @param circleType - The circle's operating mode
+ * @param leadAuthority - The circle's lead authority level
  * @returns true if circle uses facilitative authority (consent process)
  */
-export function requiresConsentProcess(circleType: CircleType | null | undefined): boolean {
-	return calculateAuthorityLevel(circleType) === 'facilitative';
+export function requiresConsentProcess(leadAuthority: LeadAuthority | null | undefined): boolean {
+	return getAuthorityLevel(leadAuthority) === LEAD_AUTHORITY.FACILITATES;
 }
 
 /**
  * Check if circle has convening authority (no approval authority)
  *
- * @param circleType - The circle's operating mode
+ * @param leadAuthority - The circle's lead authority level
  * @returns true if circle has convening authority (coordination only)
  */
-export function hasConveningAuthority(circleType: CircleType | null | undefined): boolean {
-	return calculateAuthorityLevel(circleType) === 'convening';
+export function hasConveningAuthority(leadAuthority: LeadAuthority | null | undefined): boolean {
+	return getAuthorityLevel(leadAuthority) === LEAD_AUTHORITY.CONVENES;
 }
 
 /**
@@ -91,13 +94,17 @@ export function calculateAuthority(ctx: AuthorityContext): Authority {
 		};
 	}
 
-	const policy = getPolicy(ctx.circleType);
+	const policy = getPolicy(ctx.leadAuthority);
 	const isLead = isCircleLead(ctx);
 	const isMember = isCircleMember(ctx);
 
+	// Members can raise objections in circles where the lead doesn't decide alone
+	// (facilitates = consent process, convenes = advisory/consensus)
+	const allowsObjections = ctx.leadAuthority !== LEAD_AUTHORITY.DECIDES;
+
 	return {
 		canApproveProposals: hasApprovalAuthority(isLead, policy),
-		canRaiseObjections: isMember && policy.decisionModel !== 'lead_decides',
+		canRaiseObjections: isMember && allowsObjections,
 		canAssignRoles: isLead && policy.canLeadAssignRoles,
 		canModifyCircleStructure: isLead,
 		canFacilitate: isFacilitator(ctx)
@@ -105,10 +112,10 @@ export function calculateAuthority(ctx: AuthorityContext): Authority {
 }
 
 /**
- * Check if user has proposal approval authority based on circle type policy.
+ * Check if user has proposal approval authority based on lead authority policy.
  *
  * Internal helper — not exported.
- * Returns true only for leads in hierarchy circles where unilateral approval is allowed.
+ * Returns true only for leads in circles where unilateral approval is allowed.
  * Consent/consensus circles: approval comes from process, not individual authority.
  */
 function hasApprovalAuthority(isLead: boolean, policy: CirclePolicy): boolean {

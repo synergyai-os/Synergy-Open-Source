@@ -40,9 +40,9 @@ async function assignCircleLead(
 				.first()) ?? null;
 		const personId = (person?._id ?? userId) as Id<'people'>;
 		const leadName =
-			circle?.circleType === 'empowered_team'
+			circle?.leadAuthority === 'facilitates'
 				? 'Coordinator'
-				: circle?.circleType === 'guild'
+				: circle?.leadAuthority === 'convenes'
 					? 'Steward'
 					: 'Circle Lead';
 
@@ -383,7 +383,7 @@ describe('Consent Process', () => {
 
 			// Use consent-based model to allow objections
 			await t.run(async (ctx) => {
-				await ctx.db.patch(circleId, { circleType: 'empowered_team' });
+				await ctx.db.patch(circleId, { leadAuthority: 'facilitates' });
 			});
 
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });
@@ -553,7 +553,7 @@ describe('Consent Process', () => {
 
 			// Use lead_decides model to allow approval
 			await t.run(async (ctx) => {
-				await ctx.db.patch(circleId, { circleType: 'hierarchy' });
+				await ctx.db.patch(circleId, { leadAuthority: 'decides' });
 			});
 
 			cleanupQueue.push({ userId: creatorId }, { userId: recorderId }, { orgId });

@@ -3,7 +3,7 @@ import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
 import { invariant } from '$lib/utils/invariant';
-import type { CircleType, DecisionModel } from '../constants';
+import type { LeadAuthority } from '../constants';
 
 export type CircleSummary = {
 	circleId: Id<'circles'>;
@@ -14,8 +14,7 @@ export type CircleSummary = {
 	parentCircleId?: Id<'circles'>;
 	parentName?: string | null;
 	memberCount: number;
-	circleType?: CircleType;
-	decisionModel?: DecisionModel;
+	leadAuthority?: LeadAuthority;
 	createdAt: number;
 	updatedAt: number;
 	archivedAt?: number;
@@ -258,31 +257,35 @@ export function useCircles(options: {
 			}
 		},
 
-		createRole: async (args: { circleId: string; name: string; purpose?: string }) => {
+		createRole: async (args: {
+			circleId: string;
+			name: string;
+			purpose: string;
+			decisionRights: string[];
+		}) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
 
 			state.loading.createRole = true;
 			try {
-				// Convert purpose to fieldValues format (SYOS-960)
-				const fieldValues = args.purpose
-					? [
-							{
-								systemKey: 'purpose',
-								values: [args.purpose]
-							}
-						]
-					: undefined;
+				const trimmedName = args.name.trim();
+				const trimmedPurpose = args.purpose.trim();
+				const decisionRights = args.decisionRights.map((r) => r.trim()).filter(Boolean);
+
+				invariant(trimmedName, 'Role name is required');
+				invariant(trimmedPurpose, 'Role purpose is required');
+				invariant(decisionRights.length > 0, 'Role must have at least one decision right');
 
 				const result = await convexClient.mutation(api.core.roles.index.create, {
 					sessionId,
 					circleId: args.circleId as Id<'circles'>,
-					name: args.name,
-					fieldValues
+					name: trimmedName,
+					purpose: trimmedPurpose,
+					decisionRights
 				});
 
-				toast.success(`Role "${args.name}" created`);
+				toast.success(`Role "${trimmedName}" created`);
 				state.modals.createRole = false;
 				return result;
 			} catch (error) {
@@ -294,7 +297,11 @@ export function useCircles(options: {
 			}
 		},
 
-		updateRole: async (args: { circleRoleId: string; name?: string; purpose?: string }) => {
+		updateRole: async (args: {
+			circleRoleId: string;
+			name?: string;
+			representsToParent?: boolean;
+		}) => {
 			invariant(convexClient, 'Convex client not available');
 			const sessionId = getSessionId();
 			invariant(sessionId, 'sessionId required');
@@ -305,7 +312,7 @@ export function useCircles(options: {
 					sessionId,
 					circleRoleId: args.circleRoleId as Id<'circleRoles'>,
 					name: args.name,
-					purpose: args.purpose
+					representsToParent: args.representsToParent
 				});
 
 				toast.success('Role updated');

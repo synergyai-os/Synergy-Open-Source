@@ -3,7 +3,7 @@
 	import { type Id } from '$lib/convex';
 	import * as ContextMenu from '$lib/components/molecules/ContextMenu.svelte';
 	import { contextMenuContentRecipe, contextMenuItemRecipe } from '$lib/design-system/recipes';
-	import AssignUserDialog from './AssignUserDialog.svelte';
+	import AssignPersonDialog from './AssignPersonDialog.svelte';
 
 	type Props = {
 		roleId: Id<'circleRoles'>;
@@ -14,7 +14,7 @@
 
 	let { roleId, roleName, workspaceId, onLeftClick }: Props = $props();
 
-	let showAssignUserDialog = $state(false);
+	let showAssignPersonDialog = $state(false);
 </script>
 
 {#if browser}
@@ -53,19 +53,19 @@
 					<ContextMenu.Item
 						class={contextMenuItemRecipe()}
 						onSelect={() => {
-							showAssignUserDialog = true;
+							showAssignPersonDialog = true;
 						}}
 					>
 						<span class="mr-2">👤</span>
-						<span>Assign User to Role</span>
+						<span>Assign Person to Role</span>
 					</ContextMenu.Item>
 				</div>
 			</ContextMenu.Content>
 		</ContextMenu.Portal>
 	</ContextMenu.Root>
 
-	<AssignUserDialog
-		bind:open={showAssignUserDialog}
+	<AssignPersonDialog
+		bind:open={showAssignPersonDialog}
 		type="role"
 		entityId={roleId}
 		entityName={roleName}

@@ -2,7 +2,6 @@ import type { MutationCtx } from '../../../_generated/server';
 import type { Id } from '../../../_generated/dataModel';
 import { parseISODate } from '../utils';
 import type { ReadwiseHighlight } from '../../../../src/lib/types/readwise';
-import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 
 export async function createHighlightIfMissingImpl(
 	ctx: MutationCtx,
@@ -55,7 +54,7 @@ export async function createInboxItemIfMissingImpl(
 
 	const existing = await ctx.db
 		.query('inboxItems')
-		.withIndex('by_person', (q) => q.eq('personId', person._id))
+		.withIndex('by_person', (q) => q.eq('personId', personId))
 		.filter((q) =>
 			q.and(q.eq(q.field('type'), 'readwise_highlight'), q.eq(q.field('highlightId'), highlightId))
 		)
@@ -65,7 +64,7 @@ export async function createInboxItemIfMissingImpl(
 
 	return ctx.db.insert('inboxItems', {
 		type: 'readwise_highlight' as const,
-		personId: person._id,
+		personId,
 		highlightId,
 		processed: false,
 		createdAt: Date.now(),

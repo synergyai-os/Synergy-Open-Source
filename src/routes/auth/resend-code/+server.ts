@@ -30,9 +30,12 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 
 		console.log('🔍 Resending verification code for:', email);
 
-		// Check if E2E test mode is enabled (from Vite server environment)
-		// This allows E2E tests to skip email sending without setting E2E_TEST_MODE in Convex env
-		const skipEmail = process.env.E2E_TEST_MODE === 'true' || env.E2E_TEST_MODE === 'true';
+		// Only skip emails when actually running E2E tests (Playwright)
+		// E2E tests run with 'npm run dev:test' which sets Vite mode to 'test'
+		// Normal dev ('npm run dev') should always send emails for manual testing
+		const isTestMode = import.meta.env.MODE === 'test';
+		const skipEmail =
+			isTestMode && (process.env.E2E_TEST_MODE === 'true' || env.E2E_TEST_MODE === 'true');
 
 		// Create new verification code and send email
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);

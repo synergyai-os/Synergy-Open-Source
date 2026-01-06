@@ -10,10 +10,17 @@ import type { UseEditCircleReturn } from '../composables/useEditCircle.svelte';
 import { api } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
 
+type CircleData = {
+	circleId: Id<'circles'>;
+	name: string;
+	purpose?: string | null;
+	leadAuthority?: string;
+};
+
 export function createEditHandlers(params: {
 	editCircle: UseEditCircleReturn;
 	orgChart: UseOrgChart | null;
-	circle: () => any;
+	circle: () => CircleData | null;
 	getSessionId: () => string | null | undefined;
 	workspaceId: () => Id<'workspaces'> | undefined;
 	convexClient: ConvexClient | null;
@@ -81,8 +88,7 @@ export function createEditHandlers(params: {
 				editedValues: {
 					name: editCircle.formValues.name,
 					purpose: editCircle.formValues.purpose || undefined,
-					circleType: editCircle.formValues.circleType,
-					decisionModel: editCircle.formValues.decisionModel
+					leadAuthority: editCircle.formValues.leadAuthority
 				}
 			});
 

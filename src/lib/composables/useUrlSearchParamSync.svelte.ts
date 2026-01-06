@@ -58,8 +58,8 @@ export function useUrlSearchParamSync<T>(options: UrlSearchParamSyncOptions<T>):
 		prevSerialized: null as string | null
 	});
 
-	function buildUrlWithParam(baseUrl: URL, serialized: string | null): URL {
-		const next = new URL(baseUrl);
+	function buildUrlWithParam(baseUrl: SvelteURL, serialized: string | null): SvelteURL {
+		const next = new SvelteURL(baseUrl);
 		if (serialized) {
 			next.searchParams.set(param, serialized);
 		} else {
@@ -68,7 +68,7 @@ export function useUrlSearchParamSync<T>(options: UrlSearchParamSyncOptions<T>):
 		return next;
 	}
 
-	function toRelativeUrl(url: URL): string {
+	function toRelativeUrl(url: SvelteURL): string {
 		return `${url.pathname}${url.search}${url.hash}`;
 	}
 

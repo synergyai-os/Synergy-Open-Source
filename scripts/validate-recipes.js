@@ -71,18 +71,34 @@ function extractRecipeClasses(recipeContent) {
 	// But skip variant keys/values in defaultVariants (e.g., 'md' in defaultVariants: { size: 'md' })
 	const classRegex = /['"`]([\w\s-]+)['"`]/g;
 
+	let inDefaultVariants = false;
+	let braceDepth = 0;
+
 	lines.forEach((line, index) => {
 		// Skip import lines and type definitions
 		if (line.includes('import') || line.includes('type') || line.includes('export type')) {
 			return;
 		}
 
-		// Skip defaultVariants lines (they contain variant keys, not class names)
-		// e.g., "size: 'md'" - 'md' is a variant key, not a class
-		if (
-			line.includes('defaultVariants:') ||
-			line.match(/^\s*(size|variant|padding|fullHeight|disabled|etc):\s*['"`]/)
-		) {
+		// Track when we're inside defaultVariants block
+		if (line.includes('defaultVariants:')) {
+			inDefaultVariants = true;
+			braceDepth = (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+			return;
+		}
+
+		// Track brace depth to know when we exit defaultVariants
+		if (inDefaultVariants) {
+			braceDepth += (line.match(/{/g) || []).length - (line.match(/}/g) || []).length;
+			if (braceDepth <= 0) {
+				inDefaultVariants = false;
+			}
+			// Skip all lines inside defaultVariants
+			return;
+		}
+
+		// Skip lines that look like variant key assignments (key: 'value')
+		if (line.match(/^\s*[a-zA-Z_][a-zA-Z0-9_]*:\s*['"`][^'"]*['"`]\s*,?\s*$/)) {
 			return;
 		}
 
@@ -239,6 +255,18 @@ function isStandardTailwindClass(className) {
 		'min-',
 		'max-',
 		'space-',
+		'grow',
+		'shrink',
+		'group',
+		// Layout primitives (width/height)
+		'w-',
+		'h-',
+		'left-',
+		'right-',
+		'top-',
+		'bottom-',
+		'inset-',
+		'z-',
 		// Tailwind color utilities (reference theme colors)
 		'text-',
 		'bg-',
@@ -250,7 +278,12 @@ function isStandardTailwindClass(className) {
 		'outline-',
 		'from-',
 		'via-',
-		'to-' // Gradient colors
+		'to-', // Gradient colors
+		// Touch and selection
+		'touch-',
+		'select-',
+		// Backdrop
+		'backdrop-'
 	];
 
 	// Check exact matches first (e.g., 'border', 'flex')

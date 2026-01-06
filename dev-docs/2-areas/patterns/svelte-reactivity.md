@@ -231,14 +231,14 @@ Effect 1: sees "new" formValues → writes localValue again
 <script lang="ts">
     import { untrack } from 'svelte';
     
-    // Only track circleType, not decisionModel
+    // Only track leadAuthority, not related fields
     $effect(() => {
-        const circleType = editCircle.formValues.circleType;
-        const currentModel = untrack(() => editCircle.formValues.decisionModel);
+        const leadAuthority = editCircle.formValues.leadAuthority;
+        const currentField = untrack(() => editCircle.formValues.relatedField);
         
-        // This won't cause a loop because decisionModel isn't tracked
-        if (!isValidModel(currentModel, circleType)) {
-            editCircle.setField('decisionModel', getDefaultModel(circleType));
+        // This won't cause a loop because relatedField isn't tracked
+        if (!isValidField(currentField, leadAuthority)) {
+            editCircle.setField('relatedField', getDefaultField(leadAuthority));
         }
     });
 </script>

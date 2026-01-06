@@ -6,9 +6,9 @@
 import type { Doc } from '../../_generated/dataModel';
 
 /**
- * Canonical circle operating modes.
+ * Canonical lead authority values.
  * Re-exported from constants.ts (single source of truth).
  */
-export type { CircleType, DecisionModel } from './constants';
+export type { LeadAuthority } from './constants';
 
 export type CircleDoc = Doc<'circles'>;

@@ -11,20 +11,20 @@ Organizational containers for work within a workspace, with parent/child hierarc
 ## Key Concepts
 
 - One root circle per workspace; all other circles have a parent.
-- `circleType` and `decisionModel` define governance style.
+- `leadAuthority` defines how the circle lead makes decisions.
 - `slug` is unique per workspace for routing.
 - Soft delete via `archivedAt`/`archivedByPersonId`; `status` is lifecycle, not deletion.
 
 ## Identity Model
 
-| Field            | Type                                                             | Usage                    |
-| ---------------- | ---------------------------------------------------------------- | ------------------------ |
-| `circleId`       | `Id<'circles'>`                                                  | Primary identifier       |
-| `workspaceId`    | `Id<'workspaces'>`                                               | Scope boundary           |
-| `parentCircleId` | `Id<'circles'> \| null`                                          | Hierarchy (null = root)  |
-| `slug`           | `string`                                                         | Workspace-unique URL key |
-| `circleType`     | `'hierarchy' \| 'empowered_team' \| 'guild' \| 'hybrid' \| null` | Operating mode           |
-| `status`         | `'draft' \| 'active'`                                            | Lifecycle state          |
+| Field            | Type                                               | Usage                    |
+| ---------------- | -------------------------------------------------- | ------------------------ |
+| `circleId`       | `Id<'circles'>`                                    | Primary identifier       |
+| `workspaceId`    | `Id<'workspaces'>`                                 | Scope boundary           |
+| `parentCircleId` | `Id<'circles'> \| null`                            | Hierarchy (null = root)  |
+| `slug`           | `string`                                           | Workspace-unique URL key |
+| `leadAuthority`  | `'decides' \| 'facilitates' \| 'convenes' \| null` | How lead makes decisions |
+| `status`         | `'draft' \| 'active'`                              | Lifecycle state          |
 
 ## Invariants
 
@@ -37,7 +37,7 @@ This domain is validated by the following invariants (see `convex/admin/invarian
 | ORG-03  | No circular parent chains                              |
 | ORG-04  | `circle.workspaceId` points to existing workspace      |
 | ORG-05  | Parent circle is in the same workspace                 |
-| ORG-06  | `circleType` is valid enum when set                    |
+| ORG-06  | `leadAuthority` is valid enum when set                 |
 | ORG-07  | `status` is `draft` or `active`                        |
 | ORG-08  | `slug` is unique within workspace                      |
 | ORG-09  | `archivedByPersonId` implies `archivedAt`              |

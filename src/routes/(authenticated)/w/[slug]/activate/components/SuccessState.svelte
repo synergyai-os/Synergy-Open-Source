@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Button, Icon, Text } from '$lib/components/atoms';
+	import { Button, Text } from '$lib/components/atoms';
 	import { browser } from '$app/environment';
 
 	interface Props {
@@ -10,7 +10,7 @@
 	let { workspaceSlug }: Props = $props();
 
 	// Dynamically import canvas-confetti for client-side only
-	let confettiReady = $state(false);
+	let _confettiReady = $state(false);
 
 	onMount(async () => {
 		if (!browser) return;
@@ -37,6 +37,7 @@
 					angle: 60,
 					spread: 55,
 					origin: { x: 0, y: 0.6 },
+					// eslint-disable-next-line synergyos/no-hardcoded-design-values
 					colors: ['#0ea5e9', '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6']
 				});
 
@@ -45,11 +46,12 @@
 					angle: 120,
 					spread: 55,
 					origin: { x: 1, y: 0.6 },
+					// eslint-disable-next-line synergyos/no-hardcoded-design-values
 					colors: ['#0ea5e9', '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6']
 				});
 			}, 50);
 
-			confettiReady = true;
+			_confettiReady = true;
 		} catch (error) {
 			console.error('Failed to load confetti:', error);
 			// Graceful degradation - show success state without confetti

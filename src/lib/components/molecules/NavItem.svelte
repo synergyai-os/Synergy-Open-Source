@@ -11,6 +11,7 @@
 		class?: string;
 		target?: string;
 		rel?: string;
+		preloadData?: 'off' | 'hover' | 'tap' | 'viewport';
 		onclick?: (e: MouseEvent) => void;
 	};
 
@@ -25,6 +26,7 @@
 		class: className = '',
 		target,
 		rel,
+		preloadData,
 		onclick
 	}: Props = $props();
 
@@ -39,7 +41,15 @@
 	);
 </script>
 
-<a {href} {title} class={classes} {target} {rel} {onclick}>
+<a
+	{href}
+	{title}
+	class={classes}
+	{target}
+	{rel}
+	data-sveltekit-preload-data={preloadData}
+	{onclick}
+>
 	<Icon type={iconType} size="sm" />
 	{#if !collapsed}
 		<Text variant="body" size="sm" as="span" class="min-w-0 flex-1 font-normal">

@@ -2,9 +2,13 @@
  * Custom Fields Constants
  *
  * Master list of system field definitions that get seeded per workspace.
- * These define the standard fields that exist for roles and circles.
+ * These define the standard OPTIONAL fields that exist for roles and circles.
  *
- * @see SYOS-955: Create SYSTEM_FIELD_DEFINITIONS constant
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly on
+ * core schema tables (circles, circleRoles), NOT in customFieldValues.
+ * Only workspace-configurable fields are defined here.
+ *
+ * @see DR-011 in dev-docs/master-docs/architecture.md
  * @see tables.ts for table schema
  * @see schema.ts for type definitions
  */
@@ -34,49 +38,28 @@ export interface SystemFieldDefinitionTemplate {
  * Master list of system field definitions.
  * These are seeded into customFieldDefinitions table for each workspace.
  *
- * Role fields: Define the standard structure of a role in the organization
- * - Purpose: Why this role exists
- * - Decision Rights: What decisions this role can make
+ * DR-011: GOVERNANCE FIELDS ARE NOT INCLUDED HERE
+ * - Purpose (role/circle): Stored on schema - GOV-02 invariant
+ * - Decision Rights (role): Stored on schema - GOV-03 invariant
+ *
+ * Role fields (workspace-configurable):
  * - Accountabilities: What this role is accountable for delivering
  * - Domains: What areas this role has authority over
  * - Policies: Rules and constraints for this role
  * - Steering Metrics: How this role measures success
  * - Notes: Additional context and information
  *
- * Circle fields: Define the standard structure of a circle in the organization
- * - Purpose: Why this circle exists
+ * Circle fields (workspace-configurable):
  * - Domains: What areas this circle has authority over
  * - Accountabilities: What this circle is accountable for delivering
  * - Policies: Rules and constraints for this circle
- * - Decision Rights: What decisions this circle can make
  * - Notes: Additional context and information
  */
 export const SYSTEM_FIELD_DEFINITIONS = [
 	// ========================================================================
-	// Role Fields
+	// Role Fields (workspace-configurable, NOT governance fields)
+	// Note: purpose and decision_right are now on schema (DR-011)
 	// ========================================================================
-	{
-		entityType: 'role' as const,
-		systemKey: 'purpose',
-		name: 'Purpose',
-		fieldType: 'text' as const,
-		isRequired: true,
-		isSystemField: true,
-		searchable: true,
-		aiIndexed: true,
-		order: 1
-	},
-	{
-		entityType: 'role' as const,
-		systemKey: 'decision_right',
-		name: 'Decision Rights',
-		fieldType: 'textList' as const,
-		isRequired: true,
-		isSystemField: true,
-		searchable: true,
-		aiIndexed: true,
-		order: 2
-	},
 	{
 		entityType: 'role' as const,
 		systemKey: 'accountability',
@@ -86,7 +69,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 3
+		order: 1
 	},
 	{
 		entityType: 'role' as const,
@@ -97,7 +80,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 4
+		order: 2
 	},
 	{
 		entityType: 'role' as const,
@@ -108,7 +91,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 5
+		order: 3
 	},
 	{
 		entityType: 'role' as const,
@@ -119,7 +102,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 6
+		order: 4
 	},
 	{
 		entityType: 'role' as const,
@@ -130,23 +113,13 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 7
+		order: 5
 	},
 
 	// ========================================================================
-	// Circle Fields
+	// Circle Fields (workspace-configurable, NOT governance fields)
+	// Note: purpose is now on schema (DR-011)
 	// ========================================================================
-	{
-		entityType: 'circle' as const,
-		systemKey: 'purpose',
-		name: 'Purpose',
-		fieldType: 'text' as const,
-		isRequired: true,
-		isSystemField: true,
-		searchable: true,
-		aiIndexed: true,
-		order: 1
-	},
 	{
 		entityType: 'circle' as const,
 		systemKey: 'domain',
@@ -156,7 +129,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 2
+		order: 1
 	},
 	{
 		entityType: 'circle' as const,
@@ -167,7 +140,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 3
+		order: 2
 	},
 	{
 		entityType: 'circle' as const,
@@ -178,18 +151,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 4
-	},
-	{
-		entityType: 'circle' as const,
-		systemKey: 'decision_right',
-		name: 'Decision Rights',
-		fieldType: 'textList' as const,
-		isRequired: false,
-		isSystemField: true,
-		searchable: true,
-		aiIndexed: true,
-		order: 5
+		order: 3
 	},
 	{
 		entityType: 'circle' as const,
@@ -200,7 +162,7 @@ export const SYSTEM_FIELD_DEFINITIONS = [
 		isSystemField: true,
 		searchable: true,
 		aiIndexed: true,
-		order: 6
+		order: 4
 	}
 ] as const satisfies readonly SystemFieldDefinitionTemplate[];
 

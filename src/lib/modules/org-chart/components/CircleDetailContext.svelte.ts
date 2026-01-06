@@ -11,7 +11,7 @@
 import type { Id } from '$lib/convex';
 import type { UseCustomFieldsReturn } from '$lib/composables/useCustomFields.svelte';
 import type { UseEditCircleReturn } from '../composables/useEditCircle.svelte';
-import type { CircleType, DecisionModel } from '$lib/infrastructure/organizational-model/constants';
+import type { LeadAuthority } from '$lib/infrastructure/organizational-model/constants';
 
 /**
  * Circle data from orgChart composable (selectedCircle)
@@ -21,8 +21,7 @@ export interface CircleData {
 	workspaceId: Id<'workspaces'>;
 	name: string;
 	purpose: string | null;
-	circleType: CircleType;
-	decisionModel: DecisionModel;
+	leadAuthority: LeadAuthority;
 	parentCircleId: Id<'circles'> | null;
 	status: 'active' | 'draft' | 'archived';
 	createdAt: number;

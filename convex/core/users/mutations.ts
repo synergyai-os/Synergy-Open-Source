@@ -1,15 +1,13 @@
 import { v } from 'convex/values';
 import { mutation } from '../../_generated/server';
-import type { Doc, MutationCtx, QueryCtx } from '../../_generated/server';
+import type { Doc, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import {
 	calculateProfileName,
-	checkLinkDepth,
 	ensureLinkable,
 	linkExists,
 	requireProfilePermission
 } from './rules';
-import { MAX_LINK_DEPTH, MAX_TOTAL_ACCOUNTS } from './constants';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 

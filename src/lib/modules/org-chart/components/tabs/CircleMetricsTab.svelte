@@ -5,7 +5,7 @@
 
 	// Get shared context (available for future use when tabs get real content)
 	const ctx = getContext<CircleDetailContext>(CIRCLE_DETAIL_KEY);
-	const circle = $derived(ctx.circle());
+	const _circle = $derived(ctx.circle());
 </script>
 
 <EmptyState

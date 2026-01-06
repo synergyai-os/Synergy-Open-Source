@@ -15,56 +15,58 @@
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const convexClient = browser ? useConvexClient() : null;
 
-	import { CIRCLE_TYPES as CIRCLE_TYPE_CONSTANTS } from '$lib/infrastructure/organizational-model/constants';
+	import { LEAD_AUTHORITY } from '$lib/infrastructure/organizational-model/constants';
 
-	// Circle type options with descriptions
-	const CIRCLE_TYPES = [
+	// Lead authority options with descriptions
+	const LEAD_AUTHORITIES = [
 		{
-			value: CIRCLE_TYPE_CONSTANTS.HIERARCHY,
-			label: 'Hierarchy',
-			description: 'Traditional: manager decides directly',
-			icon: '👑',
+			value: LEAD_AUTHORITY.DECIDES,
+			label: 'Leader Decides',
+			description: 'Traditional management - the leader has final say on decisions',
+			icon: '👔',
 			rootEligible: true
 		},
 		{
-			value: CIRCLE_TYPE_CONSTANTS.EMPOWERED_TEAM,
-			label: 'Empowered Team',
-			description: 'Agile: team decides by consent, lead breaks ties',
+			value: LEAD_AUTHORITY.FACILITATES,
+			label: 'Team Decides Together',
+			description: 'Collaborative - the team makes decisions together with the leader facilitating',
 			icon: '🤝',
 			rootEligible: true
 		},
 		{
-			value: CIRCLE_TYPE_CONSTANTS.GUILD,
-			label: 'Guild',
-			description: 'Coordination only: advisory, no binding authority',
+			value: LEAD_AUTHORITY.CONVENES,
+			label: 'Advisory Only',
+			description: 'Community of practice - no decision authority, used for knowledge sharing',
 			icon: '🌱',
 			rootEligible: false
-		},
-		{
-			value: CIRCLE_TYPE_CONSTANTS.HYBRID,
-			label: 'Hybrid',
-			description: 'Mixed: manager uses consent process for decisions',
-			icon: '⚖️',
-			rootEligible: true
 		}
 	];
 
-	import type { CircleType } from '$lib/infrastructure/organizational-model/constants';
+	import type { LeadAuthority } from '$lib/infrastructure/organizational-model/constants';
 
 	// State
 	let circleName = $state('');
-	let circleType = $state<CircleType>(CIRCLE_TYPE_CONSTANTS.HIERARCHY);
+	let purpose = $state('');
+	let leadAuthority = $state<LeadAuthority>(LEAD_AUTHORITY.DECIDES);
 	let isCreating = $state(false);
-	let isLoading = $state(false);
+	let _isLoading = $state(false);
 	let errorMessage = $state<string | null>(null);
+
+	// Auto-populate circle name with workspace name on mount
+	$effect(() => {
+		if (workspaces?.activeWorkspace && !circleName.trim()) {
+			circleName = workspaces.activeWorkspace.name;
+		}
+	});
 
 	// Computed: Can submit form?
 	const canSubmit = $derived(() => {
 		return (
 			!isCreating &&
 			!!circleName.trim() &&
-			!!circleType &&
-			circleType !== CIRCLE_TYPE_CONSTANTS.GUILD // Guild cannot be root circle
+			!!purpose.trim() &&
+			!!leadAuthority &&
+			leadAuthority !== LEAD_AUTHORITY.CONVENES // Convenes cannot be root circle
 		);
 	});
 
@@ -72,9 +74,12 @@
 		// Validation: Block if form is invalid
 		if (!canSubmit()) {
 			if (!circleName.trim()) {
-				errorMessage = 'Circle name is required';
-			} else if (!circleType || circleType === CIRCLE_TYPE_CONSTANTS.GUILD) {
-				errorMessage = 'Please select a valid circle type (Guild cannot be used as root circle)';
+				errorMessage = 'Organization name is required';
+			} else if (!purpose.trim()) {
+				errorMessage = 'Purpose is required';
+			} else if (!leadAuthority || leadAuthority === LEAD_AUTHORITY.CONVENES) {
+				errorMessage =
+					'Please select a valid decision-making model (Advisory Only cannot be used for top-level organization)';
 			}
 			return;
 		}
@@ -97,7 +102,8 @@
 				sessionId,
 				workspaceId: activeWorkspace.workspaceId,
 				name: circleName.trim(),
-				circleType: circleType
+				purpose: purpose.trim() || undefined,
+				leadAuthority: leadAuthority
 			});
 
 			// Mark circle creation steps as completed
@@ -130,15 +136,15 @@
 	<div class="space-y-6">
 		<!-- Header -->
 		<div>
-			<h1 class="text-primary text-2xl font-semibold">Configure Your Root Circle</h1>
+			<h1 class="text-primary text-2xl font-semibold">Set Up Your Organization</h1>
 			<p class="text-secondary mt-2 text-sm">
-				Every organization starts with a root circle. Name it and choose how decisions will be made.
+				Define your organization's purpose and how decisions will be made at the top level.
 			</p>
 		</div>
 
-		<!-- Circle Name -->
+		<!-- Organization Name -->
 		<div>
-			<label class="text-primary mb-2 block text-sm font-medium">Circle Name</label>
+			<label class="text-primary mb-2 block text-sm font-medium">Organization Name</label>
 			<input
 				type="text"
 				bind:value={circleName}
@@ -146,50 +152,62 @@
 				class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full rounded-md border px-3 text-sm focus:outline-none"
 				required
 			/>
+			<p class="text-secondary mt-1 text-xs">
+				This is your top-level organizational unit. You can use the same name as your workspace or
+				choose something different.
+			</p>
 		</div>
 
-		<!-- Circle Type Selection -->
+		<!-- Purpose -->
 		<div>
-			<label class="text-primary mb-2 block text-sm font-medium">Circle Type</label>
+			<label class="text-primary mb-2 block text-sm font-medium"> Purpose </label>
+			<textarea
+				bind:value={purpose}
+				placeholder="e.g., Build innovative software that empowers teams to work better together"
+				rows="3"
+				class="border-base py-nav-item bg-elevated text-primary focus:border-accent-primary w-full resize-none rounded-md border px-3 text-sm focus:outline-none"
+				required
+			></textarea>
+			<p class="text-secondary mt-1 text-xs">
+				Your organization's mission or reason for existing. This helps align everyone on what you're
+				working toward. <strong class="text-primary">Note: You can change this at any time.</strong>
+			</p>
+		</div>
+
+		<!-- Lead Authority Selection -->
+		<div>
+			<label class="text-primary mb-2 block text-sm font-medium">Decision-Making Model</label>
 			<p class="text-secondary mb-3 text-xs">
-				Choose how this circle will operate. Each sub-circle can have its own type, and you can
-				change this later.
+				How will decisions be made at the top level of your organization? You can change this later,
+				and sub-circles can use different models.
 			</p>
 
 			<div class="space-y-2">
-				{#each CIRCLE_TYPES as type (type.value)}
-					{#if type.rootEligible}
+				{#each LEAD_AUTHORITIES as authority (authority.value)}
+					{#if authority.rootEligible}
 						<button
 							type="button"
-							onclick={() => (circleType = type.value)}
-							class="w-full cursor-pointer rounded-md p-3 text-left transition-all duration-200 {circleType ===
-							type.value
+							onclick={() => (leadAuthority = authority.value)}
+							class="w-full cursor-pointer rounded-md p-3 text-left transition-all duration-200 {leadAuthority ===
+							authority.value
 								? 'border-focus bg-selected border-2'
 								: 'border-default bg-surface hover:bg-hover hover:border-focus border'}"
 						>
 							<div class="flex items-start gap-3">
-								<span class="text-2xl">{type.icon}</span>
+								<span class="text-2xl">{authority.icon}</span>
 								<div class="flex-1">
 									<div class="text-primary flex items-center gap-2 text-sm font-medium">
-										{type.label}
-										{#if circleType === type.value}
+										{authority.label}
+										{#if leadAuthority === authority.value}
 											<Icon type="check" size="sm" color="primary" />
 										{/if}
 									</div>
-									<p class="text-secondary mt-1 text-xs">{type.description}</p>
+									<p class="text-secondary mt-1 text-xs">{authority.description}</p>
 								</div>
 							</div>
 						</button>
 					{/if}
 				{/each}
-			</div>
-
-			<!-- Info note -->
-			<div class="bg-elevated mt-3 rounded-md p-3 text-xs">
-				<p class="text-secondary">
-					<strong class="text-primary">Note:</strong> Guild circles cannot be used as root circles because
-					they're advisory-only. Each sub-circle you create can use any type, including Guild.
-				</p>
 			</div>
 		</div>
 
@@ -216,7 +234,7 @@
 				disabled={isCreating || !canSubmit()}
 				class="text-on-solid bg-accent-primary px-button-x py-button-y rounded-md text-sm font-medium disabled:opacity-50"
 			>
-				{isCreating ? 'Creating...' : 'Create Circle'}
+				{isCreating ? 'Setting up...' : 'Continue'}
 			</button>
 		</div>
 	</div>

@@ -4,4 +4,4 @@
  * Cross-cutting helpers for custom field operations.
  */
 
-export { createCustomFieldValuesFromTemplate } from './helpers';
+export { createCustomFieldValues } from './helpers';

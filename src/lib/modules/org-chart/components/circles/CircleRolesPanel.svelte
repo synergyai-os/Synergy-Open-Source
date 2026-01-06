@@ -33,6 +33,7 @@
 	let showCreateForm = $state(false);
 	let newRoleName = $state('');
 	let newRolePurpose = $state('');
+	let newRoleDecisionRights = $state('');
 
 	// State for expanding role details
 	let expandedRoleId = $state<string | null>(null);
@@ -52,21 +53,32 @@
 	async function handleCreateRole() {
 		if (!newRoleName.trim()) return;
 
+		if (!newRolePurpose.trim()) return;
+
+		const decisionRights = newRoleDecisionRights
+			.split('\n')
+			.map((line) => line.trim())
+			.filter(Boolean);
+
+		if (decisionRights.length === 0) return;
+
 		await circles.createRole({
 			circleId,
 			name: newRoleName.trim(),
-			purpose: newRolePurpose.trim() || undefined
+			purpose: newRolePurpose.trim(),
+			decisionRights
 		});
 
 		// Reset form on success
 		if (!circles.loading.createRole) {
 			newRoleName = '';
 			newRolePurpose = '';
+			newRoleDecisionRights = '';
 			showCreateForm = false;
 		}
 	}
 
-	async function handleAssignUser(roleId: string) {
+	async function handleAssignPerson(roleId: string) {
 		const personId = assignPersonId[roleId];
 		if (!personId) return;
 
@@ -76,7 +88,7 @@
 		assignPersonId = { ...assignPersonId, [roleId]: '' };
 	}
 
-	async function handleRemoveUser(roleId: string, personId: string) {
+	async function handleRemovePerson(roleId: string, personId: string) {
 		if (confirm('Remove this person from the role?')) {
 			await circles.removePersonFromRole({ circleRoleId: roleId, assigneePersonId: personId });
 		}
@@ -143,8 +155,14 @@
 				/>
 				<textarea
 					bind:value={newRolePurpose}
-					placeholder="Purpose (optional)"
+					placeholder="Purpose *"
 					rows={2}
+					class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary w-full border focus:outline-none"
+				></textarea>
+				<textarea
+					bind:value={newRoleDecisionRights}
+					placeholder="Decision rights (one per line) *"
+					rows={3}
 					class="border-base text-button rounded-button bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary w-full border focus:outline-none"
 				></textarea>
 				<div class="gap-button flex">
@@ -154,6 +172,7 @@
 							showCreateForm = false;
 							newRoleName = '';
 							newRolePurpose = '';
+							newRoleDecisionRights = '';
 						}}
 						class="border-base px-card text-button rounded-button py-input-y text-secondary hover:text-primary border font-medium"
 					>
@@ -161,7 +180,10 @@
 					</button>
 					<button
 						type="submit"
-						disabled={circles.loading.createRole}
+						disabled={circles.loading.createRole ||
+							!newRoleName.trim() ||
+							!newRolePurpose.trim() ||
+							!newRoleDecisionRights.trim()}
 						class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y hover:bg-accent-hover font-medium disabled:opacity-50"
 					>
 						{circles.loading.createRole ? 'Creating...' : 'Create'}
@@ -231,7 +253,7 @@
 						<!-- Expanded Role Details -->
 						{#if expandedRoleId === role.roleId}
 							<div class="border-base px-card py-nav-item border-t">
-								<!-- Assign User Form -->
+								<!-- Assign Person Form -->
 								<div class="mb-header">
 									<div class="gap-button flex">
 										<select
@@ -252,7 +274,7 @@
 											{/each}
 										</select>
 										<button
-											onclick={() => handleAssignUser(role.roleId)}
+											onclick={() => handleAssignPerson(role.roleId)}
 											disabled={!assignPersonId[role.roleId] || circles.loading.assignPerson}
 											class="text-on-solid px-card rounded-button bg-accent-primary py-input-y text-label hover:bg-accent-hover font-medium disabled:opacity-50"
 										>
@@ -270,7 +292,7 @@
 											<div class="text-label flex items-center justify-between">
 												<span class="text-primary">{filler.displayName || filler.email}</span>
 												<button
-													onclick={() => handleRemoveUser(role.roleId, filler.personId)}
+													onclick={() => handleRemovePerson(role.roleId, filler.personId)}
 													disabled={circles.loading.removePerson}
 													class="rounded-button inset-sm text-secondary hover:text-primary disabled:opacity-50"
 													title="Remove person"

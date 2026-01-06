@@ -251,7 +251,7 @@ function runTests(): AuditResult['testResults'] {
 
 		// Parse vitest output
 		// Look for patterns like: "Test Files  1 passed (1)     100ms"
-		const testFileMatch = output.match(/Test Files\s+(\d+)\s+passed\s+\((\d+)\)/);
+		const _testFileMatch = output.match(/Test Files\s+(\d+)\s+passed\s+\((\d+)\)/);
 		const testMatch = output.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/);
 		const failedMatch = output.match(/(\d+)\s+failed/);
 		const skippedMatch = output.match(/(\d+)\s+skipped/);

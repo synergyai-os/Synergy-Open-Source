@@ -12,7 +12,7 @@ import type { ProposalStatus } from './schema';
 import { getPersonForSessionAndWorkspace } from '../people/queries';
 import { calculateAuthority, getAuthorityContext, isCircleLead } from '../authority';
 import { slugifyName } from '../circles/slug';
-import { CIRCLE_TYPES } from '../circles';
+import { LEAD_AUTHORITY } from '../circles';
 import {
 	isCustomField,
 	findCustomFieldValueBySystemKey,
@@ -81,8 +81,7 @@ export const createFromDiff = mutation({
 		editedValues: v.object({
 			name: v.optional(v.string()),
 			purpose: v.optional(v.string()),
-			circleType: v.optional(v.string()),
-			decisionModel: v.optional(v.string()),
+			leadAuthority: v.optional(v.string()),
 			representsToParent: v.optional(v.boolean())
 		})
 	},
@@ -150,8 +149,7 @@ export const saveAndApprove = mutation({
 		editedValues: v.object({
 			name: v.optional(v.string()),
 			purpose: v.optional(v.string()),
-			circleType: v.optional(v.string()),
-			decisionModel: v.optional(v.string()),
+			leadAuthority: v.optional(v.string()),
 			representsToParent: v.optional(v.boolean())
 		})
 	},
@@ -331,8 +329,7 @@ async function createProposalFromDiffMutation(
 		editedValues: {
 			name?: string;
 			purpose?: string;
-			circleType?: string;
-			decisionModel?: string;
+			leadAuthority?: string;
 			representsToParent?: boolean;
 		};
 	}
@@ -371,8 +368,7 @@ async function createFromDiffInternal(
 		editedValues: {
 			name?: string;
 			purpose?: string;
-			circleType?: string;
-			decisionModel?: string;
+			leadAuthority?: string;
 			representsToParent?: boolean;
 		};
 	}
@@ -411,8 +407,7 @@ async function createFromDiffInternal(
 	const fieldLabels: Record<string, string> = {
 		name: 'Name',
 		purpose: 'Purpose',
-		circleType: 'Circle Type',
-		decisionModel: 'Decision Model',
+		leadAuthority: 'Lead Authority',
 		representsToParent: 'Represents to Parent Circle'
 	};
 
@@ -716,8 +711,7 @@ async function saveAndApproveMutation(
 		editedValues: {
 			name?: string;
 			purpose?: string;
-			circleType?: string;
-			decisionModel?: string;
+			leadAuthority?: string;
 			representsToParent?: boolean;
 		};
 	}
@@ -738,10 +732,10 @@ async function saveAndApproveMutation(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	if (circle.circleType !== CIRCLE_TYPES.HIERARCHY) {
+	if (circle.leadAuthority !== LEAD_AUTHORITY.DECIDES) {
 		throw createError(
 			ErrorCodes.PROPOSAL_ACCESS_DENIED,
-			'Auto-approve only available for hierarchy circles'
+			'Auto-approve only available for circles where lead decides'
 		);
 	}
 
@@ -861,13 +855,11 @@ async function approveInternal(
 		throw createError(ErrorCodes.PROPOSAL_INVALID_STATE, 'Proposal has no changes to apply');
 	}
 
-	// SYOS-984: Read custom field values before changes for version history
-	const purposeBefore = await findCustomFieldValueBySystemKey(ctx, {
-		workspaceId: proposal.workspaceId,
-		entityType: proposal.entityType,
-		entityId: proposal.entityId,
-		systemKey: 'purpose'
-	});
+	// DR-011: Read purpose directly from entity schema (not customFieldValues)
+	const purposeBefore =
+		proposal.entityType === 'circle'
+			? (entity as Doc<'circles'>).purpose
+			: (entity as Doc<'circleRoles'>).purpose;
 
 	// Separate schema field updates from custom field updates (SYOS-984)
 	const schemaUpdates: Partial<Doc<'circles'>> | Partial<Doc<'circleRoles'>> = {
@@ -925,13 +917,11 @@ async function approveInternal(
 		throw createError(ErrorCodes.GENERIC_ERROR, 'Failed to retrieve updated entity');
 	}
 
-	// SYOS-984: Read custom field values after changes for version history
-	const purposeAfter = await findCustomFieldValueBySystemKey(ctx, {
-		workspaceId: proposal.workspaceId,
-		entityType: proposal.entityType,
-		entityId: proposal.entityId,
-		systemKey: 'purpose'
-	});
+	// DR-011: Read purpose directly from entity schema (not customFieldValues)
+	const purposeAfter =
+		proposal.entityType === 'circle'
+			? (afterDoc as Doc<'circles'>).purpose
+			: (afterDoc as Doc<'circleRoles'>).purpose;
 
 	const changeDescription = `Approved via proposal: ${proposal.title}`;
 
@@ -950,21 +940,21 @@ async function approveInternal(
 			before: {
 				name: entity.name,
 				slug: (entity as Doc<'circles'>).slug,
-				purpose: purposeBefore ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				purpose: purposeBefore, // DR-011: Read from schema
 				parentCircleId: (entity as Doc<'circles'>).parentCircleId,
 				status: entity.status,
-				circleType: (entity as Doc<'circles'>).circleType,
-				decisionModel: (entity as Doc<'circles'>).decisionModel,
+				circleType: undefined, // SYOS-1077: Legacy field preserved for history
+				decisionModel: undefined, // SYOS-1077: Legacy field preserved for history
 				archivedAt: entity.archivedAt
 			},
 			after: {
 				name: circleAfter.name,
 				slug: circleAfter.slug,
-				purpose: purposeAfter ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				purpose: purposeAfter, // DR-011: Read from schema
 				parentCircleId: circleAfter.parentCircleId,
 				status: circleAfter.status,
-				circleType: circleAfter.circleType,
-				decisionModel: circleAfter.decisionModel,
+				circleType: undefined, // SYOS-1077: Legacy field preserved for history
+				decisionModel: undefined, // SYOS-1077: Legacy field preserved for history
 				archivedAt: circleAfter.archivedAt
 			}
 		});
@@ -981,7 +971,7 @@ async function approveInternal(
 			before: {
 				circleId: (entity as Doc<'circleRoles'>).circleId,
 				name: entity.name,
-				purpose: purposeBefore ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				purpose: purposeBefore, // DR-011: Read from schema
 				templateId: (entity as Doc<'circleRoles'>).templateId,
 				status: entity.status,
 				isHiring: (entity as Doc<'circleRoles'>).isHiring,
@@ -990,7 +980,7 @@ async function approveInternal(
 			after: {
 				circleId: roleAfter.circleId,
 				name: roleAfter.name,
-				purpose: purposeAfter ?? undefined, // SYOS-984: Read from customFieldValues (convert null to undefined)
+				purpose: purposeAfter, // DR-011: Read from schema
 				templateId: roleAfter.templateId,
 				status: roleAfter.status,
 				isHiring: roleAfter.isHiring,

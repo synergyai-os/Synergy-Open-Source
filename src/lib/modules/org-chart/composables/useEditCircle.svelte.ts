@@ -2,7 +2,7 @@
  * Edit Circle Composable
  *
  * Manages edit panel state for circles, including:
- * - Form state (name, purpose, circleType, decisionModel)
+ * - Form state (name, purpose, leadAuthority)
  * - Dirty tracking (compare current vs original values)
  * - Save actions (direct save vs save as proposal)
  * - Loading and error states
@@ -15,22 +15,19 @@ import { useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from '$lib/utils/toast';
 import { invariant } from '$lib/utils/invariant';
-import type { CircleType, DecisionModel } from '$lib/infrastructure/organizational-model/constants';
+import type { LeadAuthority } from '$lib/infrastructure/organizational-model/constants';
 import {
-	CIRCLE_TYPES,
-	DECISION_MODELS,
+	LEAD_AUTHORITY,
 	getLeadAuthorityLevel,
 	getAuthorityUI,
 	getLeadLabel,
-	type CircleType as CircleTypeType,
-	type DecisionModel as DecisionModelType
+	type LeadAuthority as LeadAuthorityType
 } from '$lib/infrastructure/organizational-model/constants';
 
 export interface CircleEditValues {
 	name: string;
 	purpose: string;
-	circleType: CircleType;
-	decisionModel: DecisionModel;
+	leadAuthority: LeadAuthority;
 }
 
 export interface UseEditCircleOptions {
@@ -86,8 +83,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		// Form state
 		name: '',
 		purpose: '',
-		circleType: CIRCLE_TYPES.HIERARCHY as CircleTypeType,
-		decisionModel: DECISION_MODELS.MANAGER_DECIDES as DecisionModelType,
+		leadAuthority: LEAD_AUTHORITY.DECIDES as LeadAuthorityType,
 		// Original values (for dirty checking)
 		originalValues: null as CircleEditValues | null,
 		// UI state
@@ -103,8 +99,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		return (
 			state.name !== state.originalValues.name ||
 			state.purpose !== state.originalValues.purpose ||
-			state.circleType !== state.originalValues.circleType ||
-			state.decisionModel !== state.originalValues.decisionModel
+			state.leadAuthority !== state.originalValues.leadAuthority
 		);
 	});
 
@@ -112,8 +107,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 	const formValues = $derived({
 		name: state.name,
 		purpose: state.purpose,
-		circleType: state.circleType,
-		decisionModel: state.decisionModel
+		leadAuthority: state.leadAuthority
 	});
 
 	/**
@@ -142,17 +136,13 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 			// Populate form with current values
 			state.name = circle.name;
 			state.purpose = circle.purpose || '';
-			state.circleType = (circle.circleType || CIRCLE_TYPES.HIERARCHY) as CircleTypeType;
-			state.decisionModel = (circle.decisionModel ||
-				DECISION_MODELS.MANAGER_DECIDES) as DecisionModelType;
+			state.leadAuthority = (circle.leadAuthority || LEAD_AUTHORITY.DECIDES) as LeadAuthorityType;
 
 			// Store original values for dirty checking
 			state.originalValues = {
 				name: circle.name,
 				purpose: circle.purpose || '',
-				circleType: (circle.circleType || CIRCLE_TYPES.HIERARCHY) as CircleTypeType,
-				decisionModel: (circle.decisionModel ||
-					DECISION_MODELS.MANAGER_DECIDES) as DecisionModelType
+				leadAuthority: (circle.leadAuthority || LEAD_AUTHORITY.DECIDES) as LeadAuthorityType
 			};
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Failed to load circle';
@@ -188,12 +178,13 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		state.error = null;
 
 		try {
-			// Check if circle type changed (for authority change notification)
-			const oldType = state.originalValues?.circleType ?? CIRCLE_TYPES.HIERARCHY;
-			const newType = state.circleType;
-			const oldAuthority = getLeadAuthorityLevel(oldType);
-			const newAuthority = getLeadAuthorityLevel(newType);
-			const authorityChanged = oldType !== newType && oldAuthority !== newAuthority;
+			// Check if lead authority changed (for authority change notification)
+			const oldAuthority = state.originalValues?.leadAuthority ?? LEAD_AUTHORITY.DECIDES;
+			const newAuthority = state.leadAuthority;
+			const oldAuthorityLevel = getLeadAuthorityLevel(oldAuthority);
+			const newAuthorityLevel = getLeadAuthorityLevel(newAuthority);
+			const authorityChanged =
+				oldAuthority !== newAuthority && oldAuthorityLevel !== newAuthorityLevel;
 
 			await convexClient.mutation(api.core.circles.index.updateInline, {
 				sessionId,
@@ -201,20 +192,19 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 				updates: {
 					name: state.name.trim(),
 					purpose: state.purpose || undefined,
-					circleType: state.circleType,
-					decisionModel: state.decisionModel
+					leadAuthority: state.leadAuthority
 				}
 			});
 
 			// Update original values to reflect saved state
 			state.originalValues = { ...formValues };
 
-			// Show authority change notification if circle type changed
+			// Show authority change notification if lead authority changed
 			if (authorityChanged) {
-				const oldUI = getAuthorityUI(oldAuthority);
-				const newUI = getAuthorityUI(newAuthority);
-				const oldLabel = getLeadLabel(oldType);
-				const newLabel = getLeadLabel(newType);
+				const oldUI = getAuthorityUI(oldAuthorityLevel);
+				const newUI = getAuthorityUI(newAuthorityLevel);
+				const oldLabel = getLeadLabel(oldAuthority);
+				const newLabel = getLeadLabel(newAuthority);
 
 				toast.info(
 					`Lead authority changed from ${oldUI.emoji} ${oldLabel} to ${newUI.emoji} ${newLabel}`,
@@ -264,8 +254,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 				editedValues: {
 					name: state.name.trim(),
 					purpose: state.purpose || undefined,
-					circleType: state.circleType,
-					decisionModel: state.decisionModel
+					leadAuthority: state.leadAuthority
 				}
 			});
 
@@ -288,8 +277,7 @@ export function useEditCircle(options: UseEditCircleOptions): UseEditCircleRetur
 		if (state.originalValues) {
 			state.name = state.originalValues.name;
 			state.purpose = state.originalValues.purpose;
-			state.circleType = state.originalValues.circleType;
-			state.decisionModel = state.originalValues.decisionModel;
+			state.leadAuthority = state.originalValues.leadAuthority;
 		}
 		state.error = null;
 	}

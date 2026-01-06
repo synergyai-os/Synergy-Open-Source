@@ -7,16 +7,15 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * Uses design tokens for all styling (no hardcoded values).
  *
  * Start simple - default variant only for now.
- * Can expand later with variants like 'prominent', 'compact', etc.
+ * Can expand later with additional variants if needed.
  */
 export const todayMeetingCardRecipe = cva(
 	// Base classes - wrapper container styling only (Card atom handles all card styling)
-	// No background needed - Card component with variant="premium" already provides bg-surface
+	// No background needed - Card component already provides background styling
 	'',
 	{
 		variants: {
-			// Start simple - no variants yet, can expand later
-			// Example future variants: 'prominent', 'compact', 'selected'
+			// Start simple - no variants yet, can expand later if needed
 		},
 		defaultVariants: {}
 	}

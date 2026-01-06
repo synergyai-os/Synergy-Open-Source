@@ -8,15 +8,21 @@ Begin work on a task. Fetch from Linear, verify against architecture, confirm be
 
 **`architecture.md` is the source of truth. The codebase may be outdated.**
 
+> **Status Markers in architecture.md:**
+> - `✅ ENFORCED` — Pattern is implemented and actively enforced
+> - `🚧 BUILDING` — Partially implemented, validate before assuming
+> - `📋 PLANNED` — Designed but NOT implemented yet
+
 When you find a gap between documentation and code:
 - **DO NOT** assume the code is correct
 - **DO NOT** silently follow the code pattern
+- **DO** check the section's status marker first
 - **DO** stop and report the gap
 - **DO** ask whether to: (A) follow docs, (B) update docs first, (C) clarify intent
-
 ```markdown
 > ⚠️ **Doc/Code Gap Detected:**
 > 
+> **Section Status:** [✅ ENFORCED / 🚧 BUILDING / 📋 PLANNED]
 > **Document says:** [quote from architecture.md]
 > **Code shows:** [what you found]
 > 
@@ -40,9 +46,9 @@ When you find a gap between documentation and code:
 - Conflicting constraints ("Doc says X, code does Y")
 - Domain terminology ("Is this a 'member' or 'person' in this context?")
 - Implicit expectations ("Does 'update' mean patch or replace?")
+- Status marker confusion ("Section is 🚧 BUILDING — does pattern exist?")
 
 **Format for clarifying questions:**
-
 ```markdown
 > ❓ **Clarification needed before proceeding:**
 > 
@@ -64,7 +70,6 @@ When you find a gap between documentation and code:
 ### Step 1: Fetch Ticket from Linear
 
 **Always fetch the ticket - never work from memory or conversation context.**
-
 ```typescript
 // Use Linear MCP to get the ticket
 const ticket = await Linear.get_issue({ id: ticketId });
@@ -80,7 +85,6 @@ If no ticket ID provided:
 #### 2a: Check for Parent Ticket
 
 If ticket has `parentId`:
-
 ```typescript
 const parent = await Linear.get_issue({ id: ticket.parentId });
 ```
@@ -94,7 +98,6 @@ Extract from parent:
 #### 2b: Check for Sub-tickets (if working on parent)
 
 If working on a parent epic:
-
 ```typescript
 const children = await Linear.list_issues({ parentId: ticket.id });
 ```
@@ -107,7 +110,6 @@ Understand:
 #### 2c: Check Blockers
 
 If ticket has "Blocked By" references and blocker not complete:
-
 ```markdown
 > ⚠️ **Blocker not complete:**
 > 
@@ -123,7 +125,6 @@ If ticket has "Blocked By" references and blocker not complete:
 ### Step 3: Parse Ticket Details
 
 Extract from the ticket description:
-
 ```markdown
 ## Ticket Summary
 
@@ -158,8 +159,8 @@ Extract from the ticket description:
 
 | If ticket involves... | Read these docs |
 |-----------------------|-----------------|
-| Any backend work | `architecture.md` (always) |
-| Core domain (circles, roles, people, etc.) | `architecture.md` — check FROZEN/STABLE status |
+| Any backend work | `architecture.md` (always — check AI Contract at top) |
+| Core domain (circles, roles, people, etc.) | `architecture.md` — check domain status + section markers |
 | UI components, styling, tokens | `design-system.md` |
 | Frontend reactive patterns, composables | `architecture.md` → Frontend Patterns section |
 | Permissions/access (RBAC) | `convex/infrastructure/rbac/README.md` |
@@ -167,9 +168,14 @@ Extract from the ticket description:
 | Data integrity | `convex/admin/invariants/INVARIANTS.md` |
 | Debugging, fixing issues | `dev-docs/2-areas/patterns/INDEX.md` |
 
-**Domain Status (FROZEN requires RFC):**
-- FROZEN: users, people, circles, roles, assignments, authority, history
-- STABLE: workspaces, proposals, policies
+**Domain Status Quick Reference** (source of truth: `architecture.md` → Core Domains table):
+- FROZEN (RFC required): users, people, circles, roles, assignments, authority, history
+- STABLE (careful evolution): workspaces, proposals, policies
+
+**Section Status Markers:**
+- `✅ ENFORCED` — Pattern exists, follow it
+- `🚧 BUILDING` — Validate pattern exists in codebase before using
+- `📋 PLANNED` — Pattern NOT implemented yet — flag if ticket requires it
 
 ### Step 4b: Check Existing Patterns
 
@@ -189,7 +195,6 @@ If no pattern but this seems reusable:
 ### Step 5: Read Current Code State
 
 For each file in scope:
-
 ```bash
 view [file]
 wc -l [file]
@@ -199,15 +204,25 @@ wc -l [file]
 
 | Check | If Gap Found |
 |-------|--------------|
-| Identity pattern (sessionId → userId → personId) | Report gap |
-| Auth helper usage (validateSessionAndGetUserId) | Report gap |
-| Domain terminology (circle, role, person) | Report gap |
-| Layer dependencies (infra ← core ← features) | Report gap |
-| Export pattern (only via index.ts) | Report gap |
+| Identity pattern (sessionId → userId → personId) | Report gap with section status |
+| Auth helper usage (validateSessionAndGetUserId) | Report gap with section status |
+| Domain terminology (circle, role, person) | Report gap with section status |
+| Layer dependencies (infra ← core ← features) | Report gap with section status |
+| Export pattern (only via index.ts) | Report gap with section status |
 
 ### Step 6: Identify Approach (Docs-First)
 
 **Derive approach from architecture.md, not from existing code patterns.**
+
+**First, check section status markers:**
+
+| Status | Action |
+|--------|--------|
+| `✅ ENFORCED` | Follow the pattern as documented |
+| `🚧 BUILDING` | Verify pattern exists in codebase; if not, flag before proceeding |
+| `📋 PLANNED` | Pattern not implemented — ask if you should implement it or use alternative |
+
+**Then apply the documented patterns:**
 
 | If working on... | Architecture.md says... |
 |------------------|------------------------|
@@ -218,7 +233,6 @@ wc -l [file]
 | Schema change | Update tables.ts, register in schema.ts, add indexes |
 
 ### Step 7: Present Plan (Wait for Confirmation)
-
 ```markdown
 ## Task: SYOS-XXX — [Title]
 
@@ -229,18 +243,18 @@ wc -l [file]
 
 ### Doc/Code Alignment Check
 
-| Aspect | Architecture.md | Current Code | Status |
-|--------|-----------------|--------------|--------|
-| Identity chain | sessionId → userId → personId | [what code shows] | ✅ / ⚠️ Gap |
-| Auth helper | validateSessionAndGetUserId | [what code uses] | ✅ / ⚠️ Gap |
-| Layer imports | infra ← core ← features | [what imports show] | ✅ / ⚠️ Gap |
+| Aspect | Architecture.md | Section Status | Current Code | Aligned? |
+|--------|-----------------|----------------|--------------|----------|
+| Identity chain | sessionId → userId → personId | ✅ ENFORCED | [what code shows] | ✅ / ⚠️ Gap |
+| Auth helper | validateSessionAndGetUserId | ✅ ENFORCED | [what code uses] | ✅ / ⚠️ Gap |
+| Layer imports | infra ← core ← features | ✅ ENFORCED | [what imports show] | ✅ / ⚠️ Gap |
 
 ### What I'll Do
 
 1. **[Logical unit 1]**
    - Create/Update `path/to/file.ts`
    - Implement [specific thing]
-   - Pattern source: [architecture.md section]
+   - Pattern source: [architecture.md section + status]
 
 2. **[Logical unit 2]**
    - ...
@@ -285,7 +299,6 @@ Reply with:
 After confirmation, implement the plan.
 
 **After each logical unit:**
-
 ```bash
 npm run check
 ```
@@ -304,6 +317,7 @@ If checkpoint fails:
 > ⚠️ **Found code contradicting architecture.md:**
 > 
 > **Location:** `convex/core/circles/mutations.ts:45`
+> **Section Status:** [✅ ENFORCED / 🚧 BUILDING / 📋 PLANNED]
 > **Code pattern:** [what you found]
 > **Architecture.md says:** [correct pattern]
 > 
@@ -311,7 +325,6 @@ If checkpoint fails:
 ```
 
 ### Step 9: Self-Check Before Completion
-
 ```bash
 npm run check
 npm run lint
@@ -329,7 +342,6 @@ npm run test:unit:server -- --filter=[domain]  # if applicable
 | Error format | Review throws | All use ERR_CODE: message |
 
 Report results:
-
 ```markdown
 ## Self-Check Complete
 
@@ -361,7 +373,6 @@ Report results:
 ## Architecture Quick Reference
 
 ### Identity Model (Critical)
-
 ```
 sessionId → userId → personId → workspaceId
 
@@ -380,7 +391,6 @@ workspaceId = Tenant boundary
 | Workspace RBAC | `personId` |
 
 ### Auth Flow (Every Mutation)
-
 ```typescript
 export const doThing = mutation({
   args: { sessionId: v.string(), workspaceId: v.id('workspaces'), /* ... */ },
@@ -431,16 +441,17 @@ export const doThing = mutation({
 
 ## Critical Reminders
 
-1. **Docs lead, code follows** — architecture.md is truth
+1. **Docs lead, code follows** — architecture.md is truth, check status markers
 2. **Fetch ticket from Linear** — Never work from memory
-3. **Check domain status** — FROZEN domains require RFC
-4. **Load parent context** — Sub-tickets inherit constraints
-5. **Present plan first** — Wait for confirmation
-6. **Never assume** — When in doubt, ask
-7. **Checkpoint often** — Run `npm run check` after each unit
-8. **Identity chain** — sessionId → userId → personId
-9. **Audit fields** — Always use `personId`, never `userId`
-10. **Domain language** — Circle, role, person (not team, job, member)
+3. **Check section status** — `✅ ENFORCED` vs `🚧 BUILDING` vs `📋 PLANNED`
+4. **Check domain status** — FROZEN domains require RFC
+5. **Load parent context** — Sub-tickets inherit constraints
+6. **Present plan first** — Wait for confirmation
+7. **Never assume** — When in doubt, ask
+8. **Checkpoint often** — Run `npm run check` after each unit
+9. **Identity chain** — sessionId → userId → personId
+10. **Audit fields** — Always use `personId`, never `userId`
+11. **Domain language** — Circle, role, person (not team, job, member)
 
 ---
 
@@ -448,4 +459,5 @@ export const doThing = mutation({
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.1 | 2026-01-05 | Added status marker awareness (`✅ ENFORCED` / `🚧 BUILDING` / `📋 PLANNED`). Updated gap reporting to include section status. Aligned with SYOS-1060 architecture.md restructure. |
 | 3.0 | 2025-12-19 | Complete rewrite aligned with architecture.md v4.1. Removed patterns-and-lessons.md references. Streamlined for AI execution. |

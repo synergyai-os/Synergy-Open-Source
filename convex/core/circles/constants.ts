@@ -1,7 +1,7 @@
 /**
- * Circle Type & Decision Model Constants
+ * Lead Authority Constants
  *
- * SINGLE SOURCE OF TRUTH for circle types and decision models.
+ * SINGLE SOURCE OF TRUTH for lead authority values.
  *
  * These constants are used throughout the codebase:
  * - Backend: Schema validation, business logic, queries
@@ -15,52 +15,36 @@
  *
  * @example
  * ```typescript
- * import { CIRCLE_TYPES, type CircleType } from './constants';
+ * import { LEAD_AUTHORITY, type LeadAuthority } from './constants';
  *
- * const circleType: CircleType = CIRCLE_TYPES.HIERARCHY;
+ * const leadAuthority: LeadAuthority = LEAD_AUTHORITY.DECIDES;
  * ```
  */
 
 // ============================================================================
-// Circle Types
+// Lead Authority
 // ============================================================================
 
-export const CIRCLE_TYPES = {
-	HIERARCHY: 'hierarchy',
-	EMPOWERED_TEAM: 'empowered_team',
-	GUILD: 'guild',
-	HYBRID: 'hybrid'
+export const LEAD_AUTHORITY = {
+	DECIDES: 'decides',
+	FACILITATES: 'facilitates',
+	CONVENES: 'convenes'
 } as const;
 
-export type CircleType = (typeof CIRCLE_TYPES)[keyof typeof CIRCLE_TYPES];
+export type LeadAuthority = (typeof LEAD_AUTHORITY)[keyof typeof LEAD_AUTHORITY];
 
-// ============================================================================
-// Decision Models
-// ============================================================================
-
-export const DECISION_MODELS = {
-	MANAGER_DECIDES: 'manager_decides',
-	TEAM_CONSENSUS: 'team_consensus',
-	CONSENT: 'consent',
-	COORDINATION_ONLY: 'coordination_only'
-} as const;
-
-export type DecisionModel = (typeof DECISION_MODELS)[keyof typeof DECISION_MODELS];
+/**
+ * Default lead authority value for new circles
+ */
+export const DEFAULT_LEAD_AUTHORITY: LeadAuthority = LEAD_AUTHORITY.DECIDES;
 
 // ============================================================================
 // Type Guards
 // ============================================================================
 
 /**
- * Type guard: Check if value is a valid CircleType
+ * Type guard: Check if value is a valid LeadAuthority
  */
-export function isCircleType(value: string): value is CircleType {
-	return Object.values(CIRCLE_TYPES).includes(value as CircleType);
-}
-
-/**
- * Type guard: Check if value is a valid DecisionModel
- */
-export function isDecisionModel(value: string): value is DecisionModel {
-	return Object.values(DECISION_MODELS).includes(value as DecisionModel);
+export function isLeadAuthority(value: string): value is LeadAuthority {
+	return Object.values(LEAD_AUTHORITY).includes(value as LeadAuthority);
 }

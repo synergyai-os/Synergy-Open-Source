@@ -1,7 +1,7 @@
 import type { MutationCtx } from '../../../_generated/server';
 import type { Id } from '../../../_generated/dataModel';
-import { getPersonByUserAndWorkspace } from '../../../core/people/queries';
 import { parseTagName } from '../utils';
+import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 
 export async function createTagIfMissingImpl(
 	ctx: MutationCtx,

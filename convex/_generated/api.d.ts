@@ -22,6 +22,8 @@ import type * as admin_invariants_proposals from "../admin/invariants/proposals.
 import type * as admin_invariants_roles from "../admin/invariants/roles.js";
 import type * as admin_invariants_types from "../admin/invariants/types.js";
 import type * as admin_invariants_workspaces from "../admin/invariants/workspaces.js";
+import type * as admin_migrations_backfillRoleGovernanceFieldsFromTemplates from "../admin/migrations/backfillRoleGovernanceFieldsFromTemplates.js";
+import type * as admin_migrations_leadAuthorityMigration from "../admin/migrations/leadAuthorityMigration.js";
 import type * as admin_migrations_migrateCircleItemsToCustomFields from "../admin/migrations/migrateCircleItemsToCustomFields.js";
 import type * as admin_migrations_migrateProjectsToPersonId from "../admin/migrations/migrateProjectsToPersonId.js";
 import type * as admin_migrations_migrateTasksAuditFields from "../admin/migrations/migrateTasksAuditFields.js";
@@ -314,6 +316,8 @@ declare const fullApi: ApiFromModules<{
   "admin/invariants/roles": typeof admin_invariants_roles;
   "admin/invariants/types": typeof admin_invariants_types;
   "admin/invariants/workspaces": typeof admin_invariants_workspaces;
+  "admin/migrations/backfillRoleGovernanceFieldsFromTemplates": typeof admin_migrations_backfillRoleGovernanceFieldsFromTemplates;
+  "admin/migrations/leadAuthorityMigration": typeof admin_migrations_leadAuthorityMigration;
   "admin/migrations/migrateCircleItemsToCustomFields": typeof admin_migrations_migrateCircleItemsToCustomFields;
   "admin/migrations/migrateProjectsToPersonId": typeof admin_migrations_migrateProjectsToPersonId;
   "admin/migrations/migrateTasksAuditFields": typeof admin_migrations_migrateTasksAuditFields;

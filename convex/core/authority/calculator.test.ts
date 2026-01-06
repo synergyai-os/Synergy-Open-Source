@@ -5,127 +5,131 @@
  * These tests verify the pure function behavior without database dependencies.
  *
  * SYOS-692: Tests for extracted authority calculator
+ * SYOS-1070: Updated for leadAuthority model (simplified from circleType)
  */
 
 import { describe, test, expect } from 'vitest';
 import {
+	getAuthorityLevel,
 	calculateAuthorityLevel,
 	hasDirectApprovalAuthority,
 	requiresConsentProcess,
 	hasConveningAuthority
 } from './calculator';
-import type { CircleType } from './types';
+import type { LeadAuthority } from './types';
 
-describe('calculateAuthorityLevel', () => {
-	test('maps hierarchy to authority', () => {
-		expect(calculateAuthorityLevel('hierarchy')).toBe('authority');
+describe('getAuthorityLevel', () => {
+	test('returns decides for decides', () => {
+		expect(getAuthorityLevel('decides')).toBe('decides');
 	});
 
-	test('maps empowered_team to facilitative', () => {
-		expect(calculateAuthorityLevel('empowered_team')).toBe('facilitative');
+	test('returns facilitates for facilitates', () => {
+		expect(getAuthorityLevel('facilitates')).toBe('facilitates');
 	});
 
-	test('maps guild to convening', () => {
-		expect(calculateAuthorityLevel('guild')).toBe('convening');
+	test('returns convenes for convenes', () => {
+		expect(getAuthorityLevel('convenes')).toBe('convenes');
 	});
 
-	test('maps hybrid to authority', () => {
-		expect(calculateAuthorityLevel('hybrid')).toBe('authority');
+	test('defaults null to decides', () => {
+		expect(getAuthorityLevel(null)).toBe('decides');
 	});
 
-	test('defaults null to hierarchy (authority)', () => {
-		expect(calculateAuthorityLevel(null)).toBe('authority');
+	test('defaults undefined to decides', () => {
+		expect(getAuthorityLevel(undefined)).toBe('decides');
 	});
+});
 
-	test('defaults undefined to hierarchy (authority)', () => {
-		expect(calculateAuthorityLevel(undefined)).toBe('authority');
+describe('calculateAuthorityLevel (deprecated alias)', () => {
+	test('works as alias for getAuthorityLevel', () => {
+		expect(calculateAuthorityLevel('decides')).toBe('decides');
+		expect(calculateAuthorityLevel('facilitates')).toBe('facilitates');
+		expect(calculateAuthorityLevel('convenes')).toBe('convenes');
+		expect(calculateAuthorityLevel(null)).toBe('decides');
 	});
 });
 
 describe('hasDirectApprovalAuthority', () => {
-	test('returns true for hierarchy', () => {
-		expect(hasDirectApprovalAuthority('hierarchy')).toBe(true);
+	test('returns true for decides', () => {
+		expect(hasDirectApprovalAuthority('decides')).toBe(true);
 	});
 
-	test('returns true for hybrid', () => {
-		expect(hasDirectApprovalAuthority('hybrid')).toBe(true);
+	test('returns false for facilitates', () => {
+		expect(hasDirectApprovalAuthority('facilitates')).toBe(false);
 	});
 
-	test('returns false for empowered_team', () => {
-		expect(hasDirectApprovalAuthority('empowered_team')).toBe(false);
+	test('returns false for convenes', () => {
+		expect(hasDirectApprovalAuthority('convenes')).toBe(false);
 	});
 
-	test('returns false for guild', () => {
-		expect(hasDirectApprovalAuthority('guild')).toBe(false);
-	});
-
-	test('defaults null to true (hierarchy)', () => {
+	test('defaults null to true (decides)', () => {
 		expect(hasDirectApprovalAuthority(null)).toBe(true);
 	});
 });
 
 describe('requiresConsentProcess', () => {
-	test('returns true for empowered_team', () => {
-		expect(requiresConsentProcess('empowered_team')).toBe(true);
+	test('returns true for facilitates', () => {
+		expect(requiresConsentProcess('facilitates')).toBe(true);
 	});
 
-	test('returns false for hierarchy', () => {
-		expect(requiresConsentProcess('hierarchy')).toBe(false);
+	test('returns false for decides', () => {
+		expect(requiresConsentProcess('decides')).toBe(false);
 	});
 
-	test('returns false for hybrid', () => {
-		expect(requiresConsentProcess('hybrid')).toBe(false);
+	test('returns false for convenes', () => {
+		expect(requiresConsentProcess('convenes')).toBe(false);
 	});
 
-	test('returns false for guild', () => {
-		expect(requiresConsentProcess('guild')).toBe(false);
-	});
-
-	test('defaults null to false (hierarchy)', () => {
+	test('defaults null to false (decides)', () => {
 		expect(requiresConsentProcess(null)).toBe(false);
 	});
 });
 
 describe('hasConveningAuthority', () => {
-	test('returns true for guild', () => {
-		expect(hasConveningAuthority('guild')).toBe(true);
+	test('returns true for convenes', () => {
+		expect(hasConveningAuthority('convenes')).toBe(true);
 	});
 
-	test('returns false for hierarchy', () => {
-		expect(hasConveningAuthority('hierarchy')).toBe(false);
+	test('returns false for decides', () => {
+		expect(hasConveningAuthority('decides')).toBe(false);
 	});
 
-	test('returns false for empowered_team', () => {
-		expect(hasConveningAuthority('empowered_team')).toBe(false);
+	test('returns false for facilitates', () => {
+		expect(hasConveningAuthority('facilitates')).toBe(false);
 	});
 
-	test('returns false for hybrid', () => {
-		expect(hasConveningAuthority('hybrid')).toBe(false);
-	});
-
-	test('defaults null to false (hierarchy)', () => {
+	test('defaults null to false (decides)', () => {
 		expect(hasConveningAuthority(null)).toBe(false);
 	});
 });
 
 describe('Authority Level Consistency', () => {
-	test('all circle types map to valid authority levels', () => {
-		const circleTypes: CircleType[] = ['hierarchy', 'empowered_team', 'guild', 'hybrid'];
-		const validLevels = ['authority', 'facilitative', 'convening'];
+	test('all lead authority values are valid authority levels', () => {
+		const leadAuthorityValues: LeadAuthority[] = ['decides', 'facilitates', 'convenes'];
+		const validLevels = ['decides', 'facilitates', 'convenes'];
 
-		for (const circleType of circleTypes) {
-			const level = calculateAuthorityLevel(circleType);
+		for (const leadAuthority of leadAuthorityValues) {
+			const level = getAuthorityLevel(leadAuthority);
 			expect(validLevels).toContain(level);
 		}
 	});
 
-	test('mutually exclusive helper functions', () => {
-		const circleTypes: CircleType[] = ['hierarchy', 'empowered_team', 'guild', 'hybrid'];
+	test('identity: leadAuthority IS the authority level', () => {
+		const leadAuthorityValues: LeadAuthority[] = ['decides', 'facilitates', 'convenes'];
 
-		for (const circleType of circleTypes) {
-			const hasDirect = hasDirectApprovalAuthority(circleType);
-			const requiresConsent = requiresConsentProcess(circleType);
-			const hasConvening = hasConveningAuthority(circleType);
+		for (const leadAuthority of leadAuthorityValues) {
+			// Key insight: leadAuthority and authority level are now the same value
+			expect(getAuthorityLevel(leadAuthority)).toBe(leadAuthority);
+		}
+	});
+
+	test('mutually exclusive helper functions', () => {
+		const leadAuthorityValues: LeadAuthority[] = ['decides', 'facilitates', 'convenes'];
+
+		for (const leadAuthority of leadAuthorityValues) {
+			const hasDirect = hasDirectApprovalAuthority(leadAuthority);
+			const requiresConsent = requiresConsentProcess(leadAuthority);
+			const hasConvening = hasConveningAuthority(leadAuthority);
 
 			// Exactly one should be true
 			const trueCount = [hasDirect, requiresConsent, hasConvening].filter(Boolean).length;

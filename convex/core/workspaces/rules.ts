@@ -11,7 +11,7 @@
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 import type { ActivationIssue } from './schema';
-import { CIRCLE_TYPES } from '../circles';
+import { LEAD_AUTHORITY } from '../circles';
 
 /**
  * Validation context passed to check functions
@@ -146,7 +146,7 @@ async function checkRootCircle(
 }
 
 /**
- * ORG-10: Root circle type ≠ guild
+ * ORG-10: Root circle leadAuthority ≠ convenes
  */
 async function checkRootCircleType(
 	ctx: QueryCtx | MutationCtx,
@@ -167,7 +167,7 @@ async function checkRootCircleType(
 	}
 
 	const rootCircle = rootCircles[0];
-	if (rootCircle.circleType === CIRCLE_TYPES.GUILD) {
+	if (rootCircle.leadAuthority === LEAD_AUTHORITY.CONVENES) {
 		return [
 			{
 				id: `ORG-10-${rootCircle._id}`,
@@ -176,7 +176,7 @@ async function checkRootCircleType(
 				entityType: 'circle',
 				entityId: rootCircle._id,
 				entityName: rootCircle.name,
-				message: `Root circle "${rootCircle.name}" cannot be type 'guild'`,
+				message: `Root circle "${rootCircle.name}" cannot have leadAuthority 'convenes'`,
 				actionType: 'edit_circle',
 				actionUrl: `/w/${context.workspaceSlug}/chart`,
 				// Structured navigation data (SYOS-1022)
@@ -235,10 +235,9 @@ async function checkCircleLeadRoles(
 }
 
 /**
- * GOV-02: Every role has a purpose (customFieldValue)
+ * GOV-02: Every role has a purpose (schema field)
  *
- * CRITICAL FIX (SYOS-1006): If customFieldDefinition for 'purpose' doesn't exist,
- * return SYS-01 error (not silent pass).
+ * DR-011: Governance fields stored directly on schema, not in customFieldValues.
  */
 async function checkRolePurposes(
 	ctx: QueryCtx | MutationCtx,
@@ -246,34 +245,6 @@ async function checkRolePurposes(
 	context: ValidationContext
 ): Promise<ActivationIssue[]> {
 	const issues: ActivationIssue[] = [];
-
-	// Check if purpose definition exists
-	const purposeDef = await ctx.db
-		.query('customFieldDefinitions')
-		.withIndex('by_workspace_system_key', (q) =>
-			q.eq('workspaceId', workspaceId).eq('systemKey', 'purpose')
-		)
-		.filter((q) => q.eq(q.field('entityType'), 'role'))
-		.first();
-
-	// ✅ CRITICAL FIX: Explicit fail if definition missing (not silent pass)
-	if (!purposeDef) {
-		const workspace = await ctx.db.get(workspaceId);
-		return [
-			{
-				id: 'SYS-01-PURPOSE',
-				code: 'SYS-01',
-				severity: 'error',
-				entityType: 'workspace',
-				entityId: workspaceId,
-				entityName: workspace?.name ?? context.workspaceSlug,
-				message:
-					'System field definitions not initialized. Complete onboarding step 3 (role field setup).',
-				actionType: 'create_root',
-				actionUrl: `/w/${context.workspaceSlug}/activate`
-			}
-		];
-	}
 
 	// Get all circles and their roles
 	const allCircles = await ctx.db
@@ -292,14 +263,8 @@ async function checkRolePurposes(
 			.collect();
 
 		for (const role of roles) {
-			const purposeValues = await ctx.db
-				.query('customFieldValues')
-				.withIndex('by_definition_entity', (q) =>
-					q.eq('definitionId', purposeDef._id).eq('entityId', role._id)
-				)
-				.collect();
-
-			const hasNonEmptyPurpose = purposeValues.some((v) => v.value && v.value.trim().length > 0);
+			// DR-011: Check purpose directly on schema
+			const hasNonEmptyPurpose = role.purpose && role.purpose.trim().length > 0;
 
 			if (!hasNonEmptyPurpose) {
 				issues.push({
@@ -324,10 +289,9 @@ async function checkRolePurposes(
 }
 
 /**
- * GOV-03: Every role has ≥1 decision_right (customFieldValue)
+ * GOV-03: Every role has ≥1 decision right (schema field)
  *
- * CRITICAL FIX (SYOS-1006): If customFieldDefinition for 'decision_right' doesn't exist,
- * return SYS-01 error (not silent pass).
+ * DR-011: Governance fields stored directly on schema, not in customFieldValues.
  */
 async function checkRoleDecisionRights(
 	ctx: QueryCtx | MutationCtx,
@@ -335,34 +299,6 @@ async function checkRoleDecisionRights(
 	context: ValidationContext
 ): Promise<ActivationIssue[]> {
 	const issues: ActivationIssue[] = [];
-
-	// Check if decision_right definition exists
-	const decisionRightDef = await ctx.db
-		.query('customFieldDefinitions')
-		.withIndex('by_workspace_system_key', (q) =>
-			q.eq('workspaceId', workspaceId).eq('systemKey', 'decision_right')
-		)
-		.filter((q) => q.eq(q.field('entityType'), 'role'))
-		.first();
-
-	// ✅ CRITICAL FIX: Explicit fail if definition missing (not silent pass)
-	if (!decisionRightDef) {
-		const workspace = await ctx.db.get(workspaceId);
-		return [
-			{
-				id: 'SYS-01-DECISION-RIGHT',
-				code: 'SYS-01',
-				severity: 'error',
-				entityType: 'workspace',
-				entityId: workspaceId,
-				entityName: workspace?.name ?? context.workspaceSlug,
-				message:
-					'System field definitions not initialized. Complete onboarding step 3 (role field setup).',
-				actionType: 'create_root',
-				actionUrl: `/w/${context.workspaceSlug}/activate`
-			}
-		];
-	}
 
 	// Get all circles and their roles
 	const allCircles = await ctx.db
@@ -381,16 +317,11 @@ async function checkRoleDecisionRights(
 			.collect();
 
 		for (const role of roles) {
-			const decisionRightValues = await ctx.db
-				.query('customFieldValues')
-				.withIndex('by_definition_entity', (q) =>
-					q.eq('definitionId', decisionRightDef._id).eq('entityId', role._id)
-				)
-				.collect();
-
-			const hasNonEmptyDecisionRight = decisionRightValues.some(
-				(v) => v.value && v.value.trim().length > 0
-			);
+			// DR-011: Check decisionRights directly on schema
+			const hasNonEmptyDecisionRight =
+				role.decisionRights &&
+				role.decisionRights.length > 0 &&
+				role.decisionRights.some((r) => r && r.trim().length > 0);
 
 			if (!hasNonEmptyDecisionRight) {
 				issues.push({

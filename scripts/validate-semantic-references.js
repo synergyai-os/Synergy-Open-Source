@@ -21,7 +21,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..');
-const DESIGN_SYSTEM_JSON = path.join(PROJECT_ROOT, 'design-tokens-base.json');
+const DESIGN_SYSTEM_JSON = path.join(PROJECT_ROOT, 'design-tokens-semantic.json');
 
 /**
  * Check if a token path represents a base token

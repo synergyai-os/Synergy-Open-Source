@@ -49,7 +49,7 @@ export async function isInboxItemNewImpl(ctx: QueryCtx, inboxItemId: Id<'inboxIt
 	return now - inboxItem.createdAt < 5000;
 }
 
-async function findPersonId(
+async function _findPersonId(
 	ctx: QueryCtx,
 	userId: Id<'users'>,
 	workspaceId: Id<'workspaces'>

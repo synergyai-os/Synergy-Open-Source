@@ -13,6 +13,7 @@
 
 import type { MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
+import { LEAD_AUTHORITY } from '../../core/circles/constants';
 
 /**
  * Bootstrap workspace configuration
@@ -63,7 +64,7 @@ export async function createMinimumViableWorkspace(
 		purpose: config.rootCirclePurpose,
 		parentCircleId: undefined, // Root circle - no parent
 		status: 'active',
-		circleType: CIRCLE_TYPES.HIERARCHY, // Default to hierarchy for bootstrap
+		leadAuthority: LEAD_AUTHORITY.DECIDES, // Default to decides for bootstrap
 		createdAt: now,
 		updatedAt: now
 	});

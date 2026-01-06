@@ -48,7 +48,8 @@ describe('Circle Roles Integration Tests', () => {
 			sessionId,
 			circleId,
 			name: 'Circle Lead',
-			purpose: 'Leads the circle and facilitates meetings'
+			purpose: 'Leads the circle and facilitates meetings',
+			decisionRights: ['Facilitate circle meetings', 'Assign roles within circle']
 		});
 
 		expect(result).toBeDefined();
@@ -79,17 +80,23 @@ describe('Circle Roles Integration Tests', () => {
 		await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Circle Lead'
+			name: 'Circle Lead',
+			purpose: 'Lead the circle',
+			decisionRights: ['Facilitate meetings']
 		});
 		await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead engineering decisions',
+			decisionRights: ['Approve technical designs']
 		});
 		await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Facilitator'
+			name: 'Facilitator',
+			purpose: 'Facilitate governance',
+			decisionRights: ['Run governance meetings']
 		});
 
 		const roles = await t.query(api.core.roles.index.listByCircle, {
@@ -113,15 +120,16 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Old Name'
+			name: 'Old Name',
+			purpose: 'Old purpose',
+			decisionRights: ['Old decision right']
 		});
 
 		// Update role
 		const result = await t.mutation(api.core.roles.index.update, {
 			sessionId,
 			circleRoleId: roleId,
-			name: 'New Name',
-			purpose: 'Updated purpose'
+			name: 'New Name'
 		});
 
 		expect(result.success).toBe(true);
@@ -134,7 +142,7 @@ describe('Circle Roles Integration Tests', () => {
 
 		expect(roles.length).toBe(1);
 		expect(roles[0].name).toBe('New Name');
-		expect(roles[0].purpose).toBe('Updated purpose');
+		expect(roles[0].purpose).toBe('Old purpose');
 	});
 
 	it('should delete a role', async () => {
@@ -149,7 +157,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Temporary Role'
+			name: 'Temporary Role',
+			purpose: 'Temporary purpose',
+			decisionRights: ['Temporary decision right']
 		});
 
 		// Archive role
@@ -186,7 +196,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 
 		// Assign user to role
@@ -225,7 +237,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 
 		// Assign user
@@ -276,12 +290,16 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId: role1 } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 		const { roleId: role2 } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Circle Lead'
+			name: 'Circle Lead',
+			purpose: 'Lead the circle',
+			decisionRights: ['Facilitate meetings']
 		});
 
 		// Assign user to both roles
@@ -326,7 +344,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Developer'
+			name: 'Developer',
+			purpose: 'Build software',
+			decisionRights: ['Decide implementation details']
 		});
 
 		// Assign multiple users to same role
@@ -364,7 +384,9 @@ describe('Circle Roles Integration Tests', () => {
 		await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Circle Lead'
+			name: 'Circle Lead',
+			purpose: 'Lead the circle',
+			decisionRights: ['Facilitate meetings']
 		});
 
 		// Try to create duplicate
@@ -372,7 +394,9 @@ describe('Circle Roles Integration Tests', () => {
 			t.mutation(api.core.roles.index.create, {
 				sessionId,
 				circleId,
-				name: 'Circle Lead'
+				name: 'Circle Lead',
+				purpose: 'Lead the circle (duplicate attempt)',
+				decisionRights: ['Facilitate meetings']
 			})
 		).rejects.toThrow('A role with this name already exists in this circle');
 	});
@@ -393,7 +417,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 
 		// First assignment succeeds
@@ -429,7 +455,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 
 		// Assign user to role
@@ -479,12 +507,16 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId: role1 } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId: circle1,
-			name: 'Circle 1 Lead'
+			name: 'Circle 1 Lead',
+			purpose: 'Lead circle 1',
+			decisionRights: ['Decide circle 1 matters']
 		});
 		const { roleId: role2 } = await t.mutation(api.core.roles.index.create, {
 			sessionId,
 			circleId: circle2,
-			name: 'Circle 2 Lead'
+			name: 'Circle 2 Lead',
+			purpose: 'Lead circle 2',
+			decisionRights: ['Decide circle 2 matters']
 		});
 
 		// Assign user to both roles
@@ -528,7 +560,9 @@ describe('Circle Roles Integration Tests', () => {
 		const { roleId } = await t.mutation(api.core.roles.index.create, {
 			sessionId: session1,
 			circleId: circle1,
-			name: 'Dev Lead'
+			name: 'Dev Lead',
+			purpose: 'Lead development',
+			decisionRights: ['Approve PRs']
 		});
 
 		// User 2 should not be able to access role from Org 1

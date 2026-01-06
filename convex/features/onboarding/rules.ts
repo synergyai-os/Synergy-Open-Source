@@ -169,9 +169,9 @@ export const ONBOARDING_ROUTE_STEPS = {
  */
 export const ONBOARDING_ROUTE_ORDER = [
 	'workspace',
-	'terminology',
 	'circle',
 	'invite',
+	'terminology',
 	'complete'
 ] as const;
 

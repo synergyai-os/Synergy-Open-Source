@@ -11,7 +11,7 @@
  * 
  * See: dev-docs/master-docs/design-system.md Section 1.5 (AI Development Guardrails)
  * 
- * Generated: 2025-12-20T14:34:15.489Z
+ * Generated: 2026-01-06T15:45:58.986Z
  */
 @theme {
 	--spacing-0: 0; /* 0px */
@@ -78,7 +78,7 @@
 	--spacing-fieldGroup-mt: var(--spacing-2); /* Margin top for field groups (8px) */
 	--spacing-chip-closeButton-pr: var(--spacing-1); /* Chip close button right padding (4px) - closer to edge for compact design */
 	--spacing-badge-sm-x: var(--spacing-2); /* Small badge horizontal padding (8px) - wider for better readability */
-	--spacing-badge-sm-y: 0.0625rem; /* Small badge vertical padding (1px) - ultra-thin, pill-shaped */
+	--spacing-badge-sm-y: var(--spacing-px); /* Small badge vertical padding (1px) - ultra-thin, pill-shaped */
 	--spacing-badge-md-x: var(--spacing-1-5); /* Medium badge horizontal padding (6px) - default badge size */
 	--spacing-badge-md-y: var(--spacing-0-5); /* Medium badge vertical padding (2px) - balanced */
 	--spacing-badge-lg-x: var(--spacing-2); /* Large badge horizontal padding (8px) - prominent badges */

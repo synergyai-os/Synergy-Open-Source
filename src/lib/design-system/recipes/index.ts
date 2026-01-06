@@ -49,6 +49,8 @@ export {
 	type KeyboardShortcutSeparatorVariantProps
 } from './keyboardShortcut.recipe';
 export { loginBoxRecipe, type LoginBoxVariantProps } from './loginBox.recipe';
+export { registerBoxRecipe, type RegisterBoxVariantProps } from './registerBox.recipe';
+export { verifyEmailBoxRecipe, type VerifyEmailBoxVariantProps } from './verifyEmailBox.recipe';
 export { inboxCardRecipe, type InboxCardVariantProps } from './inboxCard.recipe';
 export { navItemRecipe, type NavItemVariantProps } from './navItem.recipe';
 export {

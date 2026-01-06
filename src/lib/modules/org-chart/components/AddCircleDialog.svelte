@@ -6,10 +6,10 @@
 	import { FormInput, FormTextarea, FormSelect } from '$lib/components/atoms';
 	import { toast } from 'svelte-sonner';
 	import {
-		CIRCLE_TYPES,
-		DEFAULT_CIRCLE_TYPE_LABELS,
-		DEFAULT_CIRCLE_TYPE_DESCRIPTIONS,
-		type CircleType
+		LEAD_AUTHORITY,
+		DEFAULT_LEAD_AUTHORITY_LABELS,
+		DEFAULT_LEAD_AUTHORITY_DESCRIPTIONS,
+		type LeadAuthority
 	} from '$lib/infrastructure/organizational-model/constants';
 
 	type Props = {
@@ -32,25 +32,21 @@
 
 	let name = $state('');
 	let purpose = $state('');
-	let circleType = $state<CircleType>(CIRCLE_TYPES.HIERARCHY);
+	let leadAuthority = $state<LeadAuthority>(LEAD_AUTHORITY.DECIDES);
 	let isSubmitting = $state(false);
 
-	const circleTypeOptions = [
+	const leadAuthorityOptions = [
 		{
-			value: CIRCLE_TYPES.HIERARCHY,
-			label: `${DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HIERARCHY]} - ${DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.HIERARCHY]}`
+			value: LEAD_AUTHORITY.DECIDES,
+			label: `${DEFAULT_LEAD_AUTHORITY_LABELS[LEAD_AUTHORITY.DECIDES]} - ${DEFAULT_LEAD_AUTHORITY_DESCRIPTIONS[LEAD_AUTHORITY.DECIDES]}`
 		},
 		{
-			value: CIRCLE_TYPES.EMPOWERED_TEAM,
-			label: `${DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.EMPOWERED_TEAM]} - ${DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.EMPOWERED_TEAM]}`
+			value: LEAD_AUTHORITY.FACILITATES,
+			label: `${DEFAULT_LEAD_AUTHORITY_LABELS[LEAD_AUTHORITY.FACILITATES]} - ${DEFAULT_LEAD_AUTHORITY_DESCRIPTIONS[LEAD_AUTHORITY.FACILITATES]}`
 		},
 		{
-			value: CIRCLE_TYPES.GUILD,
-			label: `${DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.GUILD]} - ${DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.GUILD]}`
-		},
-		{
-			value: CIRCLE_TYPES.HYBRID,
-			label: `${DEFAULT_CIRCLE_TYPE_LABELS[CIRCLE_TYPES.HYBRID]} - ${DEFAULT_CIRCLE_TYPE_DESCRIPTIONS[CIRCLE_TYPES.HYBRID]}`
+			value: LEAD_AUTHORITY.CONVENES,
+			label: `${DEFAULT_LEAD_AUTHORITY_LABELS[LEAD_AUTHORITY.CONVENES]} - ${DEFAULT_LEAD_AUTHORITY_DESCRIPTIONS[LEAD_AUTHORITY.CONVENES]}`
 		}
 	];
 
@@ -79,13 +75,13 @@
 				name: name.trim(),
 				purpose: purpose.trim() || undefined,
 				parentCircleId,
-				circleType
+				leadAuthority
 			});
 
 			toast.success(`Circle "${name.trim()}" created`);
 			name = '';
 			purpose = '';
-			circleType = CIRCLE_TYPES.HIERARCHY;
+			leadAuthority = LEAD_AUTHORITY.DECIDES;
 			open = false;
 			onSuccess?.();
 		} catch (error) {
@@ -100,7 +96,7 @@
 		if (!isSubmitting) {
 			name = '';
 			purpose = '';
-			circleType = CIRCLE_TYPES.HIERARCHY;
+			leadAuthority = LEAD_AUTHORITY.DECIDES;
 		}
 	}
 </script>
@@ -125,9 +121,9 @@
 		/>
 
 		<FormSelect
-			label="Circle Type"
-			bind:value={circleType}
-			options={circleTypeOptions}
+			label="Lead Authority"
+			bind:value={leadAuthority}
+			options={leadAuthorityOptions}
 			disabled={isSubmitting}
 		/>
 

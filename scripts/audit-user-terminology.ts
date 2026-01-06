@@ -34,6 +34,10 @@ const OUTPUT_SYSTEM_AUTH_MD_PATH = path.join(
 );
 const OUTPUT_UNKNOWN_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.unknown.md');
 const OUTPUT_SUMMARY_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.summary.md');
+const OUTPUT_ACTIONABLE_MD_PATH = path.join(
+	OUTPUT_DIR,
+	'identity-user-terminology-audit.actionable.md'
+);
 
 // Focus: code + UI labels (not docs prose). We intentionally exclude dev-docs here.
 const INCLUDED_ROOT_DIRS = ['src', 'convex', 'e2e', 'tests', 'eslint-rules', 'scripts'];
@@ -75,12 +79,19 @@ const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([
 	// Some workspace-adjacent code legitimately references global identity.
 	'userId',
 	'userIds',
+	'actorUserId',
+	'actingUserId',
 	'targetUserId',
 	'memberUserId',
 	'assigneeUserId',
 	'inviteeUserId',
+	'invitedUserId',
 	'ownerUserId',
 	'candidateUserId',
+
+	// Role assignment IDs are union-typed across systemRoles + workspaceRoles (kept for API compatibility).
+	'userRoleId',
+	'userRoleIds',
 
 	// Common user-table/query helpers that should not be flagged as workspace terminology drift.
 	'getUser',
@@ -88,15 +99,43 @@ const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([
 	'findUser',
 	'findUserById',
 	'findUserByEmail',
-	'validateUser'
+	'validateUser',
+
+	// Explicit provenance fields (these are sometimes intentionally user-sourced joins).
+	'userEmail',
+	'userName',
+	'userEmails',
+	'userNames'
 ]);
 
 const WORKSPACE_USER_PATTERN_EXCEPTIONS: RegExp[] = [
 	/^get.*User$/, // getActiveUser, getUserById
 	/^find.*User$/, // findUserByEmail
 	/^validate.*User$/, // validateUserSession
+	/^create.*User$/, // createUser
+	/^update.*User$/, // updateUser
 	/^(User|Users)(Doc|Id|Type)s?$/, // UserDoc, UserId, UsersType
-	/^(Doc|Id)<'?users'?>$/ // Doc<'users'> / Id<'users'> (best effort)
+	/^(Doc|Id)<'?users'?>$/, // Doc<'users'> / Id<'users'> (best effort)
+
+	// Bridge functions that take userId and return workspace-scoped data.
+	/^(get|find|list)Person.*By.*User/i, // getPersonByUserAndWorkspace, findPersonByUserAndWorkspace
+	/^(get|find|list).*ForUser$/i, // listWorkspacesForUser
+	/^(get|find).*ByUserAndWorkspace$/i, // findPersonByUserAndWorkspace
+	/^linkPersonToUser$/i,
+
+	// User table field extractors
+	/^find(User)?(Name|Email)Field$/i, // findUserNameField, findUserEmailField
+
+	// Invite table field name variants
+	/^invited(User)?Id$/i,
+
+	// RBAC helpers commonly expose union ids as userRoleId for backwards compatibility
+	/^(get|list|assign|revoke|update).*UserRole/i,
+	/^(list|create|update)UserRoleAssignment/i,
+
+	// Constants / schema helper tokens
+	/^USER_ID_FIELD$/i,
+	/^USER_.*_FIELD$/i
 ];
 
 const AUTH_DOMAIN_FILE_PATTERNS: RegExp[] = [
@@ -119,6 +158,209 @@ function isTestFile(relPath: string): boolean {
 		relPath.includes('.spec.') ||
 		relPath.startsWith('tests/')
 	);
+}
+
+// -----------------------------------------------------------------------------
+// Actionable output helpers (UI-focused)
+// -----------------------------------------------------------------------------
+
+// Note: architecture.md says "Person" is the correct term in workspace context.
+// If you want to experiment with "Member" in settings UI copy, flip this flag.
+const PREFER_MEMBER_IN_SETTINGS_UI_COPY = false;
+
+function isOrgChartModule(relPath: string): boolean {
+	return relPath.includes('/modules/org-chart/') || relPath.includes('/org-chart/');
+}
+
+function isWorkspaceSettingsModule(relPath: string): boolean {
+	return relPath.includes('/settings/') || relPath.includes('/infrastructure/workspaces/');
+}
+
+function getPreferredTerminology(relPath: string): 'Person' | 'Member' {
+	if (PREFER_MEMBER_IN_SETTINGS_UI_COPY && isWorkspaceSettingsModule(relPath)) return 'Member';
+	// Default to Person everywhere to match architecture terminology rules.
+	return 'Person';
+}
+
+function replaceUserWithPreferredTerm(text: string, preferred: 'Person' | 'Member'): string {
+	// Replace "User"/"user"/"Users"/"users" in UI copy only. Keep it conservative.
+	const singular = preferred.toLowerCase();
+	const plural = preferred === 'Person' ? 'people' : 'members';
+	return text
+		.replaceAll(/\bUsers\b/g, preferred === 'Person' ? 'People' : 'Members')
+		.replaceAll(/\busers\b/g, plural)
+		.replaceAll(/\bUser\b/g, preferred)
+		.replaceAll(/\buser\b/g, singular);
+}
+
+function replaceUserInStringLiterals(lineText: string, preferred: 'Person' | 'Member'): string {
+	// Apply replacements ONLY inside simple quoted literals to avoid rewriting code outside strings.
+	// This is intentionally conservative (no multiline literals; no escaping awareness).
+	return lineText.replaceAll(/(['"`])([^'"`]*\busers?\b[^'"`]*)\1/gi, (_m, quote, body) => {
+		return `${quote}${replaceUserWithPreferredTerm(String(body), preferred)}${quote}`;
+	});
+}
+
+function isUiCopyViolation(lineText: string): boolean {
+	// Only care about very high-signal workspace UI strings (minimize noise).
+	return (
+		STRING_LITERAL_WITH_USER_RE.test(lineText) &&
+		/\b(Add|Assign|Invite)\s+User(s)?\b/i.test(lineText)
+	);
+}
+
+function listUiComponentNameViolations(): Array<{ filePath: string; suggestedFix: string }> {
+	const srcRoot = path.join(REPO_ROOT, 'src');
+	if (!fs.existsSync(srcRoot)) return [];
+	const files = listAllFilesRecursively(srcRoot)
+		.map((abs) => path.relative(REPO_ROOT, abs).replaceAll('\\', '/'))
+		.filter((rel) => rel.endsWith('.svelte'));
+
+	const out: Array<{ filePath: string; suggestedFix: string }> = [];
+	for (const relPath of files) {
+		// We focus on workspace UI modules; avoid auth routes and generic components churn.
+		if (!isOrgChartModule(relPath)) continue;
+		const base = path.basename(relPath);
+		if (!base.includes('User')) continue;
+		const preferred = getPreferredTerminology(relPath);
+		const suggestedName = base.replaceAll('User', preferred);
+		out.push({
+			filePath: relPath,
+			suggestedFix: `Rename file: ${base} → ${suggestedName}`
+		});
+	}
+	return out.sort((a, b) => a.filePath.localeCompare(b.filePath));
+}
+
+function writeActionableReport(options: {
+	rows: MatchRow[];
+	workspaceProductionCode: MatchRow[];
+	workspaceUiStrings: MatchRow[];
+}): void {
+	const createdAtIso = new Date().toISOString();
+	const lines: string[] = [];
+
+	lines.push('---');
+	lines.push('title: Identity terminology audit - ACTIONABLE violations (workspace)');
+	lines.push(`generatedAt: ${createdAtIso}`);
+	lines.push('---');
+	lines.push('');
+	lines.push('## Scope');
+	lines.push('');
+	lines.push(
+		'This report is intentionally narrow: it focuses on high-signal workspace UI terminology drift (\"User\" → \"Person\"), plus a short list of code identifier rename candidates.'
+	);
+	lines.push('');
+
+	// P1: component filename violations (org-chart)
+	const componentRenames = listUiComponentNameViolations();
+	lines.push('## P1: Org-chart component file names containing "User"');
+	lines.push('');
+	lines.push(`Count: **${componentRenames.length}**`);
+	lines.push('');
+	if (componentRenames.length > 0) {
+		lines.push('| File | Suggested fix |');
+		lines.push('|---|---|');
+		for (const r of componentRenames) {
+			lines.push(`| \`${escapeMdCell(r.filePath)}\` | ${escapeMdCell(r.suggestedFix)} |`);
+		}
+		lines.push('');
+	}
+
+	// P2: UI copy violations (workspace strings)
+	const uiCopy = options.workspaceUiStrings
+		.filter((r) => r.filePath.startsWith('src/'))
+		.filter((r) => r.filePath.endsWith('.svelte'))
+		.filter((r) => !isTestFile(r.filePath))
+		.filter((r) => !isAuthDomainFile(r.filePath))
+		.filter((r) => isUiCopyViolation(r.lineText));
+
+	lines.push('## P2: Workspace UI copy containing "User" (high-signal phrases only)');
+	lines.push('');
+	lines.push(`Count: **${uiCopy.length}**`);
+	lines.push('');
+	if (uiCopy.length > 0) {
+		lines.push('| File | Line | Current | Suggested |');
+		lines.push('|---|---:|---|---|');
+		for (const r of uiCopy) {
+			const preferred = getPreferredTerminology(r.filePath);
+			const current = r.lineText.trim().slice(0, 120);
+			const suggested = replaceUserInStringLiterals(current, preferred);
+			lines.push(
+				`| \`${escapeMdCell(r.filePath)}\` | ${r.lineNumber} | ${escapeMdCell(
+					current
+				)} | ${escapeMdCell(suggested)} |`
+			);
+		}
+		lines.push('');
+	}
+
+	// P3: code identifier rename hints (org-chart only, very high signal)
+	const orgChartCode = options.workspaceProductionCode
+		.filter((r) => r.filePath.endsWith('.svelte') || r.filePath.endsWith('.ts'))
+		.filter((r) => isOrgChartModule(r.filePath))
+		.filter((r) => !isAuthDomainFile(r.filePath))
+		.filter((r) => r.kind === 'code');
+
+	type CodeRename = { filePath: string; lineNumber: number; token: string; suggestedFix: string };
+	const codeRenames: CodeRename[] = [];
+	for (const r of orgChartCode) {
+		USER_TOKEN_RE.lastIndex = 0;
+		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? '');
+		const userTokens = tokens
+			.filter(Boolean)
+			// For actionable renames, focus on tokens that *actually* contain "User"/"Users" (case-sensitive),
+			// so we don't suggest nonsense renames like userEvent → userEvent.
+			.filter((t) => /User|Users/.test(t))
+			.filter((t) => !WORKSPACE_USER_TOKEN_EXCEPTIONS.has(t))
+			.filter((t) => !WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(t)));
+
+		for (const tok of Array.from(new Set(userTokens))) {
+			const preferred = getPreferredTerminology(r.filePath);
+			// Special-case: UI state flags like isUserUpdating are NOT identity terminology.
+			// Better rename is to drop "User" entirely: isUserUpdating → isUpdating.
+			const stateFlagMatch = /^isUser([A-Z][A-Za-z0-9_]*)$/.exec(tok);
+			const renamed = stateFlagMatch
+				? `is${stateFlagMatch[1]}`
+				: tok.replaceAll(/User/g, preferred);
+			if (renamed === tok) continue;
+			codeRenames.push({
+				filePath: r.filePath,
+				lineNumber: r.lineNumber,
+				token: tok,
+				suggestedFix: `Rename "${tok}" → "${renamed}"`
+			});
+		}
+	}
+
+	const topCodeRenames = codeRenames
+		.sort(
+			(a, b) =>
+				a.filePath.localeCompare(b.filePath) ||
+				a.lineNumber - b.lineNumber ||
+				a.token.localeCompare(b.token)
+		)
+		.slice(0, 200);
+
+	lines.push('## P3: Org-chart code identifiers containing "User" (rename candidates)');
+	lines.push('');
+	lines.push(`Count: **${topCodeRenames.length}** (capped at 200)`);
+	lines.push('');
+	if (topCodeRenames.length > 0) {
+		lines.push('| File | Line | Token | Suggested fix |');
+		lines.push('|---|---:|---|---|');
+		for (const r of topCodeRenames) {
+			lines.push(
+				`| \`${escapeMdCell(r.filePath)}\` | ${r.lineNumber} | \`${escapeMdCell(
+					r.token
+				)}\` | ${escapeMdCell(r.suggestedFix)} |`
+			);
+		}
+		lines.push('');
+	}
+
+	fs.mkdirSync(path.dirname(OUTPUT_ACTIONABLE_MD_PATH), { recursive: true });
+	fs.writeFileSync(OUTPUT_ACTIONABLE_MD_PATH, lines.join('\n'), 'utf8');
 }
 
 function hasOnlyExceptionUserTokens(lineText: string): boolean {
@@ -699,6 +941,7 @@ function main(): void {
 	const workspaceUiStrings = workspaceCandidates.filter((r) => r.kind === 'string');
 
 	writeMarkdown(rows);
+	writeActionableReport({ rows, workspaceProductionCode, workspaceUiStrings });
 	writeMarkdownRows({
 		outputPath: OUTPUT_WORKSPACE_MD_PATH,
 		title: 'Identity terminology audit (workspace-only): user/users',
@@ -737,6 +980,7 @@ function main(): void {
 
 	writeSummary(rows);
 	console.log(`Wrote ${rows.length} rows to ${path.relative(REPO_ROOT, OUTPUT_MD_PATH)}`);
+	console.log(`Wrote actionable report to ${path.relative(REPO_ROOT, OUTPUT_ACTIONABLE_MD_PATH)}`);
 }
 
 main();

@@ -10,16 +10,43 @@
 		CircleProjectsTab
 	} from './tabs';
 
+	type ChildCircle = {
+		circleId: Id<'circles'>;
+		name: string;
+		purpose: string | null;
+	};
+
+	type Role = {
+		roleId: Id<'circleRoles'>;
+		name: string;
+		purpose: string | null;
+		status: 'active' | 'draft';
+		isHiring: boolean;
+	};
+
+	type MemberWithoutRole = {
+		personId: Id<'people'>;
+		name: string;
+		email: string | null;
+	};
+
 	interface Props {
 		tabId: string;
-		childCircles: any[];
-		coreRoles: any[];
-		regularRoles: any[];
-		membersWithoutRoles: any[];
-		onRoleClick: (roleId: string, roleName: string) => void;
-		onChildCircleClick: (circleId: string) => void;
-		onQuickUpdateRole: (roleId: Id<'circleRoles'>, updates: any) => Promise<void>;
-		onOpenAssignUserDialog: (type: 'role' | 'circle', entityId: any, entityName: string) => void;
+		childCircles: ChildCircle[];
+		coreRoles: Role[];
+		regularRoles: Role[];
+		membersWithoutRoles: MemberWithoutRole[];
+		onRoleClick: (roleId: Id<'circleRoles'>, roleName: string) => void;
+		onChildCircleClick: (circleId: Id<'circles'>) => void;
+		onQuickUpdateRole: (
+			roleId: Id<'circleRoles'>,
+			updates: { name?: string; purpose?: string }
+		) => Promise<void>;
+		onOpenAssignPersonDialog: (
+			type: 'role' | 'circle',
+			entityId: Id<'circleRoles'> | Id<'circles'>,
+			entityName: string
+		) => void;
 	}
 
 	let {
@@ -31,7 +58,7 @@
 		onRoleClick,
 		onChildCircleClick,
 		onQuickUpdateRole,
-		onOpenAssignUserDialog
+		onOpenAssignPersonDialog
 	}: Props = $props();
 </script>
 
@@ -44,7 +71,7 @@
 		{onRoleClick}
 		{onChildCircleClick}
 		{onQuickUpdateRole}
-		{onOpenAssignUserDialog}
+		{onOpenAssignPersonDialog}
 	/>
 {:else if tabId === 'members'}
 	<CircleMembersTab />

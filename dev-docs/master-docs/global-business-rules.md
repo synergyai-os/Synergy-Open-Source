@@ -65,28 +65,27 @@ This document defines global business rules that apply across the entire Synergy
 
 ## Circle Lead Role Requirement
 
-### Lead Role Requirement Varies by Circle Type
+### Lead Role Requirement Varies by Lead Authority
 
-**Rule**: Lead role requirement depends on circle type. Not all circles require a Lead.
+**Rule**: Lead role requirement depends on lead authority model. Not all circles require a Lead.
 
-**Rationale**: Different organizational models have different leadership needs. Hierarchy circles need clear authority; empowered teams operate as peers; guilds are coordination-only spaces.
+**Rationale**: Different authority models have different leadership needs. Deciding circles need clear authority; facilitating teams operate as peers; convening circles are coordination-only spaces.
 
-**Circle Type → Lead Requirement**:
+**Lead Authority → Lead Requirement**:
 
-| Circle Type | Lead Required | Lead Authority | Lead Label (Default) |
-|-------------|---------------|----------------|---------------------|
-| `hierarchy` | ✅ YES | Authority (makes decisions) | "Manager" |
-| `empowered_team` | ❌ NO | Facilitative (coordinates, no authority) | "Coordinator" |
-| `guild` | ❌ NO | Convening (schedules only) | "Steward" |
-| `hybrid` | ✅ YES | Authority (default) | "Lead" |
+| Lead Authority | Lead Required | Authority Model | Lead Label (Default) |
+|----------------|---------------|-----------------|---------------------|
+| `decides` | ✅ YES | Authority (makes decisions) | "Manager" |
+| `facilitates` | ❌ NO | Facilitative (coordinates, no authority) | "Coordinator" |
+| `convenes` | ❌ NO | Convening (schedules only) | "Steward" |
 
 **Key Points**:
-- **Default Name**: Varies by circle type (see table above)
-- **Customizable Labels**: Workspace admin can customize labels per circle type (Phase 4+)
-- **Authority Computed at Runtime**: Authority level derived from `circle.circleType`, not stored on role
+- **Default Name**: Varies by lead authority (see table above)
+- **Customizable Labels**: Workspace admin can customize labels per lead authority (Phase 4+)
+- **Authority Computed at Runtime**: Authority level derived from `circle.leadAuthority`, not stored on role
 - **Identification**: Lead role is identified by `templateId` → `template.isRequired === true`
 - **Only One Lead Template**: Only one template per workspace can have `isRequired: true` (enforced)
-- **Display**: Lead role displays authority badge based on circle type (👔 Authority, 🤝 Facilitative, 🌱 Convening)
+- **Display**: Lead role displays authority badge based on lead authority (👔 Authority, 🤝 Facilitative, 🌱 Convening)
 
 **Design Reference**: See `ai-docs/tasks/SYOS-670-circle-lead-authority-design.md` for full specification.
 
@@ -115,27 +114,32 @@ This document defines global business rules that apply across the entire Synergy
 
 4. **Authority Computed at Runtime** (NEW - SYOS-670):
    - Lead authority is NOT stored on the role or template
-   - Authority derived from `circle.circleType` using constant lookup
-   - Enables circles to change type without data migration
+   - Authority derived from `circle.leadAuthority` using direct value
+   - Enables circles to change authority without data migration
 
-### Lead Authority by Circle Type (NEW - SYOS-670)
+### Lead Authority Model (NEW - SYOS-1067)
 
-**Rule**: Lead authority adapts to circle type using hard-coded defaults.
+**Rule**: Lead authority is stored directly on the circle and maps to authority levels.
 
 **Implementation** (`src/lib/infrastructure/organizational-model/constants.ts`):
 
 ```typescript
 // System values (never change)
-export const CIRCLE_TYPE_LEAD_AUTHORITY = {
-  hierarchy: 'authority',      // Lead makes decisions
-  empowered_team: 'facilitative', // Lead coordinates, team decides via consent
-  guild: 'convening',          // Lead schedules only, no authority
-  hybrid: 'authority'          // Default to authority
-};
+export const LEAD_AUTHORITY = {
+  DECIDES: 'decides',
+  FACILITATES: 'facilitates',
+  CONVENES: 'convenes'
+} as const;
+
+export const LEAD_AUTHORITY_TO_LEVEL = {
+  decides: 'authority',      // Lead makes decisions
+  facilitates: 'facilitative', // Lead coordinates, team decides via consent
+  convenes: 'convening'       // Lead schedules only, no authority
+} as const;
 
 // Simple constant lookup (no database queries)
-export function getLeadAuthorityLevel(circleType) {
-  return CIRCLE_TYPE_LEAD_AUTHORITY[circleType ?? 'hierarchy'];
+export function getLeadAuthorityLevel(leadAuthority) {
+  return LEAD_AUTHORITY_TO_LEVEL[leadAuthority ?? 'decides'];
 }
 ```
 
@@ -148,40 +152,40 @@ export function getLeadAuthorityLevel(circleType) {
 | `convening` | Schedule meetings only | 🌱 Convening Role |
 
 **Consent vs Manager Decides**:
-- **hierarchy** circles: Lead approves proposals directly (`manager_decides`)
-- **empowered_team** circles: Team approves via consent ("no valid objections")
-- **guild** circles: No approval here - decisions made in home circles
+- **decides** circles: Lead approves proposals directly (`manager_decides`)
+- **facilitates** circles: Team approves via consent ("no valid objections")
+- **convenes** circles: No approval here - decisions made in home circles
 
 **Current State**:
 - ✅ System-level template exists: "Circle Lead" with `isCore: true` and `isRequired: true`
-- ✅ Core roles auto-created when circles are created (for hierarchy/hybrid only)
+- ✅ Core roles auto-created when circles are created (for decides authority only)
 - ✅ Protection against archiving required roles (if `template.isRequired === true`)
-- ✅ `circleType` and `decisionModel` fields exist in schema
+- ✅ `leadAuthority` field exists in schema
 - ❌ **Missing**: Authority level constants and helpers (SYOS-670 Phase 1)
 - ❌ **Missing**: Authority-aware permission checks (SYOS-670 Phase 1)
 - ❌ **Missing**: UI authority badges (SYOS-670 Phase 1)
-- ❌ **Missing**: Lead optionality by circle type (SYOS-670 Phase 3)
+- ❌ **Missing**: Lead optionality by lead authority (SYOS-670 Phase 3)
 
 **Enforcement Requirements**:
 
 1. **Backend Validation** (`convex/circleRoles.ts`):
    - **Block direct edits**: In `circleRoles.update()`, check if role is Lead role → throw error if user tries to edit
-   - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error (for hierarchy/hybrid only)
-   - **Conditional Lead creation**: On circle creation, only create Lead for `hierarchy` and `hybrid` types
+   - **Prevent archiving last Lead**: In `archiveRoleHelper()`, check if it's the last Lead role in circle → throw error (for decides authority only)
+   - **Conditional Lead creation**: On circle creation, only create Lead for `decides` authority
 
 2. **Authority Resolution** (`convex/core/authority/rules.ts`):
-   - **Simple constant lookup**: `calculateAuthorityLevel(circle.circleType)` - no database queries
+   - **Simple value mapping**: `calculateAuthorityLevel(circle.leadAuthority)` - no database queries
    - **Permission check**: `hasApprovalAuthority()` uses authority level to determine approval rights
    - **Quick edit access** lives in RBAC (`convex/rbac/orgChart.ts`) and composes authority where needed
 
 3. **UI Display** (`src/lib/modules/org-chart/components/RoleDetailPanel.svelte`):
-   - Display authority badge based on circle type
+   - Display authority badge based on lead authority
    - Show contextual description of Lead authority
    - Disable edit button for Lead roles (only workspace admin can edit via template)
 
 **Implementation Notes**:
 - Lead role identification: Query role's `templateId`, then check `template.isRequired === true`
-- Authority is NOT stored anywhere - computed from `circle.circleType` at runtime
+- Authority is NOT stored on role - derived from `circle.leadAuthority` at runtime
 - Workspace-level templates can override system templates (workspace admin can create their own Lead role template)
 - Labels are customizable per workspace (Phase 4+), values are fixed
 

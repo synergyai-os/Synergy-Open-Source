@@ -27,9 +27,9 @@ export const cardRecipe = cva(
 				outlined: 'border-2 border-elevated'
 			},
 			padding: {
-				sm: 'card-compact',
-				md: 'px-card-padding py-card-padding',
-				lg: 'marketing-card-padding'
+				sm: 'p-2',
+				md: 'card-padding',
+				lg: 'card-padding'
 			}
 		},
 		defaultVariants: {

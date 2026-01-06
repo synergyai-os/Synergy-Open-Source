@@ -31,9 +31,9 @@
 	// Define onboarding steps
 	const onboardingSteps = [
 		{ id: 'workspace', label: 'Create Workspace' },
-		{ id: 'terminology', label: 'Customize Terminology' },
-		{ id: 'circle', label: 'Create Circle' },
+		{ id: 'circle', label: 'Setup Organization' },
 		{ id: 'invite', label: 'Invite Team' },
+		{ id: 'terminology', label: 'Customize Terminology' },
 		{ id: 'complete', label: 'Complete' }
 	];
 
@@ -42,9 +42,9 @@
 		if (!browser) return 0;
 		const pathname = $page.url.pathname;
 		if (pathname === '/onboarding') return 0;
-		if (pathname === '/onboarding/terminology') return 1;
-		if (pathname === '/onboarding/circle') return 2;
-		if (pathname === '/onboarding/invite') return 3;
+		if (pathname === '/onboarding/circle') return 1;
+		if (pathname === '/onboarding/invite') return 2;
+		if (pathname === '/onboarding/terminology') return 3;
 		if (pathname === '/onboarding/complete') return 4;
 		return 0;
 	});

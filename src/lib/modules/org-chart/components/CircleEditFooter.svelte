@@ -2,12 +2,12 @@
 	import Button from '$lib/components/atoms/Button.svelte';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import type { UseEditCircleReturn } from '../composables/useEditCircle.svelte';
-	import type { CircleType } from '$lib/infrastructure/organizational-model/constants';
+	import type { LeadAuthority } from '$lib/infrastructure/organizational-model/constants';
 
 	interface Props {
 		editCircle: UseEditCircleReturn;
 		isDesignPhase: boolean;
-		circleType: CircleType;
+		leadAuthority: LeadAuthority;
 		isCircleLead: boolean;
 		onCancel: () => void;
 		onSave: () => Promise<void>;
@@ -18,7 +18,7 @@
 	let {
 		editCircle,
 		isDesignPhase,
-		circleType,
+		leadAuthority,
 		isCircleLead,
 		onCancel,
 		onSave,
@@ -46,8 +46,8 @@
 		>
 			{editCircle.isSaving ? 'Saving...' : 'Save'}
 		</Button>
-	{:else if circleType === 'hierarchy' && isCircleLead}
-		<!-- Hierarchy + Circle Lead: Auto-approve flow -->
+	{:else if leadAuthority === 'decides' && isCircleLead}
+		<!-- Decides + Circle Lead: Auto-approve flow -->
 		<Button
 			variant="primary"
 			onclick={onAutoApprove}
@@ -55,11 +55,11 @@
 		>
 			{editCircle.isSaving ? 'Saving...' : 'Save'}
 		</Button>
-	{:else if circleType === 'guild'}
-		<!-- Guild: View only (no save button) -->
-		<Text variant="body" size="sm" color="secondary">Guild circles cannot be edited</Text>
+	{:else if leadAuthority === 'convenes'}
+		<!-- Convenes: View only (no save button) -->
+		<Text variant="body" size="sm" color="secondary">Convenes circles cannot be edited</Text>
 	{:else}
-		<!-- Non-hierarchy or non-lead: Propose Change flow -->
+		<!-- Facilitates or non-lead: Propose Change flow -->
 		<Button
 			variant="primary"
 			onclick={onProposeChange}

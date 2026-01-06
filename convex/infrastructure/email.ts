@@ -97,21 +97,10 @@ export const sendVerificationEmail = internalAction({
 		firstName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		// E2E test mode - skip actual email sending
-		if (process.env.E2E_TEST_MODE === 'true') {
-			console.log('📧 [E2E Mock] Verification email suppressed:', {
-				to: args.email,
-				code: args.code,
-				firstName: args.firstName || 'User'
-			});
-
-			return {
-				success: true,
-				emailId: `mock-verification-${args.email}-${Date.now()}`
-			};
-		}
-
-		// Production flow - Send real email via Resend
+		// Send real email via Resend.
+		// Test-mode suppression is controlled by the caller (e.g. `skipEmail` in
+		// `infrastructure/auth/verification.ts`). Avoid env-based checks here so dev/manual
+		// testing isn't accidentally affected by leaked `E2E_TEST_MODE`.
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {

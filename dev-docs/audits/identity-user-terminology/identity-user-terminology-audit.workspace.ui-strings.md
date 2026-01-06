@@ -1,6 +1,6 @@
 ---
 title: Identity terminology audit (workspace): UI label strings
-generatedAt: 2025-12-21T17:28:23.996Z
+generatedAt: 2025-12-23T08:11:54.166Z
 ---
 
 ## Totals
@@ -8,24 +8,13 @@ generatedAt: 2025-12-21T17:28:23.996Z
 | Scope | Count | doc | comment | string | code |
 |---|---:|---:|---:|---:|---:|
 | system_auth | 0 | 0 | 0 | 0 | 0 |
-| workspace | 354 | 0 | 0 | 354 | 0 |
+| workspace | 327 | 0 | 0 | 327 | 0 |
 | unknown | 0 | 0 | 0 | 0 | 0 |
 
 ## Instances
 
 | File | Line | Kind | Match count | Matched text(s) | Scope | Confidence | Reason | Snippet |
 |---|---:|---|---:|---|---|---|---|---|
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 223 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: workspace | 				'infrastructure/access/permissions.ts - getUserWorkspaceIds', |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 224 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 				'infrastructure/featureFlags/targeting.ts - userHasWorkspaceAccess', |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 228 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: workspace, member | 				'core/workspaces/inviteValidation.ts - ensureUserNotAlreadyMember', |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 81 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 				.withIndex('by_workspace_user' as any, (q: any) => |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 273 | `string` | 2 | `User` | `workspace` | `medium` | Workspace signals: workspace | 					'getUserWorkspaceIds → uses listWorkspacesForUser', |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 274 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: people | 					'listOrgLinksForUser → uses people table', |
-| `convex/admin/ensurePersonForUserInWorkspace.ts` | 20 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: person/people, workspace | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/fixInvariantViolations.ts` | 36 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId)) |
-| `convex/admin/fixInvariantViolations.ts` | 45 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId)) |
-| `convex/admin/fixInvariantViolations.ts` | 617 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: circle | 		console.log('\n📌 Step 5: Fixing circleItemCategory userIds...'); |
-| `convex/admin/fixInvariantViolations.ts` | 621 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: circle | 		console.log('\n📌 Step 6: Fixing circleItem userIds...'); |
 | `convex/admin/invariants/crossDomain.ts` | 217 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: circle | 					: `${violations.length} circleItem(s) still store user-based audit fields` |
 | `convex/admin/invariants/identity.ts` | 28 | `string` | 1 | `users` | `workspace` | `medium` | Workspace signals: people | 					? 'All active people are linked to users' |
 | `convex/admin/invariants/identity.ts` | 78 | `string` | 1 | `users` | `workspace` | `medium` | Workspace signals: people | 					? 'All active people rely on users.email' |
@@ -33,18 +22,11 @@ generatedAt: 2025-12-21T17:28:23.996Z
 | `convex/admin/invariants/identity.ts` | 132 | `string` | 1 | `users` | `workspace` | `medium` | Workspace signals: people | 					: `${violations.length} people reference missing users` |
 | `convex/admin/invariants/identity.ts` | 163 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: people, workspace | 					? 'All active people unique per workspace/user' |
 | `convex/admin/invariants/identity.ts` | 164 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 					: `${violations.length} duplicate workspace/user pairs detected` |
-| `convex/admin/migrateAddCoreRoles.ts` | 30 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/migrateOrgChartSoftDelete.ts` | 24 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: circle, role | 		console.log('  Note: userCircleRoles table removed (SYOS-815)\n'); |
-| `convex/admin/migrateOrgChartSoftDelete.ts` | 82 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: circle, role | 		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)'); |
-| `convex/admin/migrateVersionHistory.ts` | 185 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: circle, role | 		console.log('⏭️ Step 3: Skipped (userCircleRoles migrated to assignments in SYOS-815)'); |
 | `convex/admin/orgStructureImport.test.ts` | 30 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, member | 	test('rejects when user lacks workspace membership (error uses ErrorCodes)', async () => { |
 | `convex/admin/rbac.ts` | 718 | `string` | 1 | `users` | `workspace` | `medium` | Workspace signals: role | 			throw createError(ErrorCodes.GENERIC_ERROR, 'Cannot delete role that is assigned to users'); |
 | `convex/admin/rbac.ts` | 846 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: workspace, role, member | 					'User must be a member of the workspace to assign workspace roles' |
 | `convex/admin/rbac.ts` | 931 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: role | 		throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found'); |
 | `convex/admin/rbac.ts` | 969 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: role | 			throw createError(ErrorCodes.GENERIC_ERROR, 'User role assignment not found'); |
-| `convex/admin/validateRoleTemplates.ts` | 137 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/validateRoleTemplates.ts` | 209 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
-| `convex/admin/validateRoleTemplates.ts` | 280 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, role | 			.withIndex('by_workspace_user', (q) => |
 | `convex/core/assignments/assignments.test.ts` | 86 | `string` | 2 | `User, user` | `workspace` | `medium` | Workspace signals: assignee | 				assigneeUserId: 'user-target' as any |
 | `convex/core/authority/authority.test.ts` | 242 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: circle, role | 					if (table === 'userCircleRoles') { |
 | `convex/core/circles/circles.test.ts` | 37 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: circle | 				displayName: 'Test User' |
@@ -223,7 +205,6 @@ generatedAt: 2025-12-21T17:28:23.996Z
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 93 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: workspace, member | 			toast.success('User invited'); |
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 98 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, member | 					emailError = 'This user has already been invited'; |
 | `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 100 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: workspace, member | 					emailError = 'This user is already a member'; |
-| `src/lib/infrastructure/workspaces/components/InviteMemberModal.svelte` | 187 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: workspace, member | 								{isLoading ? 'Inviting...' : 'Invite User'} |
 | `src/lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte` | 36 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 		accountEmail = 'user@example.com', |
 | `src/lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte` | 37 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 		accountName = 'user@example.com', |
 | `src/lib/infrastructure/workspaces/composables/useWorkspaceAnalytics.svelte.ts` | 68 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: workspace | 				console.debug('⏭️ Skipping workspace switch tracking - user not authenticated yet'); |
@@ -321,19 +302,11 @@ generatedAt: 2025-12-21T17:28:23.996Z
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 374 | `string` | 1 | `users` | `workspace` | `high` | Workspace signals: workspace, org-chart path, circle, member | 	it('should enforce workspace membership - users cannot access other org circles', async () => { |
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 379 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: org-chart path, circle | 		const org1 = await createTestOrganization(t, 'User 1 Org'); |
 | `src/lib/modules/org-chart/__tests__/circles.integration.test.ts` | 380 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: org-chart path, circle | 		const org2 = await createTestOrganization(t, 'User 2 Org'); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 90 | `string` | 2 | `User` | `workspace` | `high` | Workspace signals: org-chart path, circle, role | 	const dialogTitle = $derived(type === 'role' ? 'Assign User to Role' : 'Add User to Circle'); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 102 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: org-chart path | 				? 'Assign User' |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 103 | `string` | 1 | `User` | `workspace` | `medium` | Workspace signals: org-chart path | 				: 'Add User' |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 108 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: org-chart path | 			toast.error('Please select a user'); |
-| `src/lib/modules/org-chart/components/AssignUserDialog.svelte` | 145 | `string` | 1 | `user` | `workspace` | `medium` | Workspace signals: org-chart path | 			const message = error instanceof Error ? error.message : 'Failed to assign user'; |
-| `src/lib/modules/org-chart/components/CircleContextMenu.svelte` | 12 | `string` | 2 | `User` | `workspace` | `high` | Workspace signals: org-chart path, circle | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 16 | `string` | 2 | `User` | `workspace` | `high` | Workspace signals: org-chart path, circle | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 184 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, circle, role | 			layerType === 'circle' ? 'circle' : layerType === 'role' ? 'user' : null; |
+| `src/lib/modules/org-chart/components/CircleDetailPanel.svelte` | 218 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, circle, role | 			layerType === 'circle' ? 'circle' : layerType === 'role' ? 'user' : null; |
 | `src/lib/modules/org-chart/components/RoleCard.stories.svelte` | 152 | `string` | 1 | `User` | `workspace` | `high` | Workspace signals: org-chart path, role | 	name="CurrentUserHighlighted" |
-| `src/lib/modules/org-chart/components/RoleCard.svelte` | 227 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, role | 							<Icon type="user-plus" size="sm" /> |
-| `src/lib/modules/org-chart/components/RoleContextMenu.svelte` | 6 | `string` | 2 | `User` | `workspace` | `high` | Workspace signals: org-chart path, role | 	import AssignUserDialog from './AssignUserDialog.svelte'; |
-| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 275 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, role | 			return 'user'; |
-| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 438 | `string` | 1 | `users` | `workspace` | `high` | Workspace signals: org-chart path, role | 										icon="users" |
+| `src/lib/modules/org-chart/components/RoleCard.svelte` | 232 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, role | 							<Icon type="user-plus" size="sm" /> |
+| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 305 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: org-chart path, role | 			return 'user'; |
+| `src/lib/modules/org-chart/components/RoleDetailPanel.svelte` | 470 | `string` | 1 | `users` | `workspace` | `high` | Workspace signals: org-chart path, role | 										icon="users" |
 | `src/lib/modules/projects/api.ts` | 24 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: role, assignee | 	assigneeType: 'user' \| 'role'; |
 | `src/lib/modules/projects/api.ts` | 126 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: role, assignee | 	get assigneeType(): 'user' \| 'role'; |
 | `src/lib/modules/projects/api.ts` | 127 | `string` | 1 | `user` | `workspace` | `high` | Workspace signals: role, assignee | 	set assigneeType(value: 'user' \| 'role'); |

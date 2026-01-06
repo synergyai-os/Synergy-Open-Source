@@ -14,7 +14,7 @@
 		name?: string;
 		email: string;
 		avatarImage?: string;
-		scope?: string; // User-level scope (displayed on user card)
+		scope?: string; // Person-level scope (displayed on person card)
 		roleName?: string;
 	};
 

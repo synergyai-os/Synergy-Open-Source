@@ -5,20 +5,12 @@ export const roleTemplatesTable = defineTable({
 	workspaceId: v.optional(v.id('workspaces')),
 	name: v.string(),
 	roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
-	defaultFieldValues: v.array(
-		v.object({
-			systemKey: v.string(),
-			values: v.array(v.string())
-		})
-	),
+	// GOVERNANCE FIELDS — required (DR-011: Governance Fields in Core Schema)
+	defaultPurpose: v.string(), // Template's default purpose
+	defaultDecisionRights: v.array(v.string()), // Template's default decision rights
 	description: v.optional(v.string()),
 	isCore: v.boolean(),
-	appliesTo: v.union(
-		v.literal('hierarchy'),
-		v.literal('empowered_team'),
-		v.literal('guild'),
-		v.literal('hybrid')
-	),
+	appliesTo: v.union(v.literal('decides'), v.literal('facilitates'), v.literal('convenes')),
 	rbacPermissions: v.optional(
 		v.array(
 			v.object({

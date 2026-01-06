@@ -37,10 +37,10 @@ export const formInputRecipe = cva(
 );
 
 /**
- * @deprecated Use Text component instead: <Text variant="body" size="sm" color="default" as="span" class="font-medium">
+ * @deprecated Use Text component instead.
  * FormInput now uses Text component for labels to ensure consistency when text styles change.
  */
-export const formInputLabelRecipe = cva('fontSize-sm font-medium text-primary', {
+export const formInputLabelRecipe = cva('text-sm font-medium text-primary', {
 	variants: {},
 	defaultVariants: {}
 });

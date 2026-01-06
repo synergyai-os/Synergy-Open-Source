@@ -11,7 +11,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  */
 export const badgeRecipe = cva(
 	// Base classes - applied to all badges
-	'inline-flex items-center rounded-badge border font-body fontWeight-badge leading-none',
+	'inline-flex items-center rounded-badge border font-body font-medium leading-none',
 	{
 		variants: {
 			variant: {

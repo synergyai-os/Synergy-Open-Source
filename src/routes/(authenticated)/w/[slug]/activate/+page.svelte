@@ -7,6 +7,7 @@
 	import ReadyState from './components/ReadyState.svelte';
 	import SuccessState from './components/SuccessState.svelte';
 	import { toast } from '$lib/utils/toast';
+	import { invariant } from '$lib/utils/invariant';
 	import type { PageData } from './$types';
 	import { getStackedNavigation } from '$lib/composables/useStackedNavigation.svelte';
 	import { useOrgChart } from '$lib/modules/org-chart/composables/useOrgChart.svelte';
@@ -44,10 +45,10 @@
 			? useQuery(api.core.workspaces.index.getActivationIssues, () => {
 					const sessionId = getSessionId();
 					const workspaceId = getWorkspaceId();
-					// These throw statements are validated by outer check, just for TypeScript narrowing
-					if (!sessionId) throw new Error('sessionId required');
-					if (!workspaceId) throw new Error('workspaceId required');
-					return { sessionId, workspaceId };
+					// These invariant calls are validated by outer check, just for TypeScript narrowing
+					invariant(sessionId, 'sessionId required');
+					invariant(workspaceId, 'workspaceId required');
+					return { sessionId: sessionId!, workspaceId: workspaceId! };
 				})
 			: null;
 

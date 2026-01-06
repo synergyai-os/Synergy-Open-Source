@@ -1,14 +1,13 @@
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../../_generated/server';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
+import { DEFAULT_LEAD_AUTHORITY, type LeadAuthority } from '../circles';
 import { requireActivePerson } from '../people/rules';
 import { isLeadTemplate } from '../roles/rules';
 import { getPolicy } from './policies';
-import type { Assignment, AuthorityContext, CirclePolicy, CircleType } from './types';
+import type { Assignment, AuthorityContext, CirclePolicy } from './types';
 
 type Ctx = QueryCtx | MutationCtx;
-
-const DEFAULT_CIRCLE_TYPE: CircleType = 'hierarchy';
 
 export async function getAuthorityContext(
 	ctx: Ctx,
@@ -26,8 +25,8 @@ export async function getAuthorityContextFromAssignments(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	const circleType = (circle.circleType ?? DEFAULT_CIRCLE_TYPE) as CircleType;
-	const policy = getPolicy(circleType);
+	const leadAuthority = (circle.leadAuthority ?? DEFAULT_LEAD_AUTHORITY) as LeadAuthority;
+	const policy = getPolicy(leadAuthority);
 
 	const person = await requireActivePerson(ctx, args.personId);
 	const workspaceId = args.workspaceId ?? circle.workspaceId;
@@ -72,7 +71,7 @@ export async function getAuthorityContextFromAssignments(
 	return {
 		personId: args.personId,
 		circleId: args.circleId,
-		circleType,
+		leadAuthority,
 		assignments
 	};
 }

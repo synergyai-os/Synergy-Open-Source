@@ -1,13 +1,13 @@
 ---
 title: Identity terminology audit (system/auth-only): user/users
-generatedAt: 2025-12-21T17:28:23.988Z
+generatedAt: 2025-12-23T08:11:54.162Z
 ---
 
 ## Totals
 
 | Scope | Count | doc | comment | string | code |
 |---|---:|---:|---:|---:|---:|
-| system_auth | 1712 | 0 | 0 | 543 | 1169 |
+| system_auth | 1725 | 0 | 0 | 542 | 1183 |
 | workspace | 0 | 0 | 0 | 0 | 0 |
 | unknown | 0 | 0 | 0 | 0 | 0 |
 
@@ -15,42 +15,9 @@ generatedAt: 2025-12-21T17:28:23.988Z
 
 | File | Line | Kind | Match count | Matched text(s) | Scope | Confidence | Reason | Snippet |
 |---|---:|---|---:|---|---|---|---|---|
-| `convex/admin/analytics.ts` | 23 | `string` | 2 | `users` | `system_auth` | `medium` | Auth signals: query users table | 		const users = await ctx.db.query('users').collect(); |
-| `convex/admin/archived/syos814TestUtils.ts` | 15 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814TestUtils.ts` | 44 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 60 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 				userId, |
-| `convex/admin/archived/syos814TestUtils.ts` | 102 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 173 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 215 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814TestUtils.ts` | 267 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 11 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 60 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase2.ts` | 213 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 11 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation'; |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 71 | `code` | 2 | `user, User` | `system_auth` | `high` | Auth signals: session, userId | 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/archived/syos814VerifyPhase3.ts` | 258 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | 		await validateSessionAndGetUserId(ctx, args.sessionId); |
-| `convex/admin/fixInvariantViolations.ts` | 254 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 255 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 256 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 348 | `string` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 		console.log('🔧 Fixing meetings userId references (XDOM-01)...\n'); |
-| `convex/admin/fixInvariantViolations.ts` | 424 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 425 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 426 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 755 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 756 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 757 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			archivedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 809 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			createdBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 810 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			updatedBy?: Id<'users'>; |
-| `convex/admin/fixInvariantViolations.ts` | 811 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 			archivedBy?: Id<'users'>; |
 | `convex/admin/invariants/crossDomain.ts` | 54 | `string` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 			name: 'No userId references in core domain tables', |
 | `convex/admin/invariants/crossDomain.ts` | 60 | `string` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 					: `${violations.length} record(s) still use userId-based references` |
 | `convex/admin/invariants/identity.ts` | 243 | `string` | 2 | `users` | `system_auth` | `medium` | Auth signals: query users table | 		const users = await ctx.db.query('users').collect(); |
-| `convex/admin/migrateDefaultCategories.ts` | 23 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateDefaultCategories.ts` | 32 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 		return owner.userId; |
-| `convex/admin/migrateVersionHistory.ts` | 25 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | ): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateVersionHistory.ts` | 34 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 		return owner.userId; |
-| `convex/admin/migrateVersionHistory.ts` | 48 | `string` | 2 | `User, users` | `system_auth` | `medium` | Auth signals: Convex users id type | async function getAnyUserId(ctx: MutationCtx): Promise<Id<'users'> \| null> { |
-| `convex/admin/migrateVersionHistory.ts` | 49 | `string` | 2 | `user, users` | `system_auth` | `medium` | Auth signals: query users table | 	const user = await ctx.db.query('users').first(); |
 | `convex/admin/migrations/migrateTasksAuditFields.ts` | 39 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth signals: Convex users id type, userId | 	userId: Id<'users'>, |
 | `convex/admin/migrations/migrateTasksAuditFields.ts` | 170 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: Convex users id type | 				const legacyCreatedBy = (task as any).createdBy as Id<'users'> \| undefined; |
 | `convex/admin/migrations/migrateTasksAuditFields.ts` | 214 | `string` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 		console.log(`     * createdBy userId not found: ${edgeCaseStats.createdByNotFound}`); |
@@ -687,90 +654,138 @@ generatedAt: 2025-12-21T17:28:23.988Z
 | `scripts/audit-user-terminology.ts` | 33 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'identity-user-terminology-audit.system-auth.md' |
 | `scripts/audit-user-terminology.ts` | 35 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | const OUTPUT_UNKNOWN_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.unknown.md'); |
 | `scripts/audit-user-terminology.ts` | 36 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | const OUTPUT_SUMMARY_MD_PATH = path.join(OUTPUT_DIR, 'identity-user-terminology-audit.summary.md'); |
-| `scripts/audit-user-terminology.ts` | 69 | `code` | 2 | `USER, users` | `system_auth` | `high` | Auth-domain file pattern match | const USER_SUBSTRING_RE = /users?/gi; |
-| `scripts/audit-user-terminology.ts` | 71 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const USER_TOKEN_RE = /[A-Za-z_][A-Za-z0-9_]*/g; |
-| `scripts/audit-user-terminology.ts` | 72 | `code` | 2 | `USER, users` | `system_auth` | `high` | Auth-domain file pattern match | const STRING_LITERAL_WITH_USER_RE = /(['"`])[^'"`]*users?[^'"`]*\1/i; |
-| `scripts/audit-user-terminology.ts` | 74 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([ |
-| `scripts/audit-user-terminology.ts` | 76 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userId', |
-| `scripts/audit-user-terminology.ts` | 77 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userIds', |
-| `scripts/audit-user-terminology.ts` | 78 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'targetUserId', |
-| `scripts/audit-user-terminology.ts` | 79 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'memberUserId', |
-| `scripts/audit-user-terminology.ts` | 80 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'assigneeUserId', |
-| `scripts/audit-user-terminology.ts` | 81 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'inviteeUserId', |
-| `scripts/audit-user-terminology.ts` | 82 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'ownerUserId', |
-| `scripts/audit-user-terminology.ts` | 83 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'candidateUserId', |
-| `scripts/audit-user-terminology.ts` | 86 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'getUser', |
-| `scripts/audit-user-terminology.ts` | 87 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'getUserById', |
-| `scripts/audit-user-terminology.ts` | 88 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUser', |
-| `scripts/audit-user-terminology.ts` | 89 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUserById', |
-| `scripts/audit-user-terminology.ts` | 90 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUserByEmail', |
-| `scripts/audit-user-terminology.ts` | 91 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'validateUser' |
-| `scripts/audit-user-terminology.ts` | 94 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const WORKSPACE_USER_PATTERN_EXCEPTIONS: RegExp[] = [ |
-| `scripts/audit-user-terminology.ts` | 95 | `code` | 3 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^get.*User$/, // getActiveUser, getUserById |
-| `scripts/audit-user-terminology.ts` | 96 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^find.*User$/, // findUserByEmail |
-| `scripts/audit-user-terminology.ts` | 97 | `code` | 2 | `User, UserS` | `system_auth` | `high` | Auth-domain file pattern match | 	/^validate.*User$/, // validateUserSession |
-| `scripts/audit-user-terminology.ts` | 98 | `code` | 5 | `User, Users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(User\|Users)(Doc\|Id\|Type)s?$/, // UserDoc, UserId, UsersType |
-| `scripts/audit-user-terminology.ts` | 99 | `string` | 3 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(Doc\|Id)<'?users'?>$/ // Doc<'users'> / Id<'users'> (best effort) |
-| `scripts/audit-user-terminology.ts` | 103 | `code` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^convex\/core\/users\//, |
-| `scripts/audit-user-terminology.ts` | 108 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	/\/audit-user-terminology(\.ts)?$/ |
-| `scripts/audit-user-terminology.ts` | 124 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | function hasOnlyExceptionUserTokens(lineText: string): boolean { |
-| `scripts/audit-user-terminology.ts` | 125 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	USER_TOKEN_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 126 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	const tokens = Array.from(lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? '').filter(Boolean); |
-| `scripts/audit-user-terminology.ts` | 127 | `string` | 2 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	const userTokens = tokens.filter((t) => t.toLowerCase().includes('user')); |
-| `scripts/audit-user-terminology.ts` | 128 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	if (userTokens.length === 0) return false; |
-| `scripts/audit-user-terminology.ts` | 130 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	for (const tok of userTokens) { |
-| `scripts/audit-user-terminology.ts` | 131 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
-| `scripts/audit-user-terminology.ts` | 132 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		if (WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(tok))) continue; |
-| `scripts/audit-user-terminology.ts` | 180 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 				path.basename(resolved).startsWith('identity-user-terminology-audit') |
-| `scripts/audit-user-terminology.ts` | 208 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/infrastructure/users/', why: 'users infra path' }, |
-| `scripts/audit-user-terminology.ts` | 209 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/admin/users/', why: 'admin users path' }, |
-| `scripts/audit-user-terminology.ts` | 218 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "v.id('users')", why: "Convex users id type" }, |
-| `scripts/audit-user-terminology.ts` | 219 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "id<'users'>", why: "Convex users id type" }, |
-| `scripts/audit-user-terminology.ts` | 220 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "db.query('users')", why: 'query users table' }, |
-| `scripts/audit-user-terminology.ts` | 221 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "db.insert('users'", why: 'insert users table' }, |
-| `scripts/audit-user-terminology.ts` | 222 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/core/users/', why: 'users domain path' }, |
-| `scripts/audit-user-terminology.ts` | 223 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: 'users table', why: 'users table mention' }, |
-| `scripts/audit-user-terminology.ts` | 246 | `code` | 2 | `User, user` | `system_auth` | `high` | Auth-domain file pattern match | 	const hasUserId = /\buserid\b/i.test(lineText); |
-| `scripts/audit-user-terminology.ts` | 247 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	const authCount = matchedAuth.length + (hasUserId ? 1 : 0); |
-| `scripts/audit-user-terminology.ts` | 267 | `string` | 2 | `User, user` | `system_auth` | `high` | Auth-domain file pattern match | 			reason: `Auth signals: ${matchedAuth.map((s) => s.why).slice(0, 4).join(', ')}${hasUserId ? ', userId' : ''}` |
-| `scripts/audit-user-terminology.ts` | 287 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	if (STRING_LITERAL_WITH_USER_RE.test(lineText)) return 'string'; |
-| `scripts/audit-user-terminology.ts` | 319 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		USER_SUBSTRING_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 320 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		const matches = Array.from(line.matchAll(USER_SUBSTRING_RE)); |
-| `scripts/audit-user-terminology.ts` | 438 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('title: Identity terminology audit summary (user/users)'); |
-| `scripts/audit-user-terminology.ts` | 445 | `string` | 4 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Correct**: `user/users` when referring to global auth identity (`users` table, WorkOS, sessions, `userId`).' |
-| `scripts/audit-user-terminology.ts` | 448 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Incorrect (to fix)**: `user/users` used in workspace/domain context where the entity is a `person`/`people` record (`personId`, circles/roles/workspace membership).' |
-| `scripts/audit-user-terminology.ts` | 492 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Then fix **UI labels** (workspace `kind=string`) where "Users" should be "People" (or "Members" when it truly means membership).' |
-| `scripts/audit-user-terminology.ts` | 495 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Apply mechanical renames (e.g. `availableUsers` → `availablePeople`) and re-run the script.' |
-| `scripts/audit-user-terminology.ts` | 498 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Use `identity-user-terminology-audit.unknown.md` only after the workspace list is shrinking (unknown becomes manageable).' |
-| `scripts/audit-user-terminology.ts` | 512 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push(`title: Identity terminology audit (user/users)`); |
-| `scripts/audit-user-terminology.ts` | 519 | `string` | 6 | `user, users, Users, User` | `system_auth` | `high` | Auth-domain file pattern match | 		'Audit of `user` / `users` occurrences in code and UI labels (strings), including inside identifiers like `availableUsers`, `useUsers`, `UserProfile`, `userId`, with a heuristic scope classification:' |
-| `scripts/audit-user-terminology.ts` | 522 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **system_auth**: global auth identity / sessions / WorkOS / `userId` / `users` table' |
-| `scripts/audit-user-terminology.ts` | 563 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('## Workspace-scoped tokens containing "user" (candidate renames)'); |
-| `scripts/audit-user-terminology.ts` | 566 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'This list is derived from lines classified as `workspace` and extracts identifier-like tokens containing `user`/`users` (case-insensitive).' |
-| `scripts/audit-user-terminology.ts` | 569 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'It is intended to drive a systematic rename plan toward **0 workspace-scoped `user` terminology**. Tokens in the exception allowlist are omitted.' |
-| `scripts/audit-user-terminology.ts` | 582 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
-| `scripts/audit-user-terminology.ts` | 583 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
-| `scripts/audit-user-terminology.ts` | 586 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 			if (!tok.toLowerCase().includes('user')) continue; |
-| `scripts/audit-user-terminology.ts` | 587 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 			if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
-| `scripts/audit-user-terminology.ts` | 606 | `string` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		const recommendation = lower.includes('users') |
-| `scripts/audit-user-terminology.ts` | 608 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 			: lower.includes('user') |
-| `scripts/audit-user-terminology.ts` | 620 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'Goal: reduce **workspace-scoped** `user/users` terminology to **0** in code + UI labels by renaming identifiers and UI copy to `person/people` (or `member` only when the domain truly means membership rather than identity).' |
-| `scripts/audit-user-terminology.ts` | 626 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Step 1: Define the “allowed user” carve-outs (prevents breaking identity model)**' |
-| `scripts/audit-user-terminology.ts` | 628 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Keep `userId` and the `users` table terminology for **System/Auth identity**.'); |
-| `scripts/audit-user-terminology.ts` | 630 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Keep `*UserId` forms when they truly refer to global identity targets (invites, auth flows).' |
-| `scripts/audit-user-terminology.ts` | 636 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename variables/props like `availableUsers` → `availablePeople` or `availablePersons` (prefer `people/person` when backed by `people` table).' |
-| `scripts/audit-user-terminology.ts` | 639 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename functions/hooks like `useUsers...` that actually query `people`/`personId` to `usePeople...` / `usePersons...`.' |
-| `scripts/audit-user-terminology.ts` | 642 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename UI copy text in workspace screens: "Users" → "People" (or "Members" only when it refers to membership).' |
-| `scripts/audit-user-terminology.ts` | 647 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename components/files like `AssignUserDialog` to `AssignPersonDialog` only after updating all imports + stories/tests.' |
-| `scripts/audit-user-terminology.ts` | 654 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Ensure all workspace mutations/queries accept `personId` (not `userId`).'); |
-| `scripts/audit-user-terminology.ts` | 655 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Reserve `user/users` naming for global identity and auth tables only.'); |
-| `scripts/audit-user-terminology.ts` | 674 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 			!(r.kind === 'code' && hasOnlyExceptionUserTokens(r.lineText)) |
-| `scripts/audit-user-terminology.ts` | 686 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (workspace-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 691 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (system/auth-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 696 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (unknown-only): user/users', |
-| `scripts/audit-user-terminology.ts` | 702 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.production-code.md'), |
-| `scripts/audit-user-terminology.ts` | 707 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.tests.md'), |
-| `scripts/audit-user-terminology.ts` | 712 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.ui-strings.md'), |
+| `scripts/audit-user-terminology.ts` | 39 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'identity-user-terminology-audit.actionable.md' |
+| `scripts/audit-user-terminology.ts` | 73 | `code` | 2 | `USER, users` | `system_auth` | `high` | Auth-domain file pattern match | const USER_SUBSTRING_RE = /users?/gi; |
+| `scripts/audit-user-terminology.ts` | 75 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const USER_TOKEN_RE = /[A-Za-z_][A-Za-z0-9_]*/g; |
+| `scripts/audit-user-terminology.ts` | 76 | `code` | 2 | `USER, users` | `system_auth` | `high` | Auth-domain file pattern match | const STRING_LITERAL_WITH_USER_RE = /(['"`])[^'"`]*users?[^'"`]*\1/i; |
+| `scripts/audit-user-terminology.ts` | 78 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const WORKSPACE_USER_TOKEN_EXCEPTIONS = new Set<string>([ |
+| `scripts/audit-user-terminology.ts` | 80 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userId', |
+| `scripts/audit-user-terminology.ts` | 81 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userIds', |
+| `scripts/audit-user-terminology.ts` | 82 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'actorUserId', |
+| `scripts/audit-user-terminology.ts` | 83 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'actingUserId', |
+| `scripts/audit-user-terminology.ts` | 84 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'targetUserId', |
+| `scripts/audit-user-terminology.ts` | 85 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'memberUserId', |
+| `scripts/audit-user-terminology.ts` | 86 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'assigneeUserId', |
+| `scripts/audit-user-terminology.ts` | 87 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'inviteeUserId', |
+| `scripts/audit-user-terminology.ts` | 88 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'invitedUserId', |
+| `scripts/audit-user-terminology.ts` | 89 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'ownerUserId', |
+| `scripts/audit-user-terminology.ts` | 90 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'candidateUserId', |
+| `scripts/audit-user-terminology.ts` | 93 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userRoleId', |
+| `scripts/audit-user-terminology.ts` | 94 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userRoleIds', |
+| `scripts/audit-user-terminology.ts` | 97 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'getUser', |
+| `scripts/audit-user-terminology.ts` | 98 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'getUserById', |
+| `scripts/audit-user-terminology.ts` | 99 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUser', |
+| `scripts/audit-user-terminology.ts` | 100 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUserById', |
+| `scripts/audit-user-terminology.ts` | 101 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'findUserByEmail', |
+| `scripts/audit-user-terminology.ts` | 102 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	'validateUser', |
+| `scripts/audit-user-terminology.ts` | 105 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userEmail', |
+| `scripts/audit-user-terminology.ts` | 106 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userName', |
+| `scripts/audit-user-terminology.ts` | 107 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userEmails', |
+| `scripts/audit-user-terminology.ts` | 108 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	'userNames' |
+| `scripts/audit-user-terminology.ts` | 111 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | const WORKSPACE_USER_PATTERN_EXCEPTIONS: RegExp[] = [ |
+| `scripts/audit-user-terminology.ts` | 112 | `code` | 3 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^get.*User$/, // getActiveUser, getUserById |
+| `scripts/audit-user-terminology.ts` | 113 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^find.*User$/, // findUserByEmail |
+| `scripts/audit-user-terminology.ts` | 114 | `code` | 2 | `User, UserS` | `system_auth` | `high` | Auth-domain file pattern match | 	/^validate.*User$/, // validateUserSession |
+| `scripts/audit-user-terminology.ts` | 115 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^create.*User$/, // createUser |
+| `scripts/audit-user-terminology.ts` | 116 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^update.*User$/, // updateUser |
+| `scripts/audit-user-terminology.ts` | 117 | `code` | 5 | `User, Users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(User\|Users)(Doc\|Id\|Type)s?$/, // UserDoc, UserId, UsersType |
+| `scripts/audit-user-terminology.ts` | 118 | `string` | 3 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(Doc\|Id)<'?users'?>$/, // Doc<'users'> / Id<'users'> (best effort) |
+| `scripts/audit-user-terminology.ts` | 121 | `code` | 3 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(get\|find\|list)Person.*By.*User/i, // getPersonByUserAndWorkspace, findPersonByUserAndWorkspace |
+| `scripts/audit-user-terminology.ts` | 122 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(get\|find\|list).*ForUser$/i, // listWorkspacesForUser |
+| `scripts/audit-user-terminology.ts` | 123 | `code` | 2 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(get\|find).*ByUserAndWorkspace$/i, // findPersonByUserAndWorkspace |
+| `scripts/audit-user-terminology.ts` | 124 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^linkPersonToUser$/i, |
+| `scripts/audit-user-terminology.ts` | 127 | `code` | 3 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^find(User)?(Name\|Email)Field$/i, // findUserNameField, findUserEmailField |
+| `scripts/audit-user-terminology.ts` | 130 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^invited(User)?Id$/i, |
+| `scripts/audit-user-terminology.ts` | 133 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(get\|list\|assign\|revoke\|update).*UserRole/i, |
+| `scripts/audit-user-terminology.ts` | 134 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	/^(list\|create\|update)UserRoleAssignment/i, |
+| `scripts/audit-user-terminology.ts` | 137 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	/^USER_ID_FIELD$/i, |
+| `scripts/audit-user-terminology.ts` | 138 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	/^USER_.*_FIELD$/i |
+| `scripts/audit-user-terminology.ts` | 142 | `code` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 	/^convex\/core\/users\//, |
+| `scripts/audit-user-terminology.ts` | 147 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	/\/audit-user-terminology(\.ts)?$/ |
+| `scripts/audit-user-terminology.ts` | 185 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | function replaceUserWithPreferredTerm(text: string, preferred: 'Person' \| 'Member'): string { |
+| `scripts/audit-user-terminology.ts` | 190 | `code` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		.replaceAll(/\bUsers\b/g, preferred === 'Person' ? 'People' : 'Members') |
+| `scripts/audit-user-terminology.ts` | 191 | `code` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		.replaceAll(/\busers\b/g, plural) |
+| `scripts/audit-user-terminology.ts` | 192 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		.replaceAll(/\bUser\b/g, preferred) |
+| `scripts/audit-user-terminology.ts` | 193 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		.replaceAll(/\buser\b/g, singular); |
+| `scripts/audit-user-terminology.ts` | 196 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | function replaceUserInStringLiterals(lineText: string, preferred: 'Person' \| 'Member'): string { |
+| `scripts/audit-user-terminology.ts` | 199 | `code` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 	return lineText.replaceAll(/(['"`])([^'"`]*\busers?\b[^'"`]*)\1/gi, (_m, quote, body) => { |
+| `scripts/audit-user-terminology.ts` | 200 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		return `${quote}${replaceUserWithPreferredTerm(String(body), preferred)}${quote}`; |
+| `scripts/audit-user-terminology.ts` | 207 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		STRING_LITERAL_WITH_USER_RE.test(lineText) && |
+| `scripts/audit-user-terminology.ts` | 208 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		/\b(Add\|Assign\|Invite)\s+User(s)?\b/i.test(lineText) |
+| `scripts/audit-user-terminology.ts` | 224 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		if (!base.includes('User')) continue; |
+| `scripts/audit-user-terminology.ts` | 226 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		const suggestedName = base.replaceAll('User', preferred); |
+| `scripts/audit-user-terminology.ts` | 251 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		'This report is intentionally narrow: it focuses on high-signal workspace UI terminology drift (\"User\" → \"Person\"), plus a short list of code identifier rename candidates.' |
+| `scripts/audit-user-terminology.ts` | 257 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('## P1: Org-chart component file names containing "User"'); |
+| `scripts/audit-user-terminology.ts` | 278 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('## P2: Workspace UI copy containing "User" (high-signal phrases only)'); |
+| `scripts/audit-user-terminology.ts` | 288 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 			const suggested = replaceUserInStringLiterals(current, preferred); |
+| `scripts/audit-user-terminology.ts` | 308 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 309 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
+| `scripts/audit-user-terminology.ts` | 310 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		const userTokens = tokens |
+| `scripts/audit-user-terminology.ts` | 314 | `code` | 2 | `User, Users` | `system_auth` | `high` | Auth-domain file pattern match | 			.filter((t) => /User\|Users/.test(t)) |
+| `scripts/audit-user-terminology.ts` | 315 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 			.filter((t) => !WORKSPACE_USER_TOKEN_EXCEPTIONS.has(t)) |
+| `scripts/audit-user-terminology.ts` | 316 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 			.filter((t) => !WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(t))); |
+| `scripts/audit-user-terminology.ts` | 318 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		for (const tok of Array.from(new Set(userTokens))) { |
+| `scripts/audit-user-terminology.ts` | 322 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 			const stateFlagMatch = /^isUser([A-Z][A-Za-z0-9_]*)$/.exec(tok); |
+| `scripts/audit-user-terminology.ts` | 325 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 				: tok.replaceAll(/User/g, preferred); |
+| `scripts/audit-user-terminology.ts` | 345 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('## P3: Org-chart code identifiers containing "User" (rename candidates)'); |
+| `scripts/audit-user-terminology.ts` | 366 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | function hasOnlyExceptionUserTokens(lineText: string): boolean { |
+| `scripts/audit-user-terminology.ts` | 367 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 368 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	const tokens = Array.from(lineText.matchAll(USER_TOKEN_RE)) |
+| `scripts/audit-user-terminology.ts` | 371 | `string` | 2 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	const userTokens = tokens.filter((t) => t.toLowerCase().includes('user')); |
+| `scripts/audit-user-terminology.ts` | 372 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	if (userTokens.length === 0) return false; |
+| `scripts/audit-user-terminology.ts` | 374 | `code` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	for (const tok of userTokens) { |
+| `scripts/audit-user-terminology.ts` | 375 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
+| `scripts/audit-user-terminology.ts` | 376 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		if (WORKSPACE_USER_PATTERN_EXCEPTIONS.some((re) => re.test(tok))) continue; |
+| `scripts/audit-user-terminology.ts` | 424 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 				path.basename(resolved).startsWith('identity-user-terminology-audit') |
+| `scripts/audit-user-terminology.ts` | 452 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/infrastructure/users/', why: 'users infra path' }, |
+| `scripts/audit-user-terminology.ts` | 453 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/admin/users/', why: 'admin users path' }, |
+| `scripts/audit-user-terminology.ts` | 462 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "v.id('users')", why: 'Convex users id type' }, |
+| `scripts/audit-user-terminology.ts` | 463 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "id<'users'>", why: 'Convex users id type' }, |
+| `scripts/audit-user-terminology.ts` | 464 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "db.query('users')", why: 'query users table' }, |
+| `scripts/audit-user-terminology.ts` | 465 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: "db.insert('users'", why: 'insert users table' }, |
+| `scripts/audit-user-terminology.ts` | 466 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: '/core/users/', why: 'users domain path' }, |
+| `scripts/audit-user-terminology.ts` | 467 | `string` | 2 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		{ key: 'users table', why: 'users table mention' }, |
+| `scripts/audit-user-terminology.ts` | 490 | `code` | 2 | `User, user` | `system_auth` | `high` | Auth-domain file pattern match | 	const hasUserId = /\buserid\b/i.test(lineText); |
+| `scripts/audit-user-terminology.ts` | 491 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 	const authCount = matchedAuth.length + (hasUserId ? 1 : 0); |
+| `scripts/audit-user-terminology.ts` | 518 | `string` | 2 | `User, user` | `system_auth` | `high` | Auth-domain file pattern match | 				.join(', ')}${hasUserId ? ', userId' : ''}` |
+| `scripts/audit-user-terminology.ts` | 541 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 	if (STRING_LITERAL_WITH_USER_RE.test(lineText)) return 'string'; |
+| `scripts/audit-user-terminology.ts` | 573 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		USER_SUBSTRING_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 574 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		const matches = Array.from(line.matchAll(USER_SUBSTRING_RE)); |
+| `scripts/audit-user-terminology.ts` | 694 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('title: Identity terminology audit summary (user/users)'); |
+| `scripts/audit-user-terminology.ts` | 701 | `string` | 4 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Correct**: `user/users` when referring to global auth identity (`users` table, WorkOS, sessions, `userId`).' |
+| `scripts/audit-user-terminology.ts` | 704 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Incorrect (to fix)**: `user/users` used in workspace/domain context where the entity is a `person`/`people` record (`personId`, circles/roles/workspace membership).' |
+| `scripts/audit-user-terminology.ts` | 750 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Then fix **UI labels** (workspace `kind=string`) where "Users" should be "People" (or "Members" when it truly means membership).' |
+| `scripts/audit-user-terminology.ts` | 753 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Apply mechanical renames (e.g. `availableUsers` → `availablePeople`) and re-run the script.' |
+| `scripts/audit-user-terminology.ts` | 756 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'- Use `identity-user-terminology-audit.unknown.md` only after the workspace list is shrinking (unknown becomes manageable).' |
+| `scripts/audit-user-terminology.ts` | 770 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push(`title: Identity terminology audit (user/users)`); |
+| `scripts/audit-user-terminology.ts` | 777 | `string` | 6 | `user, users, Users, User` | `system_auth` | `high` | Auth-domain file pattern match | 		'Audit of `user` / `users` occurrences in code and UI labels (strings), including inside identifiers like `availableUsers`, `useUsers`, `UserProfile`, `userId`, with a heuristic scope classification:' |
+| `scripts/audit-user-terminology.ts` | 780 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **system_auth**: global auth identity / sessions / WorkOS / `userId` / `users` table' |
+| `scripts/audit-user-terminology.ts` | 821 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('## Workspace-scoped tokens containing "user" (candidate renames)'); |
+| `scripts/audit-user-terminology.ts` | 824 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'This list is derived from lines classified as `workspace` and extracts identifier-like tokens containing `user`/`users` (case-insensitive).' |
+| `scripts/audit-user-terminology.ts` | 827 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'It is intended to drive a systematic rename plan toward **0 workspace-scoped `user` terminology**. Tokens in the exception allowlist are omitted.' |
+| `scripts/audit-user-terminology.ts` | 840 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		USER_TOKEN_RE.lastIndex = 0; |
+| `scripts/audit-user-terminology.ts` | 841 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 		const tokens = Array.from(r.lineText.matchAll(USER_TOKEN_RE)).map((m) => m[0] ?? ''); |
+| `scripts/audit-user-terminology.ts` | 844 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 			if (!tok.toLowerCase().includes('user')) continue; |
+| `scripts/audit-user-terminology.ts` | 845 | `code` | 1 | `USER` | `system_auth` | `high` | Auth-domain file pattern match | 			if (WORKSPACE_USER_TOKEN_EXCEPTIONS.has(tok)) continue; |
+| `scripts/audit-user-terminology.ts` | 864 | `string` | 1 | `users` | `system_auth` | `high` | Auth-domain file pattern match | 		const recommendation = lower.includes('users') |
+| `scripts/audit-user-terminology.ts` | 866 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 			: lower.includes('user') |
+| `scripts/audit-user-terminology.ts` | 878 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		'Goal: reduce **workspace-scoped** `user/users` terminology to **0** in code + UI labels by renaming identifiers and UI copy to `person/people` (or `member` only when the domain truly means membership rather than identity).' |
+| `scripts/audit-user-terminology.ts` | 884 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		'- **Step 1: Define the “allowed user” carve-outs (prevents breaking identity model)**' |
+| `scripts/audit-user-terminology.ts` | 886 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Keep `userId` and the `users` table terminology for **System/Auth identity**.'); |
+| `scripts/audit-user-terminology.ts` | 888 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Keep `*UserId` forms when they truly refer to global identity targets (invites, auth flows).' |
+| `scripts/audit-user-terminology.ts` | 894 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename variables/props like `availableUsers` → `availablePeople` or `availablePersons` (prefer `people/person` when backed by `people` table).' |
+| `scripts/audit-user-terminology.ts` | 897 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename functions/hooks like `useUsers...` that actually query `people`/`personId` to `usePeople...` / `usePersons...`.' |
+| `scripts/audit-user-terminology.ts` | 900 | `string` | 1 | `Users` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename UI copy text in workspace screens: "Users" → "People" (or "Members" only when it refers to membership).' |
+| `scripts/audit-user-terminology.ts` | 905 | `string` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 		'  - Rename components/files like `AssignUserDialog` to `AssignPersonDialog` only after updating all imports + stories/tests.' |
+| `scripts/audit-user-terminology.ts` | 912 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Ensure all workspace mutations/queries accept `personId` (not `userId`).'); |
+| `scripts/audit-user-terminology.ts` | 913 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 	lines.push('  - Reserve `user/users` naming for global identity and auth tables only.'); |
+| `scripts/audit-user-terminology.ts` | 932 | `code` | 1 | `User` | `system_auth` | `high` | Auth-domain file pattern match | 			!(r.kind === 'code' && hasOnlyExceptionUserTokens(r.lineText)) |
+| `scripts/audit-user-terminology.ts` | 947 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (workspace-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 952 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (system/auth-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 957 | `string` | 2 | `user, users` | `system_auth` | `high` | Auth-domain file pattern match | 		title: 'Identity terminology audit (unknown-only): user/users', |
+| `scripts/audit-user-terminology.ts` | 965 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 			'identity-user-terminology-audit.workspace.production-code.md' |
+| `scripts/audit-user-terminology.ts` | 971 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.tests.md'), |
+| `scripts/audit-user-terminology.ts` | 976 | `string` | 1 | `user` | `system_auth` | `high` | Auth-domain file pattern match | 		outputPath: path.join(OUTPUT_DIR, 'identity-user-terminology-audit.workspace.ui-strings.md'), |
 | `scripts/check-auth-guard.js` | 11 | `string` | 2 | `User` | `system_auth` | `medium` | Auth signals: session | const LEGACY_HELPERS = new Set(['getAuthUserId', 'getUserIdFromSession']); |
 | `scripts/check-auth-guard.js` | 52 | `string` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 			return findPropertyName(prop.name) === 'userId'; |
 | `scripts/check-auth-guard.js` | 122 | `code` | 1 | `User` | `system_auth` | `medium` | Auth signals: session | 				`Legacy auth helper "${node.text}" is blocked. Use validateSessionAndGetUserId(ctx, sessionId).`, |
@@ -1283,10 +1298,8 @@ generatedAt: 2025-12-21T17:28:23.988Z
 | `src/lib/utils/errorReporting.ts` | 107 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: , userId | 	userId?: string, |
 | `src/lib/utils/errorReporting.ts` | 117 | `code` | 2 | `user` | `system_auth` | `medium` | Auth signals: , userId | 				user_id: userId, |
 | `src/routes/(authenticated)/+layout.svelte` | 52 | `code` | 3 | `user` | `system_auth` | `medium` | Auth signals: , userId | 		userId: () => data.user?.userId, |
-| `src/routes/(authenticated)/+layout.svelte` | 162 | `code` | 3 | `user` | `system_auth` | `medium` | Auth signals: , userId | 				userId: data.user?.userId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 166 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: WorkOS | 				workosId: data.user?.workosId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 473 | `code` | 3 | `user` | `system_auth` | `medium` | Auth signals: , userId | 					userId: data.user?.userId ?? null, |
-| `src/routes/(authenticated)/+layout.svelte` | 477 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: WorkOS | 					workosId: data.user?.workosId ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 170 | `code` | 3 | `user` | `system_auth` | `medium` | Auth signals: , userId | 				userId: data.user?.userId ?? null, |
+| `src/routes/(authenticated)/+layout.svelte` | 174 | `code` | 1 | `user` | `system_auth` | `medium` | Auth signals: WorkOS | 				workosId: data.user?.workosId ?? null, |
 | `src/routes/(authenticated)/account/+page.svelte` | 6 | `string` | 3 | `User, users` | `system_auth` | `medium` | Auth signals: users infra path | 	import UserProfile from '$lib/infrastructure/users/components/UserProfile.svelte'; |
 | `src/routes/(authenticated)/account/+page.svelte` | 7 | `string` | 1 | `users` | `system_auth` | `medium` | Auth signals: users infra path | 	import type { LinkedAccount } from '$lib/infrastructure/users/api'; |
 | `src/routes/(authenticated)/account/+page.svelte` | 8 | `string` | 3 | `User, users` | `system_auth` | `medium` | Auth signals: users infra path | 	import type { UserProfile as UserProfileType } from '$lib/infrastructure/users/api'; |

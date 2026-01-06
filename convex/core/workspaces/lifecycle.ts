@@ -254,7 +254,7 @@ async function createWorkspaceFlow(
 	const userName = findUserNameField(user);
 	const displayName = userName || userEmail?.split('@')[0] || 'Unknown';
 
-	const personId = await ctx.db.insert('people', {
+	const _personId = await ctx.db.insert('people', {
 		workspaceId,
 		userId: args.userId,
 		displayName,

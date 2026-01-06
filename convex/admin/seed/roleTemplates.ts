@@ -1,274 +1,125 @@
 /**
  * System Role Templates
  *
- * Creates the 4 core role templates defined in governance-design.md §6.3.
+ * Creates the core role templates for each lead authority level.
  * These templates are workspace-agnostic (workspaceId = undefined) and serve
  * as blueprints for creating circle roles.
  *
- * Templates:
- * - Circle Lead (circle_lead, required for hierarchy/empowered_team/hybrid)
- * - Steward (circle_lead, required for guilds)
- * - Facilitator (structural, optional)
- * - Secretary (structural, optional)
+ * Templates are grouped by lead authority:
+ * - DECIDES: Circle Lead + Secretary
+ * - FACILITATES: Coordinator + Facilitator + Secretary
+ * - CONVENES: Steward
+ *
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly
+ * on the template and the resulting role schema, not in customFieldValues.
+ *
+ * SYOS-1070: Simplified from 10 templates (4 circle types) to 7 templates (3 lead authority levels)
  */
 
 import type { MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
-import { CIRCLE_TYPES, type CircleType } from '../../core/circles/constants';
+import { LEAD_AUTHORITY, type LeadAuthority } from '../../core/circles/constants';
 
 /**
  * System role template definition
+ * DR-011: Uses defaultPurpose and defaultDecisionRights instead of defaultFieldValues
  */
 interface RoleTemplateDefinition {
 	name: string;
 	roleType: 'circle_lead' | 'structural' | 'custom';
-	defaultFieldValues: Array<{ systemKey: string; values: string[] }>;
+	defaultPurpose: string;
+	defaultDecisionRights: string[];
 	description: string;
 	isCore: boolean;
-	appliesTo: CircleType;
+	appliesTo: LeadAuthority;
 }
 
 /**
- * System role templates per governance-design.md §6.3
+ * System role templates for Lead Authority model
  *
- * 10 templates total, grouped by circle type.
- * Each circle type gets its own lead template with appropriate authority model.
+ * 7 templates total, grouped by lead authority level.
+ * Each lead authority gets its own lead template with appropriate authority model.
  */
 const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
 	// ═══════════════════════════════════════════════════════════════
-	// HIERARCHY - Traditional command structure
+	// DECIDES - Lead has full decision authority
 	// ═══════════════════════════════════════════════════════════════
 	{
 		name: 'Circle Lead',
 		roleType: 'circle_lead',
-		appliesTo: CIRCLE_TYPES.HIERARCHY,
+		appliesTo: LEAD_AUTHORITY.DECIDES,
 		isCore: true,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Lead this circle toward its purpose with full decision authority']
-			},
-			{
-				systemKey: 'decision_right',
-				values: [
-					'Decide all matters within circle scope',
-					'Assign roles within circle',
-					'Remove roles from circle'
-				]
-			},
-			{
-				systemKey: 'accountability',
-				values: ['Coordinate work across roles', 'Represent circle in parent circle']
-			}
+		defaultPurpose: 'Lead this circle toward its purpose with full decision authority',
+		defaultDecisionRights: [
+			'Decide all matters within circle scope',
+			'Assign roles within circle',
+			'Remove roles from circle'
 		],
 		description:
-			'Full authority lead role for hierarchical circles with traditional command structure.'
+			'Full authority lead role for circles where the lead decides. Can make decisions unilaterally within circle scope.'
 	},
 	{
 		name: 'Secretary',
 		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.HIERARCHY,
+		appliesTo: LEAD_AUTHORITY.DECIDES,
 		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Maintain circle records and support governance integrity']
-			},
-			{
-				systemKey: 'decision_right',
-				values: ['Decide what to record in meeting notes']
-			},
-			{
-				systemKey: 'accountability',
-				values: [
-					'Record meeting outputs',
-					'Maintain governance records',
-					'Interpret governance records'
-				]
-			}
-		],
-		description: 'Maintains records and schedules meetings for hierarchical circles.'
+		defaultPurpose: 'Maintain circle records and support governance integrity',
+		defaultDecisionRights: ['Decide what to record in meeting notes'],
+		description: 'Maintains records and schedules meetings for circles where lead decides.'
 	},
 
 	// ═══════════════════════════════════════════════════════════════
-	// EMPOWERED_TEAM - Consent-based, lead facilitates
+	// FACILITATES - Lead facilitates, team decides via consent
 	// ═══════════════════════════════════════════════════════════════
 	{
-		name: 'Circle Lead',
+		name: 'Coordinator',
 		roleType: 'circle_lead',
-		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
+		appliesTo: LEAD_AUTHORITY.FACILITATES,
 		isCore: true,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Facilitate team decisions and break ties when consent cannot be reached']
-			},
-			{
-				systemKey: 'decision_right',
-				values: ['Break ties when consent fails', 'Assign roles within circle']
-			},
-			{
-				systemKey: 'accountability',
-				values: ['Facilitate governance meetings', 'Coordinate work across roles']
-			}
-		],
-		description: 'Facilitative lead role for empowered teams using consent-based decision making.'
+		defaultPurpose: 'Facilitate team decisions and break ties when consent cannot be reached',
+		defaultDecisionRights: ['Break ties when consent fails', 'Coordinate circle activities'],
+		description: 'Facilitative lead role for teams using consent-based decision making.'
 	},
 	{
 		name: 'Facilitator',
 		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
+		appliesTo: LEAD_AUTHORITY.FACILITATES,
 		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Ensure governance and tactical meetings run effectively']
-			},
-			{ systemKey: 'decision_right', values: ['Interpret governance when ambiguous'] },
-			{
-				systemKey: 'accountability',
-				values: ['Facilitate circle meetings', 'Resolve process disputes']
-			}
-		],
-		description: 'Facilitates meetings and ensures process is followed for empowered teams.'
+		defaultPurpose: 'Ensure governance and tactical meetings run effectively',
+		defaultDecisionRights: ['Interpret governance when ambiguous'],
+		description: 'Facilitates meetings and ensures consent process is followed.'
 	},
 	{
 		name: 'Secretary',
 		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.EMPOWERED_TEAM,
+		appliesTo: LEAD_AUTHORITY.FACILITATES,
 		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Maintain circle records and support governance integrity']
-			},
-			{
-				systemKey: 'decision_right',
-				values: ['Decide what to record in meeting notes']
-			},
-			{
-				systemKey: 'accountability',
-				values: [
-					'Record meeting outputs',
-					'Maintain governance records',
-					'Interpret governance records'
-				]
-			}
-		],
-		description: 'Maintains records and schedules meetings for empowered teams.'
+		defaultPurpose: 'Maintain circle records and support governance integrity',
+		defaultDecisionRights: ['Decide what to record in meeting notes'],
+		description: 'Maintains records and schedules meetings for facilitated circles.'
 	},
 
 	// ═══════════════════════════════════════════════════════════════
-	// GUILD - Advisory, cross-cutting community of practice
+	// CONVENES - Lead schedules only, advisory decisions
 	// ═══════════════════════════════════════════════════════════════
 	{
 		name: 'Steward',
 		roleType: 'circle_lead',
-		appliesTo: CIRCLE_TYPES.GUILD,
+		appliesTo: LEAD_AUTHORITY.CONVENES,
 		isCore: true,
-		defaultFieldValues: [
-			{ systemKey: 'purpose', values: ['Convene and coordinate guild activities'] },
-			{ systemKey: 'decision_right', values: ['Schedule guild meetings'] },
-			{
-				systemKey: 'accountability',
-				values: ['Maintain guild communication channels', 'Coordinate cross-team knowledge sharing']
-			}
-		],
-		description: 'Convening authority for guilds - coordinates activities across circles.'
+		defaultPurpose: 'Convene and coordinate community activities',
+		defaultDecisionRights: ['Schedule community meetings'],
+		description:
+			'Convening authority - coordinates activities and schedules gatherings. No decision authority.'
 	},
 	{
 		name: 'Secretary',
 		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.GUILD,
+		appliesTo: LEAD_AUTHORITY.CONVENES,
 		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Maintain circle records and support governance integrity']
-			},
-			{
-				systemKey: 'decision_right',
-				values: ['Decide what to record in meeting notes']
-			},
-			{
-				systemKey: 'accountability',
-				values: [
-					'Record meeting outputs',
-					'Maintain governance records',
-					'Interpret governance records'
-				]
-			}
-		],
-		description: 'Maintains records and schedules meetings for guilds.'
-	},
-
-	// ═══════════════════════════════════════════════════════════════
-	// HYBRID - Full authority but uses consent process
-	// ═══════════════════════════════════════════════════════════════
-	{
-		name: 'Circle Lead',
-		roleType: 'circle_lead',
-		appliesTo: CIRCLE_TYPES.HYBRID,
-		isCore: true,
-		defaultFieldValues: [
-			{ systemKey: 'purpose', values: ['Lead using consent-based decision making'] },
-			{
-				systemKey: 'decision_right',
-				values: [
-					'Decide all matters within circle scope using consent or directive',
-					'Choose decision mode per topic',
-					'Assign roles within circle'
-				]
-			},
-			{
-				systemKey: 'accountability',
-				values: ['Coordinate work across roles', 'Facilitate governance meetings']
-			}
-		],
-		description: 'Full authority lead role that uses consent process - flexible decision making.'
-	},
-	{
-		name: 'Facilitator',
-		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.HYBRID,
-		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Ensure governance and tactical meetings run effectively']
-			},
-			{ systemKey: 'decision_right', values: ['Interpret governance when ambiguous'] },
-			{
-				systemKey: 'accountability',
-				values: ['Facilitate circle meetings', 'Resolve process disputes']
-			}
-		],
-		description: 'Facilitates meetings and ensures process is followed for hybrid circles.'
-	},
-	{
-		name: 'Secretary',
-		roleType: 'structural',
-		appliesTo: CIRCLE_TYPES.HYBRID,
-		isCore: false,
-		defaultFieldValues: [
-			{
-				systemKey: 'purpose',
-				values: ['Maintain circle records and support governance integrity']
-			},
-			{
-				systemKey: 'decision_right',
-				values: ['Decide what to record in meeting notes']
-			},
-			{
-				systemKey: 'accountability',
-				values: [
-					'Record meeting outputs',
-					'Maintain governance records',
-					'Interpret governance records'
-				]
-			}
-		],
-		description: 'Maintains records and schedules meetings for hybrid circles.'
+		defaultPurpose: 'Maintain circle records and support governance integrity',
+		defaultDecisionRights: ['Decide what to record in meeting notes'],
+		description: 'Maintains records and schedules meetings for convening circles.'
 	}
 ];
 
@@ -280,12 +131,16 @@ const SYSTEM_TEMPLATES: RoleTemplateDefinition[] = [
  *
  * @returns Array of created template IDs and summary
  */
-export async function createSystemRoleTemplates(
-	ctx: MutationCtx
-): Promise<{ templateIds: Id<'roleTemplates'>[]; created: number; skipped: number }> {
+export async function createSystemRoleTemplates(ctx: MutationCtx): Promise<{
+	templateIds: Id<'roleTemplates'>[];
+	created: number;
+	updated: number;
+	skipped: number;
+}> {
 	const now = Date.now();
 	const templateIds: Id<'roleTemplates'>[] = [];
 	let created = 0;
+	let updated = 0;
 	let skipped = 0;
 
 	console.log('📋 Creating system role templates...');
@@ -300,7 +155,7 @@ export async function createSystemRoleTemplates(
 	for (const template of SYSTEM_TEMPLATES) {
 		// Check if THIS SPECIFIC template already exists
 		// Must match on name + roleType + appliesTo (not just roleType + appliesTo)
-		// because multiple templates can share roleType + appliesTo (e.g., Facilitator and Secretary both structural for empowered_team)
+		// because multiple templates can share roleType + appliesTo (e.g., Facilitator and Secretary both structural for facilitates)
 		const existing = allSystemTemplates.find(
 			(t) =>
 				t.name === template.name &&
@@ -310,20 +165,53 @@ export async function createSystemRoleTemplates(
 		);
 
 		if (existing) {
-			console.log(
-				`  ⏭️  Template "${template.name}" (${template.roleType}, ${template.appliesTo}) already exists, skipping...`
-			);
+			// IMPORTANT:
+			// Older databases may have templates created before DR-011 fields existed (or with empty defaults).
+			// Our seed is idempotent, but it must also be self-healing: if an existing template is missing
+			// or has incorrect governance defaults, patch it in-place so new circle roles inherit correctly.
+			const needsUpdate =
+				existing.defaultPurpose !== template.defaultPurpose ||
+				(existing.defaultDecisionRights ?? []).join('\n') !==
+					template.defaultDecisionRights.join('\n') ||
+				existing.description !== template.description ||
+				existing.isCore !== template.isCore ||
+				existing.roleType !== template.roleType ||
+				existing.appliesTo !== template.appliesTo;
+
+			if (needsUpdate) {
+				await ctx.db.patch(existing._id, {
+					name: template.name,
+					roleType: template.roleType,
+					defaultPurpose: template.defaultPurpose,
+					defaultDecisionRights: template.defaultDecisionRights,
+					description: template.description,
+					isCore: template.isCore,
+					appliesTo: template.appliesTo,
+					updatedAt: now,
+					updatedByPersonId: undefined
+				});
+				console.log(
+					`  🔧 Updated template: "${template.name}" (${template.roleType}, ${template.appliesTo})`
+				);
+				updated++;
+			} else {
+				console.log(
+					`  ⏭️  Template "${template.name}" (${template.roleType}, ${template.appliesTo}) already exists, skipping...`
+				);
+				skipped++;
+			}
+
 			templateIds.push(existing._id);
-			skipped++;
 			continue;
 		}
 
-		// Create system template
+		// Create system template (DR-011: governance fields in core schema)
 		const templateId = await ctx.db.insert('roleTemplates', {
 			workspaceId: undefined, // System-level template
 			name: template.name,
 			roleType: template.roleType,
-			defaultFieldValues: template.defaultFieldValues,
+			defaultPurpose: template.defaultPurpose,
+			defaultDecisionRights: template.defaultDecisionRights,
 			description: template.description,
 			isCore: template.isCore,
 			appliesTo: template.appliesTo,
@@ -347,8 +235,8 @@ export async function createSystemRoleTemplates(
 	}
 
 	console.log(
-		`📋 Role templates ready: ${created} created, ${skipped} already existed (${SYSTEM_TEMPLATES.length} total)\n`
+		`📋 Role templates ready: ${created} created, ${updated} updated, ${skipped} already existed (${SYSTEM_TEMPLATES.length} total)\n`
 	);
 
-	return { templateIds, created, skipped };
+	return { templateIds, created, updated, skipped };
 }

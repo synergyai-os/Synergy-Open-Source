@@ -19,7 +19,7 @@ export const organizationItemRecipe = cva(
 	// Base classes - applied to all workspace items
 	// Uses stack spacing: px-input (16px) horizontal, py-stack-item (8px) vertical
 	// Rounded corners and clear hover state for premium feel
-	'mx-1 rounded-button px-input py-stack-item flex cursor-pointer items-center justify-between outline-none transition-all duration-200',
+	'rounded-button px-input py-stack-item flex cursor-pointer items-center justify-between outline-none transition-all duration-200',
 	{
 		variants: {
 			active: {

@@ -93,26 +93,26 @@ Changing how identity works breaks every other domain.
 
 These define organizational structure — the nouns of the system.
 
-| ID     | Invariant                                                                              | Why                           | Check                                                                                 | Severity |
-| ------ | -------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- | -------- |
-| ORG-01 | Every workspace has exactly one root circle (`parentCircleId=null`, `archivedAt=null`) | No org structure possible     | Count circles per workspace where `parentCircleId IS NULL AND archivedAt IS NULL` = 1 | critical |
-| ORG-02 | Every non-root circle has valid `parentCircleId`                                       | Orphaned circle               | All `circles.parentCircleId` resolve via `db.get()`                                   | critical |
-| ORG-03 | No circular references in `circle.parentCircleId` chain                                | Infinite loop, crash          | Traverse parents; never revisit same `_id`                                            | critical |
-| ORG-04 | Every `circle.workspaceId` points to existing workspace                                | Orphaned circle               | All `circles.workspaceId` resolve via `db.get()`                                      | critical |
-| ORG-05 | Circle's parent belongs to same workspace                                              | Cross-workspace leak          | `circles.workspaceId === parent.workspaceId`                                          | critical |
-| ORG-06 | Circle `circleType` is valid enum value when set                                       | Invalid authority calculation | Value in `['hierarchy', 'empowered_team', 'guild', 'hybrid']` or null                 | critical |
-| ORG-07 | Circle `status` is `draft` or `active` only                                            | Invalid lifecycle state       | Value in `['draft', 'active']`; no `deleted` status                                   | critical |
-| ORG-08 | Circle `slug` is unique within workspace                                               | Broken URL routing            | `by_slug` index unique per workspace                                                  | critical |
-| ORG-09 | Circles with `archivedByPersonId` must have `archivedAt`                               | Incomplete soft delete        | `archivedByPersonId` set → `archivedAt` must also be set                              | warning  |
-| ORG-10 | Root circle type must not be `'guild'` (only checked at activation)                    | Guilds are advisory only      | Workspace root circle `circleType` ≠ `'guild'` when `phase='active'`                  | critical |
+| ID     | Invariant                                                                              | Why                                  | Check                                                                                 | Severity |
+| ------ | -------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------- | -------- |
+| ORG-01 | Every workspace has exactly one root circle (`parentCircleId=null`, `archivedAt=null`) | No org structure possible            | Count circles per workspace where `parentCircleId IS NULL AND archivedAt IS NULL` = 1 | critical |
+| ORG-02 | Every non-root circle has valid `parentCircleId`                                       | Orphaned circle                      | All `circles.parentCircleId` resolve via `db.get()`                                   | critical |
+| ORG-03 | No circular references in `circle.parentCircleId` chain                                | Infinite loop, crash                 | Traverse parents; never revisit same `_id`                                            | critical |
+| ORG-04 | Every `circle.workspaceId` points to existing workspace                                | Orphaned circle                      | All `circles.workspaceId` resolve via `db.get()`                                      | critical |
+| ORG-05 | Circle's parent belongs to same workspace                                              | Cross-workspace leak                 | `circles.workspaceId === parent.workspaceId`                                          | critical |
+| ORG-06 | Circle `leadAuthority` is valid enum value when set                                    | Invalid authority calculation        | Value in `['decides', 'facilitates', 'convenes']` or null                             | critical |
+| ORG-07 | Circle `status` is `draft` or `active` only                                            | Invalid lifecycle state              | Value in `['draft', 'active']`; no `deleted` status                                   | critical |
+| ORG-08 | Circle `slug` is unique within workspace                                               | Broken URL routing                   | `by_slug` index unique per workspace                                                  | critical |
+| ORG-09 | Circles with `archivedByPersonId` must have `archivedAt`                               | Incomplete soft delete               | `archivedByPersonId` set → `archivedAt` must also be set                              | warning  |
+| ORG-10 | Root circle lead authority must not be `'convenes'` (only checked at activation)       | Convening authority is advisory only | Workspace root circle `leadAuthority` ≠ `'convenes'` when `phase='active'`            | critical |
 
 > **Circle Deletion Model**: Circles use soft delete via `archivedAt` timestamp, not a status change.
 > When a circle is "deleted", `archivedAt` is set and `archivedByPersonId` records who deleted it.
 > The `status` field (`draft`/`active`) represents lifecycle state, not deletion state.
 >
-> **ORG-10 (Workspace Activation)**: During design phase, any circle structure is allowed (including guild as root).
+> **ORG-10 (Workspace Activation)**: During design phase, any circle structure is allowed (including circles with convening authority as root).
 > ORG-10 is only enforced when activating a workspace (`design` → `active` transition).
-> Guilds are cross-cutting advisory communities and cannot serve as the organizational root.
+> Circles with convening authority (e.g., communities of practice) are advisory only and cannot serve as the organizational root.
 
 ---
 
@@ -183,20 +183,22 @@ Governance foundation invariants from governance-design.md. These enforce role c
 | ID     | Invariant                                                                          | Why                         | Check                                                                           | Severity |
 | ------ | ---------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------- | -------- |
 | GOV-01 | Every circle has exactly one role with `roleType: 'circle_lead'`                   | No authority structure      | Query `by_circle_roleType`, count per circle where `roleType='circle_lead'` = 1 | critical |
-| GOV-02 | Every role has a `purpose` (non-empty string)                                      | No role clarity             | All roles have customFieldValue with systemKey='purpose' and non-empty value    | critical |
-| GOV-03 | Every role has at least one `decisionRight`                                        | No explicit authority       | All roles have at least one customFieldValue with systemKey='decision_right'    | critical |
+| GOV-02 | Every role has a `purpose` (non-empty string)                                      | No role clarity             | All roles have non-empty `purpose` field in schema (DR-011)                     | critical |
+| GOV-03 | Every role has at least one `decisionRight`                                        | No explicit authority       | All roles have non-empty `decisionRights` array in schema (DR-011)              | critical |
 | GOV-04 | Circle lead role cannot be deleted while circle exists                             | Lost authority chain        | Mutation validation prevents lead role deletion (enforced in code, not query)   | critical |
 | GOV-05 | Role assignments are traceable (who assigned, when)                                | Audit trail gaps            | All `assignments` have `createdAt`, `createdByPersonId`                         | warning  |
 | GOV-06 | Governance changes create history records (when phase = 'active')                  | Lost change history         | `orgVersionHistory` entries exist for governance changes in active workspaces   | warning  |
 | GOV-07 | Person can fill 0-N roles; role can have 0-N people (many-to-many via assignments) | Invalid assignment model    | Schema supports many-to-many (verified by structure, not query)                 | critical |
-| GOV-08 | Circle type is explicit, never null for active circles                             | Authority calculation fails | Active circles (`status='active'`) have `circleType` set (not null)             | critical |
+| GOV-08 | Lead authority is explicit, never null for active circles                          | Authority calculation fails | Active circles (`status='active'`) have `leadAuthority` set (not null)          | critical |
 
 > **GOV-01 Auto-Creation**: Enforced via auto-creation on circle creation. See `convex/core/circles/autoCreateRoles.ts`.
 >
-> **GOV-02 & GOV-03 Validation**:
+> **GOV-02 & GOV-03 Validation (DR-011: Governance Fields in Core Schema)**:
 >
-> - Enforced at mutation time via `convex/infrastructure/customFields/helpers.ts` (role creation)
-> - Enforced at data level via `convex/admin/invariants/governance.ts` (SYOS-962)
+> - `purpose` and `decisionRights` are stored directly on `circleRoles` schema
+> - Enforced at mutation time via `convex/core/roles/mutations.ts` (role creation)
+> - Enforced at data level via `convex/admin/invariants/governance.ts`
+> - NOT stored in customFieldValues (those are for workspace-configurable fields like domain, strategy)
 >
 > **GOV-04 Protection**: Lead role deletion blocked in `convex/core/roles/roleArchival.ts`.
 >

@@ -118,7 +118,7 @@ export const stepperConnectorRecipe = cva(
  * All styling is handled via recipe (no inline classes).
  *
  * Note: Opacity for disabled state is handled via inline style because CSS variables
- * don't work well with Tailwind's disabled: modifier. This is acceptable per
+ * do not work well with Tailwind disabled modifier. This is acceptable per
  * design system patterns for opacity handling.
  */
 export const stepperStepButtonRecipe = cva(

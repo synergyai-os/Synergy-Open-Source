@@ -19,6 +19,7 @@ type CircleRoleDetail = {
 	roleId: Id<'circleRoles'>;
 	name: string;
 	purpose?: string;
+	decisionRights: string[];
 	circleId: Id<'circles'>;
 	circleName: string;
 	workspaceId: Id<'workspaces'>;
@@ -39,9 +40,10 @@ type CircleRoleDetail = {
  * - Pattern A (Direct ternary): Static workspace-scoped queries that never re-create
  *   - `circlesQuery`, `rolesByWorkspaceQuery`, `roleTemplatesQuery`
  * - Pattern B ($derived wrapper): Conditional queries that re-create when dependencies change
+ *   - `selectedCircleQuery` (re-creates when selectedCircleId changes, auto-refetches after mutations)
  *   - `selectedRoleQuery` (re-creates when selectedRoleId changes)
  * - Pattern C (Manual convexClient in $effect): Complex queries with race condition handling
- *   - `selectedCircle`, `selectedCircleMembers`, `selectedCircleMembersWithoutRoles`, `selectedRoleFillers`
+ *   - `selectedCircleMembers`, `selectedCircleMembersWithoutRoles`, `selectedRoleFillers`
  *
  * Each pattern serves a specific purpose. See validation in SYOS-946.
  */
@@ -91,8 +93,7 @@ export function useOrgChart(options: {
 	// Convex client for manual queries
 	const convexClient = browser ? useConvexClient() : null;
 
-	// Query tracking for race condition prevention
-	let currentCircleQueryId: Id<'circles'> | null = null;
+	// Query tracking for race condition prevention (only for manual queries)
 	let currentCircleMembersQueryId: Id<'circles'> | null = null;
 	let currentCircleMembersWithoutRolesQueryId: Id<'circles'> | null = null;
 	let currentRoleFillersQueryId: Id<'circleRoles'> | null = null;
@@ -183,61 +184,28 @@ export function useOrgChart(options: {
 		return map;
 	});
 
-	// Load selected circle details with $effect pattern (proven pattern from useSelectedItem)
+	// Load selected circle details with reactive useQuery (auto-refetches after mutations)
+	const selectedCircleQuery = $derived(
+		browser && selectedCircleId
+			? useQuery(api.core.circles.index.get, () => {
+					const sessionId = getSessionId();
+					invariant(sessionId && selectedCircleId, 'sessionId and selectedCircleId required');
+					return { sessionId: sessionId!, circleId: selectedCircleId! };
+				})
+			: null
+	);
+
+	// Sync query state to internal state
 	$effect(() => {
-		if (!browser || !convexClient || !selectedCircleId) {
+		if (selectedCircleQuery) {
+			state.selectedCircle = selectedCircleQuery.data ?? null;
+			state.selectedCircleIsLoading = selectedCircleQuery.isLoading ?? false;
+			state.selectedCircleError = selectedCircleQuery.error ?? null;
+		} else {
 			state.selectedCircle = null;
 			state.selectedCircleIsLoading = false;
 			state.selectedCircleError = null;
-			currentCircleQueryId = null;
-			return;
 		}
-
-		const sessionId = getSessionId();
-		if (!sessionId) {
-			state.selectedCircle = null;
-			state.selectedCircleIsLoading = false;
-			state.selectedCircleError = null;
-			currentCircleQueryId = null;
-			return;
-		}
-
-		// Generate unique ID for this query
-		const queryId = selectedCircleId;
-		currentCircleQueryId = queryId;
-		state.selectedCircleIsLoading = true;
-		state.selectedCircleError = null;
-
-		// Load circle details
-		convexClient
-			.query(api.core.circles.index.get, {
-				sessionId,
-				circleId: selectedCircleId
-			})
-			.then((result) => {
-				// Only update if this is still the current query (prevent race conditions)
-				if (currentCircleQueryId === queryId) {
-					state.selectedCircle = result;
-					state.selectedCircleIsLoading = false;
-					state.selectedCircleError = null;
-				}
-			})
-			.catch((error) => {
-				// Only handle error if this is still the current query
-				if (currentCircleQueryId === queryId) {
-					console.error('[useOrgChart] Failed to load circle:', error);
-					state.selectedCircle = null;
-					state.selectedCircleIsLoading = false;
-					state.selectedCircleError = error;
-				}
-			});
-
-		// Cleanup function: mark query as stale when effect re-runs or component unmounts
-		return () => {
-			if (currentCircleQueryId === queryId) {
-				currentCircleQueryId = null;
-			}
-		};
 	});
 
 	// Load selected circle members with $effect pattern

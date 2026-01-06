@@ -14,13 +14,18 @@ import { env } from '$env/dynamic/private';
  * - Returns latest non-expired verification code
  */
 export const GET: RequestHandler = async ({ url, getClientAddress }) => {
+	// E2E helpers should only exist during actual Playwright runs.
+	// `npm run dev:test` runs Vite in `--mode test`.
+	const isTestMode = import.meta.env.MODE === 'test';
+
 	// Check if E2E test mode is enabled
 	// Check process.env first - Playwright's webServer.env sets process.env for the dev server
 	// $env/dynamic/private reads from process.env at runtime, but checking directly is more reliable
 	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
 
-	if (e2eTestMode !== 'true') {
+	if (!isTestMode || e2eTestMode !== 'true') {
 		console.error('❌ Test helper endpoint called but E2E_TEST_MODE is not enabled', {
+			isTestMode,
 			processEnvValue: process.env.E2E_TEST_MODE,
 			envValue: env.E2E_TEST_MODE,
 			allProcessEnvKeys: Object.keys(process.env).filter(

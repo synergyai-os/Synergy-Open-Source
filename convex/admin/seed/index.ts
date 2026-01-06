@@ -14,8 +14,8 @@ import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
 import { createSystemRoleTemplates } from './roleTemplates';
 import { createMinimumViableWorkspace } from './bootstrap';
-import { createSystemCustomFieldDefinitions } from './customFieldDefinitions';
-import { CIRCLE_TYPES } from '../../core/circles/constants';
+import { LEAD_AUTHORITY } from '../../core/circles/constants';
+import { internal } from '../../_generated/api';
 
 /**
  * Seed the database with system data
@@ -44,7 +44,15 @@ export const seedDatabase = internalMutation({
 		// ========================================================================
 		const templatesResult = await createSystemRoleTemplates(ctx);
 
-		// Find Circle Lead template for demo workspace (hierarchy type)
+		// Backfill any existing circle roles created from templates with missing governance fields.
+		// This handles older DBs where templates existed but lacked DR-011 defaults.
+		const backfillResult = await ctx.runMutation(
+			internal.admin.migrations.backfillRoleGovernanceFieldsFromTemplates
+				.backfillRoleGovernanceFieldsFromTemplates,
+			{ onlySystemTemplates: true }
+		);
+
+		// Find Circle Lead template for demo workspace (decides authority)
 		// Use roleType + appliesTo instead of name to be dynamic
 		const circleLead = await ctx.db
 			.query('roleTemplates')
@@ -52,7 +60,7 @@ export const seedDatabase = internalMutation({
 			.filter((q) =>
 				q.and(
 					q.eq(q.field('roleType'), 'circle_lead'),
-					q.eq(q.field('appliesTo'), CIRCLE_TYPES.HIERARCHY),
+					q.eq(q.field('appliesTo'), LEAD_AUTHORITY.DECIDES),
 					q.eq(q.field('archivedAt'), undefined)
 				)
 			)
@@ -60,7 +68,7 @@ export const seedDatabase = internalMutation({
 
 		if (!circleLead) {
 			throw new Error(
-				'ERR_SEED_FAILED: Circle Lead template for hierarchy not found after creation'
+				'ERR_SEED_FAILED: Circle Lead template for decides authority not found after creation'
 			);
 		}
 
@@ -111,7 +119,10 @@ export const seedDatabase = internalMutation({
 		console.log('✅ Database seed complete!\n');
 		console.log('Summary:');
 		console.log(
-			`  - Role templates: ${templatesResult.created} created, ${templatesResult.skipped} existed`
+			`  - Role templates: ${templatesResult.created} created, ${templatesResult.updated} updated, ${templatesResult.skipped} existed`
+		);
+		console.log(
+			`  - Role governance backfill: ${backfillResult.patched} roles patched (${backfillResult.checked} checked)`
 		);
 		if (demoWorkspace) {
 			if (demoWorkspace.skipped) {

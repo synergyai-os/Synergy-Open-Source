@@ -9,7 +9,7 @@
 	} from '$lib/design-system/recipes';
 	import AddRoleDialog from './AddRoleDialog.svelte';
 	import AddCircleDialog from './AddCircleDialog.svelte';
-	import AssignUserDialog from './AssignUserDialog.svelte';
+	import AssignPersonDialog from './AssignPersonDialog.svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -35,7 +35,7 @@
 
 	let showAddRoleDialog = $state(false);
 	let showAddCircleDialog = $state(false);
-	let showAssignUserDialog = $state(false);
+	let showAssignPersonDialog = $state(false);
 
 	function handleImportToCircle() {
 		// Navigate to import page with targetCircleId query param
@@ -101,11 +101,11 @@
 					<ContextMenu.Item
 						class={contextMenuItemRecipe()}
 						onSelect={() => {
-							showAssignUserDialog = true;
+							showAssignPersonDialog = true;
 						}}
 					>
 						<span class="mr-2">👤</span>
-						<span>Add User to Circle</span>
+						<span>Add Person to Circle</span>
 					</ContextMenu.Item>
 
 					<ContextMenu.Separator class={contextMenuSeparatorRecipe()} />
@@ -135,8 +135,8 @@
 		onSuccess={onCircleCreated}
 	/>
 
-	<AssignUserDialog
-		bind:open={showAssignUserDialog}
+	<AssignPersonDialog
+		bind:open={showAssignPersonDialog}
 		type="circle"
 		entityId={circleId}
 		entityName={circleName}

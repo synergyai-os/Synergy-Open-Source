@@ -183,8 +183,8 @@ export const getAliasBySlug = query({
  * - ORG-01: Workspace has exactly one root circle
  * - ORG-10: Root circle type ≠ guild
  * - GOV-01: Every circle has role with roleType: 'circle_lead'
- * - GOV-02: Every role has a purpose (customFieldValue)
- * - GOV-03: Every role has ≥1 decision_right (customFieldValue)
+ * - GOV-02: Every role has a purpose (schema field, DR-011)
+ * - GOV-03: Every role has ≥1 decision right (schema field, DR-011)
  *
  * @see SYOS-997: Activation validation query and mutation
  * @see SYOS-1006: Refactored to use rules.ts registry pattern

@@ -10,10 +10,10 @@
 	import { useEditCircle } from '../composables/useEditCircle.svelte';
 	import { useCanEdit } from '../composables/useCanEdit.svelte';
 	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
-	import { CIRCLE_TYPES } from '$lib/infrastructure/organizational-model/constants';
+	import { LEAD_AUTHORITY } from '$lib/infrastructure/organizational-model/constants';
 	import { CIRCLE_DETAIL_KEY, type CircleDetailContext } from './CircleDetailContext.svelte';
 	import DetailHeader from './DetailHeader.svelte';
-	import AssignUserDialog from './AssignUserDialog.svelte';
+	import AssignPersonDialog from './AssignPersonDialog.svelte';
 	import StandardDialog from '$lib/components/organisms/StandardDialog.svelte';
 	import Loading from '$lib/components/atoms/Loading.svelte';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
@@ -85,30 +85,36 @@
 	const editPermission = useCanEdit({
 			sessionId: () => sessionId ?? null,
 			workspaceId: () => workspaceId() ?? null,
-			circleId: () => circle?.circleId ?? null
+			circleId: () => displayCircle?.circleId ?? null
 		}),
 		canEdit = $derived(editPermission.canEdit),
 		isDesignPhase = $derived(editPermission.isDesignPhase);
 	const authorityQuery = $derived(
-			browser && circle?.circleId && sessionId
+			browser && displayCircle?.circleId && sessionId
 				? useQuery(api.core.circles.index.getMyAuthority, () => {
-						invariant(sessionId && circle?.circleId, 'sessionId and circleId required');
-						return { sessionId, circleId: circle.circleId };
+						invariant(sessionId && displayCircle?.circleId, 'sessionId and circleId required');
+						return { sessionId, circleId: displayCircle.circleId };
 					})
 				: null
 		),
 		isCircleLead = $derived(authorityQuery?.data?.isCircleLead ?? false),
-		circleType = $derived(circle?.circleType ?? CIRCLE_TYPES.HIERARCHY),
+		leadAuthority = $derived(displayCircle?.leadAuthority ?? LEAD_AUTHORITY.DECIDES),
 		editReason = $derived.by(() =>
 			canEdit || isDesignPhase
 				? undefined
 				: 'Only circle members can propose changes in active workspaces'
 		);
+	// Inline edits use `updateInline` which is design-phase only.
+	const inlineEditReason = $derived.by(() =>
+		isDesignPhase
+			? editReason
+			: 'Direct edits only allowed in design phase. Click Edit to propose changes.'
+	);
 	let isEditMode = $state(false),
 		showDiscardDialog = $state(false);
 
 	const editCircle = useEditCircle({
-			circleId: () => circle?.circleId ?? null,
+			circleId: () => displayCircle?.circleId ?? null,
 			sessionId: () => sessionId,
 			workspaceId: () => workspaceId(),
 			canQuickEdit: () => isDesignPhase
@@ -117,10 +123,10 @@
 			sessionId: () => sessionId,
 			workspaceId: () => workspaceId(),
 			entityType: () => 'circle',
-			entityId: () => circle?.circleId ?? null
+			entityId: () => displayCircle?.circleId ?? null
 		});
 	const handleQuickUpdateCircle = (updates: { name?: string; purpose?: string }) =>
-			quickUpdateCircle(convexClient, sessionId, circle?.circleId ?? null, updates),
+			quickUpdateCircle(convexClient, sessionId, displayCircle?.circleId ?? null, updates),
 		handleQuickUpdateRole = (
 			roleId: Id<'circleRoles'>,
 			updates: { name?: string; purpose?: string }
@@ -139,22 +145,22 @@
 			orgChart?.selectedCircleId ? orgChart.getRegularRolesForCircle(orgChart.selectedCircleId) : []
 		);
 	let activeTab = $state('overview'),
-		assignUserDialogOpen = $state(false),
-		assignUserDialogType = $state<'role' | 'circle'>('role'),
-		assignUserDialogEntityId = $state<Id<'circleRoles'> | Id<'circles'> | null>(null),
-		assignUserDialogEntityName = $state('');
+		assignPersonDialogOpen = $state(false),
+		assignPersonDialogType = $state<'role' | 'circle'>('role'),
+		assignPersonDialogEntityId = $state<Id<'circleRoles'> | Id<'circles'> | null>(null),
+		assignPersonDialogEntityName = $state('');
 	const tabCounts = $state(DEFAULT_TAB_COUNTS),
-		openAssignUserDialog = (
+		openAssignPersonDialog = (
 			type: 'role' | 'circle',
 			entityId: Id<'circleRoles'> | Id<'circles'>,
 			entityName: string
 		) => {
-			assignUserDialogType = type;
-			assignUserDialogEntityId = entityId;
-			assignUserDialogEntityName = entityName;
-			assignUserDialogOpen = true;
+			assignPersonDialogType = type;
+			assignPersonDialogEntityId = entityId;
+			assignPersonDialogEntityName = entityName;
+			assignPersonDialogOpen = true;
 		},
-		handleAssignUserSuccess = () => {
+		handleAssignPersonSuccess = () => {
 			if (orgChart && circle) orgChart.selectCircle(circle.circleId, { skipStackPush: true });
 		};
 
@@ -219,7 +225,9 @@
 
 	// Simplified context - tab components access customFields directly for DB-driven iteration
 	setContext<CircleDetailContext>(CIRCLE_DETAIL_KEY, {
-		circle: () => circle,
+		// Use the stable "displayCircle" to avoid transient nulls during brief loading toggles.
+		// This is important for blur-save flows (e.g., governance Purpose) that must always have a circleId.
+		circle: () => displayCircle,
 		sessionId: () => sessionId,
 		workspaceId: () => workspaceId(),
 		customFields,
@@ -254,16 +262,15 @@
 					onBack={panelContext.onBack}
 					showBackButton={panelContext.isMobile && panelContext.canGoBack}
 					onEdit={isEditMode ? undefined : handleEditClick}
-					canEdit={!isEditMode && canEdit}
-					{editReason}
+					canEdit={!isEditMode && isDesignPhase}
+					editReason={inlineEditReason}
 					onNameChange={!isEditMode ? (name) => handleQuickUpdateCircle({ name }) : undefined}
 				>
 					{#snippet titleBadges()}
 						<CircleTitleBadges
-							circleType={isEditMode ? editCircle.formValues.circleType : displayCircle.circleType}
-							decisionModel={isEditMode
-								? editCircle.formValues.decisionModel
-								: displayCircle.decisionModel}
+							leadAuthority={isEditMode
+								? editCircle.formValues.leadAuthority
+								: displayCircle.leadAuthority}
 						/>
 					{/snippet}
 				</DetailHeader>
@@ -288,7 +295,7 @@
 								onRoleClick={handleRoleClick}
 								onChildCircleClick={handleChildCircleClick}
 								onQuickUpdateRole={handleQuickUpdateRole}
-								onOpenAssignUserDialog={openAssignUserDialog}
+								onOpenAssignPersonDialog={openAssignPersonDialog}
 							/>
 						{/snippet}
 					</TabbedPanel>
@@ -303,7 +310,7 @@
 					<CircleEditFooter
 						{editCircle}
 						{isDesignPhase}
-						{circleType}
+						{leadAuthority}
 						{isCircleLead}
 						onCancel={handleCancelEdit}
 						onSave={handleSaveDirectly}
@@ -323,14 +330,14 @@
 		variant="danger"
 		onsubmit={handleConfirmDiscard}
 	/>
-	{#if assignUserDialogEntityId && circle}
-		<AssignUserDialog
-			bind:open={assignUserDialogOpen}
-			type={assignUserDialogType}
-			entityId={assignUserDialogEntityId}
-			entityName={assignUserDialogEntityName}
+	{#if assignPersonDialogEntityId && circle}
+		<AssignPersonDialog
+			bind:open={assignPersonDialogOpen}
+			type={assignPersonDialogType}
+			entityId={assignPersonDialogEntityId}
+			entityName={assignPersonDialogEntityName}
 			workspaceId={circle.workspaceId}
-			onSuccess={handleAssignUserSuccess}
+			onSuccess={handleAssignPersonSuccess}
 		/>
 	{/if}
 {/if}

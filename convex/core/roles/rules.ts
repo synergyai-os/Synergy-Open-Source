@@ -9,7 +9,6 @@
 
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import type { Id } from '../../_generated/dataModel';
-import type { CircleType } from '../circles';
 import { ROLE_TYPES } from './constants';
 
 // ============================================================================
@@ -118,12 +117,8 @@ export function isLeadTemplate(template: RoleTemplate | null | undefined): boole
 }
 
 // ============================================================================
-// Lead Role Requirements
+// Lead Role Counting
 // ============================================================================
-
-export type RoleCircleType = CircleType;
-
-export type LeadRequirementMap = Partial<Record<RoleCircleType, boolean>>;
 
 export type RoleWithTemplate = {
 	templateId?: Id<'roleTemplates'> | null;
@@ -131,32 +126,11 @@ export type RoleWithTemplate = {
 
 export type TemplateLookup = (templateId: Id<'roleTemplates'>) => RoleTemplate | null | undefined;
 
-const DEFAULT_LEAD_REQUIRED: Record<RoleCircleType, boolean> = {
-	hierarchy: true,
-	empowered_team: false,
-	guild: false,
-	hybrid: true
-};
-
-/**
- * Determine if at least one Lead role is required for the circle type.
- * Falls back to defaults when no overrides are provided.
- */
-export function isLeadRequiredForCircleType(
-	circleType: RoleCircleType | null | undefined,
-	leadRequirementByCircleType?: LeadRequirementMap
-): boolean {
-	const effectiveType = circleType ?? 'hierarchy';
-
-	if (leadRequirementByCircleType && leadRequirementByCircleType[effectiveType] !== undefined) {
-		return Boolean(leadRequirementByCircleType[effectiveType]);
-	}
-
-	return DEFAULT_LEAD_REQUIRED[effectiveType];
-}
-
 /**
  * Count Lead roles using a template lookup.
+ *
+ * GOV-01: Every circle must have exactly one lead role.
+ * This function helps verify that invariant.
  *
  * @param roles - Roles with optional templateId
  * @param getTemplate - Lookup function for templates

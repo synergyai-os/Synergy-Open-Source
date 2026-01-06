@@ -4,6 +4,9 @@
  * Implements GOV-01: Every circle has exactly one role with roleType: 'circle_lead'
  * Auto-creates roles based on circle type per governance-design.md §5.3, §7.1
  *
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly
+ * on the circleRoles schema, not in customFieldValues.
+ *
  * Note: Convex mutations are atomic. If any operation fails mid-way, all changes
  * roll back automatically, ensuring no partial role state.
  */
@@ -11,28 +14,28 @@
 import type { Id } from '../../_generated/dataModel';
 import type { MutationCtx } from '../../_generated/server';
 import { recordCreateHistory } from '../history';
-import { CIRCLE_TYPES, type CircleType } from './constants';
+import { LEAD_AUTHORITY, type LeadAuthority } from './constants';
 import { ROLE_TYPES, type RoleType } from '../roles/constants';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
-import { createCustomFieldValuesFromTemplate } from '../../infrastructure/customFields';
 
 /**
- * Get system template by roleType and circleType
+ * Get system template by roleType and leadAuthority
  *
- * Uses appliesTo field for exact match on circle type.
- * Each circle type has its own dedicated templates with appropriate authority models.
+ * Uses appliesTo field for exact match on lead authority.
+ * Each lead authority has its own dedicated templates with appropriate authority models.
  *
  * @throws TEMPLATE_NOT_FOUND if template doesn't exist
  */
 async function getSystemTemplateByRoleType(
 	ctx: MutationCtx,
 	roleType: typeof ROLE_TYPES.CIRCLE_LEAD | typeof ROLE_TYPES.STRUCTURAL,
-	circleType: CircleType
+	leadAuthority: LeadAuthority
 ): Promise<{
 	_id: Id<'roleTemplates'>;
 	name: string;
 	roleType: RoleType;
-	defaultFieldValues: Array<{ systemKey: string; values: string[] }>;
+	defaultPurpose: string;
+	defaultDecisionRights: string[];
 }> {
 	const template = await ctx.db
 		.query('roleTemplates')
@@ -40,7 +43,7 @@ async function getSystemTemplateByRoleType(
 		.filter((q) =>
 			q.and(
 				q.eq(q.field('roleType'), roleType),
-				q.eq(q.field('appliesTo'), circleType),
+				q.eq(q.field('appliesTo'), leadAuthority),
 				q.eq(q.field('archivedAt'), undefined)
 			)
 		)
@@ -49,7 +52,7 @@ async function getSystemTemplateByRoleType(
 	if (!template) {
 		throw createError(
 			ErrorCodes.TEMPLATE_NOT_FOUND,
-			`System role template with roleType "${roleType}" for circle type "${circleType}" not found. Run seed to create templates.`
+			`System role template with roleType "${roleType}" for lead authority "${leadAuthority}" not found. Run seed to create templates.`
 		);
 	}
 
@@ -57,29 +60,30 @@ async function getSystemTemplateByRoleType(
 }
 
 /**
- * Get all system templates for a circle type
+ * Get all system templates for a lead authority
  *
- * Returns all role templates (both circle_lead and structural) that apply to the given circle type.
+ * Returns all role templates (both circle_lead and structural) that apply to the given lead authority.
  * Used when creating core roles to ensure all roles defined in templates are created.
  *
  * @returns Array of templates, ordered by roleType (circle_lead first, then structural)
  */
-async function getAllSystemTemplatesForCircleType(
+async function getAllSystemTemplatesForLeadAuthority(
 	ctx: MutationCtx,
-	circleType: CircleType
+	leadAuthority: LeadAuthority
 ): Promise<
 	Array<{
 		_id: Id<'roleTemplates'>;
 		name: string;
 		roleType: RoleType;
-		defaultFieldValues: Array<{ systemKey: string; values: string[] }>;
+		defaultPurpose: string;
+		defaultDecisionRights: string[];
 	}>
 > {
 	const templates = await ctx.db
 		.query('roleTemplates')
 		.withIndex('by_workspace', (q) => q.eq('workspaceId', undefined))
 		.filter((q) =>
-			q.and(q.eq(q.field('appliesTo'), circleType), q.eq(q.field('archivedAt'), undefined))
+			q.and(q.eq(q.field('appliesTo'), leadAuthority), q.eq(q.field('archivedAt'), undefined))
 		)
 		.collect();
 
@@ -92,18 +96,20 @@ async function getAllSystemTemplatesForCircleType(
 }
 
 /**
- * Create core roles for a circle based on its type
+ * Create core roles for a circle based on its lead authority
  *
  * Implements GOV-01: Every circle has exactly one role with roleType: 'circle_lead'
  *
- * Dynamically creates all roles defined in system templates for the given circle type.
+ * Dynamically creates all roles defined in system templates for the given lead authority.
  * This ensures consistency with seed templates and automatically picks up new templates.
  *
- * Circle type → Auto-created roles (from templates):
- * - hierarchy       → Circle Lead + Secretary
- * - empowered_team → Team Lead + Facilitator + Secretary
- * - guild          → Steward + Secretary
- * - hybrid         → Circle Lead + Facilitator + Secretary
+ * Lead authority → Auto-created roles (from templates):
+ * - decides       → Circle Lead + Secretary
+ * - facilitates   → Team Lead + Facilitator + Secretary
+ * - convenes      → Steward + Secretary
+ *
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly
+ * on the circleRoles schema from template defaults.
  *
  * **Resilient**: If lead role already exists, logs and skips creation (idempotent).
  *
@@ -111,30 +117,27 @@ async function getAllSystemTemplatesForCircleType(
  * @param circleId - The circle to create roles for
  * @param workspaceId - Workspace ID
  * @param personId - Person creating the circle (for audit trail)
- * @param circleType - Circle governance type
+ * @param leadAuthority - Circle lead authority level
  */
 export async function createCoreRolesForCircle(
 	ctx: MutationCtx,
 	circleId: Id<'circles'>,
 	workspaceId: Id<'workspaces'>,
 	personId: Id<'people'>,
-	circleType: CircleType = CIRCLE_TYPES.HIERARCHY
+	leadAuthority: LeadAuthority = LEAD_AUTHORITY.DECIDES
 ): Promise<void> {
 	// TODO: Replace with structured logging before production
 	console.log(
-		`[createCoreRolesForCircle] Creating core roles for circle ${circleId} with type ${circleType}`
+		`[createCoreRolesForCircle] Creating core roles for circle ${circleId} with lead authority ${leadAuthority}`
 	);
 
-	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
-	const workspace = await ctx.db.get(workspaceId);
-
-	// Dynamically fetch all templates for this circle type
-	const allTemplates = await getAllSystemTemplatesForCircleType(ctx, circleType);
+	// Dynamically fetch all templates for this lead authority
+	const allTemplates = await getAllSystemTemplatesForLeadAuthority(ctx, leadAuthority);
 
 	if (allTemplates.length === 0) {
 		throw createError(
 			ErrorCodes.TEMPLATE_NOT_FOUND,
-			`No system templates found for circle type "${circleType}". Run seed to create templates.`
+			`No system templates found for lead authority "${leadAuthority}". Run seed to create templates.`
 		);
 	}
 
@@ -144,7 +147,7 @@ export async function createCoreRolesForCircle(
 	if (!leadTemplate) {
 		throw createError(
 			ErrorCodes.TEMPLATE_NOT_FOUND,
-			`Expected exactly one circle_lead template for circle type "${circleType}", found 0. Run seed to create templates.`
+			`Expected exactly one circle_lead template for lead authority "${leadAuthority}", found 0. Run seed to create templates.`
 		);
 	}
 
@@ -173,11 +176,13 @@ export async function createCoreRolesForCircle(
 		}
 
 		const now = Date.now();
-		// Create lean circleRole (no descriptive fields per SYOS-960)
+		// Create circleRole with governance fields (DR-011: governance fields in core schema)
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId,
 			workspaceId,
 			name: template.name,
+			purpose: template.defaultPurpose, // GOVERNANCE FIELD from template
+			decisionRights: template.defaultDecisionRights, // GOVERNANCE FIELD from template
 			roleType: template.roleType,
 			templateId: template._id,
 			status: 'active',
@@ -185,17 +190,6 @@ export async function createCoreRolesForCircle(
 			createdAt: now,
 			updatedAt: now,
 			updatedByPersonId: personId
-		});
-
-		// Create customFieldValues from template defaults (SYOS-960)
-		// This also validates required fields (GOV-02, GOV-03) - phase-aware (SYOS-996)
-		await createCustomFieldValuesFromTemplate(ctx, {
-			workspaceId,
-			entityType: 'role',
-			entityId: roleId,
-			templateDefaultFieldValues: template.defaultFieldValues,
-			createdByPersonId: personId,
-			workspacePhase: workspace?.phase
 		});
 
 		// Capture version history for role creation
@@ -212,32 +206,35 @@ export async function createCoreRolesForCircle(
 }
 
 /**
- * Transform lead role when circle type changes
+ * Transform lead role when lead authority changes
  *
  * Implements governance-design.md §5.4: Transform lead role, don't delete + create
  *
  * Transformations:
- * - Any → guild: Circle Lead becomes Steward
- * - guild → Any: Steward becomes Circle Lead
+ * - Any → convenes: Circle Lead becomes Steward
+ * - convenes → Any: Steward becomes Circle Lead
+ *
+ * DR-011: Governance fields (purpose, decisionRights) are updated directly
+ * on the circleRoles schema from the new template.
  *
  * **Resilient**: If no lead role exists, creates one instead of erroring (SYOS-897 fix).
  *
  * @param ctx - Mutation context
  * @param circleId - The circle being updated
- * @param oldCircleType - Previous circle type
- * @param newCircleType - New circle type
+ * @param oldLeadAuthority - Previous lead authority
+ * @param newLeadAuthority - New lead authority
  * @param personId - Person making the change (for audit trail)
  */
 export async function transformLeadRoleOnCircleTypeChange(
 	ctx: MutationCtx,
 	circleId: Id<'circles'>,
-	oldCircleType: CircleType,
-	newCircleType: CircleType,
+	oldLeadAuthority: LeadAuthority,
+	newLeadAuthority: LeadAuthority,
 	personId: Id<'people'>
 ): Promise<void> {
 	// TODO: Replace with structured logging before production
 	console.log(
-		`[transformLeadRoleOnCircleTypeChange] Circle ${circleId}: ${oldCircleType} → ${newCircleType}`
+		`[transformLeadRoleOnCircleTypeChange] Circle ${circleId}: ${oldLeadAuthority} → ${newLeadAuthority}`
 	);
 
 	// Get current lead role (GOV-01: exactly one should exist)
@@ -252,36 +249,38 @@ export async function transformLeadRoleOnCircleTypeChange(
 		// SYOS-897 fix: Lead role missing - create core roles instead of erroring
 		// TODO: Replace with structured logging before production
 		console.warn(
-			`[transformLeadRoleOnCircleTypeChange] GOV-01 violation: Circle ${circleId} has no lead role. Creating core roles for type ${newCircleType}...`
+			`[transformLeadRoleOnCircleTypeChange] GOV-01 violation: Circle ${circleId} has no lead role. Creating core roles for lead authority ${newLeadAuthority}...`
 		);
 		const circle = await ctx.db.get(circleId);
 		if (!circle) {
 			throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 		}
-		await createCoreRolesForCircle(ctx, circleId, circle.workspaceId, personId, newCircleType);
+		await createCoreRolesForCircle(ctx, circleId, circle.workspaceId, personId, newLeadAuthority);
 		// TODO: Replace with structured logging before production
 		console.log(
-			`[transformLeadRoleOnCircleTypeChange] Created core roles for circle ${circleId} with type ${newCircleType}`
+			`[transformLeadRoleOnCircleTypeChange] Created core roles for circle ${circleId} with lead authority ${newLeadAuthority}`
 		);
 		return;
 	}
 
 	// Determine if lead role transformation is needed
-	if (newCircleType === oldCircleType) {
-		// No change in circle type - just handle structural role changes
-		await handleStructuralRoleChange(ctx, circleId, oldCircleType, newCircleType, personId);
+	if (newLeadAuthority === oldLeadAuthority) {
+		// No change in lead authority - just handle structural role changes
+		await handleStructuralRoleChange(ctx, circleId, oldLeadAuthority, newLeadAuthority, personId);
 		return;
 	}
 
-	// Check if transformation is needed: guild ↔ non-guild transitions
-	const isToGuild = newCircleType === CIRCLE_TYPES.GUILD && oldCircleType !== CIRCLE_TYPES.GUILD;
-	const isFromGuild = oldCircleType === CIRCLE_TYPES.GUILD && newCircleType !== CIRCLE_TYPES.GUILD;
-	const needsLeadTransform = isToGuild || isFromGuild;
+	// Check if transformation is needed: convenes ↔ non-convenes transitions
+	const isToConvenes =
+		newLeadAuthority === LEAD_AUTHORITY.CONVENES && oldLeadAuthority !== LEAD_AUTHORITY.CONVENES;
+	const isFromConvenes =
+		oldLeadAuthority === LEAD_AUTHORITY.CONVENES && newLeadAuthority !== LEAD_AUTHORITY.CONVENES;
+	const needsLeadTransform = isToConvenes || isFromConvenes;
 
 	if (!needsLeadTransform) {
 		// No lead role transformation needed
 		// But check if we need to add/remove structural roles
-		await handleStructuralRoleChange(ctx, circleId, oldCircleType, newCircleType, personId);
+		await handleStructuralRoleChange(ctx, circleId, oldLeadAuthority, newLeadAuthority, personId);
 		return;
 	}
 
@@ -289,7 +288,7 @@ export async function transformLeadRoleOnCircleTypeChange(
 	const targetTemplate = await getSystemTemplateByRoleType(
 		ctx,
 		ROLE_TYPES.CIRCLE_LEAD,
-		newCircleType
+		newLeadAuthority
 	);
 
 	// Get circle to access workspaceId
@@ -298,66 +297,50 @@ export async function transformLeadRoleOnCircleTypeChange(
 		throw createError(ErrorCodes.CIRCLE_NOT_FOUND, 'Circle not found');
 	}
 
-	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
-	const workspace = await ctx.db.get(circle.workspaceId);
-
-	// Transform lead role in-place (don't delete + create) - SYOS-960
+	// Transform lead role in-place (don't delete + create)
+	// DR-011: Update governance fields directly on schema
 	const now = Date.now();
 	await ctx.db.patch(leadRole._id, {
 		name: targetTemplate.name,
+		purpose: targetTemplate.defaultPurpose,
+		decisionRights: targetTemplate.defaultDecisionRights,
 		templateId: targetTemplate._id,
 		updatedAt: now,
 		updatedByPersonId: personId
 	});
 
-	// Delete existing customFieldValues for this role
-	const existingValues = await ctx.db
-		.query('customFieldValues')
-		.withIndex('by_entity', (q) => q.eq('entityType', 'role').eq('entityId', leadRole._id))
-		.collect();
-	for (const value of existingValues) {
-		await ctx.db.delete(value._id);
-	}
-
-	// Create new customFieldValues from new template (SYOS-960) - phase-aware (SYOS-996)
-	await createCustomFieldValuesFromTemplate(ctx, {
-		workspaceId: circle.workspaceId,
-		entityType: 'role',
-		entityId: leadRole._id,
-		templateDefaultFieldValues: targetTemplate.defaultFieldValues,
-		createdByPersonId: personId,
-		workspacePhase: workspace?.phase
-	});
-
 	// Handle structural role changes
-	await handleStructuralRoleChange(ctx, circleId, oldCircleType, newCircleType, personId);
+	await handleStructuralRoleChange(ctx, circleId, oldLeadAuthority, newLeadAuthority, personId);
 }
 
 /**
- * Add or remove structural roles when circle type changes
+ * Add or remove structural roles when lead authority changes
  *
- * Creates all structural roles for the new circle type that don't already exist.
- * All circle types have structural roles (e.g., Secretary for hierarchy/guild,
- * Facilitator + Secretary for empowered_team/hybrid).
+ * Creates all structural roles for the new lead authority that don't already exist.
+ * All lead authorities have structural roles (e.g., Secretary for decides/convenes,
+ * Facilitator + Secretary for facilitates).
  *
- * Note: We don't remove structural roles when changing circle types
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly
+ * on the circleRoles schema from template defaults.
+ *
+ * Note: We don't remove structural roles when changing lead authority
  * Governance-design.md §5.4: "Keep Facilitator (now optional)"
  *
  * @param ctx - Mutation context
  * @param circleId - The circle being updated
- * @param oldCircleType - Previous circle type
- * @param newCircleType - New circle type
+ * @param oldLeadAuthority - Previous lead authority
+ * @param newLeadAuthority - New lead authority
  * @param personId - Person making the change (for audit trail)
  */
 async function handleStructuralRoleChange(
 	ctx: MutationCtx,
 	circleId: Id<'circles'>,
-	oldCircleType: CircleType,
-	newCircleType: CircleType,
+	oldLeadAuthority: LeadAuthority,
+	newLeadAuthority: LeadAuthority,
 	personId: Id<'people'>
 ): Promise<void> {
-	// Always create structural roles for the new circle type (all types have structural roles)
-	const allTemplates = await getAllSystemTemplatesForCircleType(ctx, newCircleType);
+	// Always create structural roles for the new lead authority (all authorities have structural roles)
+	const allTemplates = await getAllSystemTemplatesForLeadAuthority(ctx, newLeadAuthority);
 	const structuralTemplates = allTemplates.filter((t) => t.roleType === ROLE_TYPES.STRUCTURAL);
 
 	// If no structural templates for this type, nothing to do
@@ -369,9 +352,6 @@ async function handleStructuralRoleChange(
 	if (!circle) {
 		return;
 	}
-
-	// Fetch workspace to get phase (SYOS-996: phase-aware validation)
-	const workspace = await ctx.db.get(circle.workspaceId);
 
 	// Get existing roles by template ID to avoid duplicates
 	const existingRoles = await ctx.db
@@ -392,11 +372,13 @@ async function handleStructuralRoleChange(
 		}
 
 		const now = Date.now();
-		// Create lean circleRole (no descriptive fields per SYOS-960)
+		// Create circleRole with governance fields (DR-011: governance fields in core schema)
 		const roleId = await ctx.db.insert('circleRoles', {
 			circleId,
 			workspaceId: circle.workspaceId,
 			name: template.name,
+			purpose: template.defaultPurpose, // GOVERNANCE FIELD from template
+			decisionRights: template.defaultDecisionRights, // GOVERNANCE FIELD from template
 			roleType: template.roleType,
 			templateId: template._id,
 			status: 'active',
@@ -404,17 +386,6 @@ async function handleStructuralRoleChange(
 			createdAt: now,
 			updatedAt: now,
 			updatedByPersonId: personId
-		});
-
-		// Create customFieldValues from template defaults (SYOS-960) - phase-aware (SYOS-996)
-		// This also validates required fields (GOV-02, GOV-03)
-		await createCustomFieldValuesFromTemplate(ctx, {
-			workspaceId: circle.workspaceId,
-			entityType: 'role',
-			entityId: roleId,
-			templateDefaultFieldValues: template.defaultFieldValues,
-			createdByPersonId: personId,
-			workspacePhase: workspace?.phase
 		});
 
 		// Capture version history for role creation
@@ -428,6 +399,6 @@ async function handleStructuralRoleChange(
 			`[handleStructuralRoleChange] Created structural role "${template.name}" (${roleId}) for circle ${circleId}`
 		);
 	}
-	// Note: We don't remove structural roles when changing circle types
+	// Note: We don't remove structural roles when changing lead authority
 	// Governance-design.md §5.4: "Keep Facilitator (now optional)"
 }

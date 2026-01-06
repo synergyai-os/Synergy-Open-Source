@@ -8,9 +8,9 @@
 	import { toast } from '$lib/utils/toast';
 	import Text from '$lib/components/atoms/Text.svelte';
 	import {
-		CIRCLE_TYPES,
-		DEFAULT_CIRCLE_TYPE_LABELS,
-		type CircleType
+		LEAD_AUTHORITY,
+		DEFAULT_LEAD_AUTHORITY_LABELS,
+		type LeadAuthority
 	} from '$lib/infrastructure/organizational-model/constants';
 
 	let { data }: { data: { sessionId: string; workspaceId: string } } = $props();
@@ -32,34 +32,35 @@
 	const isAdmin = $derived(orgSettings?.isAdmin ?? false);
 
 	// Default Lead requirement values
-	const defaultLeadRequirement: Record<CircleType, boolean> = {
-		hierarchy: true,
-		empowered_team: false,
-		guild: false,
-		hybrid: true
+	const defaultLeadRequirement: Record<LeadAuthority, boolean> = {
+		decides: true,
+		facilitates: false,
+		convenes: false
 	};
 
 	// Derived values from orgSettings
-	const leadRequirementByCircleTypeValue = $derived<Record<CircleType, boolean>>(
-		orgSettings?.leadRequirementByCircleType ?? defaultLeadRequirement
+	const leadRequirementByLeadAuthorityValue = $derived<Record<LeadAuthority, boolean>>(
+		orgSettings?.leadRequirementByLeadAuthority ?? defaultLeadRequirement
 	);
 
 	// Local state for optimistic updates (initialized with defaults)
-	let leadRequirementByCircleType = $state<Record<CircleType, boolean>>(defaultLeadRequirement);
+	// eslint-disable-next-line svelte/prefer-writable-derived
+	let leadRequirementByLeadAuthority =
+		$state<Record<LeadAuthority, boolean>>(defaultLeadRequirement);
 	let isSaving = $state(false);
 
 	// Sync with query data
 	$effect(() => {
-		leadRequirementByCircleType = leadRequirementByCircleTypeValue;
+		leadRequirementByLeadAuthority = leadRequirementByLeadAuthorityValue;
 	});
 
-	async function handleToggleLeadRequirement(circleType: CircleType) {
+	async function handleToggleLeadRequirement(leadAuthority: LeadAuthority) {
 		if (!convexClient || !data.sessionId || !data.workspaceId || isSaving) return;
 
-		const newValue = !leadRequirementByCircleType[circleType];
+		const newValue = !leadRequirementByLeadAuthority[leadAuthority];
 		const updatedRequirement = {
-			...leadRequirementByCircleType,
-			[circleType]: newValue
+			...leadRequirementByLeadAuthority,
+			[leadAuthority]: newValue
 		};
 		isSaving = true;
 
@@ -67,13 +68,13 @@
 			await convexClient.mutation(api.features.workspaceSettings.index.updateOrgSettings, {
 				sessionId: data.sessionId,
 				workspaceId: data.workspaceId as Id<'workspaces'>,
-				leadRequirementByCircleType: updatedRequirement
+				leadRequirementByLeadAuthority: updatedRequirement
 			});
 
-			leadRequirementByCircleType = updatedRequirement;
-			const circleTypeLabel = DEFAULT_CIRCLE_TYPE_LABELS[circleType];
+			leadRequirementByLeadAuthority = updatedRequirement;
+			const leadAuthorityLabel = DEFAULT_LEAD_AUTHORITY_LABELS[leadAuthority];
 			toast.success(
-				`Lead requirement ${newValue ? 'enabled' : 'disabled'} for ${circleTypeLabel} circles`
+				`Lead requirement ${newValue ? 'enabled' : 'disabled'} for ${leadAuthorityLabel} circles`
 			);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Failed to update settings';
@@ -109,9 +110,9 @@
 					Empowered teams and guilds can operate without a Lead by default.
 				</Text>
 				<div class="gap-form flex flex-col">
-					{#each Object.values(CIRCLE_TYPES) as circleType (circleType)}
-						{@const circleTypeLabel = DEFAULT_CIRCLE_TYPE_LABELS[circleType]}
-						{@const isRequired = leadRequirementByCircleType[circleType]}
+					{#each Object.values(LEAD_AUTHORITY) as leadAuthority (leadAuthority)}
+						{@const leadAuthorityLabel = DEFAULT_LEAD_AUTHORITY_LABELS[leadAuthority]}
+						{@const isRequired = leadRequirementByLeadAuthority[leadAuthority]}
 						<div class="gap-button flex items-start justify-between">
 							<div class="flex-1">
 								<div class="mb-fieldGroup gap-fieldGroup flex items-center">
@@ -121,16 +122,16 @@
 											disabled: isSaving
 										})}
 										checked={isRequired}
-										onCheckedChange={() => handleToggleLeadRequirement(circleType)}
+										onCheckedChange={() => handleToggleLeadRequirement(leadAuthority)}
 										disabled={isSaving}
 									>
 										<Switch.Thumb class={switchThumbRecipe()} />
 									</Switch.Root>
 									<label
-										for="lead-requirement-{circleType}"
+										for="lead-requirement-{leadAuthority}"
 										class="text-button text-primary font-medium"
 									>
-										{circleTypeLabel}
+										{leadAuthorityLabel}
 									</label>
 								</div>
 								<Text
@@ -140,10 +141,10 @@
 									class="ml-[calc(var(--spacing-button)+var(--spacing-fieldGroup))]"
 								>
 									{#if isRequired}
-										Lead role will be automatically created for new {circleTypeLabel.toLowerCase()}
+										Lead role will be automatically created for new {leadAuthorityLabel.toLowerCase()}
 										circles.
 									{:else}
-										New {circleTypeLabel.toLowerCase()} circles can be created without a Lead role.
+										New {leadAuthorityLabel.toLowerCase()} circles can be created without a Lead role.
 									{/if}
 								</Text>
 							</div>

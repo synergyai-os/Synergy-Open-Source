@@ -232,6 +232,7 @@ async function getRoleDetails(
 		roleId: role._id,
 		name: role.name,
 		purpose: role.purpose,
+		decisionRights: role.decisionRights,
 		circleId: role.circleId,
 		circleName: circle.name,
 		workspaceId,

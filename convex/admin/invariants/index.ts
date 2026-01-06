@@ -21,7 +21,7 @@ const checkRefs = [
 	internal.admin.invariants.identity.checkIDENT09,
 	internal.admin.invariants.identity.checkIDENT12,
 	internal.admin.invariants.identity.checkIDENT13,
-	// Organization (9)
+	// Organization (10)
 	internal.admin.invariants.organization.checkORG01,
 	internal.admin.invariants.organization.checkORG02,
 	internal.admin.invariants.organization.checkORG03,
@@ -31,6 +31,7 @@ const checkRefs = [
 	internal.admin.invariants.organization.checkORG07,
 	internal.admin.invariants.organization.checkORG08,
 	internal.admin.invariants.organization.checkORG09,
+	internal.admin.invariants.organization.checkORG10,
 	// Circle Membership (4)
 	internal.admin.invariants.circleMembership.checkCMEM01,
 	internal.admin.invariants.circleMembership.checkCMEM02,
@@ -80,9 +81,10 @@ const checkRefs = [
 	internal.admin.invariants.crossDomain.checkXDOM03,
 	internal.admin.invariants.crossDomain.checkXDOM04,
 	internal.admin.invariants.crossDomain.checkXDOM05,
-	// Governance (2) - SYOS-962: GOV-02, GOV-03 (check customFieldValues)
+	// Governance (3) - SYOS-962: GOV-02, GOV-03 (check customFieldValues), GOV-08 (leadAuthority)
 	internal.admin.invariants.governance.checkGOV02,
-	internal.admin.invariants.governance.checkGOV03
+	internal.admin.invariants.governance.checkGOV03,
+	internal.admin.invariants.governance.checkGOV08
 ];
 
 export const runAll = internalQuery({

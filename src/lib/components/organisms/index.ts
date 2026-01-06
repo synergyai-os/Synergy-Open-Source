@@ -32,6 +32,7 @@ export { default as RateLimitError } from './RateLimitError.svelte';
 
 // Auth Organisms
 export { default as LoginBox } from './LoginBox.svelte';
+export { default as RegisterBox } from './RegisterBox.svelte';
 
 // Complex Form Organisms
 export * as Calendar from './Calendar.svelte';

@@ -7,7 +7,7 @@
 import { mutation } from '../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../_generated/dataModel';
-import { CIRCLE_TYPES, DECISION_MODELS } from './constants';
+import { LEAD_AUTHORITY } from './constants';
 import { archiveCircle, restoreCircle } from './circleArchival';
 import { addCircleMember, removeCircleMember } from './circleMembers';
 import { createCircleInternal, updateCircleInternal, updateInlineCircle } from './circleLifecycle';
@@ -19,20 +19,11 @@ export const create = mutation({
 		name: v.string(),
 		purpose: v.optional(v.string()),
 		parentCircleId: v.optional(v.id('circles')),
-		circleType: v.optional(
+		leadAuthority: v.optional(
 			v.union(
-				v.literal(CIRCLE_TYPES.HIERARCHY),
-				v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
-				v.literal(CIRCLE_TYPES.GUILD),
-				v.literal(CIRCLE_TYPES.HYBRID)
-			)
-		),
-		decisionModel: v.optional(
-			v.union(
-				v.literal(DECISION_MODELS.MANAGER_DECIDES),
-				v.literal(DECISION_MODELS.TEAM_CONSENSUS),
-				v.literal(DECISION_MODELS.CONSENT),
-				v.literal(DECISION_MODELS.COORDINATION_ONLY)
+				v.literal(LEAD_AUTHORITY.DECIDES),
+				v.literal(LEAD_AUTHORITY.FACILITATES),
+				v.literal(LEAD_AUTHORITY.CONVENES)
 			)
 		)
 	},
@@ -62,20 +53,11 @@ export const updateInline = mutation({
 		updates: v.object({
 			name: v.optional(v.string()),
 			purpose: v.optional(v.string()),
-			circleType: v.optional(
+			leadAuthority: v.optional(
 				v.union(
-					v.literal(CIRCLE_TYPES.HIERARCHY),
-					v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
-					v.literal(CIRCLE_TYPES.GUILD),
-					v.literal(CIRCLE_TYPES.HYBRID)
-				)
-			),
-			decisionModel: v.optional(
-				v.union(
-					v.literal(DECISION_MODELS.MANAGER_DECIDES),
-					v.literal(DECISION_MODELS.TEAM_CONSENSUS),
-					v.literal(DECISION_MODELS.CONSENT),
-					v.literal(DECISION_MODELS.COORDINATION_ONLY)
+					v.literal(LEAD_AUTHORITY.DECIDES),
+					v.literal(LEAD_AUTHORITY.FACILITATES),
+					v.literal(LEAD_AUTHORITY.CONVENES)
 				)
 			)
 		})

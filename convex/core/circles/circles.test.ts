@@ -7,7 +7,7 @@
  * Note: Pure function tests (validation, slug) are placed first to avoid mock interference.
  */
 
-import { describe, expect, test, vi, beforeEach } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
 

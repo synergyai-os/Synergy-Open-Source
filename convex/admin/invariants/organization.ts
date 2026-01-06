@@ -1,12 +1,11 @@
 import { internalQuery } from '../../_generated/server';
-import { CIRCLE_TYPES } from '../../core/circles';
+import { LEAD_AUTHORITY } from '../../core/circles';
 import { findOperationalWorkspaces, makeResult, type InvariantResult } from './types';
 
-const VALID_CIRCLE_TYPES = new Set([
-	CIRCLE_TYPES.HIERARCHY,
-	CIRCLE_TYPES.EMPOWERED_TEAM,
-	CIRCLE_TYPES.GUILD,
-	CIRCLE_TYPES.HYBRID
+const VALID_LEAD_AUTHORITY = new Set([
+	LEAD_AUTHORITY.DECIDES,
+	LEAD_AUTHORITY.FACILITATES,
+	LEAD_AUTHORITY.CONVENES
 ]);
 const VALID_CIRCLE_STATUS = new Set(['draft', 'active']);
 
@@ -174,21 +173,21 @@ export const checkORG06 = internalQuery({
 		const violations = (
 			await ctx.db
 				.query('circles')
-				.filter((q) => q.neq(q.field('circleType'), null))
+				.filter((q) => q.neq(q.field('leadAuthority'), null))
 				.collect()
 		)
-			.filter((circle) => circle.circleType && !VALID_CIRCLE_TYPES.has(circle.circleType))
+			.filter((circle) => circle.leadAuthority && !VALID_LEAD_AUTHORITY.has(circle.leadAuthority))
 			.map((circle) => circle._id.toString());
 
 		return makeResult({
 			id: 'ORG-06',
-			name: 'Circle circleType is valid enum value when set',
+			name: 'Circle leadAuthority is valid enum value when set',
 			severity: 'critical',
 			violations,
 			message:
 				violations.length === 0
-					? 'All circles use valid circleType values'
-					: `${violations.length} circle(s) have invalid circleType`
+					? 'All circles use valid leadAuthority values'
+					: `${violations.length} circle(s) have invalid leadAuthority`
 		});
 	}
 });
@@ -260,6 +259,53 @@ export const checkORG09 = internalQuery({
 				violations.length === 0
 					? 'All soft-deleted circles have complete archival metadata'
 					: `${violations.length} circle(s) have archivedByPersonId but missing archivedAt`
+		});
+	}
+});
+
+export const checkORG10 = internalQuery({
+	args: {},
+	handler: async (ctx): Promise<InvariantResult> => {
+		const [circles, workspaces] = await Promise.all([
+			ctx.db.query('circles').collect(),
+			ctx.db.query('workspaces').collect()
+		]);
+
+		// Archived workspaces excluded via explicit archivedAt (SYOS-811)
+		const operationalWorkspaces = findOperationalWorkspaces(workspaces);
+
+		const violations: string[] = [];
+
+		// Find root circles (parentCircleId is undefined and not archived)
+		for (const circle of circles) {
+			if (circle.parentCircleId === undefined && circle.archivedAt === undefined) {
+				// Only check operational workspaces
+				if (!circle.workspaceId || !operationalWorkspaces.has(circle.workspaceId.toString())) {
+					continue;
+				}
+
+				// Get the workspace to check phase
+				const workspace = workspaces.find(
+					(w) => w._id.toString() === circle.workspaceId?.toString()
+				);
+				if (!workspace) continue;
+
+				// ORG-10 only enforced when workspace is active
+				if (workspace.phase === 'active' && circle.leadAuthority === LEAD_AUTHORITY.CONVENES) {
+					violations.push(circle._id.toString());
+				}
+			}
+		}
+
+		return makeResult({
+			id: 'ORG-10',
+			name: "Root circle lead authority must not be 'convenes'",
+			severity: 'critical',
+			violations,
+			message:
+				violations.length === 0
+					? 'All active workspace root circles have valid lead authority'
+					: `${violations.length} root circle(s) have convening authority (not allowed)`
 		});
 	}
 });

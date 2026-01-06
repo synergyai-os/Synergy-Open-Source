@@ -7,7 +7,6 @@
 
 import { query } from '../../_generated/server';
 import { v } from 'convex/values';
-import type { Id } from '../../_generated/dataModel';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
 import { getPersonByUserAndWorkspace } from '../../core/people/queries';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
@@ -231,7 +230,7 @@ export const findNextOnboardingStep = query({
 			.collect();
 		const rootCircle = circles.find((c) => !c.parentCircleId);
 		const hasRootCircle = !!rootCircle;
-		const hasGovernance = hasRootCircle && !!rootCircle.circleType;
+		const hasGovernance = hasRootCircle && !!rootCircle.leadAuthority;
 
 		// Determine actual completed steps based on state
 		const actualCompletedSteps: string[] = [];
@@ -245,7 +244,7 @@ export const findNextOnboardingStep = query({
 		const allCompletedSteps = new Set([...actualCompletedSteps, ...progressCompletedSteps]);
 
 		// Find next incomplete step based on route order
-		const routeOrder = ['workspace', 'terminology', 'circle', 'invite', 'complete'] as const;
+		const routeOrder = ['workspace', 'circle', 'invite', 'terminology', 'complete'] as const;
 
 		for (const routeKey of routeOrder) {
 			let stepName: string;

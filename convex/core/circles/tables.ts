@@ -3,43 +3,25 @@ import { v } from 'convex/values';
 // NOTE: These literals must match constants.ts
 // Convex requires literal values in v.literal(), so we can't use constants directly here.
 // See: convex/core/circles/constants.ts for single source of truth
-import { CIRCLE_TYPES, DECISION_MODELS } from './constants';
+import { LEAD_AUTHORITY } from './constants';
 
 // Runtime check: Ensure schema literals match constants (catches mismatches at startup)
 const _schemaCheck: {
-	circleTypes: ['hierarchy', 'empowered_team', 'guild', 'hybrid'];
-	decisionModels: ['manager_decides', 'team_consensus', 'consent', 'coordination_only'];
+	leadAuthority: ['decides', 'facilitates', 'convenes'];
 } = {
-	circleTypes: Object.values(CIRCLE_TYPES) as ['hierarchy', 'empowered_team', 'guild', 'hybrid'],
-	decisionModels: Object.values(DECISION_MODELS) as [
-		'manager_decides',
-		'team_consensus',
-		'consent',
-		'coordination_only'
-	]
+	leadAuthority: Object.values(LEAD_AUTHORITY) as ['decides', 'facilitates', 'convenes']
 };
 
 export const circlesTable = defineTable({
 	workspaceId: v.id('workspaces'),
 	name: v.string(),
 	slug: v.string(),
+	// GOVERNANCE FIELD — required (DR-011: Governance Fields in Core Schema)
+	purpose: v.string(),
 	parentCircleId: v.optional(v.id('circles')),
 	status: v.union(v.literal('draft'), v.literal('active')),
-	circleType: v.optional(
-		v.union(
-			v.literal('hierarchy'),
-			v.literal('empowered_team'),
-			v.literal('guild'),
-			v.literal('hybrid')
-		)
-	),
-	decisionModel: v.optional(
-		v.union(
-			v.literal('manager_decides'),
-			v.literal('team_consensus'),
-			v.literal('consent'),
-			v.literal('coordination_only')
-		)
+	leadAuthority: v.optional(
+		v.union(v.literal('decides'), v.literal('facilitates'), v.literal('convenes'))
 	),
 	createdAt: v.number(),
 	updatedAt: v.number(),
@@ -70,6 +52,9 @@ export const circleRolesTable = defineTable({
 	circleId: v.id('circles'),
 	workspaceId: v.id('workspaces'),
 	name: v.string(),
+	// GOVERNANCE FIELDS — required (DR-011: Governance Fields in Core Schema)
+	purpose: v.string(), // GOV-02: Every role has a purpose
+	decisionRights: v.array(v.string()), // GOV-03: Every role has at least one decision right
 	roleType: v.union(v.literal('circle_lead'), v.literal('structural'), v.literal('custom')),
 	templateId: v.optional(v.id('roleTemplates')),
 	status: v.union(v.literal('draft'), v.literal('active')),

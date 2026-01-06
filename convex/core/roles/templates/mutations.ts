@@ -1,11 +1,26 @@
 import { mutation } from '../../../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../../../_generated/dataModel';
-import { CIRCLE_TYPES, type CircleType } from '../../../core/circles';
+import { LEAD_AUTHORITY, type LeadAuthority } from '../../../core/circles';
 import { createError, ErrorCodes } from '../../../infrastructure/errors/codes';
 import { findLeadRoleTemplate, isWorkspaceAdmin, updateLeadRolesFromTemplate } from './rules';
 import { requireWorkspacePersonFromSession } from '../roleAccess';
 import { ROLE_TYPES } from '../constants';
+
+function getDefaultPurposeFromFieldValues(
+	defaultFieldValues: Array<{ systemKey: string; values: string[] }>
+): string {
+	const match = defaultFieldValues.find((f) => f.systemKey === 'purpose');
+	const value = match?.values?.[0] ?? '';
+	return value.trim();
+}
+
+function listDefaultDecisionRightsFromFieldValues(
+	defaultFieldValues: Array<{ systemKey: string; values: string[] }>
+): string[] {
+	const match = defaultFieldValues.find((f) => f.systemKey === 'decision_right');
+	return (match?.values ?? []).map((v) => v.trim()).filter(Boolean);
+}
 
 export const create = mutation({
 	args: {
@@ -22,10 +37,9 @@ export const create = mutation({
 		description: v.optional(v.string()),
 		isCore: v.optional(v.boolean()),
 		appliesTo: v.union(
-			v.literal(CIRCLE_TYPES.HIERARCHY),
-			v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
-			v.literal(CIRCLE_TYPES.GUILD),
-			v.literal(CIRCLE_TYPES.HYBRID)
+			v.literal(LEAD_AUTHORITY.DECIDES),
+			v.literal(LEAD_AUTHORITY.FACILITATES),
+			v.literal(LEAD_AUTHORITY.CONVENES)
 		)
 	},
 	handler: async (ctx, args) => {
@@ -45,18 +59,39 @@ export const create = mutation({
 		}
 
 		const now = Date.now();
+		// DR-011: Store governance defaults directly on the template schema fields.
+		// Keep legacy `defaultFieldValues` for backward compatibility (older UI code/tests).
+		const defaultPurpose = getDefaultPurposeFromFieldValues(args.defaultFieldValues);
+		const defaultDecisionRights = listDefaultDecisionRightsFromFieldValues(args.defaultFieldValues);
+
+		if (!defaultPurpose) {
+			throw createError(
+				ErrorCodes.VALIDATION_REQUIRED_FIELD,
+				'Template purpose is required (GOV-02)'
+			);
+		}
+		if (defaultDecisionRights.length === 0) {
+			throw createError(
+				ErrorCodes.VALIDATION_REQUIRED_FIELD,
+				'Template must have at least one decision right (GOV-03)'
+			);
+		}
 
 		const templateId = await ctx.db.insert('roleTemplates', {
 			workspaceId: args.workspaceId,
 			name: trimmedName,
 			roleType: args.roleType,
+			defaultPurpose,
+			defaultDecisionRights,
+			// Legacy/back-compat field (schemaless storage); avoid relying on it going forward.
 			defaultFieldValues: args.defaultFieldValues,
 			description: args.description,
 			isCore: args.isCore ?? false,
 			appliesTo: args.appliesTo,
 			createdAt: now,
 			createdByPersonId: personId,
-			updatedAt: now
+			updatedAt: now,
+			updatedByPersonId: personId
 		});
 
 		return { templateId };
@@ -72,10 +107,9 @@ export const update = mutation({
 		isCore: v.optional(v.boolean()),
 		appliesTo: v.optional(
 			v.union(
-				v.literal(CIRCLE_TYPES.HIERARCHY),
-				v.literal(CIRCLE_TYPES.EMPOWERED_TEAM),
-				v.literal(CIRCLE_TYPES.GUILD),
-				v.literal(CIRCLE_TYPES.HYBRID)
+				v.literal(LEAD_AUTHORITY.DECIDES),
+				v.literal(LEAD_AUTHORITY.FACILITATES),
+				v.literal(LEAD_AUTHORITY.CONVENES)
 			)
 		)
 	},
@@ -103,7 +137,7 @@ export const update = mutation({
 			name?: string;
 			description?: string;
 			isCore?: boolean;
-			appliesTo?: CircleType;
+			appliesTo?: LeadAuthority;
 			updatedAt: number;
 			updatedByPersonId: Id<'people'>;
 		} = {

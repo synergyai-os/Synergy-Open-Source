@@ -1009,7 +1009,7 @@
 					"$description": "Small badge horizontal padding (8px) - wider for better readability"
 				},
 				"y": {
-					"$value": "0.0625rem",
+					"$value": "{spacing.px}",
 					"$description": "Small badge vertical padding (1px) - ultra-thin, pill-shaped"
 				}
 			},

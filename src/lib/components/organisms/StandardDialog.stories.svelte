@@ -27,7 +27,7 @@
 	{#snippet template(args)}
 		{@const open = $state(false)}
 		{@const name = $state('')}
-		{@const type = $state('empowered_team')}
+		{@const type = $state('example_type')}
 
 		<Button onclick={() => (open = true)}>Add Sub-Circle</Button>
 
@@ -92,7 +92,7 @@
 </Story>
 
 <Story name="Dismissible Info" args={{ open: false }}>
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		{@const open = $state(false)}
 
 		<Button onclick={() => (open = true)} variant="outline">About Circles</Button>
@@ -116,7 +116,7 @@
 </Story>
 
 <Story name="Picker (No Footer)" args={{ open: false }}>
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		{@const open = $state(false)}
 		{@const search = $state('')}
 		{@const members = $state([
@@ -209,7 +209,7 @@
 </Story>
 
 <Story name="No Close Button" args={{ open: false, closable: false }}>
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		{@const open = $state(false)}
 
 		<Button onclick={() => (open = true)}>Required Action</Button>

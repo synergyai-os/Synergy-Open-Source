@@ -87,11 +87,11 @@
 	});
 
 	// Dialog title and description
-	const dialogTitle = $derived(type === 'role' ? 'Assign User to Role' : 'Add User to Circle');
+	const dialogTitle = $derived(type === 'role' ? 'Assign Person to Role' : 'Add Person to Circle');
 	const dialogDescription = $derived(
 		type === 'role'
-			? `Select a user to assign to the role "${entityName}".`
-			: `Select a user to add to the circle "${entityName}".`
+			? `Select a person to assign to the role "${entityName}".`
+			: `Select a person to add to the circle "${entityName}".`
 	);
 	const submitLabel = $derived(
 		isSubmitting
@@ -99,13 +99,13 @@
 				? 'Assigning...'
 				: 'Adding...'
 			: type === 'role'
-				? 'Assign User'
-				: 'Add User'
+				? 'Assign Person'
+				: 'Add Person'
 	);
 
 	async function handleSubmit() {
 		if (!selectedPersonId) {
-			toast.error('Please select a user');
+			toast.error('Please select a person');
 			return;
 		}
 
@@ -128,21 +128,21 @@
 					circleRoleId: entityId as Id<'circleRoles'>,
 					assigneePersonId: selectedPersonId as Id<'people'>
 				});
-				toast.success(`User assigned to role "${entityName}"`);
+				toast.success(`Person assigned to role "${entityName}"`);
 			} else {
 				await convexClient.mutation(api.core.circles.index.addMember, {
 					sessionId,
 					circleId: entityId as Id<'circles'>,
 					memberPersonId: selectedPersonId as Id<'people'>
 				});
-				toast.success(`User added to circle "${entityName}"`);
+				toast.success(`Person added to circle "${entityName}"`);
 			}
 
 			selectedPersonId = '';
 			open = false;
 			onSuccess?.();
 		} catch (error) {
-			const message = error instanceof Error ? error.message : 'Failed to assign user';
+			const message = error instanceof Error ? error.message : 'Failed to assign person';
 			toast.error(message);
 		} finally {
 			isSubmitting = false;

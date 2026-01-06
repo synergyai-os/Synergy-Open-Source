@@ -3,38 +3,32 @@
 	import type { CircleSummary } from '$lib/infrastructure/organizational-model';
 
 	type Props = {
-		circleType: CircleSummary['circleType'];
+		leadAuthority: CircleSummary['leadAuthority'];
 	};
 
-	let { circleType }: Props = $props();
+	let { leadAuthority }: Props = $props();
 
-	const effectiveType = $derived(circleType ?? 'hierarchy');
+	const effectiveAuthority = $derived(leadAuthority ?? 'decides');
 
 	const badgeConfig = $derived.by(() => {
-		switch (effectiveType) {
-			case 'hierarchy':
+		switch (effectiveAuthority) {
+			case 'decides':
 				return {
 					variant: 'default' as const,
-					label: 'Hierarchy',
+					label: 'Decides',
 					icon: '👔'
 				};
-			case 'empowered_team':
+			case 'facilitates':
 				return {
 					variant: 'primary' as const,
-					label: 'Empowered Team',
-					icon: '🚀'
-				};
-			case 'guild':
-				return {
-					variant: 'warning' as const,
-					label: 'Guild',
+					label: 'Facilitates',
 					icon: '🤝'
 				};
-			case 'hybrid':
+			case 'convenes':
 				return {
-					variant: 'success' as const,
-					label: 'Hybrid',
-					icon: '⚖️'
+					variant: 'warning' as const,
+					label: 'Convenes',
+					icon: '🌱'
 				};
 		}
 	});

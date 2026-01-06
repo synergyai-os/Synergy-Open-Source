@@ -1,5 +1,5 @@
 import type { Id } from '../../_generated/dataModel';
-import type { CircleType } from '../circles';
+import type { LeadAuthority } from '../circles';
 
 /**
  * Assignment represents a person filling a role in a circle.
@@ -20,7 +20,7 @@ export interface Assignment {
 export interface AuthorityContext {
 	personId: Id<'people'>;
 	circleId: Id<'circles'>;
-	circleType: CircleType;
+	leadAuthority: LeadAuthority;
 	assignments: Assignment[];
 }
 
@@ -36,22 +36,28 @@ export interface Authority {
 }
 
 /**
- * Policy configuration for a circle type.
+ * Policy configuration for a lead authority level.
  * Defines governance rules based on organizational model.
+ *
+ * SIMPLIFIED: `decisionModel` has been removed as the redundant field
+ * was the source of UI/logic mismatches. The `leadAuthority` value itself
+ * IS the decision model now.
  */
 export interface CirclePolicy {
 	leadRequired: boolean;
 	leadLabel: string;
-	decisionModel: 'lead_decides' | 'consent' | 'consensus';
 	canLeadApproveUnilaterally: boolean;
 	canLeadAssignRoles: boolean;
 	coreRoles: string[];
 }
 
-// Re-export CircleType from circles domain (canonical source)
-export type { CircleType } from '../circles';
+// Re-export LeadAuthority from circles domain (canonical source)
+export type { LeadAuthority } from '../circles';
 
 /**
  * Authority level for different organizational contexts.
+ *
+ * ALIGNED with LeadAuthority: Since leadAuthority IS the authority level,
+ * these values are now identical. Consider using LeadAuthority directly.
  */
-export type AuthorityLevel = 'authority' | 'facilitative' | 'convening';
+export type AuthorityLevel = 'decides' | 'facilitates' | 'convenes';

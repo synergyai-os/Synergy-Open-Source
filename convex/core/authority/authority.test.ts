@@ -40,11 +40,11 @@ const stewardAssignment: Assignment = {
 };
 
 describe('calculateAuthority', () => {
-	test('Hierarchy Circle Lead', () => {
+	test('Decides Circle Lead', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'hierarchy',
+			leadAuthority: 'decides',
 			assignments: [leadAssignment]
 		};
 
@@ -57,11 +57,11 @@ describe('calculateAuthority', () => {
 		expect(authority.canFacilitate).toBe(true);
 	});
 
-	test('Hierarchy Member (not lead)', () => {
+	test('Decides Member (not lead)', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'hierarchy',
+			leadAuthority: 'decides',
 			assignments: [memberAssignment]
 		};
 
@@ -74,11 +74,11 @@ describe('calculateAuthority', () => {
 		expect(authority.canFacilitate).toBe(false);
 	});
 
-	test('Empowered Team Member', () => {
+	test('Facilitates Team Member', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'empowered_team',
+			leadAuthority: 'facilitates',
 			assignments: [memberAssignment]
 		};
 
@@ -91,11 +91,11 @@ describe('calculateAuthority', () => {
 		expect(authority.canFacilitate).toBe(false);
 	});
 
-	test('Guild Steward', () => {
+	test('Convenes Steward', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'guild',
+			leadAuthority: 'convenes',
 			assignments: [stewardAssignment]
 		};
 
@@ -112,7 +112,7 @@ describe('calculateAuthority', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'empowered_team',
+			leadAuthority: 'facilitates',
 			assignments: [facilitatorAssignment]
 		};
 
@@ -122,11 +122,11 @@ describe('calculateAuthority', () => {
 		expect(authority.canRaiseObjections).toBe(true);
 	});
 
-	test('Circle Lead Facilitates', () => {
+	test('Circle Lead Always Facilitates', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'hybrid',
+			leadAuthority: 'facilitates',
 			assignments: [leadAssignment]
 		};
 
@@ -139,7 +139,7 @@ describe('calculateAuthority', () => {
 		const ctx: AuthorityContext = {
 			personId,
 			circleId,
-			circleType: 'hierarchy',
+			leadAuthority: 'decides',
 			assignments: []
 		};
 
@@ -158,7 +158,7 @@ describe('calculateAuthority', () => {
 describe('getAuthorityContext', () => {
 	const circle = {
 		_id: circleId,
-		circleType: 'empowered_team' as const,
+		leadAuthority: 'facilitates' as const,
 		workspaceId: 'ws1' as Id<'workspaces'>
 	};
 
@@ -188,16 +188,17 @@ describe('getAuthorityContext', () => {
 
 	function makeCtx(overrides: {
 		circle?: any;
-		userCircleRoles?: any[];
+		assignments?: any[];
 		circleRoles?: Record<string, any>;
 		templates?: Record<string, any>;
 		person?: any;
 	}) {
 		const circleDoc = overrides.circle !== undefined ? overrides.circle : circle;
 		const workspaceId = circleDoc?.workspaceId ?? 'ws1';
-		const userCircleRoles = overrides.userCircleRoles ?? [
-			{ circleRoleId: facilitatorRole._id, archivedAt: undefined },
-			{ circleRoleId: leadRole._id, archivedAt: undefined }
+		// Assignments table data (matches what context.ts queries)
+		const assignmentRows = overrides.assignments ?? [
+			{ roleId: facilitatorRole._id, circleId, personId, status: 'active' },
+			{ roleId: leadRole._id, circleId, personId, status: 'active' }
 		];
 		const circleRoles = overrides.circleRoles ?? {
 			[facilitatorRole._id]: facilitatorRole,
@@ -239,12 +240,14 @@ describe('getAuthorityContext', () => {
 						};
 						return { withIndex };
 					}
-					if (table === 'userCircleRoles') {
+					if (table === 'assignments') {
 						const withIndex = (_name: string, fn: (q: any) => any) => {
 							const q = { eq: () => q };
 							fn(q);
 							return {
-								collect: async () => userCircleRoles
+								filter: () => ({
+									collect: async () => assignmentRows
+								})
 							};
 						};
 						return { withIndex };
@@ -259,7 +262,7 @@ describe('getAuthorityContext', () => {
 		const ctx = makeCtx({});
 		const result = await getAuthorityContext(ctx as any, { personId, circleId });
 
-		expect(result.circleType).toBe('empowered_team');
+		expect(result.leadAuthority).toBe('facilitates');
 		expect(result.assignments).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({ roleId: facilitatorRole._id, roleType: 'core' }),
@@ -278,7 +281,7 @@ describe('getAuthorityContext', () => {
 			archivedAt: undefined
 		};
 		const ctx = makeCtx({
-			userCircleRoles: [{ circleRoleId: customRole._id, archivedAt: undefined }],
+			assignments: [{ roleId: customRole._id, circleId, personId, status: 'active' }],
 			circleRoles: { [customRole._id]: customRole },
 			templates: {}
 		});

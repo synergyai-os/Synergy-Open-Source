@@ -18,8 +18,8 @@ export const sidebarIconButtonRecipe = cva(
 	{
 		variants: {
 			size: {
-				sm: 'p-1', // 4px padding - very compact
-				md: 'py-menu-item px-menu-item' // Default - 8px padding
+				sm: 'p-0-5', // 4px padding - very compact
+				md: 'px-button-sm py-button-sm' // Default - 8px padding
 			}
 		},
 		defaultVariants: {

@@ -106,7 +106,7 @@
 			await workspaces.createWorkspace({ name: newWorkspaceName.trim() });
 			showCreateWorkspaceDialog = false;
 			newWorkspaceName = '';
-		} catch (error) {
+		} catch (_error) {
 			// Error handling is done in the mutation handler (toast shown)
 			// Keep dialog open so user can retry
 		}
@@ -845,6 +845,7 @@
 								iconType="settings"
 								label="Admin"
 								title="Admin"
+								preloadData="off"
 								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 							/>
 							<CleanReadwiseButton />
@@ -1218,6 +1219,7 @@
 							iconType="settings"
 							label="Admin"
 							title="Admin"
+							preloadData="off"
 							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 						/>
 						<CleanReadwiseButton />

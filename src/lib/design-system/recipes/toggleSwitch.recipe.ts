@@ -11,9 +11,9 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * - disabled: Controls opacity and cursor
  *
  * Note: Toggle switch dimensions and thumb transforms use inline styles
- * because they're component-specific and don't have semantic tokens.
- * Background colors use inline styles with CSS variables because
- * bg-component-toggle-off/on utilities don't exist.
+ * since these values are specific to this component and lack semantic tokens.
+ * Background colors use inline styles with CSS variables since
+ * bg-component-toggle-off/on utilities are not available.
  */
 export const toggleSwitchRecipe = cva(
 	// Base classes - applied to all toggle switches

@@ -9,7 +9,7 @@
 		name?: string;
 		email: string;
 		avatarImage?: string;
-		scope?: string; // User-level scope (displayed below user name)
+		scope?: string; // Person-level scope (displayed below person name)
 		selected?: boolean;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
 		onClick?: () => void;

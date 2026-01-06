@@ -237,8 +237,9 @@ export const createAndSendVerificationCode = action({
 
 		// 2. Send verification email (skip in E2E test mode for performance)
 		// E2E tests use the test helper endpoint to retrieve codes
-		// Check both skipEmail parameter (from SvelteKit server) and process.env (for backwards compatibility)
-		const shouldSkipEmail = args.skipEmail === true || process.env.E2E_TEST_MODE === 'true';
+		// Trust skipEmail parameter from SvelteKit server - it determines test mode correctly
+		// Do NOT check process.env.E2E_TEST_MODE here - that would affect all requests, not just tests
+		const shouldSkipEmail = args.skipEmail === true;
 
 		if (!shouldSkipEmail) {
 			await ctx.runAction(internal.infrastructure.email.sendVerificationEmail, {

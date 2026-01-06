@@ -14,7 +14,7 @@ export const roleCardRecipe = cva(
 	// Interactive card with hover feedback
 	// Uses card padding (24px horizontal) for adequate spacing
 	// Note: w-full is applied at component level (layout class, not styling)
-	'flex items-center gap-button text-left transition-colors px-card-padding py-stack-item',
+	'flex items-center gap-button text-left transition-colors card-padding py-stack-item',
 	{
 		variants: {
 			variant: {

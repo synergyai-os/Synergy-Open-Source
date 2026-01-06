@@ -1,6 +1,6 @@
 import { calculateAuthority } from '../../core/authority';
 import { isLeadTemplate } from '../../core/roles/rules';
-import { CIRCLE_TYPES } from '../../core/circles';
+import { DEFAULT_LEAD_AUTHORITY, type LeadAuthority } from '../../core/circles';
 import { internalQuery } from '../../_generated/server';
 import { findOperationalWorkspaces, makeResult, type InvariantResult } from './types';
 
@@ -238,7 +238,7 @@ export const checkAUTH04 = internalQuery({
 				const result = calculateAuthority({
 					personId: actorId,
 					circleId: circle._id,
-					circleType: circle.circleType ?? CIRCLE_TYPES.HIERARCHY,
+					leadAuthority: (circle.leadAuthority ?? DEFAULT_LEAD_AUTHORITY) as LeadAuthority,
 					assignments: contextAssignments
 				});
 

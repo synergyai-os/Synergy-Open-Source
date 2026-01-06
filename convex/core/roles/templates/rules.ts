@@ -64,13 +64,27 @@ export async function updateLeadRolesFromTemplate(
 		.collect();
 
 	const now = Date.now();
+	const nextPurpose =
+		typeof (template as { defaultPurpose?: unknown }).defaultPurpose === 'string'
+			? ((template as { defaultPurpose: string }).defaultPurpose ?? '')
+			: '';
+	const nextDecisionRights = Array.isArray(
+		(template as { defaultDecisionRights?: unknown }).defaultDecisionRights
+	)
+		? ((template as { defaultDecisionRights: string[] }).defaultDecisionRights ?? [])
+		: [];
 
 	for (const role of roles) {
 		const oldRole = { ...role };
 
 		await ctx.db.patch(role._id, {
 			name: template.name,
-			purpose: template.description,
+			// DR-011: Governance fields come from template defaults, not description/custom fields.
+			// Only patch if defaults are present; otherwise keep existing values.
+			...(nextPurpose.trim() ? { purpose: nextPurpose.trim() } : {}),
+			...(nextDecisionRights.length > 0
+				? { decisionRights: nextDecisionRights.map((r) => r.trim()).filter(Boolean) }
+				: {}),
 			updatedAt: now,
 			updatedByPersonId: personId
 		});

@@ -7,8 +7,8 @@ export type {
 	AuthorityLevel
 } from './types';
 
-// Re-export CircleType from canonical source
-export type { CircleType } from '../circles';
+// Re-export LeadAuthority from canonical source
+export type { LeadAuthority } from '../circles';
 
 // Policies
 export { circlePolicies, getPolicy } from './policies';
@@ -18,7 +18,8 @@ export { isCircleLead, isCircleMember, hasRole, isFacilitator } from './rules';
 
 // Calculator helpers
 export {
-	calculateAuthorityLevel,
+	getAuthorityLevel,
+	calculateAuthorityLevel, // @deprecated - use getAuthorityLevel instead
 	calculateAuthority,
 	hasDirectApprovalAuthority,
 	requiresConsentProcess,

@@ -179,7 +179,7 @@ Options:
 import { CIRCLE_TYPES } from '../../core/circles';  // ❌ Infrastructure importing Core
 
 export async function canQuickEdit(ctx, userId, circle) {
-  if (circle.circleType === CIRCLE_TYPES.GUILD) {  // Needs Core constant
+  if (circle.leadAuthority === LEAD_AUTHORITY.CONVENES) {  // Needs Core constant
     return { allowed: false };
   }
 }
@@ -191,7 +191,7 @@ export async function canQuickEdit(ctx, userId, circle) {
 import { CIRCLE_TYPES } from '../circles';  // ✅ Core can import Core
 
 export async function canQuickEdit(ctx, userId, circle) {
-  if (circle.circleType === CIRCLE_TYPES.GUILD) {  // Now allowed
+  if (circle.leadAuthority === LEAD_AUTHORITY.CONVENES) {  // Now allowed
     return { allowed: false };
   }
 }

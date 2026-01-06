@@ -10,7 +10,6 @@
 
 import type { Id, Doc } from '../../_generated/dataModel';
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
-import { createError, ErrorCodes } from '../errors/codes';
 
 /**
  * Check if a field is a custom field (stored in customFieldValues)
@@ -200,46 +199,50 @@ export async function archiveCustomFieldValueBySystemKey(
 }
 
 /**
- * Create customFieldValues from template defaultFieldValues
+ * Create customFieldValues from structured field values
  *
- * This helper is used when core domains (roles, circles) create entities from templates.
- * For each field in template.defaultFieldValues:
+ * Generic helper used when core domains (roles, circles) create entities with custom field values.
+ * Used for OPTIONAL workspace-configurable fields like accountabilities, domains, policies, notes.
+ *
+ * DR-011: Governance fields (purpose, decisionRights) are stored directly on core schema,
+ * NOT in customFieldValues. This function is only for optional fields.
+ *
+ * For each field in fieldValues:
  * 1. Look up customFieldDefinition by systemKey
  * 2. Create one customFieldValues record per value (for searchability)
  * 3. Populate searchText for indexing
- *
- * @see SYOS-960: Update role creation to use customFieldValues
  *
  * @param ctx - Mutation context
  * @param args - Configuration object
  * @param args.workspaceId - Workspace ID
  * @param args.entityType - Entity type ('role' or 'circle')
  * @param args.entityId - Entity ID (role or circle ID as string)
- * @param args.templateDefaultFieldValues - Array of { systemKey, values } from template
+ * @param args.fieldValues - Array of { systemKey, values } for custom fields (NOT governance fields)
  * @param args.createdByPersonId - Person creating the entity
- * @param args.workspacePhase - Workspace phase ('design' | 'active') - validation skipped in design phase (SYOS-996)
- * @throws {Error} If required fields are missing for roles (GOV-02, GOV-03) in active phase
+ * @param args.workspacePhase - Workspace phase (unused - kept for API compatibility)
  */
-export async function createCustomFieldValuesFromTemplate(
+export async function createCustomFieldValues(
 	ctx: { db: { query: any; insert: any } },
 	args: {
 		workspaceId: Id<'workspaces'>;
 		entityType: 'role' | 'circle';
 		entityId: string;
-		templateDefaultFieldValues: Array<{ systemKey: string; values: string[] }>;
+		fieldValues: Array<{ systemKey: string; values: string[] }>;
 		createdByPersonId: Id<'people'>;
 		workspacePhase?: 'design' | 'active';
 	}
 ): Promise<void> {
 	const now = Date.now();
 
-	// Track required fields for validation (GOV-02, GOV-03)
-	const hasRequiredFields = {
-		purpose: false,
-		decision_right: false
-	};
+	for (const fieldDefault of args.fieldValues) {
+		// DR-011: Skip governance fields - they're on schema, not in customFieldValues
+		if (fieldDefault.systemKey === 'purpose' || fieldDefault.systemKey === 'decision_right') {
+			console.warn(
+				`[createCustomFieldValues] Skipping governance field "${fieldDefault.systemKey}" - should be on schema (DR-011)`
+			);
+			continue;
+		}
 
-	for (const fieldDefault of args.templateDefaultFieldValues) {
 		// Look up definition by systemKey
 		const definition = await ctx.db
 			.query('customFieldDefinitions')
@@ -249,30 +252,22 @@ export async function createCustomFieldValuesFromTemplate(
 			.first();
 
 		if (!definition) {
-			// Log warning but don't fail - template might reference fields that don't exist yet
+			// Log warning but don't fail - field values might reference fields that don't exist yet
 			// TODO: Replace with structured logging before production
 			console.warn(
-				`[createCustomFieldValuesFromTemplate] Definition not found for systemKey "${fieldDefault.systemKey}" in workspace ${args.workspaceId}`
+				`[createCustomFieldValues] Definition not found for systemKey "${fieldDefault.systemKey}" in workspace ${args.workspaceId}`
 			);
 			continue;
 		}
 
-		// Track if we have required fields
-		if (fieldDefault.systemKey === 'purpose' && fieldDefault.values.length > 0) {
-			hasRequiredFields.purpose = true;
-		}
-		if (fieldDefault.systemKey === 'decision_right' && fieldDefault.values.length > 0) {
-			hasRequiredFields.decision_right = true;
-		}
-
-		// Create one record per value (for searchability per SYOS-960)
+		// Create one record per value (for searchability)
 		for (const value of fieldDefault.values) {
 			await ctx.db.insert('customFieldValues', {
 				workspaceId: args.workspaceId,
 				definitionId: definition._id,
 				entityType: args.entityType,
 				entityId: args.entityId,
-				value, // Plain string - no JSON encoding needed (SYOS-963)
+				value, // Plain string - no JSON encoding needed
 				searchText: value, // Plain string for search indexing
 				createdByPersonId: args.createdByPersonId,
 				createdAt: now,
@@ -281,18 +276,5 @@ export async function createCustomFieldValuesFromTemplate(
 			});
 		}
 	}
-
-	// Validate required fields for roles (GOV-02, GOV-03)
-	// Only enforce during active phase - design phase allows incomplete roles (SYOS-996)
-	if (args.entityType === 'role' && args.workspacePhase !== 'design') {
-		if (!hasRequiredFields.purpose) {
-			throw createError(ErrorCodes.VALIDATION_REQUIRED_FIELD, 'GOV-02: Role purpose is required');
-		}
-		if (!hasRequiredFields.decision_right) {
-			throw createError(
-				ErrorCodes.VALIDATION_REQUIRED_FIELD,
-				'GOV-03: Role must have at least one decision right'
-			);
-		}
-	}
+	// DR-011: GOV-02, GOV-03 validation is now at the schema level (roles/mutations.ts)
 }

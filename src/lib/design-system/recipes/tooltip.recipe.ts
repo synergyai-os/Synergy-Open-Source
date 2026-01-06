@@ -35,7 +35,7 @@ export const tooltipTriggerRecipe = cva(
 
 export const tooltipContentRecipe = cva(
 	// Base classes - Tooltip content
-	'rounded-button border border-base bg-elevated px-button-sm-x py-button-sm-y text-button text-primary shadow-card z-50',
+	'rounded-button border border-base bg-elevated px-button-sm py-button-sm text-button text-primary shadow-card',
 	{
 		variants: {},
 		defaultVariants: {}
