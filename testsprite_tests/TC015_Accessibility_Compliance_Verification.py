@@ -264,7 +264,7 @@ async def run_test():
         await expect(frame.locator('text=Email *').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Password *').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Sign in').first).to_be_visible(timeout=30000)
-        await expect(frame.locator('text=SynergyOS - The Open-Source Product OS').first).to_be_visible(timeout=30000)
+        await expect(frame.locator('text=SynergyOS - The Product OS').first).to_be_visible(timeout=30000)
         await asyncio.sleep(5)
     
     finally:

@@ -244,7 +244,7 @@
 </script>
 
 <svelte:head>
-	<title>SynergyOS Documentation - The Open-Source Product OS</title>
+	<title>SynergyOS Documentation - The Product OS</title>
 </svelte:head>
 
 <!-- Navbar -->
@@ -524,8 +524,8 @@
 			{/if}
 			{#if heroVisible}
 				<p class="hero-description" in:fly={{ y: 20, duration: 300, delay: 200, easing: quintOut }}>
-					The open-source Product OS for teams who want to accelerate the smart use of AI. Built in
-					public, documented transparently, powered by community.
+					The Product OS for teams who want to accelerate the smart use of AI. Built in public,
+					documented transparently, powered by community.
 				</p>
 			{/if}
 
@@ -788,7 +788,7 @@
 			<div class="community-text">
 				<h2 class="section-title">Join the Community</h2>
 				<p class="section-description">
-					Built by developers, for developers. Open source, transparent metrics, and a marketplace
+					Built by developers, for developers. Transparent metrics, privacy-first, and a marketplace
 					where builders earn 80%.
 				</p>
 				<div class="community-actions">
@@ -855,8 +855,8 @@
 			<div class="footer-section footer-about">
 				<h3 class="footer-title">SynergyOS</h3>
 				<p class="footer-description">
-					The open-source Product OS for teams who want to accelerate the smart use of AI. Built in
-					public with transparent metrics and AI-generated documentation.
+					The Product OS for teams who want to accelerate the smart use of AI. Built in public with
+					transparent metrics and AI-generated documentation.
 				</p>
 				<a
 					href="https://github.com/synergyai-os/Synergy-Open-Source"

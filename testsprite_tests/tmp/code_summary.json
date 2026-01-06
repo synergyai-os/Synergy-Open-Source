@@ -1,6 +1,6 @@
 {
 	"project_name": "SynergyOS",
-	"description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
+	"description": "The Product OS - A privacy-first platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
 	"tech_stack": {
 		"frontend": {
 			"framework": "SvelteKit 5",

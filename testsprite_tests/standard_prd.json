@@ -4,14 +4,14 @@
 		"date": "2025-11-12",
 		"prepared_by": "Product Team"
 	},
-	"product_overview": "SynergyOS is an open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It aims to streamline organizational workflows for product teams by combining content aggregation, learning tools, and real-time collaboration, all while ensuring privacy and customization.",
+	"product_overview": "SynergyOS is a privacy-first platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It aims to streamline organizational workflows for product teams by combining content aggregation, learning tools, and real-time collaboration, all while ensuring privacy and customization.",
 	"core_goals": [
 		"Create a unified platform that consolidates product discovery, delivery, and team collaboration to reduce tool fragmentation.",
 		"Enhance team learning and knowledge retention through AI-powered flashcard generation and spaced repetition.",
 		"Provide a rich note-taking experience with AI content detection and markdown export capabilities.",
 		"Ensure secure, scalable authentication and permission management with WorkOS and RBAC.",
 		"Offer a seamless user experience with real-time updates, accessibility compliance, and responsive design.",
-		"Support community-driven development with open source architecture and self-hosting capabilities."
+		"Support community-driven development with privacy-first architecture and self-hosting capabilities."
 	],
 	"key_features": [
 		"Universal Inbox to collect and organize content from multiple sources including Readwise, photos, and manual entries with real-time updates and keyboard navigation.",
@@ -40,7 +40,7 @@
 	],
 	"code_summary": {
 		"project_name": "SynergyOS",
-		"description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
+		"description": "The Product OS - A privacy-first platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
 		"tech_stack": {
 			"frontend": {
 				"framework": "SvelteKit 5",

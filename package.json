@@ -2,7 +2,7 @@
 	"name": "synergyos",
 	"private": false,
 	"version": "0.1.0",
-	"description": "Open Source Knowledge Retention System - Transform content into actionable knowledge",
+	"description": "The Product OS - Privacy-first platform for product teams integrating discovery, delivery, and AI coaching",
 	"type": "module",
 	"engines": {
 		"node": ">=22.0.0"

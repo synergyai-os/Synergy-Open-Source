@@ -275,6 +275,15 @@ export const touchSession = mutation({
 			return null;
 		}
 
+		// Only update if the new lastSeenAt is newer than the current one
+		// This makes the mutation idempotent and prevents unnecessary conflicts
+		// when multiple requests touch the session concurrently
+		const currentLastSeenAt = record.lastSeenAt ?? record.createdAt;
+		if (args.lastSeenAt <= currentLastSeenAt) {
+			// No update needed - another concurrent call already updated with a newer timestamp
+			return { success: true, skipped: true };
+		}
+
 		await ctx.db.patch(record._id, {
 			lastSeenAt: args.lastSeenAt,
 			ipAddress: args.ipAddress ?? record.ipAddress,

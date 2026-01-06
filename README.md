@@ -4,7 +4,7 @@
 
 # Synopsis
 
-Open Source Knowledge Retention System - Transform content into actionable knowledge
+The Product OS - Privacy-first platform for product teams integrating discovery, delivery, and AI coaching
 
 ## Development Setup
 

@@ -52,19 +52,19 @@
 		}
 	];
 
-	// Key differentiators - Open Source + Community
+	// Key differentiators
 	const differentiators = [
 		{
-			emoji: '🌍',
-			title: '100% Open Source',
+			emoji: '🔐',
+			title: 'Privacy-First',
 			description:
-				'Audit the code. Self-host. Customize. Export your data anytime. No vendor lock-in. No expensive licenses.'
+				'Self-hosted or cloud. Bring-your-own AI (OpenAI, Claude, local LLMs). Export your data anytime. Your data, your control.'
 		},
 		{
 			emoji: '👥',
 			title: 'Built by a Community',
 			description:
-				'Not a company selling software. A community of builders creating the tool we all need. Contribute code, ideas, feedback.'
+				'Not a company selling software. A community of builders creating the tool we all need. Contribute ideas and feedback.'
 		},
 		{
 			emoji: '📚',
@@ -73,19 +73,19 @@
 				"We're figuring out AI-era product development together. Transparent. No hidden mistakes. Follow the journey."
 		},
 		{
-			emoji: '🔐',
-			title: 'Privacy-First',
+			emoji: '🎯',
+			title: 'Outcome-Driven by Design',
 			description:
-				'Self-hosted or cloud. Offline-first. Bring-your-own AI (OpenAI, Claude, local LLMs). Your data, your control.'
+				'Not just flexible—opinionated. Built-in frameworks for OKRs, discovery, and delivery. Guides you to work better.'
 		}
 	];
 </script>
 
 <svelte:head>
-	<title>SynergyOS - The Open-Source Product OS</title>
+	<title>SynergyOS - The Product OS</title>
 	<meta
 		name="description"
-		content="The open-source platform that product teams wish existed—integrating discovery, delivery, collaboration, and AI coaching. Privacy-first, community-driven."
+		content="The platform product teams wish existed—integrating discovery, delivery, collaboration, and AI coaching. Privacy-first, community-driven."
 	/>
 </svelte:head>
 
@@ -109,20 +109,16 @@
 				}}
 			>
 				<div class="trust-badge">
-					<svg class="trust-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-						<path
-							d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
-						/>
-					</svg>
-					<span>100% Open Source</span>
-				</div>
-				<div class="trust-badge">
 					<span>🚀</span>
 					<span>Built with AI</span>
 				</div>
 				<div class="trust-badge">
 					<span>🔐</span>
 					<span>Privacy-First</span>
+				</div>
+				<div class="trust-badge">
+					<span>📤</span>
+					<span>Export Anytime</span>
 				</div>
 			</div>
 
@@ -136,7 +132,7 @@
 					easing: quintOut
 				}}
 			>
-				The <span class="gradient-text-enhanced">Open-Source Product OS</span>
+				The <span class="gradient-text-enhanced">Product OS</span>
 			</h1>
 
 			<!-- Subheading -->
@@ -166,19 +162,6 @@
 				<a href="#waitlist" class="cta-primary">
 					<span>Build With Us</span>
 					<span class="cta-badge">Join Builders</span>
-				</a>
-				<a
-					href="https://github.com/synergyai-os/Synergy-Open-Source"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="cta-secondary"
-				>
-					<svg class="github-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-						<path
-							d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
-						/>
-					</svg>
-					<span>View on GitHub</span>
 				</a>
 			</div>
 		</div>
@@ -804,12 +787,12 @@
 						<span class="social-proof-text"><strong>{waitlistCount}</strong> builders joined</span>
 					</div>
 					<div class="social-proof-item">
-						<span class="social-proof-icon">⭐</span>
-						<span class="social-proof-text"><strong>100%</strong> open source</span>
-					</div>
-					<div class="social-proof-item">
 						<span class="social-proof-icon">🔒</span>
 						<span class="social-proof-text"><strong>Privacy</strong> first</span>
+					</div>
+					<div class="social-proof-item">
+						<span class="social-proof-icon">📤</span>
+						<span class="social-proof-text"><strong>Export</strong> anytime</span>
 					</div>
 				</div>
 
@@ -860,12 +843,12 @@
 				<div class="footer-section">
 					<h3 class="footer-title text-primary">SynergyOS</h3>
 					<p class="footer-description text-secondary">
-						The Open-Source Product OS.<br />
+						The Product OS.<br />
 						Built by builders, for builders.
 					</p>
 					<div class="footer-badges">
-						<span class="footer-badge bg-elevated text-secondary">100% Open Source</span>
 						<span class="footer-badge bg-elevated text-secondary">Privacy-First</span>
+						<span class="footer-badge bg-elevated text-secondary">Export Anytime</span>
 					</div>
 				</div>
 

@@ -13,7 +13,7 @@ Build the organizational platform that product teams wish existed—one that emb
 
 ### Product Description
 
-SynergyOS is an open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It combines the organizational capabilities of Holaspirit, the documentation power of Notion, and the AI assistance of ChatGPT—but privacy-first, community-driven, and built specifically for product teams.
+SynergyOS is a privacy-first platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It combines the organizational capabilities of Holaspirit, the documentation power of Notion, and the AI assistance of ChatGPT—but privacy-first, community-driven, and built specifically for product teams.
 
 ---
 
@@ -429,7 +429,7 @@ Software companies need:
 
 - Must work offline-first
 - Must support self-hosting
-- Must be open source
+- Must be privacy-first
 - Must use Convex for backend
 - Must use SvelteKit for frontend
 
