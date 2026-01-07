@@ -90,16 +90,6 @@ export async function isLeadRole(
 	return isLeadTemplate(template);
 }
 
-export async function isWorkspaceAdmin(
-	ctx: QueryCtx | MutationCtx,
-	workspaceId: Id<'workspaces'>,
-	personId: Id<'people'>
-): Promise<boolean> {
-	const person = await requireActivePerson(ctx, personId);
-	if (person.workspaceId !== workspaceId) return false;
-	return person.workspaceRole === 'owner' || person.workspaceRole === 'admin';
-}
-
 export async function countLeadRolesInCircle(
 	ctx: QueryCtx | MutationCtx,
 	circleId: Id<'circles'>

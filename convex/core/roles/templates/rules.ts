@@ -4,16 +4,6 @@ import { recordUpdateHistory } from '../../history';
 import { requireActivePerson } from '../../people/rules';
 import { ROLE_TYPES } from '../constants';
 
-export async function isWorkspaceAdmin(
-	ctx: QueryCtx | MutationCtx,
-	workspaceId: Id<'workspaces'>,
-	personId: Id<'people'>
-): Promise<boolean> {
-	const person = await requireActivePerson(ctx, personId);
-	if (person.workspaceId !== workspaceId) return false;
-	return person.workspaceRole === 'owner' || person.workspaceRole === 'admin';
-}
-
 /**
  * Returns the Lead role template (roleType: 'circle_lead') for a workspace or system.
  */

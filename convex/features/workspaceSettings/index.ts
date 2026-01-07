@@ -12,29 +12,13 @@ import { internal } from '../../_generated/api';
 import { v } from 'convex/values';
 import { createError, ErrorCodes } from '../../infrastructure/errors/codes';
 import { validateSessionAndGetUserId } from '../../infrastructure/sessionValidation';
+import { findPersonByUserAndWorkspace } from '../../core/people/queries';
+import {
+	requireWorkspacePermission,
+	hasWorkspacePermission
+} from '../../infrastructure/rbac/permissions';
 import type { QueryCtx, MutationCtx } from '../../_generated/server';
 import type { Id } from '../../_generated/dataModel';
-
-/**
- * Helper: Check if user is admin or owner of workspace
- * SYOS-814 Phase 2: Migrated to use people table
- */
-async function isWorkspaceAdmin(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>,
-	workspaceId: Id<'workspaces'>
-): Promise<boolean> {
-	const person = await ctx.db
-		.query('people')
-		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
-		.first();
-
-	if (!person || person.status !== 'active') {
-		return false;
-	}
-
-	return person.workspaceRole === 'owner' || person.workspaceRole === 'admin';
-}
 
 /**
  * Query: Get workspace settings
@@ -68,12 +52,19 @@ export const getOrganizationSettings = query({
 			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
 			.first();
 
+		// Check if user has permission to manage workspace settings
+		const canManageSettings = await hasWorkspacePermission(
+			ctx,
+			person._id,
+			'workspaces.settings.update'
+		);
+
 		if (!settings) {
 			return {
 				_id: null,
 				workspaceId: args.workspaceId,
 				hasClaudeKey: false,
-				isAdmin: person.workspaceRole === 'owner' || person.workspaceRole === 'admin'
+				isAdmin: canManageSettings
 			};
 		}
 
@@ -81,7 +72,7 @@ export const getOrganizationSettings = query({
 			_id: settings._id,
 			workspaceId: settings.workspaceId,
 			hasClaudeKey: !!settings.claudeApiKey,
-			isAdmin: person.workspaceRole === 'owner' || person.workspaceRole === 'admin'
+			isAdmin: canManageSettings
 		};
 	}
 });
@@ -99,15 +90,15 @@ export const updateOrganizationClaudeApiKey = action({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user is admin (actions can't access db, need to run query)
-		const settings = await ctx.runQuery(internal.features.workspaceSettings.checkAdminAccess, {
+		// Verify user has permission (actions can't access db, need to run query)
+		const access = await ctx.runQuery(internal.features.workspaceSettings.checkAdminAccess, {
 			userId: userId,
 			workspaceId: args.workspaceId
 		});
-		if (!settings?.isAdmin) {
+		if (!access?.hasPermission) {
 			throw createError(
 				ErrorCodes.WORKSPACE_ACCESS_DENIED,
-				'Only workspace admins can update settings'
+				'You do not have permission to update workspace settings'
 			);
 		}
 
@@ -142,7 +133,7 @@ export const updateOrganizationClaudeApiKey = action({
 });
 
 /**
- * Internal query: Check if user is admin of workspace
+ * Internal query: Check if user has permission to manage workspace settings
  */
 export const checkAdminAccess = internalQuery({
 	args: {
@@ -150,8 +141,16 @@ export const checkAdminAccess = internalQuery({
 		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
-		const isAdmin = await isWorkspaceAdmin(ctx, args.userId, args.workspaceId);
-		return { isAdmin };
+		const person = await findPersonByUserAndWorkspace(ctx, args.userId, args.workspaceId);
+		if (!person) {
+			return { hasPermission: false };
+		}
+		const hasPermission = await hasWorkspacePermission(
+			ctx,
+			person._id,
+			'workspaces.settings.update'
+		);
+		return { hasPermission };
 	}
 });
 
@@ -202,15 +201,13 @@ export const removeOrganizationClaudeApiKey = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		// Verify user is admin
-		const isAdmin = await isWorkspaceAdmin(ctx, userId, args.workspaceId);
-		if (!isAdmin) {
-			throw createError(
-				ErrorCodes.WORKSPACE_ACCESS_DENIED,
-				'Only workspace admins can delete settings'
-			);
+		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+		if (!person) {
+			throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Not a member of this workspace');
 		}
+
+		// Permission check: requires 'workspaces.settings.delete' permission
+		await requireWorkspacePermission(ctx, person._id, 'workspaces.settings.delete');
 
 		const settings = await ctx.db
 			.query('workspaceSettings')
@@ -261,6 +258,13 @@ export const getOrgSettings = query({
 			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
 			.first();
 
+		// Check if user has permission to manage workspace settings
+		const canManageSettings = await hasWorkspacePermission(
+			ctx,
+			person._id,
+			'workspaces.settings.update'
+		);
+
 		// Return defaults if no settings exist
 		if (!orgSettings) {
 			// Default Lead requirement by circle type (SYOS-674)
@@ -276,7 +280,7 @@ export const getOrgSettings = query({
 				requireCircleLeadRole: true, // Deprecated, kept for backward compat
 				leadRequirementByCircleType: defaultLeadRequirement,
 				coreRoleTemplateIds: [],
-				isAdmin: person.workspaceRole === 'owner' || person.workspaceRole === 'admin'
+				isAdmin: canManageSettings
 			};
 		}
 
@@ -291,7 +295,7 @@ export const getOrgSettings = query({
 		return {
 			...orgSettings,
 			leadRequirementByCircleType,
-			isAdmin: person.workspaceRole === 'owner' || person.workspaceRole === 'admin'
+			isAdmin: canManageSettings
 		};
 	}
 });
@@ -317,15 +321,13 @@ export const updateOrgSettings = mutation({
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		// Verify user is admin
-		const isAdmin = await isWorkspaceAdmin(ctx, userId, args.workspaceId);
-		if (!isAdmin) {
-			throw createError(
-				ErrorCodes.WORKSPACE_ACCESS_DENIED,
-				'Only workspace admins can update org chart settings'
-			);
+		const person = await findPersonByUserAndWorkspace(ctx, userId, args.workspaceId);
+		if (!person) {
+			throw createError(ErrorCodes.WORKSPACE_ACCESS_DENIED, 'Not a member of this workspace');
 		}
+
+		// Permission check: requires 'workspaces.settings.update' permission
+		await requireWorkspacePermission(ctx, person._id, 'workspaces.settings.update');
 
 		// Find existing settings
 		const existing = await ctx.db

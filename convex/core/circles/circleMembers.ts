@@ -8,7 +8,8 @@ import {
 } from './circleAccess';
 import { requireCircle } from './rules';
 import { getPersonById } from '../people/queries';
-import { getPersonEmail, isWorkspaceAdmin } from '../people/rules';
+import { getPersonEmail } from '../people/rules';
+import { hasWorkspacePermission } from '../../infrastructure/rbac/permissions';
 
 export async function getCircleMembers(
 	ctx: QueryCtx,
@@ -75,16 +76,28 @@ export async function addCircleMember(
 	await ensureWorkspacePersonNotArchived(ctx, circle.workspaceId, args.memberPersonId);
 
 	// Authorization:
-	// - Workspace admins/owners can add circle members even if they are not already in the circle.
-	// - Otherwise, require the actor to already be a circle member.
-	const actorIsWorkspaceAdmin = await isWorkspaceAdmin(ctx, actingPersonId);
-	if (!actorIsWorkspaceAdmin) {
-		await ensureCircleMembership(
+	// - Circle members can add other members (existing behavior)
+	// - Users with 'circles.members.manage' permission can add members to any circle (admin override)
+	const isCircleMember = await ctx.db
+		.query('circleMembers')
+		.withIndex('by_circle_person', (q) =>
+			q.eq('circleId', args.circleId).eq('personId', actingPersonId)
+		)
+		.first();
+
+	if (!isCircleMember) {
+		// Not a circle member - check if they have admin override permission
+		const hasPermission = await hasWorkspacePermission(
 			ctx,
-			args.circleId,
 			actingPersonId,
-			ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER
+			'circles.members.manage'
 		);
+		if (!hasPermission) {
+			throw createError(
+				ErrorCodes.AUTHZ_NOT_CIRCLE_MEMBER,
+				'You must be a circle member or have circles.members.manage permission to add members'
+			);
+		}
 	}
 
 	const existingMembership = await ctx.db

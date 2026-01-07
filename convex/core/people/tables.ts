@@ -11,7 +11,18 @@ export const peopleTable = defineTable({
 	// Workspace-specific profile
 	displayName: v.optional(v.string()), // Workspace-specific name
 
-	// Workspace role (for workspace-level RBAC)
+	/**
+	 * @deprecated LEGACY FIELD - Use RBAC workspaceRoles table + permission checks instead.
+	 *
+	 * This field is kept for:
+	 * - Display purposes (e.g., showing "Admin" badge in UI)
+	 * - Backward compatibility during migration
+	 *
+	 * For authorization checks, use permission-first pattern:
+	 * @example await requireWorkspacePermission(ctx, personId, 'workspaces.activate');
+	 *
+	 * See: architecture.md → Permission-First Authorization
+	 */
 	workspaceRole: v.union(v.literal('owner'), v.literal('admin'), v.literal('member')),
 
 	// Lifecycle

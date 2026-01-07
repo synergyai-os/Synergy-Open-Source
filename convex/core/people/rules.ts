@@ -37,11 +37,39 @@ export function canPersonBeArchived(person: PersonDoc): boolean {
 	return person.status !== 'archived';
 }
 
+/**
+ * @deprecated LEGACY HELPER - Use RBAC permission checks instead.
+ *
+ * Checks the LEGACY people.workspaceRole field, not the new RBAC workspaceRoles table.
+ *
+ * Only use this for:
+ * - Display logic (e.g., showing "Owner" badge in UI)
+ * - Simple admin gates (rare exceptions)
+ *
+ * For authorization checks, use permission-first pattern:
+ * @example await requireWorkspacePermission(ctx, personId, 'workspaces.activate');
+ *
+ * See: architecture.md → Permission-First Authorization
+ */
 export async function isWorkspaceOwner(ctx: AnyCtx, personId: Id<'people'>): Promise<boolean> {
 	const person = await requireActivePerson(ctx, personId);
 	return person.workspaceRole === 'owner';
 }
 
+/**
+ * @deprecated LEGACY HELPER - Use RBAC permission checks instead.
+ *
+ * Checks the LEGACY people.workspaceRole field, not the new RBAC workspaceRoles table.
+ *
+ * Only use this for:
+ * - Display logic (e.g., showing "Admin" badge in UI)
+ * - Simple admin gates (rare exceptions)
+ *
+ * For authorization checks, use permission-first pattern:
+ * @example await requireWorkspacePermission(ctx, personId, 'workspaces.activate');
+ *
+ * See: architecture.md → Permission-First Authorization
+ */
 export async function isWorkspaceAdmin(ctx: AnyCtx, personId: Id<'people'>): Promise<boolean> {
 	const person = await requireActivePerson(ctx, personId);
 	return person.workspaceRole === 'owner' || person.workspaceRole === 'admin';

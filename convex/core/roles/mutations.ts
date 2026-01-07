@@ -24,10 +24,10 @@ import {
 	ensureWorkspaceMembership,
 	ensureWorkspacePersonIsInWorkspace,
 	isLeadRole,
-	isWorkspaceAdmin,
 	requireWorkspacePersonById,
 	requireWorkspacePersonFromSession
 } from './roleAccess';
+import { hasWorkspacePermission } from '../../infrastructure/rbac/permissions';
 import {
 	handleUserCircleRoleCreated,
 	handleUserCircleRoleRemoved,
@@ -127,8 +127,10 @@ async function updateCircleRole(
 
 	const roleIsLead = await isLeadRole(ctx, args.circleRoleId);
 	if (roleIsLead) {
-		const personIsAdmin = await isWorkspaceAdmin(ctx, workspaceId, personId);
-		if (!personIsAdmin) {
+		// Permission check: Only users with 'roles.edit-lead' permission can edit lead roles
+		// (Currently mapped to admin, workspace_admin, org_designer roles)
+		const hasPermission = await hasWorkspacePermission(ctx, personId, 'roles.edit-lead');
+		if (!hasPermission) {
 			throw createError(
 				ErrorCodes.AUTHZ_INSUFFICIENT_RBAC,
 				'Circle roles created from Lead template cannot be edited directly. Only workspace admins can edit Lead roles via the role template.'
