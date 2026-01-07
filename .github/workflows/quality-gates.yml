@@ -35,7 +35,9 @@ jobs:
         run: npm run ci:invariants
         env:
           CONVEX_URL: ${{ secrets.TEST_CONVEX_URL }}
-          CONVEX_AUTH_TOKEN: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          # Use dev deploy key if available, fallback to production key
+          CONVEX_AUTH_TOKEN: ${{ secrets.CONVEX_DEPLOY_KEY_DEV || secrets.CONVEX_DEPLOY_KEY }}
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY_DEV || secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Auth guard (Convex)
         run: npm run guard:auth

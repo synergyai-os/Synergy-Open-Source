@@ -32,6 +32,8 @@ jobs:
         run: npx convex deploy --typecheck disable
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          # CONVEX_URL is inferred from the deploy key, but can be explicitly set
+          CONVEX_URL: ${{ secrets.CONVEX_URL }}
 
       - name: Notify deployment status
         if: always()
