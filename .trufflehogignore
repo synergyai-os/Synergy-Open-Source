@@ -1,0 +1,9 @@
+# TruffleHog ignore file
+# Paths to exclude from secret scanning (one per line)
+
+# Archive directories
+dev-docs/archive
+dev-docs/4-archive
+
+# Note: ai-content-blog directory no longer exists (was a trial feature)
+
